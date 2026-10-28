@@ -1,6 +1,6 @@
 # SQUIRE
 
-[![GitLab pipeline](https://gitlab.example/enterprise-apps/squire/badges/main/pipeline.svg)](https://gitlab.example/enterprise-apps/squire/-/pipelines) [![GitHub CI](https://github.com/waynestate/squire/actions/workflows/ci.yml/badge.svg)](https://github.com/waynestate/squire/actions/workflows/ci.yml)
+[![GitHub CI](https://github.com/waynestate/squire/actions/workflows/ci.yml/badge.svg)](https://github.com/waynestate/squire/actions/workflows/ci.yml)
 
 Checks: `composer ci` (the same command runs on GitLab and GitHub).
 
