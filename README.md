@@ -1,6 +1,17 @@
+<div align="center">
+  <a href="site/index.html"><img src="docs/readme/hero.jpg" width="100%" alt="SQUIRE's front page: the headline SQUIRE and the composer require command beside the squire's satchel, with build.sh, release.sh, health.php and the parity kit hanging as luggage tags from a leather rail."></a>
+</div>
+
 # SQUIRE
 
-[![GitHub CI](https://github.com/waynestate/squire/actions/workflows/ci.yml/badge.svg)](https://github.com/waynestate/squire/actions/workflows/ci.yml)
+<div align="center">
+  <img src="docs/readme/badges/php.svg" alt="php ^8.3">
+  <img src="docs/readme/badges/license.svg" alt="licence MIT">
+  <img src="docs/readme/badges/exit-codes.svg" alt="exit codes 0, 1, 2">
+  <a href="https://github.com/waynestate/squire/actions/workflows/ci.yml"><img src="https://github.com/waynestate/squire/actions/workflows/ci.yml/badge.svg" alt="GitHub CI"></a>
+</div>
+
+**Suits you up for deploy day.** A squire carries the kit, readies the armour and gets the knight on the field.
 
 Checks: `composer ci` (the same command runs on GitLab and GitHub).
 
@@ -11,6 +22,24 @@ SQUIRE is the Citadel kit: build.sh, the release script, the health check, and l
 Front page: [`site/index.html`](site/index.html), a static page you can serve from anywhere.
 
 Status: 0.1, unreleased. This repository is published from Wayne State University's internal GitLab and mirrored to GitHub.
+
+<details>
+<summary>Open the bag: two more cuts of the front page</summary>
+
+<div align="center">
+  <img src="docs/readme/gallery.jpg" width="720" alt="Two cuts of SQUIRE's front page: the riding order of the stack's parts hung as tags on a strap, ending in SQUIRE, and the S-rules that doctor checks, each sewn on as a round patch.">
+</div>
+
+</details>
+
+<details>
+<summary>The kit bag's label: the brand board</summary>
+
+<div align="center">
+  <img src="docs/readme/board.jpg" width="720" alt="SQUIRE's brand board: the satchel mark, lockups, the green, gold and cream palette, type, favicons, and do and don't panels.">
+</div>
+
+</details>
 
 ## What it does
 
@@ -63,6 +92,11 @@ diff, and a file SQUIRE did not write is never touched. A squire polishes the ar
 | `health.php` | Citadel's health check (`["php","health.php"]`): one HTTP request to `/up`, never boots the framework. |
 | `public/up.php` | Raw PHP only: the endpoint that answers `ok`. Laravel has `/up` built in. |
 | `docker-compose.squire.yml`, `.squire/`, `.env.squire.example`, `scripts/parity.sh`, `scripts/parity.ps1` | Local parity. |
+
+<div align="center">
+  <img src="docs/readme/packing-list.svg" width="100%" alt="A leather strap hangs a luggage tag for each file SQUIRE packs: build.sh, deployments/001-first-release.sh, scripts/release.sh, health.php and the parity kit of 11 files. Each tag is stamped Packed, then the satchel's own tag reads From my-app, Holds 15 files.">
+  <br><sub>The packing list for deploy day: each tag lands on the strap and gets its stamp.</sub>
+</div>
 
 Every shell script uses `set -euo pipefail` (`build.sh` uses `set -eu`, because Citadel runs it with `/bin/sh`), prints a
 `[squire] ==> step N: ...` marker for each step, and can be run twice with the same result.
@@ -166,3 +200,26 @@ act as a deploy gate.
 ## Licence
 
 MIT, copyright Wayne State University. A squire carries the armour; the knight still has to show up.
+
+<div align="center">
+
+## The rest of the party
+
+  <a href="https://github.com/waynestate/wayne-ui"><img src="docs/readme/cast/wayneui.png" width="44" alt="WayneUI"></a>
+  <a href="https://github.com/waynestate/creed"><img src="docs/readme/cast/creed.png" width="44" alt="CREED"></a>
+  <a href="https://github.com/waynestate/proctor"><img src="docs/readme/cast/proctor.png" width="44" alt="PROCTOR"></a>
+  <a href="https://github.com/waynestate/sesame"><img src="docs/readme/cast/sesame.png" width="44" alt="SESAME"></a>
+  <a href="https://github.com/waynestate/helmet"><img src="docs/readme/cast/helmet.png" width="44" alt="HELMET"></a>
+  <a href="https://github.com/waynestate/sourdough"><img src="docs/readme/cast/sourdough.png" width="44" alt="Sourdough"></a>
+  <a href="https://github.com/waynestate/squire"><img src="docs/readme/cast/squire.png" width="44" alt="SQUIRE"></a>
+  <a href="https://github.com/waynestate/preflight"><img src="docs/readme/cast/preflight.png" width="44" alt="PREFLIGHT"></a>
+  <a href="https://github.com/waynestate/pinstripe"><img src="docs/readme/cast/pinstripe.png" width="44" alt="Pinstripe"></a>
+  <a href="https://github.com/waynestate/booster"><img src="docs/readme/cast/booster.png" width="44" alt="BOOSTER"></a>
+  <a href="https://github.com/waynestate/rollcall"><img src="docs/readme/cast/rollcall.png" width="44" alt="ROLLCALL"></a>
+  <a href="https://github.com/waynestate/drawbridge"><img src="docs/readme/cast/drawbridge.png" width="44" alt="DRAWBRIDGE"></a>
+  <a href="https://github.com/waynestate/advisor"><img src="docs/readme/cast/advisor.png" width="44" alt="ADVISOR"></a>
+  <a href="https://github.com/waynestate/weld"><img src="docs/readme/cast/weld.png" width="44" alt="WELD"></a>
+
+<sub>A squire is only as good as the party it rides with. Mind the buckle.</sub>
+
+</div>

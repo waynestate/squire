@@ -6,3 +6,5 @@
 /tests export-ignore
 /site export-ignore
 /vendor/
+/docs/readme export-ignore
+/scripts/readme-art export-ignore
