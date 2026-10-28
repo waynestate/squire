@@ -67,6 +67,22 @@ diff, and a file SQUIRE did not write is never touched. A squire polishes the ar
 Every shell script uses `set -euo pipefail` (`build.sh` uses `set -eu`, because Citadel runs it with `/bin/sh`), prints a
 `[squire] ==> step N: ...` marker for each step, and can be run twice with the same result.
 
+## Copies of SQUIRE's templates
+
+Sourdough generates apps that cannot `composer require` SQUIRE from an internal repository (no internal URLs may be
+committed), so it carries a generated copy of SQUIRE's deploy templates instead of writing its own. SQUIRE owns the
+templates; the copy is checked in and verified, never hand-edited.
+
+```
+php bin/export-templates.php --to=templates/squire            # write the copy
+php bin/export-templates.php --to=templates/squire --check    # verify it; exit 1 on drift
+```
+
+The copy holds, for each kind (`raw`, `laravel`), the files a new app gets from `squire init`, at their target paths,
+with each file's mode recorded so executables stay executable. `catalog.json` lists which files each kind installs and
+where; `manifest.json` records the SQUIRE version and a SHA-256 per file. Refresh the copy when SQUIRE's templates move
+on, and run `--check` in CI to keep it honest. A squire keeps the armour polished; the copy stays in step.
+
 ## Citadel setup
 
 1. In the dashboard set the build script to `build.sh`, the health check to `["php","health.php"]`, and the Quick Update
