@@ -1,0 +1,31 @@
+# composer ci is the contract: the checks are defined there, and this pipeline only wraps them.
+# SQUIRE's pipeline, built from the PREFLIGHT components on this GitLab.
+# Pinned to PREFLIGHT 0.1.0. Never use ~latest.
+# SQUIRE requires PHP ^8.3, so the test matrix starts at 8.3.
+include:
+  - component: $CI_SERVER_FQDN/enterprise-apps/preflight/php-test@0.1.0
+    inputs:
+      php_versions: ["8.3", "8.4", "8.5"]
+  - component: $CI_SERVER_FQDN/enterprise-apps/preflight/composer-audit@0.1.0
+
+composer-ci:
+  image: composer:2.10.3
+  script:
+    - composer install --no-interaction --no-progress --prefer-dist
+    - composer ci
+
+# The shell templates ship to Citadel, so they are linted with the tool made for them (S56).
+# The version is pinned so a new ShellCheck release cannot break the build unannounced.
+shellcheck:
+  image:
+    name: koalaman/shellcheck-alpine:v0.11.0
+    entrypoint: [""]
+  script:
+    - find templates scripts -name '*.sh' -o -path 'templates/common/.squire/fallback/*' -type f | xargs shellcheck --external-sources --severity=style
+
+# PowerShell scripts are linted with PSScriptAnalyzer on PowerShell 7 (Windows PowerShell 5.1 is the floor
+# the scripts are written for; see OPEN_QUESTIONS.md).
+psscriptanalyzer:
+  image: mcr.microsoft.com/powershell:7.4-ubuntu-22.04
+  script:
+    - pwsh -NoProfile -File scripts/lint-powershell.ps1

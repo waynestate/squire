@@ -1,0 +1,22 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use Waynestate\Squire\Console\Application;
+
+// SQUIRE is a Composer package: its autoloader is either its own vendor/ or the host app's.
+$autoloaders = [
+    __DIR__ . '/../vendor/autoload.php',
+    __DIR__ . '/../../../autoload.php',
+];
+
+foreach ($autoloaders as $autoload) {
+    if (is_file($autoload)) {
+        require $autoload;
+        exit((new Application())->run());
+    }
+}
+
+fwrite(STDERR, "vendor/autoload.php not found. Run `composer install` first.\n");
+exit(2);
