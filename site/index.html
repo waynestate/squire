@@ -233,12 +233,10 @@
             <li class="patch patch--fail" style="--i:3"><span class="patch__no">S8</span><span class="patch__txt">No CRLF in shell scripts.</span></li>
             <li class="patch patch--fail" style="--i:4"><span class="patch__no">S9</span><span class="patch__txt">Build, first release and release are three jobs.</span></li>
             <li class="patch patch--fail" style="--i:5"><span class="patch__no">S12</span><span class="patch__txt">Install from the lock file; never update.</span></li>
-            <li class="patch patch--fail" style="--i:6"><span class="patch__no">S13</span><span class="patch__txt"><code>composer.lock</code> is committed.</span></li>
-            <li class="patch patch--warn" style="--i:7"><span class="patch__no">S14</span><span class="patch__txt">The release runs <code>composer audit</code>.</span></li>
+            <li class="patch patch--warn" style="--i:7"><span class="patch__no">S14</span><span class="patch__txt">The release runs <code>proctor check</code>.</span></li>
             <li class="patch patch--fail" style="--i:8"><span class="patch__no">S15</span><span class="patch__txt"><code>auth.json</code> stays out of git.</span></li>
             <li class="patch patch--warn" style="--i:9"><span class="patch__no">S16</span><span class="patch__txt">Laravel runs <code>optimize</code>.</span></li>
             <li class="patch patch--info" style="--i:10"><span class="patch__no">S17</span><span class="patch__txt">Migrations run and stay old-code friendly.</span></li>
-            <li class="patch patch--warn" style="--i:11"><span class="patch__no">S18</span><span class="patch__txt">No JSON columns on MySQL 5.6.</span></li>
             <li class="patch patch--warn" style="--i:12"><span class="patch__no">S19</span><span class="patch__txt">Refuses to run as root.</span></li>
             <li class="patch patch--fail" style="--i:13"><span class="patch__no">S20</span><span class="patch__txt">PROCTOR is a report, never a bare command.</span></li>
             <li class="patch patch--warn" style="--i:14"><span class="patch__no">S21</span><span class="patch__txt">The release requests <code>/up</code> at the end.</span></li>
@@ -248,6 +246,7 @@
             <li class="patch patch--warn" style="--i:18"><span class="patch__no">S37</span><span class="patch__txt">Locally, MySQL 5.6.</span></li>
             <li class="patch patch--fail" style="--i:19"><span class="patch__no">S41</span><span class="patch__txt">The Docker socket is not mounted.</span></li>
             <li class="patch patch--warn" style="--i:20"><span class="patch__no">S42</span><span class="patch__txt"><code>.env</code> files stay out of git.</span></li>
+            <li class="patch patch--info" style="--i:21"><span class="patch__no">S50</span><span class="patch__txt">Lock file, audit and MySQL 5.6 are PROCTOR's: run <code>proctor check</code>.</span></li>
             <li class="patch patch--fail" style="--i:21"><span class="patch__no">S55</span><span class="patch__txt">The health check never boots the framework.</span></li>
             <li class="patch patch--warn" style="--i:22"><span class="patch__no">S57</span><span class="patch__txt">npm installs with <code>--ignore-scripts</code>.</span></li>
             <li class="patch patch--warn" style="--i:23"><span class="patch__no">S67</span><span class="patch__txt">Images pinned by digest.</span></li>
@@ -263,7 +262,7 @@
 <p class="term__cmd"><span class="t-dim">$ </span>vendor/bin/squire doctor</p>
 <p><span class="t-ok">PASS</span> S1   build.sh runs no composer or npm commands. <span class="t-dim">[build.sh]</span></p>
 <p><span class="t-ok">PASS</span> S12  `composer install --no-dev` from the lock file.</p>
-<p><span class="t-ok">PASS</span> S13  composer.lock is present.</p>
+            <p><span class="t-ok">PASS</span> S14  The release script runs proctor check.</p>
 <p><span class="t-ok">PASS</span> S20  PROCTOR runs as a report and cannot stop the release.</p>
 <p><span class="t-ok">PASS</span> S55  health.php is an artisan-free health check. <span class="t-dim">[health.php]</span></p>
 <p><span class="t-gold">WARN</span> S8   .gitattributes does not force LF for shell scripts. Add `*.sh text eol=lf`.</p>
