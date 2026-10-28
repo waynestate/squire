@@ -4,9 +4,14 @@ declare(strict_types=1);
 
 namespace Waynestate\Squire\Tests;
 
+use FilesystemIterator;
 use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SplFileInfo;
 use Waynestate\Squire\Squire;
 use Waynestate\Squire\Template\Catalog;
+use Waynestate\Squire\Template\FileResult;
 use Waynestate\Squire\Template\Initializer;
 
 /**
@@ -73,6 +78,37 @@ abstract class SquireTestCase extends TestCase
         (new Initializer(new Catalog(Squire::templatesDir())))->run($dir, $laravel ? 'laravel' : 'raw', ['release', 'parity'], false, false);
 
         return $dir;
+    }
+
+    /**
+     * @param list<FileResult> $results
+     *
+     * @return array<string, string> destination => state
+     */
+    protected function states(array $results): array
+    {
+        $states = [];
+        foreach ($results as $result) {
+            $states[$result->path] = $result->state;
+        }
+
+        return $states;
+    }
+
+    /** A private copy of the bundled templates, so a test can move a template on. */
+    protected function copyTemplates(): string
+    {
+        $target = $this->tempDir() . '/templates';
+        $source = Squire::templatesDir();
+        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($source, FilesystemIterator::SKIP_DOTS));
+        foreach ($iterator as $file) {
+            if ($file instanceof SplFileInfo && $file->isFile()) {
+                $relative = ltrim(str_replace('\\', '/', substr($file->getPathname(), strlen($source))), '/');
+                $this->put($target, $relative, (string) file_get_contents($file->getPathname()));
+            }
+        }
+
+        return $target;
     }
 
     /**

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Waynestate\Squire\Template;
 
 /**
- * What `init` (or `init --check`) found or did for one file.
+ * What `init`, `init --check` or `update` found or did for one file.
  */
 final readonly class FileResult
 {
@@ -33,15 +33,23 @@ final readonly class FileResult
 
     public const UNTRACKED = 'untracked';
 
+    // Update mode.
+    public const CURRENT = 'current';
+
+    public const RESTORED = 'restored';
+
+    public const EDITED = 'edited, not changed';
+
     public function __construct(
         public string $path,
         public string $state,
         public string $detail,
+        public ?string $diff = null,
     ) {}
 
     /** True when the file matches the current template (or was just made to). */
     public function isCurrent(): bool
     {
-        return in_array($this->state, [self::CREATED, self::UPDATED, self::UNCHANGED, self::OVERWRITTEN, self::OK], true);
+        return in_array($this->state, [self::CREATED, self::UPDATED, self::UNCHANGED, self::OVERWRITTEN, self::OK, self::CURRENT, self::RESTORED], true);
     }
 }

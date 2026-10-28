@@ -67,5 +67,4 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
 - Checks for rules that need a running app or a server (most of the list of S-rules beyond the 26 in `BEST_PRACTICES.md`).
 - A GitLab or GitHub release job; 0.1 is not tagged or published.
 - Templates for apps that are neither raw PHP nor Laravel.
-- An `squire update` that rewrites drifted files interactively; `init --force` is the only way for now.
 - Running the PowerShell scripts on Windows PowerShell 5.1 itself (see question 5) and on macOS.

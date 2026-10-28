@@ -55,6 +55,61 @@ final class ConsoleTest extends SquireTestCase
         self::assertFileDoesNotExist($app . '/docker-compose.squire.yml');
     }
 
+    public function testUpdateExitsTwoWithoutAManifest(): void
+    {
+        $app = $this->app();
+
+        $result = $this->runSquire(['update', '--path=' . $app]);
+
+        self::assertSame(2, $result['exit']);
+        self::assertStringContainsString('Run `squire init` first', $result['stderr']);
+    }
+
+    public function testUpdateBadOptionsExitTwo(): void
+    {
+        $app = $this->initializedApp();
+
+        self::assertSame(2, $this->runSquire(['update', '--target=django', '--path=' . $app])['exit']);
+        self::assertSame(2, $this->runSquire(['update', '--only=nonsense', '--path=' . $app])['exit']);
+        self::assertSame(2, $this->runSquire(['update', '--path=' . $app . '/missing'])['exit']);
+    }
+
+    public function testUpdateExitsZeroWhenEverythingIsCurrent(): void
+    {
+        $app = $this->initializedApp();
+
+        $result = $this->runSquire(['update', '--path=' . $app]);
+
+        self::assertSame(0, $result['exit'], $result['stdout']);
+        self::assertStringContainsString('Target: raw', $result['stdout']);
+        self::assertStringContainsString('RESULT: pass (0 of', $result['stdout']);
+    }
+
+    public function testUpdateLeavesAnEditedFileAloneWhenTheTemplateHasNotChanged(): void
+    {
+        $app = $this->initializedApp();
+        file_put_contents($app . '/build.sh', "edited\n");
+
+        $result = $this->runSquire(['update', '--path=' . $app]);
+
+        self::assertSame(0, $result['exit'], $result['stdout']);
+        self::assertStringContainsString('edited, but the template has not changed', $result['stdout']);
+        self::assertStringContainsString('edited', (string) file_get_contents($app . '/build.sh'));
+    }
+
+    public function testUpdateDryRunWritesNothing(): void
+    {
+        $app = $this->initializedApp();
+        unlink($app . '/scripts/release.sh');
+
+        $result = $this->runSquire(['update', '--dry-run', '--path=' . $app]);
+
+        self::assertSame(0, $result['exit'], $result['stdout']);
+        self::assertStringContainsString('Dry run: nothing will be written.', $result['stdout']);
+        self::assertStringContainsString('restored', $result['stdout']);
+        self::assertFileDoesNotExist($app . '/scripts/release.sh');
+    }
+
     public function testBadOptionsExitTwoNotOne(): void
     {
         $app = $this->app();

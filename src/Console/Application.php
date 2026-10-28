@@ -19,6 +19,7 @@ final class Application extends SymfonyApplication
     {
         parent::__construct(Squire::TOOL, Squire::VERSION);
         $this->add(new InitCommand());
+        $this->add(new UpdateCommand());
         $this->add(new DoctorCommand());
         $this->setCatchExceptions(true);
     }

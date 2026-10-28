@@ -16,6 +16,8 @@ Status: 0.1, unreleased. This repository is published from Wayne State Universit
 
 - `squire init` writes the scripts a Citadel app needs from templates, for raw PHP or Laravel. `squire init --check` reports
   when your copies have drifted from the templates (depend, do not copy).
+- `squire update` takes the new template versions for the files you never edited, and shows a diff for the ones you did.
+  It never overwrites your edits, and it runs the same in CI and on a laptop.
 - `squire doctor` checks an app against the best practices a machine can decide ([BEST_PRACTICES.md](BEST_PRACTICES.md)).
 - A local setup that runs your app on the Citadel PHP image, behind a proxy like Citadel's, with the same MySQL 5.6.
 - SQUIRE's maintainers send platform improvement proposals to the platform team privately. SQUIRE never touches a server.
@@ -35,14 +37,20 @@ is the scripts it wrote.
 
 ```
 vendor/bin/squire init   [--path=.] [--target=auto|raw|laravel] [--only=release|parity] [--check] [--force]
+vendor/bin/squire update [--path=.] [--target=raw|laravel] [--only=release|parity] [--dry-run]
 vendor/bin/squire doctor [--path=.] [--format=text|json]
 ```
 
-Exit codes: `0` pass, `1` findings (`init --check`: drift; `doctor`: a failed rule), `2` the tool itself could not run.
+Exit codes: `0` pass, `1` findings (`init --check`: drift; `update`: an edited file still differs from the template;
+`doctor`: a failed rule), `2` the tool itself could not run.
 
 `init` never overwrites a file you edited, or a file it did not write, unless you pass `--force`. It records a SHA-256 of
 each file in `.squire.json`; commit that file. `--only=release` writes just the Citadel scripts, `--only=parity` just the
 local setup.
+
+`update` reads that record: a file you never edited takes the new template, a file you edited is left alone and shown as a
+diff, and a file SQUIRE did not write is never touched. A squire polishes the armour; the knight keeps the sword.
+`--dry-run` prints the plan and writes nothing.
 
 ## What lands in your app
 
