@@ -14,3 +14,5 @@ Versioning once 1.0 is out.
 - Local parity kit: compose file with digest-pinned HA-Proxy and MySQL 5.6.51 images, `.squire/` build context, a fallback
   base image, `scripts/parity.sh` and `scripts/parity.ps1`.
 - CI for GitLab and GitHub: `composer ci`, shellcheck and PSScriptAnalyzer, run in Docker.
+- `bin/export-templates.php`: export a generated copy of SQUIRE's templates (for Sourdough and other projects that cannot
+  `composer require` SQUIRE), with a `catalog.json` and a `manifest.json`; `--check` verifies the copy and exits 1 on drift.
