@@ -41,6 +41,7 @@ final class InitCommand extends Command
         $check = (bool) $input->getOption('check');
         $force = (bool) $input->getOption('force');
 
+        $layer = null;
         try {
             if (!is_dir($path)) {
                 throw new ToolError(sprintf('Not a directory: %s', $path));
@@ -52,7 +53,8 @@ final class InitCommand extends Command
                 throw new ToolError('--only needs at least one group: release, parity.');
             }
 
-            $results = (new Initializer(new Catalog(Squire::templatesDir())))->run($path, $target, $groups, $force, $check);
+            $layer = Catalog::detectLayer($path);
+            $results = (new Initializer(new Catalog(Squire::templatesDir())))->run($path, $target, $groups, $force, $check, $layer);
         } catch (ToolError $e) {
             $this->errorOutput($output)->writeln($e->getMessage());
 
@@ -72,9 +74,12 @@ final class InitCommand extends Command
         }
 
         $output->writeln(sprintf('Target: %s. Wrote %s.', $target, Squire::MANIFEST));
+        if ($layer !== null) {
+            $output->writeln(sprintf('Layer: %s.', $layer));
+        }
         $executables = array_map(
             static fn(Template $t): string => $t->destination,
-            array_filter((new Catalog(Squire::templatesDir()))->select($target, $groups), static fn(Template $t): bool => $t->executable),
+            array_filter((new Catalog(Squire::templatesDir()))->select($target, $groups, $layer), static fn(Template $t): bool => $t->executable),
         );
         $output->writeln('Next: git update-index --chmod=+x ' . implode(' ', $executables));
         $output->writeln('      (Git on Windows does not record the executable bit; Citadel also marks deployments/ and Quick Update scripts executable.)');

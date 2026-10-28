@@ -161,4 +161,44 @@ final class InitializerTest extends SquireTestCase
         $this->expectException(ToolError::class);
         $this->initializer()->run($this->tempDir() . '/missing', 'raw', ['release'], false, false);
     }
+
+    public function testInitWritesTheVueLayerOnlyWhenVueIsDetected(): void
+    {
+        $plain = $this->app();
+        $this->initializer()->run($plain, 'raw', ['release', 'parity'], false, false, Catalog::detectLayer($plain));
+        self::assertFileDoesNotExist($plain . '/.npmrc');
+
+        $vue = $this->vueApp();
+        $results = $this->initializer()->run($vue, 'raw', ['release', 'parity'], false, false, Catalog::detectLayer($vue));
+        self::assertFileExists($vue . '/.npmrc');
+        self::assertStringContainsString('min-release-age=1', (string) file_get_contents($vue . '/.npmrc'));
+
+        $manifest = Manifest::load($vue);
+        self::assertNotNull($manifest);
+        self::assertSame('vue', $manifest->layer);
+        self::assertArrayHasKey('.npmrc', $manifest->files);
+        self::assertCount(count($results), $manifest->files);
+    }
+
+    public function testInitWritesTheVueLayerForLaravelToo(): void
+    {
+        $app = $this->vueApp(true);
+        $this->initializer()->run($app, 'laravel', ['release', 'parity'], false, false, Catalog::detectLayer($app));
+
+        self::assertFileExists($app . '/.npmrc');
+        self::assertFileDoesNotExist($app . '/public/up.php');
+        self::assertStringContainsString('DB_HOST=mysql', (string) file_get_contents($app . '/.env.squire.example'));
+    }
+
+    public function testRunningVueInitTwiceChangesNothing(): void
+    {
+        $app = $this->vueApp();
+        $this->initializer()->run($app, 'raw', ['release', 'parity'], false, false, Catalog::detectLayer($app));
+        $manifestBefore = (string) file_get_contents($app . '/' . Squire::MANIFEST);
+
+        $second = $this->initializer()->run($app, 'raw', ['release', 'parity'], false, false, Catalog::detectLayer($app));
+
+        self::assertSame([FileResult::UNCHANGED], array_values(array_unique(array_map(static fn(FileResult $r): string => $r->state, $second))));
+        self::assertSame($manifestBefore, (string) file_get_contents($app . '/' . Squire::MANIFEST));
+    }
 }

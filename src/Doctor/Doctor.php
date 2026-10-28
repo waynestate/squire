@@ -12,6 +12,7 @@ use Waynestate\Squire\Doctor\Check\ProctorHandoffCheck;
 use Waynestate\Squire\Doctor\Check\ReleaseScriptCheck;
 use Waynestate\Squire\Doctor\Check\RepositoryCheck;
 use Waynestate\Squire\Doctor\Check\ScriptHygieneCheck;
+use Waynestate\Squire\Doctor\Check\VueLayerCheck;
 use Waynestate\Squire\Squire;
 use Waynestate\Squire\Template\Catalog;
 
@@ -34,6 +35,7 @@ final class Doctor
             new ReleaseScriptCheck(),
             new HealthEndpointCheck(),
             new RepositoryCheck(),
+            new VueLayerCheck(),
             new ParityCheck(),
             new DriftCheck(new Catalog(Squire::templatesDir())),
             new ProctorHandoffCheck(),

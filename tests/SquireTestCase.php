@@ -80,6 +80,53 @@ abstract class SquireTestCase extends TestCase
         return $dir;
     }
 
+    /** A minimal Vue app: package.json has vue in dependencies. */
+    protected function vueApp(bool $laravel = false, array $extra = []): string
+    {
+        return $this->app($extra + ['package.json' => '{"dependencies":{"vue":"^3.0.0"}}' . "\n"], $laravel);
+    }
+
+    /** A Vue app with every SQUIRE file written into it. */
+    protected function initializedVueApp(bool $laravel = false): string
+    {
+        $dir = $this->vueApp($laravel);
+        (new Initializer(new Catalog(Squire::templatesDir())))->run($dir, $laravel ? 'laravel' : 'raw', ['release', 'parity'], false, false, Catalog::detectLayer($dir));
+
+        return $dir;
+    }
+
+    /** Initialize a git repository in the app and stage the given paths. Returns false when git is unavailable. */
+    protected function gitInit(string $dir, array $paths = []): bool
+    {
+        $process = @proc_open(['git', 'init'], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, $dir);
+        if (!is_resource($process)) {
+            return false;
+        }
+        stream_get_contents($pipes[1]);
+        stream_get_contents($pipes[2]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        if (proc_close($process) !== 0) {
+            return false;
+        }
+
+        foreach ($paths as $path) {
+            $process = @proc_open(['git', 'add', '--', $path], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, $dir);
+            if (!is_resource($process)) {
+                return false;
+            }
+            stream_get_contents($pipes[1]);
+            stream_get_contents($pipes[2]);
+            fclose($pipes[1]);
+            fclose($pipes[2]);
+            if (proc_close($process) !== 0) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /**
      * @param list<FileResult> $results
      *

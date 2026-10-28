@@ -26,7 +26,7 @@ final class Updater
      *
      * @return list<FileResult>
      */
-    public function run(string $appPath, string $target, array $groups, bool $dryRun): array
+    public function run(string $appPath, string $target, array $groups, bool $dryRun, ?string $layer = null): array
     {
         if (!is_dir($appPath)) {
             throw new ToolError(sprintf('Not a directory: %s', $appPath));
@@ -37,7 +37,7 @@ final class Updater
             throw new ToolError(sprintf('%s not found in %s. Run `squire init` first.', Squire::MANIFEST, $appPath));
         }
 
-        $selected = $this->catalog->select($target, $groups);
+        $selected = $this->catalog->select($target, $groups, $layer);
         $byDestination = [];
         foreach ($selected as $template) {
             $byDestination[$template->destination] = $template;
@@ -116,7 +116,7 @@ final class Updater
         }
 
         if (!$dryRun && $written !== $manifest->files) {
-            (new Manifest(Squire::VERSION, $manifest->target, $manifest->groups, $written))->save($appPath);
+            (new Manifest(Squire::VERSION, $manifest->target, $manifest->groups, $written, $manifest->layer))->save($appPath);
         }
 
         return $results;

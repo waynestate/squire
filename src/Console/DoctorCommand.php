@@ -23,7 +23,7 @@ final class DoctorCommand extends Command
     {
         $this
             ->setName('doctor')
-            ->setDescription("Check an app's Citadel release setup against the SQUIRE rules (S1 to S77).")
+            ->setDescription("Check an app's Citadel release setup against the SQUIRE rules (S1 to S78).")
             ->addOption('path', null, InputOption::VALUE_REQUIRED, 'Path to the application.', '.')
             ->addOption('format', null, InputOption::VALUE_REQUIRED, 'Output format: text or json.', 'text');
     }

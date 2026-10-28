@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Waynestate\Squire\Doctor;
 
 /**
- * One result of one rule check. The rule id is the practice number in design/best-practices/squire.md (S1 to S77).
+ * One result of one rule check. The rule id is the practice number in design/best-practices/squire.md (S1 to S78).
  */
 final readonly class Finding
 {

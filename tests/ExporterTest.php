@@ -99,6 +99,25 @@ final class ExporterTest extends SquireTestCase
         }
     }
 
+    public function testTheExportIncludesTheVueLayer(): void
+    {
+        $dir = $this->tempDir();
+        $this->exporter()->export($dir);
+
+        self::assertFileExists($dir . '/vue/.npmrc');
+        self::assertStringContainsString('min-release-age=1', (string) file_get_contents($dir . '/vue/.npmrc'));
+
+        $catalog = json_decode((string) file_get_contents($dir . '/catalog.json'), true);
+        self::assertIsArray($catalog);
+        self::assertArrayHasKey('vue', $catalog);
+        self::assertSame(['.npmrc'], array_column($catalog['vue'], 'path'));
+
+        $manifest = json_decode((string) file_get_contents($dir . '/manifest.json'), true);
+        self::assertIsArray($manifest);
+        self::assertArrayHasKey('vue/.npmrc', $manifest['files']);
+        self::assertSame('644', $manifest['files']['vue/.npmrc']['mode']);
+    }
+
     public function testTheManifestRecordsTheSquireVersion(): void
     {
         $dir = $this->tempDir();

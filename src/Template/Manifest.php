@@ -16,12 +16,14 @@ final readonly class Manifest
     /**
      * @param array<string, string> $files destination => sha256 of the content SQUIRE wrote
      * @param list<string>          $groups
+     * @param string|null          $layer
      */
     public function __construct(
         public string $version,
         public string $target,
         public array $groups,
         public array $files,
+        public ?string $layer = null,
     ) {}
 
     public static function load(string $appPath): ?self
@@ -50,11 +52,14 @@ final readonly class Manifest
             }
         }
 
+        $layer = is_string($data['layer'] ?? null) ? $data['layer'] : null;
+
         return new self(
             is_string($data['version'] ?? null) ? $data['version'] : 'unknown',
             is_string($data['target']) ? $data['target'] : 'raw',
             $groups,
             $files,
+            $layer,
         );
     }
 
@@ -67,8 +72,11 @@ final readonly class Manifest
             'version' => $this->version,
             'target' => $this->target,
             'groups' => $this->groups,
-            'files' => $files,
         ];
+        if ($this->layer !== null) {
+            $data['layer'] = $this->layer;
+        }
+        $data['files'] = $files;
 
         $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         if ($json === false || file_put_contents($appPath . '/' . Squire::MANIFEST, $json . "\n") === false) {

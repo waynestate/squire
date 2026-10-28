@@ -41,6 +41,7 @@ final class UpdateCommand extends Command
         }
         $dryRun = (bool) $input->getOption('dry-run');
 
+        $layer = null;
         try {
             if (!is_dir($path)) {
                 throw new ToolError(sprintf('Not a directory: %s', $path));
@@ -61,7 +62,8 @@ final class UpdateCommand extends Command
                 $groups = $manifest->groups !== [] ? $manifest->groups : Catalog::GROUPS;
             }
 
-            $results = (new Updater(new Catalog(Squire::templatesDir())))->run($path, $target, $groups, $dryRun);
+            $layer = $manifest->layer ?? Catalog::detectLayer($path);
+            $results = (new Updater(new Catalog(Squire::templatesDir())))->run($path, $target, $groups, $dryRun, $layer);
         } catch (ToolError $e) {
             $this->errorOutput($output)->writeln($e->getMessage());
 
@@ -72,6 +74,9 @@ final class UpdateCommand extends Command
             $output->writeln('Dry run: nothing will be written.');
         }
         $output->writeln(sprintf('Target: %s.', $target));
+        if ($layer !== null) {
+            $output->writeln(sprintf('Layer: %s.', $layer));
+        }
         foreach ($results as $result) {
             $output->writeln(sprintf('%-21s %s  (%s)', $result->state, $result->path, $result->detail));
             if ($result->diff !== null) {

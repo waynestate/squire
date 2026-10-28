@@ -99,4 +99,44 @@ final class CatalogTest extends SquireTestCase
         self::assertSame('raw', Catalog::detectTarget($this->app()));
         self::assertSame('laravel', Catalog::detectTarget($this->app([], true)));
     }
+
+    public function testTheVueLayerIsDetectedFromPackageJson(): void
+    {
+        self::assertSame(Template::LAYER_VUE, Catalog::detectLayer($this->vueApp()));
+        self::assertSame(Template::LAYER_VUE, Catalog::detectLayer($this->vueApp(true)));
+        self::assertSame(
+            Template::LAYER_VUE,
+            Catalog::detectLayer($this->app(['package.json' => '{"devDependencies":{"vue":"^3.0.0"}}' . "\n"])),
+        );
+        self::assertNull(Catalog::detectLayer($this->app()));
+        self::assertNull(Catalog::detectLayer($this->app(['package.json' => '{"dependencies":{"react":"^19.0.0"}}' . "\n"])));
+        self::assertNull(Catalog::detectLayer($this->app(['package.json' => 'not json' . "\n"])));
+    }
+
+    public function testSelectingTheVueLayerAddsTheNpmrc(): void
+    {
+        $catalog = new Catalog(Squire::templatesDir());
+        $without = array_map(static fn(Template $t): string => $t->destination, $catalog->select('raw', Catalog::GROUPS));
+        $with = array_map(static fn(Template $t): string => $t->destination, $catalog->select('raw', Catalog::GROUPS, Template::LAYER_VUE));
+
+        self::assertNotContains('.npmrc', $without);
+        self::assertContains('.npmrc', $with);
+        self::assertContains('build.sh', $with);
+    }
+
+    public function testSelectLayerReturnsOnlyLayerFiles(): void
+    {
+        $catalog = new Catalog(Squire::templatesDir());
+        $layer = array_map(static fn(Template $t): string => $t->destination, $catalog->selectLayer(Template::LAYER_VUE, Catalog::GROUPS));
+
+        self::assertSame(['.npmrc'], $layer);
+    }
+
+    public function testAnUnknownLayerIsAToolError(): void
+    {
+        $catalog = new Catalog(Squire::templatesDir());
+
+        $this->expectException(ToolError::class);
+        $catalog->select('raw', Catalog::GROUPS, 'svelte');
+    }
 }

@@ -27,6 +27,38 @@ final class ConsoleTest extends SquireTestCase
         self::assertStringContainsString('Target: laravel', $result['stdout']);
     }
 
+    public function testInitDetectsTheVueLayerFromPackageJson(): void
+    {
+        $app = $this->vueApp();
+        $result = $this->runSquire(['init', '--path=' . $app]);
+
+        self::assertSame(0, $result['exit'], $result['stderr']);
+        self::assertStringContainsString('Target: raw', $result['stdout']);
+        self::assertStringContainsString('Layer: vue', $result['stdout']);
+        self::assertFileExists($app . '/.npmrc');
+    }
+
+    public function testInitDetectsTheVueLayerForLaravel(): void
+    {
+        $app = $this->vueApp(true);
+        $result = $this->runSquire(['init', '--path=' . $app]);
+
+        self::assertSame(0, $result['exit'], $result['stderr']);
+        self::assertStringContainsString('Target: laravel', $result['stdout']);
+        self::assertStringContainsString('Layer: vue', $result['stdout']);
+        self::assertFileExists($app . '/.npmrc');
+    }
+
+    public function testInitDoesNotWriteTheVueLayerWithoutVue(): void
+    {
+        $app = $this->app();
+        $result = $this->runSquire(['init', '--path=' . $app]);
+
+        self::assertSame(0, $result['exit'], $result['stderr']);
+        self::assertStringNotContainsString('Layer: vue', $result['stdout']);
+        self::assertFileDoesNotExist($app . '/.npmrc');
+    }
+
     public function testInitCheckExitsOneOnDriftAndZeroWhenCurrent(): void
     {
         $app = $this->app();

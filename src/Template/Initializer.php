@@ -25,7 +25,7 @@ final class Initializer
      *
      * @return list<FileResult>
      */
-    public function run(string $appPath, string $target, array $groups, bool $force, bool $check): array
+    public function run(string $appPath, string $target, array $groups, bool $force, bool $check, ?string $layer = null): array
     {
         if (!is_dir($appPath)) {
             throw new ToolError(sprintf('Not a directory: %s', $appPath));
@@ -33,7 +33,7 @@ final class Initializer
 
         $manifest = Manifest::load($appPath);
         $recorded = $manifest->files ?? [];
-        $templates = $this->catalog->select($target, $groups);
+        $templates = $this->catalog->select($target, $groups, $layer);
 
         $results = [];
         $written = $recorded;
@@ -105,7 +105,7 @@ final class Initializer
         }
 
         if (!$check) {
-            (new Manifest(Squire::VERSION, $target, $groups, $written))->save($appPath);
+            (new Manifest(Squire::VERSION, $target, $groups, $written, $layer))->save($appPath);
         }
 
         return $results;

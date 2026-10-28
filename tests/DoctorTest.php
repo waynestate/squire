@@ -225,4 +225,55 @@ final class DoctorTest extends SquireTestCase
         $this->expectException(ToolError::class);
         new Project($this->tempDir() . '/missing');
     }
+
+    public function testAFreshVueAppFromInitHasNoFailuresAndPassesS78(): void
+    {
+        $findings = $this->examine($this->initializedVueApp());
+        $failures = array_filter($findings, static fn(Finding $f): bool => $f->status === Finding::FAIL);
+
+        self::assertSame([], array_map(static fn(Finding $f): string => $f->rule . ' ' . $f->message, array_values($failures)));
+        self::assertSame(0, Doctor::exitCode($findings));
+        self::assertContains('S78:pass', $this->keys($findings));
+    }
+
+    public function testAFreshLaravelVueAppFromInitHasNoFailuresAndPassesS78(): void
+    {
+        $findings = $this->examine($this->initializedVueApp(true));
+        $failures = array_filter($findings, static fn(Finding $f): bool => $f->status === Finding::FAIL);
+
+        self::assertSame([], array_map(static fn(Finding $f): string => $f->rule . ' ' . $f->message, array_values($failures)));
+        self::assertSame(0, Doctor::exitCode($findings));
+        self::assertContains('S78:pass', $this->keys($findings));
+    }
+
+    public function testNonVueAppsDoNotReportS78(): void
+    {
+        $findings = $this->examine($this->initializedApp());
+        $keys = $this->keys($findings);
+
+        self::assertNotContains('S78:pass', $keys);
+        self::assertNotContains('S78:warn', $keys);
+    }
+
+    public function testAnUntrackedNodeModulesDirectoryPassesS78(): void
+    {
+        $app = $this->initializedVueApp();
+        mkdir($app . '/node_modules/vue', 0o755, true);
+        file_put_contents($app . '/node_modules/vue/package.json', "{}\n");
+
+        self::assertContains('S78:pass', $this->keys($this->examine($app)));
+    }
+
+    public function testATrackedNodeModulesDirectoryWarnsS78(): void
+    {
+        $app = $this->initializedVueApp();
+        mkdir($app . '/node_modules/vue', 0o755, true);
+        file_put_contents($app . '/node_modules/vue/package.json', "{}\n");
+
+        if (!$this->gitInit($app, ['node_modules'])) {
+            self::markTestSkipped('git is not available in this environment.');
+        }
+
+        self::assertContains('S78:warn', $this->keys($this->examine($app)));
+    }
 }

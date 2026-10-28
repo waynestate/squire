@@ -32,6 +32,7 @@ here.
 | S67 | warn | Every image in the compose file is pinned by digest. | The same bytes tomorrow as today. |
 | S70 | warn | Local containers drop capabilities and set `no-new-privileges`. | Least privilege, also locally. |
 | S71 | warn | The local health check uses Citadel's timing (5 minutes, 15 seconds). | A slow `/up` shows up before it ships. |
+| S78 | warn | A Vue app does not track `node_modules/` in git. | Dependencies are rebuilt from the lock file; the tree is not source. |
 
 The lock file (S13), composer audit and MySQL 5.6 safety (S18) are owned by PROCTOR; `doctor` no longer repeats them
 and hands off instead (S50).

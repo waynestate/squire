@@ -35,6 +35,11 @@ final class Exporter
                 $files[$this->relative($kind, $template)] = $this->catalog->content($template);
             }
         }
+        foreach (Catalog::LAYERS as $layer) {
+            foreach ($this->catalog->selectLayer($layer, Catalog::GROUPS) as $template) {
+                $files[$this->relative($layer, $template)] = $this->catalog->content($template);
+            }
+        }
         $files['catalog.json'] = $this->catalogJson();
         $files['manifest.json'] = $this->manifestJson($files);
         ksort($files);
@@ -126,6 +131,12 @@ final class Exporter
             }
         }
 
+        foreach (Catalog::LAYERS as $layer) {
+            foreach ($this->catalog->selectLayer($layer, Catalog::GROUPS) as $template) {
+                $map[$this->relative($layer, $template)] = $template->executable;
+            }
+        }
+
         return $map;
     }
 
@@ -157,6 +168,18 @@ final class Exporter
                 ];
             }
             $data[$kind] = $files;
+        }
+
+        foreach (Catalog::LAYERS as $layer) {
+            $files = [];
+            foreach ($this->catalog->selectLayer($layer, Catalog::GROUPS) as $template) {
+                $files[] = [
+                    'path' => $template->destination,
+                    'group' => $template->group,
+                    'executable' => $template->executable,
+                ];
+            }
+            $data[$layer] = $files;
         }
 
         return $this->encode($data, 'catalog.json');

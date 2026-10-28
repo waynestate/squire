@@ -11,6 +11,9 @@ Versioning once 1.0 is out.
 - `squire doctor` with text and JSON output, checking 26 rules (see `BEST_PRACTICES.md`).
 - Templates for raw PHP and Laravel: `build.sh`, `deployments/001-first-release.sh`, `scripts/release.sh`, `health.php`,
   `public/up.php`.
+- Vue/Inertia layer: `squire init` detects `vue` in `package.json` and writes `.npmrc` with `min-release-age=1`;
+  `squire doctor` reports the layer and warns when `node_modules/` is tracked in git (S78); the template export includes
+  the layer under `vue/`.
 - Local parity kit: compose file with digest-pinned HA-Proxy and MySQL 5.6.51 images, `.squire/` build context, a fallback
   base image, `scripts/parity.sh` and `scripts/parity.ps1`.
 - CI for GitLab and GitHub: `composer ci`, shellcheck and PSScriptAnalyzer, run in Docker.

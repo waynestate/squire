@@ -29,6 +29,21 @@ final class UpdaterTest extends SquireTestCase
         return [$app, new Updater($catalog), $templates];
     }
 
+    /**
+     * A Vue app initialized from a private copy of the templates.
+     *
+     * @return array{0: string, 1: Updater, 2: string} [app, updater, templates]
+     */
+    private function movableVueApp(): array
+    {
+        $templates = $this->copyTemplates();
+        $catalog = new Catalog($templates);
+        $app = $this->vueApp();
+        (new Initializer($catalog))->run($app, 'raw', ['release', 'parity'], false, false, Catalog::detectLayer($app));
+
+        return [$app, new Updater($catalog), $templates];
+    }
+
     public function testAnUntouchedFileIsUpdatedWhenTheTemplateMovesOn(): void
     {
         [$app, $updater, $templates] = $this->movableApp();
@@ -197,5 +212,22 @@ final class UpdaterTest extends SquireTestCase
             new FileResult('a', FileResult::CURRENT, ''),
             new FileResult('b', FileResult::EDITED, '', "--- a/b\n"),
         ]));
+    }
+
+    public function testTheVueLayerIsUpdatedWhenTheTemplateMovesOn(): void
+    {
+        [$app, $updater, $templates] = $this->movableVueApp();
+        file_put_contents($templates . '/vue/.npmrc', "# version two\nmin-release-age=2\n");
+
+        $results = $updater->run($app, 'raw', ['release', 'parity'], false, Catalog::detectLayer($app));
+        $states = $this->states($results);
+
+        self::assertSame(FileResult::UPDATED, $states['.npmrc']);
+        self::assertStringContainsString('version two', (string) file_get_contents($app . '/.npmrc'));
+        self::assertSame(FileResult::CURRENT, $states['build.sh'], 'the target files stay current');
+        $manifest = Manifest::load($app);
+        self::assertNotNull($manifest);
+        self::assertSame('vue', $manifest->layer);
+        self::assertSame(Manifest::hash((string) file_get_contents($templates . '/vue/.npmrc')), $manifest->files['.npmrc']);
     }
 }

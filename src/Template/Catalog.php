@@ -16,6 +16,10 @@ final class Catalog
 
     public const GROUPS = [Template::GROUP_RELEASE, Template::GROUP_PARITY];
 
+    // A Vue/Inertia app is a layer on raw or laravel, not a third target: the PHP app still deploys the same way, and
+    // the export keeps its raw/ and laravel/ layout for Sourdough.
+    public const LAYERS = [Template::LAYER_VUE];
+
     public function __construct(private readonly string $templatesDir) {}
 
     /**
@@ -48,6 +52,8 @@ final class Catalog
             new Template('scripts/parity.ps1', $parity),
             new Template('.env.squire.example', $parity, false, 'raw'),
             new Template('.env.squire.example', $parity, false, 'laravel'),
+
+            new Template('.npmrc', $release, false, null, Template::LAYER_VUE),
         ];
     }
 
@@ -58,7 +64,7 @@ final class Catalog
      *
      * @return list<Template>
      */
-    public function select(string $target, array $groups): array
+    public function select(string $target, array $groups, ?string $layer = null): array
     {
         if (!in_array($target, self::TARGETS, true)) {
             throw new ToolError(sprintf('Unknown target "%s". Allowed values: %s.', $target, implode(', ', self::TARGETS)));
@@ -69,9 +75,45 @@ final class Catalog
             }
         }
 
+        if ($layer !== null && !in_array($layer, self::LAYERS, true)) {
+            throw new ToolError(sprintf('Unknown layer "%s". Allowed values: %s.', $layer, implode(', ', self::LAYERS)));
+        }
+
         $selected = [];
         foreach (self::all() as $template) {
-            if ($template->target !== null && $template->target !== $target) {
+            if ($template->layer !== null ? ($layer === null || $template->layer !== $layer) : ($template->target !== null && $template->target !== $target)) {
+                continue;
+            }
+            if (!in_array($template->group, $groups, true)) {
+                continue;
+            }
+            $selected[] = $template;
+        }
+
+        return $selected;
+    }
+
+    /**
+     * The templates for one layer and the chosen groups.
+     *
+     * @param list<string> $groups
+     *
+     * @return list<Template>
+     */
+    public function selectLayer(string $layer, array $groups): array
+    {
+        if (!in_array($layer, self::LAYERS, true)) {
+            throw new ToolError(sprintf('Unknown layer "%s". Allowed values: %s.', $layer, implode(', ', self::LAYERS)));
+        }
+        foreach ($groups as $group) {
+            if (!in_array($group, self::GROUPS, true)) {
+                throw new ToolError(sprintf('Unknown group "%s". Allowed values: %s.', $group, implode(', ', self::GROUPS)));
+            }
+        }
+
+        $selected = [];
+        foreach (self::all() as $template) {
+            if ($template->layer !== $layer) {
                 continue;
             }
             if (!in_array($template->group, $groups, true)) {
@@ -108,5 +150,31 @@ final class Catalog
     public static function detectTarget(string $appPath): string
     {
         return is_file($appPath . '/artisan') ? 'laravel' : 'raw';
+    }
+
+    /**
+     * Guess the layer from the app: a Vue app has vue in its package.json dependencies.
+     */
+    public static function detectLayer(string $appPath): ?string
+    {
+        $path = $appPath . '/package.json';
+        if (!is_file($path) || !is_readable($path)) {
+            return null;
+        }
+
+        $raw = file_get_contents($path);
+        $data = $raw === false ? null : json_decode($raw, true);
+        if (!is_array($data)) {
+            return null;
+        }
+
+        foreach (['dependencies', 'devDependencies'] as $section) {
+            $packages = $data[$section] ?? null;
+            if (is_array($packages) && array_key_exists('vue', $packages)) {
+                return Template::LAYER_VUE;
+            }
+        }
+
+        return null;
     }
 }

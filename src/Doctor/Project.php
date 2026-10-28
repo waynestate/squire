@@ -117,6 +117,40 @@ final class Project
         return $found;
     }
 
+    public function hasDirectory(string $relative): bool
+    {
+        return is_dir($this->path . '/' . $relative);
+    }
+
+    /** Whether git tracks the path in the index. False when the app is not a git checkout or git is unavailable. */
+    public function gitTracked(string $relative): bool
+    {
+        $gitDir = $this->path . '/.git';
+        if (!is_dir($gitDir) && !is_file($gitDir)) {
+            return false;
+        }
+
+        $process = @proc_open(
+            ['git', 'ls-files', '--', $relative],
+            [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
+            $pipes,
+            $this->path,
+        );
+        if (!is_resource($process)) {
+            return false;
+        }
+        $out = (string) stream_get_contents($pipes[1]);
+        stream_get_contents($pipes[2]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        $code = proc_close($process);
+        if ($code !== 0) {
+            return false;
+        }
+
+        return trim($out) !== '';
+    }
+
     public function isLaravel(): bool
     {
         return $this->has('artisan');

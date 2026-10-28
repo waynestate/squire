@@ -32,7 +32,8 @@ final class DriftCheck implements Check
             return [Finding::info('S9', sprintf('No %s, so drift from the SQUIRE templates was not checked. `squire init` creates it.', Squire::MANIFEST))];
         }
 
-        $results = (new Initializer($this->catalog))->run($project->path, $manifest->target, $manifest->groups, false, true);
+        $layer = $manifest->layer ?? Catalog::detectLayer($project->path);
+        $results = (new Initializer($this->catalog))->run($project->path, $manifest->target, $manifest->groups, false, true, $layer);
 
         $findings = [];
         foreach ($results as $result) {
