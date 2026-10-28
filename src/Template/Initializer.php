@@ -1,0 +1,125 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Waynestate\Squire\Template;
+
+use Waynestate\Squire\Squire;
+use Waynestate\Squire\ToolError;
+
+/**
+ * Writes the templates into an app, or reports how an app has drifted from them.
+ *
+ * "Depend, don't copy": the app keeps the files (Citadel needs them in the repository), but the manifest remembers
+ * what SQUIRE wrote, so an update never overwrites a file the team edited, and `--check` says which files fell behind.
+ */
+final class Initializer
+{
+    public function __construct(private readonly Catalog $catalog) {}
+
+    /**
+     * @param list<string> $groups
+     *
+     * @return list<FileResult>
+     */
+    public function run(string $appPath, string $target, array $groups, bool $force, bool $check): array
+    {
+        if (!is_dir($appPath)) {
+            throw new ToolError(sprintf('Not a directory: %s', $appPath));
+        }
+
+        $manifest = Manifest::load($appPath);
+        $recorded = $manifest->files ?? [];
+        $templates = $this->catalog->select($target, $groups);
+
+        $results = [];
+        $written = $recorded;
+
+        foreach ($templates as $template) {
+            $content = $this->catalog->content($template);
+            $newHash = Manifest::hash($content);
+            $path = $appPath . '/' . $template->destination;
+            $previous = $recorded[$template->destination] ?? null;
+
+            if (!is_file($path)) {
+                if ($check) {
+                    $results[] = new FileResult($template->destination, FileResult::MISSING, 'not in the app');
+                    continue;
+                }
+                $this->write($path, $content, $template->executable);
+                $written[$template->destination] = $newHash;
+                $results[] = new FileResult($template->destination, FileResult::CREATED, 'written from the template');
+                continue;
+            }
+
+            $disk = file_get_contents($path);
+            if ($disk === false) {
+                throw new ToolError(sprintf('Cannot read %s.', $path));
+            }
+            $diskHash = Manifest::hash($disk);
+
+            if ($diskHash === $newHash) {
+                $written[$template->destination] = $newHash;
+                $results[] = new FileResult(
+                    $template->destination,
+                    $check ? FileResult::OK : FileResult::UNCHANGED,
+                    'matches the template',
+                );
+                continue;
+            }
+
+            if ($previous !== null && $diskHash === $previous) {
+                if ($check) {
+                    $results[] = new FileResult($template->destination, FileResult::OUTDATED, 'untouched, but the template has changed; run `squire init` to update it');
+                    continue;
+                }
+                $this->write($path, $content, $template->executable);
+                $written[$template->destination] = $newHash;
+                $results[] = new FileResult($template->destination, FileResult::UPDATED, 'updated to the current template');
+                continue;
+            }
+
+            $state = $previous !== null ? FileResult::MODIFIED : FileResult::UNTRACKED;
+            $detail = $previous !== null
+                ? 'edited since SQUIRE wrote it'
+                : 'exists, but SQUIRE did not write it';
+
+            if ($check) {
+                $results[] = new FileResult($template->destination, $state, $detail);
+                continue;
+            }
+            if (!$force) {
+                $results[] = new FileResult(
+                    $template->destination,
+                    $previous !== null ? FileResult::SKIPPED_MODIFIED : FileResult::SKIPPED_EXISTS,
+                    $detail . '; left alone (use --force to overwrite)',
+                );
+                continue;
+            }
+            $this->write($path, $content, $template->executable);
+            $written[$template->destination] = $newHash;
+            $results[] = new FileResult($template->destination, FileResult::OVERWRITTEN, $detail . '; overwritten by --force');
+        }
+
+        if (!$check) {
+            (new Manifest(Squire::VERSION, $target, $groups, $written))->save($appPath);
+        }
+
+        return $results;
+    }
+
+    private function write(string $path, string $content, bool $executable): void
+    {
+        $dir = dirname($path);
+        if (!is_dir($dir) && !mkdir($dir, 0o755, true) && !is_dir($dir)) {
+            throw new ToolError(sprintf('Cannot create directory %s.', $dir));
+        }
+        if (file_put_contents($path, $content) === false) {
+            throw new ToolError(sprintf('Cannot write %s.', $path));
+        }
+        if ($executable) {
+            // Windows ignores the mode; Git needs `git update-index --chmod=+x`, which init prints a hint about.
+            chmod($path, 0o755);
+        }
+    }
+}
