@@ -11,7 +11,7 @@
   <a href="https://github.com/waynestate/squire/actions/workflows/ci.yml"><img src="https://github.com/waynestate/squire/actions/workflows/ci.yml/badge.svg" alt="GitHub CI"></a>
 </div>
 
-**Suits you up for the Citadel.** A squire carries the kit, readies the armour and gets the knight on the field.
+**Suits you up for deploy day.** A squire carries the kit, readies the armour and gets the knight on the field.
 
 Checks: `composer ci` (the same command runs on GitLab and GitHub).
 
