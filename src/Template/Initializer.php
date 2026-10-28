@@ -15,7 +15,10 @@ use Waynestate\Squire\ToolError;
  */
 final class Initializer
 {
-    public function __construct(private readonly Catalog $catalog) {}
+    public function __construct(
+        private readonly Catalog $catalog,
+        private readonly TemplateWriter $writer = new TemplateWriter(),
+    ) {}
 
     /**
      * @param list<string> $groups
@@ -46,7 +49,7 @@ final class Initializer
                     $results[] = new FileResult($template->destination, FileResult::MISSING, 'not in the app');
                     continue;
                 }
-                $this->write($path, $content, $template->executable);
+                $this->writer->write($path, $content, $template->executable);
                 $written[$template->destination] = $newHash;
                 $results[] = new FileResult($template->destination, FileResult::CREATED, 'written from the template');
                 continue;
@@ -73,7 +76,7 @@ final class Initializer
                     $results[] = new FileResult($template->destination, FileResult::OUTDATED, 'untouched, but the template has changed; run `squire init` to update it');
                     continue;
                 }
-                $this->write($path, $content, $template->executable);
+                $this->writer->write($path, $content, $template->executable);
                 $written[$template->destination] = $newHash;
                 $results[] = new FileResult($template->destination, FileResult::UPDATED, 'updated to the current template');
                 continue;
@@ -96,7 +99,7 @@ final class Initializer
                 );
                 continue;
             }
-            $this->write($path, $content, $template->executable);
+            $this->writer->write($path, $content, $template->executable);
             $written[$template->destination] = $newHash;
             $results[] = new FileResult($template->destination, FileResult::OVERWRITTEN, $detail . '; overwritten by --force');
         }
@@ -106,20 +109,5 @@ final class Initializer
         }
 
         return $results;
-    }
-
-    private function write(string $path, string $content, bool $executable): void
-    {
-        $dir = dirname($path);
-        if (!is_dir($dir) && !mkdir($dir, 0o755, true) && !is_dir($dir)) {
-            throw new ToolError(sprintf('Cannot create directory %s.', $dir));
-        }
-        if (file_put_contents($path, $content) === false) {
-            throw new ToolError(sprintf('Cannot write %s.', $path));
-        }
-        if ($executable) {
-            // Windows ignores the mode; Git needs `git update-index --chmod=+x`, which init prints a hint about.
-            chmod($path, 0o755);
-        }
     }
 }
