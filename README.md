@@ -8,6 +8,8 @@ SQUIRE is the Citadel kit: build.sh, the release script, the health check, local
 
 > A knight never suits up alone. Your app shouldn't deploy alone either.
 
+Front page: [`site/index.html`](site/index.html), a static page you can serve from anywhere.
+
 Status: 0.1, unreleased. This repository is published from Wayne State University's internal GitLab and mirrored to GitHub.
 
 ## What it does
