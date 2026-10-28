@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="en" data-theme="wsu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SQUIRE — Suits you up for the Citadel.</title>
+<meta name="description" content="SQUIRE is the Citadel kit: it packs your app's deploy scripts, inspects them against the S-rules, and runs your app locally on the same image, proxy and MySQL as Citadel.">
+<meta name="theme-color" content="#efe6d4">
+<link rel="icon" href="brand/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="brand/favicon-32.png">
+<link rel="apple-touch-icon" href="brand/squire-avatar-256.png">
+<!--
+  WayneUI 2.0.8, copied from its documented static path
+  (wayne-ui/apps/site/public/v2) so this page works offline, with no CDN.
+  Tokens, Lato, container, buttons, skip link and sr-only come from it;
+  squire.css then re-dresses it in canvas and leather. Arvo (OFL) is
+  self-hosted in assets/fonts.
+-->
+<link rel="preload" href="assets/fonts/arvo-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/wayne-ui/wayne-ui.css">
+<link rel="stylesheet" href="assets/squire.css">
+<script>
+  /* The squire only bustles about for people who are happy with motion.
+     Everyone else gets the bag already packed and buckled: same words,
+     nothing moving. */
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: no-preference)").matches) {
+    document.documentElement.classList.add("motion");
+  }
+</script>
+</head>
+<body>
+<a class="wsu-skip-link" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="wsu-container">
+    <a class="brand" href="#main">
+      <img src="brand/squire-avatar-256.png" width="36" height="36" alt="">
+      <span class="brand__name">SQUIRE</span>
+    </a>
+    <nav class="site-nav" aria-label="On this page">
+      <a href="#kit">Packing list</a>
+      <a href="#doctor">Inspection</a>
+      <a href="#parity">Parity</a>
+      <a href="#party">The party</a>
+    </nav>
+    <span class="brand__version">v0.1</span>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ================================================================ hero -->
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="wsu-container hero__grid">
+
+      <div class="hero__art">
+        <!-- A leather rail with the kit hung from it on strings. Press the
+             satchel and the squire packs every tag into it. -->
+        <span class="hero__rail" aria-hidden="true"></span>
+        <ul class="hero__tags" aria-hidden="true">
+          <li style="--i:0; --x:14%; --len:34px; --r:-4deg"><span class="tag">build.sh</span></li>
+          <li style="--i:1; --x:38%; --len:12px; --r:3deg"><span class="tag">release.sh</span></li>
+          <li style="--i:2; --x:63%; --len:40px; --r:-2deg"><span class="tag">health.php</span></li>
+          <li style="--i:3; --x:87%; --len:18px; --r:5deg"><span class="tag">parity kit</span></li>
+        </ul>
+        <button class="hero__satchel" type="button" aria-label="Pack the kit: the squire gathers every tag into the satchel">
+          <img class="hero__mark" src="brand/squire-avatar-512.png" width="512" height="512" alt="">
+          <span class="buckle-glint" aria-hidden="true"></span>
+        </button>
+        <span class="hero__shadow" aria-hidden="true"></span>
+      </div>
+
+      <div class="hero__copy">
+        <p class="label">The Citadel kit</p>
+        <h1 class="hero__title" id="hero-title">
+          <span class="wsu-sr-only">SQUIRE</span>
+          <span class="hero__letters" aria-hidden="true"><span style="--i:0">S</span><span style="--i:1">Q</span><span style="--i:2">U</span><span style="--i:3">I</span><span style="--i:4">R</span><span style="--i:5">E</span></span>
+        </h1>
+        <p class="hero__tagline">Suits you up for <span class="strap">the Citadel.<span class="strap__band" aria-hidden="true"></span><span class="strap__buckle" aria-hidden="true"></span></span></p>
+        <p class="hero__blurb">A squire carries the kit, readies the armour and gets the knight on the field. SQUIRE packs your app's Citadel deploy scripts, inspects them against the S-rules, and runs your app at home on the same image, proxy and MySQL that Citadel uses.</p>
+        <div class="quickstart">
+          <code class="quickstart__code" id="quickstart-cmd"><span class="t-dim">$</span> composer require waynestate/squire --dev</code>
+          <button class="copy-btn" type="button" data-copy="composer require waynestate/squire --dev">
+            <span class="copy-btn__label">Copy</span>
+          </button>
+        </div>
+        <p class="hero__cta">
+          <a class="btn-leather" href="#kit">See the packing list</a>
+          <a class="hero__link" href="#party">Meet the party</a>
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ====================================================== packing list -->
+  <section class="section section--canvas" id="kit" aria-labelledby="kit-title">
+    <div class="wsu-container">
+      <div class="section__head">
+        <p class="label">vendor/bin/squire init</p>
+        <h2 id="kit-title">The packing list for deploy day</h2>
+        <p>One command packs the files Citadel needs, from templates, for raw PHP or Laravel. Each one is checked off in <code>.squire.json</code> with a SHA-256, and nothing you edited is ever repacked unless you say <code>--force</code>.</p>
+      </div>
+
+      <div class="packer" data-packer>
+        <!-- The list hangs from a leather strap; each item is a luggage tag. -->
+        <ol class="packlist">
+          <li class="item is-packed" data-item="build" style="--i:0">
+            <span class="item__tag">
+              <span class="item__check" aria-hidden="true"></span>
+              <span class="item__body">
+                <code class="item__name">build.sh</code>
+                <span class="item__what">Citadel's build hook. System packages only, POSIX sh, no Composer or npm (S1).</span>
+              </span>
+              <span class="stamp" aria-hidden="true">Packed</span>
+            </span>
+          </li>
+          <li class="item is-packed" data-item="hook" style="--i:1">
+            <span class="item__tag">
+              <span class="item__check" aria-hidden="true"></span>
+              <span class="item__body">
+                <code class="item__name">deployments/001-first-release.sh</code>
+                <span class="item__what">Runs once per app and calls the release with the smoke test off; Apache is not up yet.</span>
+              </span>
+              <span class="stamp" aria-hidden="true">Packed</span>
+            </span>
+          </li>
+          <li class="item is-packed" data-item="release" style="--i:2">
+            <span class="item__tag">
+              <span class="item__check" aria-hidden="true"></span>
+              <span class="item__body">
+                <code class="item__name">scripts/release.sh</code>
+                <span class="item__what">The idempotent release: install from the lock file, audit, build, migrate, PROCTOR as a report, smoke-test <code>/up</code>. Also your Quick Update post-script.</span>
+              </span>
+              <span class="stamp" aria-hidden="true">Packed</span>
+            </span>
+          </li>
+          <li class="item is-packed" data-item="health" style="--i:3">
+            <span class="item__tag">
+              <span class="item__check" aria-hidden="true"></span>
+              <span class="item__body">
+                <code class="item__name">health.php</code>
+                <span class="item__what">Citadel's health check: one request to <code>/up</code>, never boots the framework.</span>
+              </span>
+              <span class="stamp" aria-hidden="true">Packed</span>
+            </span>
+          </li>
+          <li class="item is-packed" data-item="parity" style="--i:4">
+            <span class="item__tag">
+              <span class="item__check" aria-hidden="true"></span>
+              <span class="item__body">
+                <code class="item__name">The parity kit <span class="item__count">11 files</span></code>
+                <span class="item__what"><code>docker-compose.squire.yml</code>, <code>.squire/</code>, <code>.env.squire.example</code>, <code>scripts/parity.sh</code> and <code>scripts/parity.ps1</code>: Citadel, on your machine.</span>
+              </span>
+              <span class="stamp" aria-hidden="true">Packed</span>
+            </span>
+          </li>
+        </ol>
+
+        <div class="bag is-ready" data-bag>
+          <div class="bag__stage">
+            <div class="bag__satchel" data-satchel>
+              <img src="brand/squire-avatar-512.png" width="512" height="512" alt="SQUIRE's satchel">
+              <span class="buckle-glint" aria-hidden="true"></span>
+            </div>
+            <!-- Once everything is in, the bag gets its own luggage tag. -->
+            <div class="bag__label" data-bag-label>
+              <span class="bag__label-row"><b>To</b> the Citadel</span>
+              <span class="bag__label-row"><b>From</b> my-app</span>
+              <span class="bag__label-row"><b>Holds</b> <span data-bag-files>15</span> files</span>
+            </div>
+          </div>
+          <p class="bag__count" aria-live="polite"><span data-count>5</span> of 5 packed<span class="bag__ready" data-ready>, buckled for deploy day</span></p>
+          <button type="button" class="btn-leather btn-leather--wide" data-run="pack">Pack for deploy day</button>
+
+          <details class="bag__more">
+            <summary>Try the other commands</summary>
+            <div class="bag__acts" role="group" aria-label="More squire init commands">
+              <button type="button" class="act" data-run="check">init --check</button>
+              <button type="button" class="act act--meddle" data-run="meddle">edit release.sh</button>
+              <button type="button" class="act" data-run="force">init --force</button>
+            </div>
+          </details>
+
+          <div class="term term--packer">
+            <p class="term__bar">~/my-app</p>
+            <!-- The output of a real run, so every word is here at first paint. -->
+            <div class="term__body" data-term-out>
+<p class="term__cmd"><span class="t-dim">$ </span>vendor/bin/squire init</p>
+<p>created           build.sh  <span class="t-dim">(written from the template)</span></p>
+<p>created           deployments/001-first-release.sh  <span class="t-dim">(written from the template)</span></p>
+<p>created           scripts/release.sh  <span class="t-dim">(written from the template)</span></p>
+<p>created           health.php  <span class="t-dim">(written from the template)</span></p>
+<p>created           docker-compose.squire.yml  <span class="t-dim">(written from the template)</span></p>
+<p>created           .squire/Dockerfile  <span class="t-dim">(written from the template)</span></p>
+<p>created           .squire/Dockerfile.dockerignore  <span class="t-dim">(written from the template)</span></p>
+<p>created           .squire/base-fallback.Dockerfile  <span class="t-dim">(written from the template)</span></p>
+<p>created           .squire/fallback/citadel-apache-entrypoint  <span class="t-dim">(written from the template)</span></p>
+<p>created           .squire/fallback/citadel-deploy  <span class="t-dim">(written from the template)</span></p>
+<p>created           .squire/haproxy.cfg  <span class="t-dim">(written from the template)</span></p>
+<p>created           .squire/php.ini  <span class="t-dim">(written from the template)</span></p>
+<p>created           .squire/vhost.conf  <span class="t-dim">(written from the template)</span></p>
+<p>created           scripts/parity.sh  <span class="t-dim">(written from the template)</span></p>
+<p>created           scripts/parity.ps1  <span class="t-dim">(written from the template)</span></p>
+<p>created           .env.squire.example  <span class="t-dim">(written from the template)</span></p>
+<p>Target: laravel. Wrote .squire.json.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p class="kit-note">Every shell script runs with <code>set -euo pipefail</code>, prints a <code>[squire] ==&gt; step N</code> marker, and gives the same result when you run it twice. Pack half the bag with <code>--only=release</code> or <code>--only=parity</code>.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================= doctor -->
+  <section class="section section--green" id="doctor" aria-labelledby="doctor-title">
+    <div class="wsu-container">
+      <div class="section__head">
+        <p class="label label--on-green">vendor/bin/squire doctor</p>
+        <h2 id="doctor-title">The squire inspects the armour</h2>
+        <p>Doctor reads your repository and checks the rules a machine can decide. It never runs your app and never touches a server. A fail exits 1; a warn or info doesn't. It is a lint, not a gate: wire it into CI if you want it to block.</p>
+      </div>
+
+      <div class="inspect">
+        <div class="rules">
+          <p class="rules__legend"><span class="lvl lvl--fail">fail</span> exits 1 <span class="lvl lvl--warn">warn</span> reported <span class="lvl lvl--info">info</span> noted</p>
+          <!-- Each rule is a patch sewn on the bag. -->
+          <ul class="patches">
+            <li class="patch patch--fail" style="--i:0"><span class="patch__no">S1</span><span class="patch__txt"><code>build.sh</code> runs no Composer or npm.</span></li>
+            <li class="patch patch--warn" style="--i:1"><span class="patch__no">S3</span><span class="patch__txt">Every script has <code>set -e</code>.</span></li>
+            <li class="patch patch--fail" style="--i:2"><span class="patch__no">S4</span><span class="patch__txt">No download piped into a shell.</span></li>
+            <li class="patch patch--fail" style="--i:3"><span class="patch__no">S8</span><span class="patch__txt">No CRLF in shell scripts.</span></li>
+            <li class="patch patch--fail" style="--i:4"><span class="patch__no">S9</span><span class="patch__txt">Build, first release and release are three jobs.</span></li>
+            <li class="patch patch--fail" style="--i:5"><span class="patch__no">S12</span><span class="patch__txt">Install from the lock file; never update.</span></li>
+            <li class="patch patch--fail" style="--i:6"><span class="patch__no">S13</span><span class="patch__txt"><code>composer.lock</code> is committed.</span></li>
+            <li class="patch patch--warn" style="--i:7"><span class="patch__no">S14</span><span class="patch__txt">The release runs <code>composer audit</code>.</span></li>
+            <li class="patch patch--fail" style="--i:8"><span class="patch__no">S15</span><span class="patch__txt"><code>auth.json</code> stays out of git.</span></li>
+            <li class="patch patch--warn" style="--i:9"><span class="patch__no">S16</span><span class="patch__txt">Laravel runs <code>optimize</code>.</span></li>
+            <li class="patch patch--info" style="--i:10"><span class="patch__no">S17</span><span class="patch__txt">Migrations run and stay old-code friendly.</span></li>
+            <li class="patch patch--warn" style="--i:11"><span class="patch__no">S18</span><span class="patch__txt">No JSON columns on MySQL 5.6.</span></li>
+            <li class="patch patch--warn" style="--i:12"><span class="patch__no">S19</span><span class="patch__txt">Refuses to run as root.</span></li>
+            <li class="patch patch--fail" style="--i:13"><span class="patch__no">S20</span><span class="patch__txt">PROCTOR is a report, never a bare command.</span></li>
+            <li class="patch patch--warn" style="--i:14"><span class="patch__no">S21</span><span class="patch__txt">The release requests <code>/up</code> at the end.</span></li>
+            <li class="patch patch--warn" style="--i:15"><span class="patch__no">S22</span><span class="patch__txt">One marker per step.</span></li>
+            <li class="patch patch--warn" style="--i:16"><span class="patch__no">S35</span><span class="patch__txt">Locally, the Citadel PHP image.</span></li>
+            <li class="patch patch--warn" style="--i:17"><span class="patch__no">S36</span><span class="patch__txt">A forwarding proxy in front.</span></li>
+            <li class="patch patch--warn" style="--i:18"><span class="patch__no">S37</span><span class="patch__txt">Locally, MySQL 5.6.</span></li>
+            <li class="patch patch--fail" style="--i:19"><span class="patch__no">S41</span><span class="patch__txt">The Docker socket is not mounted.</span></li>
+            <li class="patch patch--warn" style="--i:20"><span class="patch__no">S42</span><span class="patch__txt"><code>.env</code> files stay out of git.</span></li>
+            <li class="patch patch--fail" style="--i:21"><span class="patch__no">S55</span><span class="patch__txt">The health check never boots the framework.</span></li>
+            <li class="patch patch--warn" style="--i:22"><span class="patch__no">S57</span><span class="patch__txt">npm installs with <code>--ignore-scripts</code>.</span></li>
+            <li class="patch patch--warn" style="--i:23"><span class="patch__no">S67</span><span class="patch__txt">Images pinned by digest.</span></li>
+            <li class="patch patch--warn" style="--i:24"><span class="patch__no">S70</span><span class="patch__txt">Containers drop capabilities.</span></li>
+            <li class="patch patch--warn" style="--i:25"><span class="patch__no">S71</span><span class="patch__txt">Citadel's health-check timing.</span></li>
+          </ul>
+          <p class="rules__more">Every rule, its level and why it matters: <code>BEST_PRACTICES.md</code>. Drift from the templates is a warning under S9, never a failure; your copies are yours to edit.</p>
+        </div>
+
+        <div class="term term--doctor">
+          <p class="term__bar">~/my-app <span class="term__note">excerpt</span></p>
+          <div class="term__body">
+<p class="term__cmd"><span class="t-dim">$ </span>vendor/bin/squire doctor</p>
+<p><span class="t-ok">PASS</span> S1   build.sh runs no composer or npm commands. <span class="t-dim">[build.sh]</span></p>
+<p><span class="t-ok">PASS</span> S12  `composer install --no-dev` from the lock file.</p>
+<p><span class="t-ok">PASS</span> S13  composer.lock is present.</p>
+<p><span class="t-ok">PASS</span> S20  PROCTOR runs as a report and cannot stop the release.</p>
+<p><span class="t-ok">PASS</span> S55  health.php is an artisan-free health check. <span class="t-dim">[health.php]</span></p>
+<p><span class="t-gold">WARN</span> S8   .gitattributes does not force LF for shell scripts. Add `*.sh text eol=lf`.</p>
+<p><span class="t-gold">WARN</span> S67  Not pinned by digest: citadel/php-apache:8.4r5. Run `scripts/parity.sh pin` and put the digests in .env.squire.</p>
+<p class="term__result">RESULT: pass (0 fail, 2 warn, 0 info, 5 pass)</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================= parity -->
+  <section class="section section--canvas" id="parity" aria-labelledby="parity-title">
+    <div class="wsu-container">
+      <div class="section__head">
+        <p class="label">Local parity</p>
+        <h2 id="parity-title">Practise on the real field</h2>
+        <p>Your app on the Citadel PHP image, behind HA-Proxy adding the same forwarding headers, talking to the same MySQL 5.6. Its limits show up on your laptop, not on deploy day.</p>
+      </div>
+
+      <!-- Stitched lanes sit in the gaps between the stations, never under them. -->
+      <ol class="field" data-field>
+        <li class="field__stop" style="--i:0">
+          <span class="field__tile"><span class="field__glyph" aria-hidden="true">:80</span></span>
+          <span class="field__name">Your browser</span>
+          <span class="field__role">on localhost</span>
+        </li>
+        <li class="field__lane" aria-hidden="true"><span class="field__rider"></span></li>
+        <li class="field__stop" style="--i:1">
+          <span class="field__tile"><span class="field__glyph" aria-hidden="true">XFF</span></span>
+          <span class="field__name">HA-Proxy</span>
+          <span class="field__role">adds X-Forwarded-For and -Proto</span>
+        </li>
+        <li class="field__lane" aria-hidden="true"><span class="field__rider"></span></li>
+        <li class="field__stop" style="--i:2">
+          <span class="field__tile field__tile--app"><img src="brand/squire-avatar-256.png" width="256" height="256" alt=""></span>
+          <span class="field__name">Your app</span>
+          <span class="field__role">Citadel PHP image, run as <code>citadel</code></span>
+        </li>
+        <li class="field__lane" aria-hidden="true"><span class="field__rider"></span></li>
+        <li class="field__stop" style="--i:3">
+          <span class="field__tile"><span class="field__glyph" aria-hidden="true">5.6</span></span>
+          <span class="field__name">MySQL 5.6.51</span>
+          <span class="field__role"><code>mysql</code> inside, <code>127.0.0.1:3307</code> outside</span>
+        </li>
+      </ol>
+
+      <div class="parity">
+        <div class="os" data-os>
+          <div class="os__tabs" role="tablist" aria-label="Your operating system">
+            <button type="button" role="tab" id="tab-nix" aria-controls="panel-nix" aria-selected="true">Linux and macOS</button>
+            <button type="button" role="tab" id="tab-win" aria-controls="panel-win" aria-selected="false">Windows</button>
+          </div>
+          <div class="os__panel" role="tabpanel" id="panel-nix" aria-labelledby="tab-nix">
+            <p class="os__lead">Docker with Compose v2.</p>
+<pre class="code"><code>cp .env.squire.example .env.squire     <span class="t-dim"># then set the passwords</span>
+scripts/parity.sh up                   <span class="t-dim"># or: scripts/parity.sh up --fallback</span></code></pre>
+          </div>
+          <div class="os__panel" role="tabpanel" id="panel-win" aria-labelledby="tab-win">
+            <p class="os__lead">Docker Desktop with the WSL 2 backend. PowerShell 5.1 or 7; no other shell needed.</p>
+<pre class="code"><code>Copy-Item .env.squire.example .env.squire
+scripts\parity.ps1 up                  <span class="t-dim"># or: scripts\parity.ps1 up -Fallback</span></code></pre>
+          </div>
+        </div>
+
+        <div class="parity__side">
+          <h3 class="minor">Commands</h3>
+          <ul class="verbs">
+            <li><code>up</code></li><li><code>down</code></li><li><code>reset</code></li><li><code>logs</code></li><li><code>shell</code></li><li><code>status</code></li><li><code>pin</code></li>
+          </ul>
+          <p><code>pin</code> prints the digests of the images you pulled, so you can pin them. <code>reset</code> also removes the volumes.</p>
+          <p>Containers drop capabilities, set <code>no-new-privileges</code> and carry memory and process limits; the database listens on loopback only. The compose file refuses to start without real passwords.</p>
+          <p class="parity__fallback">No access to the real image? <code>--fallback</code> builds an approximation from the official PHP image plus Citadel's extensions. Good for a practice bout, not for proving parity.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ setup -->
+  <section class="section section--leather-light" id="setup" aria-labelledby="setup-title">
+    <div class="wsu-container">
+      <div class="section__head">
+        <p class="label">Citadel setup</p>
+        <h2 id="setup-title">Onto the field</h2>
+        <p>What lands on Citadel is the scripts SQUIRE packed; the package itself stays on your machine and in CI.</p>
+      </div>
+      <ol class="steps">
+        <li class="step" style="--i:0">
+          <span class="step__no" aria-hidden="true">1</span>
+          <h3>Point the dashboard at the kit</h3>
+          <p>Build script <code>build.sh</code>, health check <code>["php","health.php"]</code>, Quick Update post-script <code>./scripts/release.sh</code> as user <code>citadel</code>.</p>
+        </li>
+        <li class="step" style="--i:1">
+          <span class="step__no" aria-hidden="true">2</span>
+          <h3>Commit the lock files</h3>
+          <p><code>composer.lock</code>, and <code>package-lock.json</code> or <code>pnpm-lock.yaml</code> if you have a frontend. The lock file is the release contract.</p>
+        </li>
+        <li class="step" style="--i:2">
+          <span class="step__no" aria-hidden="true">3</span>
+          <h3>Mark the scripts executable</h3>
+          <p>Git on Windows forgets: <code>git update-index --chmod=+x build.sh scripts/*.sh deployments/*.sh</code></p>
+        </li>
+        <li class="step" style="--i:3">
+          <span class="step__no" aria-hidden="true">4</span>
+          <h3>Settings in the dashboard</h3>
+          <p>Set <code>SQUIRE_*</code> values in the dashboard environment, never in a file in the repository. All of them are optional.</p>
+        </li>
+      </ol>
+      <dl class="exits">
+        <div><dt><code>0</code></dt><dd>pass</dd></div>
+        <div><dt><code>1</code></dt><dd>findings: drift for <code>init --check</code>, a failed rule for <code>doctor</code></dd></div>
+        <div><dt><code>2</code></dt><dd>the tool itself could not run</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ========================================================= upstream -->
+  <section class="section section--green" id="upstream" aria-labelledby="upstream-title">
+    <div class="wsu-container">
+      <div class="section__head">
+        <p class="label label--on-green">upstream/</p>
+        <h2 id="upstream-title">Letters for the castle</h2>
+        <p>A good squire carries messages too. SQUIRE holds proposals for the platform team, each with the evidence, the exact change, how to verify it, the risk and how to roll it back. Text only: SQUIRE never touches a server, and nothing in its own scripts waits on them.</p>
+      </div>
+      <ul class="letters">
+        <li class="letter" style="--i:0"><span class="letter__seal" aria-hidden="true">01</span><h3>Harden <code>php.ini</code></h3><p>Safer defaults for the shared PHP images.</p></li>
+        <li class="letter" style="--i:1"><span class="letter__seal" aria-hidden="true">02</span><h3>Turn on opcache</h3><p>Faster PHP, with a check for the newest version.</p></li>
+        <li class="letter" style="--i:2"><span class="letter__seal" aria-hidden="true">03</span><h3>A quieter Apache</h3><p>Say less about the server in every response.</p></li>
+        <li class="letter" style="--i:3"><span class="letter__seal" aria-hidden="true">04</span><h3>A deploy gate</h3><p>Let PROCTOR stop a release before it goes live.</p></li>
+        <li class="letter" style="--i:4"><span class="letter__seal" aria-hidden="true">05</span><h3>Queue workers</h3><p>A supported way to run background jobs.</p></li>
+        <li class="letter" style="--i:5"><span class="letter__seal" aria-hidden="true">06</span><h3>A release hook that re-runs</h3><p>So <code>vendor/</code> refreshes on every new container.</p></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============================================================ party -->
+  <section class="section section--canvas" id="party" aria-labelledby="party-title">
+    <div class="wsu-container">
+      <div class="section__head">
+        <p class="label">Its place in WELD</p>
+        <h2 id="party-title">Every knight rides with a party</h2>
+        <p>SQUIRE is one part of WELD, the Wayne State application stack. It rides last: the others guard, sign in, render, check and test the app, and SQUIRE carries it onto the field.</p>
+      </div>
+
+      <!-- The journey, as tags hung on one strap in riding order. The strings
+           only run in the gap between the strap and each tag. -->
+      <ol class="rail" data-rail>
+        <li class="rail__tag" style="--i:0"><span class="ptag"><img src="assets/marks/helmet.png" width="56" height="56" alt=""><span class="ptag__no" aria-hidden="true">1</span><b>HELMET</b><span>sets security headers</span></span></li>
+        <li class="rail__tag" style="--i:1"><span class="ptag"><img src="assets/marks/sesame.png" width="56" height="56" alt=""><span class="ptag__no" aria-hidden="true">2</span><b>SESAME</b><span>signs the user in</span></span></li>
+        <li class="rail__tag" style="--i:2"><span class="ptag"><span class="ptag__tile"><img src="assets/marks/wayneui.svg" width="40" height="40" alt=""></span><span class="ptag__no" aria-hidden="true">3</span><b>WayneUI</b><span>renders the page</span></span></li>
+        <li class="rail__tag" style="--i:3"><span class="ptag"><img src="assets/marks/proctor.png" width="56" height="56" alt=""><span class="ptag__no" aria-hidden="true">4</span><b>PROCTOR</b><span>checks the code</span></span></li>
+        <li class="rail__tag" style="--i:4"><span class="ptag"><img src="assets/marks/preflight.png" width="56" height="56" alt=""><span class="ptag__no" aria-hidden="true">5</span><b>PREFLIGHT</b><span>runs CI</span></span></li>
+        <li class="rail__tag rail__tag--here" style="--i:5"><span class="ptag"><img src="brand/squire-avatar-256.png" width="56" height="56" alt=""><span class="ptag__no" aria-hidden="true">6</span><b>SQUIRE</b><span>deploys <span class="here">you are here</span></span></span></li>
+      </ol>
+
+      <div class="roster">
+        <div class="roster__group">
+          <h3 class="minor">Also in the stack</h3>
+          <ul class="roster__list">
+            <li><img src="assets/marks/creed.png" width="40" height="40" alt=""><span><b>CREED</b> the standards and <code>policy.json</code></span></li>
+            <li><img src="assets/marks/pinstripe.png" width="40" height="40" alt=""><span><b>Pinstripe</b> the coding standard</span></li>
+            <li><img src="assets/marks/sourdough.png" width="40" height="40" alt=""><span><b>Sourdough</b> starters you feed</span></li>
+            <li><img src="assets/marks/weld.png" width="40" height="40" alt=""><span><b>WELD</b> every part, joined</span></li>
+          </ul>
+        </div>
+        <div class="roster__group">
+          <h3 class="minor">The new five</h3>
+          <ul class="roster__list">
+            <li><img src="assets/marks/booster.png" width="40" height="40" alt=""><span><b>BOOSTER</b> gets you onto a supported PHP</span></li>
+            <li><img src="assets/marks/rollcall.png" width="40" height="40" alt=""><span><b>ROLLCALL</b> every app answers “present”</span></li>
+            <li><img src="assets/marks/advisor.png" width="40" height="40" alt=""><span><b>ADVISOR</b> what applies, and what next</span></li>
+            <li><img src="assets/marks/drawbridge.png" width="40" height="40" alt=""><span><b>DRAWBRIDGE</b> the Citadel sign-in gateway</span></li>
+            <li class="is-here"><img src="brand/squire-avatar-256.png" width="40" height="40" alt=""><span><b>SQUIRE</b> the Citadel kit</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ limits -->
+  <section class="section section--leather" id="limits" aria-labelledby="limits-title">
+    <div class="wsu-container">
+      <div class="section__head">
+        <p class="label label--on-leather">Known limits in 0.1</p>
+        <h2 id="limits-title">Scuffs on the leather</h2>
+        <p>SQUIRE 0.1 is unreleased, and honest about where it guessed. The full list, with the default each guess chose, is <code>OPEN_QUESTIONS.md</code>.</p>
+      </div>
+      <ul class="dents">
+        <li>The local <code>php.ini</code> is an approximation of Citadel's. For exact parity, copy theirs in.</li>
+        <li>The Citadel image has no registry digest to pin yet; doctor warns under S67 until you run <code>pin</code>.</li>
+        <li>A full Update may not refresh <code>vendor/</code>. Use <code>scripts/release.sh</code> as the Quick Update post-script too.</li>
+        <li>PROCTOR can report during a release, but cannot act as a deploy gate yet.</li>
+      </ul>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wsu-container">
+    <img class="site-footer__mark" src="brand/squire-avatar-256.png" width="48" height="48" alt="">
+    <p class="site-footer__joke">A squire carries the armour; the knight still has to show up.</p>
+    <p class="site-footer__org">Wayne State University · Enterprise Applications · MIT licence</p>
+  </div>
+</footer>
+
+<!-- Where the squire answers. Empty until someone asks. -->
+<div class="toast" role="status" aria-live="polite"></div>
+
+<script src="assets/squire.js" defer></script>
+</body>
+</html>
