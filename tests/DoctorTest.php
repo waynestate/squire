@@ -80,7 +80,7 @@ final class DoctorTest extends SquireTestCase
             'composer in build.sh' => [['build.sh' => "#!/bin/sh\nset -eu\ncomposer install\n"] + $release($good), 'S1:fail'],
             'sudo in a script' => [$release($good . "sudo chown x y\n"), 'S19:warn'],
             'no root check' => [$release("composer install --no-dev --no-interaction\n"), 'S19:warn'],
-            'no audit' => [$release("composer install --no-dev --no-interaction\n"), 'S14:warn'],
+            'no proctor check' => [$release("composer install --no-dev --no-interaction\n"), 'S14:warn'],
             'no smoke test' => [$release("composer install --no-dev --no-interaction\n"), 'S21:warn'],
             'no step markers' => [$release("composer install --no-dev --no-interaction\n"), 'S22:warn'],
             'PROCTOR as a bare gate' => [$release($good . "\nproctor check --path .\n"), 'S20:fail'],
@@ -116,12 +116,16 @@ final class DoctorTest extends SquireTestCase
         self::assertContains('S1:pass', $keys);
     }
 
-    public function testAMissingLockFileFails(): void
+    public function testTheDoctorNoLongerChecksTheLockFileOrMysql56(): void
     {
-        $app = $this->app();
+        $app = $this->app([
+            'database/migrations/2026_01_01_create_posts.php' => "<?php\n\$t->json('body');\n\$t->string('slug')->unique();\n",
+        ], true);
         unlink($app . '/composer.lock');
+        $findings = $this->examine($app);
 
-        self::assertContains('S13:fail', $this->keys($this->examine($app)));
+        $owned = array_filter($findings, static fn(Finding $f): bool => in_array($f->rule, ['S13', 'S18'], true));
+        self::assertSame([], array_map(static fn(Finding $f): string => $f->rule . ' ' . $f->message, array_values($owned)));
     }
 
     public function testMissingScriptsAreReportedAsAGap(): void
@@ -139,28 +143,46 @@ final class DoctorTest extends SquireTestCase
         self::assertContains('S15:fail', $this->keys($this->examine($app)));
     }
 
-    public function testMigrationsThatBreakOnMysql56Warn(): void
+    /** @return array<string, array{string}> */
+    public static function proctorCheckForms(): array
     {
-        $app = $this->app([
-            'database/migrations/2026_01_01_create_posts.php' => "<?php\n\$t->json('body');\n\$t->string('slug')->unique();\n",
-        ], true);
-        $findings = $this->examine($app);
-
-        $messages = array_map(static fn(Finding $f): string => $f->rule . ':' . $f->status . ' ' . $f->message, $findings);
-        self::assertContains('S18:warn', $this->keys($findings));
-        self::assertNotEmpty(array_filter($messages, static fn(string $m): bool => str_contains($m, 'JSON columns')));
-        self::assertNotEmpty(array_filter($messages, static fn(string $m): bool => str_contains($m, 'defaultStringLength(191)')));
+        return [
+            'vendor/bin/proctor check' => ["vendor/bin/proctor check || true\n"],
+            'proctor check' => ["proctor check || true\n"],
+            'proctor.phar check' => ["proctor.phar check || true\n"],
+        ];
     }
 
-    public function testDefaultStringLength191SatisfiesTheIndexRule(): void
+    #[DataProvider('proctorCheckForms')]
+    public function testS14PassesWhenTheReleaseRunsProctorCheck(string $line): void
     {
         $app = $this->app([
-            'database/migrations/2026_01_01_create_posts.php' => "<?php\n\$t->string('slug')->unique();\n",
-            'app/Providers/AppServiceProvider.php' => "<?php\nSchema::defaultStringLength(191);\n",
-        ], true);
+            'scripts/release.sh' => "#!/usr/bin/env bash\nset -euo pipefail\ncomposer install --no-dev --no-interaction\n" . $line,
+        ]);
 
-        $messages = array_map(static fn(Finding $f): string => $f->status . ' ' . $f->message, $this->examine($app));
-        self::assertContains('pass Schema::defaultStringLength(191) is set, so indexed strings fit MySQL 5.6.', $messages);
+        self::assertContains('S14:pass', $this->keys($this->examine($app)));
+    }
+
+    public function testS50PointsAtProctorWhenItIsInstalled(): void
+    {
+        $app = $this->app(['vendor/bin/proctor' => "#!/bin/sh\nexit 0\n"]);
+        $findings = $this->examine($app);
+
+        $s50 = array_values(array_filter($findings, static fn(Finding $f): bool => $f->rule === 'S50'));
+        self::assertCount(1, $s50);
+        self::assertSame(Finding::INFO, $s50[0]->status);
+        self::assertSame('Run `vendor/bin/proctor check` for the lock file, composer audit and MySQL 5.6 checks.', $s50[0]->message);
+    }
+
+    public function testS50SaysHowToGetProctorWhenItIsMissing(): void
+    {
+        $findings = $this->examine($this->app());
+
+        $s50 = array_values(array_filter($findings, static fn(Finding $f): bool => $f->rule === 'S50'));
+        self::assertCount(1, $s50);
+        self::assertSame(Finding::INFO, $s50[0]->status);
+        self::assertStringContainsString('composer require --dev waynestate/proctor', $s50[0]->message);
+        self::assertStringContainsString('phar', $s50[0]->message);
     }
 
     public function testDriftFromTheTemplatesIsAWarningAndNeverAFailure(): void

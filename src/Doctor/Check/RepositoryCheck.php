@@ -9,19 +9,14 @@ use Waynestate\Squire\Doctor\Finding;
 use Waynestate\Squire\Doctor\Project;
 
 /**
- * Repository-level rules: the lock file (S13), line endings (S8), secrets kept out of git (S15, S42), and
- * migrations that work on MySQL 5.6 (S18).
+ * Repository-level rules: line endings (S8) and secrets kept out of git (S15, S42). The lock file (S13) and
+ * MySQL 5.6 safety (S18) are owned by PROCTOR; the doctor hands off to it (S50) instead of repeating them.
  */
 final class RepositoryCheck implements Check
 {
     public function run(Project $project): array
     {
         $findings = [];
-
-        // S13
-        $findings[] = $project->has('composer.lock')
-            ? Finding::pass('S13', 'composer.lock is present.', 'composer.lock')
-            : Finding::fail('S13', 'composer.lock is missing. The lock file is the release contract; commit it.');
 
         // S8
         $attributes = $project->read('.gitattributes');
@@ -47,50 +42,6 @@ final class RepositoryCheck implements Check
         }
         if ($project->has('docker-compose.squire.yml') && !$ignored('.env.squire')) {
             $findings[] = Finding::warn('S42', '.gitignore does not ignore .env.squire, which holds the local database passwords.', '.gitignore');
-        }
-
-        // S18
-        $findings = [...$findings, ...$this->migrations($project)];
-
-        return $findings;
-    }
-
-    /** @return list<Finding> */
-    private function migrations(Project $project): array
-    {
-        $files = $project->filesUnder('database/migrations', ['php']);
-        if ($files === []) {
-            return [];
-        }
-
-        $json = [];
-        $indexes = false;
-        foreach ($files as $file) {
-            $code = $project->read($file) ?? '';
-            if (preg_match('/->jsonb?\s*\(/', $code) === 1) {
-                $json[] = $file;
-            }
-            if (preg_match('/->(unique|index)\s*\(/', $code) === 1) {
-                $indexes = true;
-            }
-        }
-
-        $findings = [];
-        $findings[] = $json === []
-            ? Finding::pass('S18', 'No JSON columns in the migrations (MySQL 5.6 has none).')
-            : Finding::warn('S18', 'JSON columns in ' . implode(', ', array_slice($json, 0, 3)) . ': the shared MySQL 5.6 server has no JSON type.');
-
-        if ($indexes) {
-            $has191 = false;
-            foreach ($project->filesUnder('app', ['php'], 500) as $file) {
-                if (str_contains($project->read($file) ?? '', 'defaultStringLength(191)')) {
-                    $has191 = true;
-                    break;
-                }
-            }
-            $findings[] = $has191
-                ? Finding::pass('S18', 'Schema::defaultStringLength(191) is set, so indexed strings fit MySQL 5.6.')
-                : Finding::warn('S18', 'Migrations create indexes but nothing calls Schema::defaultStringLength(191). Indexed utf8mb4 strings over 191 characters fail on MySQL 5.6.');
         }
 
         return $findings;
