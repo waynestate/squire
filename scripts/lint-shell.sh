@@ -4,6 +4,6 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-docker run --rm -v "$PWD:/mnt" -w /mnt koalaman/shellcheck-alpine:v0.11.0 \
-    sh -c "find templates -name '*.sh' -print0 | xargs -0 shellcheck --external-sources --severity=style"
+MSYS_NO_PATHCONV=1 docker run --rm -v "$PWD:/mnt" -w /mnt koalaman/shellcheck-alpine:v0.11.0 \
+    sh -c "find templates scripts -name '*.sh' -o -path 'templates/common/.squire/fallback/*' -type f | xargs shellcheck --external-sources --severity=style"
 echo "shellcheck: no findings"

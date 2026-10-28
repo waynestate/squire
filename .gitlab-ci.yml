@@ -21,7 +21,7 @@ shellcheck:
     name: koalaman/shellcheck-alpine:v0.11.0
     entrypoint: [""]
   script:
-    - find templates -name '*.sh' -print0 | xargs -0 shellcheck --external-sources --severity=style
+    - find templates scripts -name '*.sh' -o -path 'templates/common/.squire/fallback/*' -type f | xargs shellcheck --external-sources --severity=style
 
 # PowerShell scripts are linted with PSScriptAnalyzer on PowerShell 7 (Windows PowerShell 5.1 is the floor
 # the scripts are written for; see OPEN_QUESTIONS.md).
