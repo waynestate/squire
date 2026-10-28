@@ -301,6 +301,19 @@ final class ReleaseScriptTest extends SquireTestCase
         self::assertContains('npm run build', $calls);
     }
 
+    public function testARawAppWithABundlerAndPnpmGetsTheFrontendBuild(): void
+    {
+        $app = $this->initializedApp();
+        $this->put($app, 'package.json', '{"devDependencies":{"esbuild":"^0.25.0"},"scripts":{"build":"esbuild src/app.js"}}');
+        $this->put($app, 'pnpm-lock.yaml', "lockfileVersion: '9.0'
+");
+
+        $result = $this->exec($app, 'scripts/release.sh');
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertContains('corepack pnpm run build', $this->calls());
+    }
+
     public function testAFailingFrontendBuildStopsTheRelease(): void
     {
         $app = $this->initializedVueApp();
