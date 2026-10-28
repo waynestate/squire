@@ -8,6 +8,7 @@ use Waynestate\Squire\Doctor\Check\BuildScriptCheck;
 use Waynestate\Squire\Doctor\Check\DriftCheck;
 use Waynestate\Squire\Doctor\Check\HealthEndpointCheck;
 use Waynestate\Squire\Doctor\Check\ParityCheck;
+use Waynestate\Squire\Doctor\Check\ProctorHandoffCheck;
 use Waynestate\Squire\Doctor\Check\ReleaseScriptCheck;
 use Waynestate\Squire\Doctor\Check\RepositoryCheck;
 use Waynestate\Squire\Doctor\Check\ScriptHygieneCheck;
@@ -35,6 +36,7 @@ final class Doctor
             new RepositoryCheck(),
             new ParityCheck(),
             new DriftCheck(new Catalog(Squire::templatesDir())),
+            new ProctorHandoffCheck(),
         ];
     }
 
