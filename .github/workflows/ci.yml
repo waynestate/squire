@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+    tags: ['v*', '*.*.*']
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    # pin to a PREFLIGHT tag at its first GitHub release
+    uses: waynestate/preflight/.github/workflows/php-package.yml@65711c350bd0ddf637f0933482d7bdae2a9b3c3b
+    with:
+      php-versions: '["8.3","8.4","8.5"]'
+      ci-command: composer ci
+
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: ShellCheck the shell templates (pinned image)
+        run: >
+          docker run --rm -v "$PWD:/mnt" -w /mnt koalaman/shellcheck-alpine:v0.11.0
+          sh -c "find templates -name '*.sh' -print0 | xargs -0 shellcheck --external-sources --severity=style"
