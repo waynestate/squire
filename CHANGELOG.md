@@ -11,9 +11,9 @@ Versioning once 1.0 is out.
 - `squire doctor` with text and JSON output, checking 26 rules (see `BEST_PRACTICES.md`).
 - Templates for raw PHP and Laravel: `build.sh`, `deployments/001-first-release.sh`, `scripts/release.sh`, `health.php`,
   `public/up.php`.
-- Vue/Inertia layer: `squire init` detects `vue` in `package.json` and writes `.npmrc` with `min-release-age=1`, a Vue
-  `scripts/release.sh` that installs the frontend from the lock file and runs the build, and a Vue
-  `docker-compose.squire.yml` with a Node 22 service; `squire doctor` reports the layer and warns when `node_modules/` is
+- Vue/Inertia layer: `squire init` detects `vue` in `package.json` and writes `.npmrc` with `min-release-age=1` and a Vue
+  `docker-compose.squire.yml` with a Node 22 service (the frontend install and build stay in the one common
+  `scripts/release.sh`); `squire doctor` reports the layer and warns when `node_modules/` is
   tracked in git (S78); the template export includes the layer under `vue/`.
 - Local parity kit: compose file with digest-pinned HA-Proxy and MySQL 5.6.51 images, `.squire/` build context, a fallback
   base image, `scripts/parity.sh` and `scripts/parity.ps1`.
@@ -23,4 +23,3 @@ Versioning once 1.0 is out.
 
 ### Changed
 
-- The common `scripts/release.sh` no longer installs frontend packages; that step now belongs to the Vue layer's copy.

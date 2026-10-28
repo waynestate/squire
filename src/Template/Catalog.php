@@ -54,7 +54,6 @@ final class Catalog
             new Template('.env.squire.example', $parity, false, 'laravel'),
 
             new Template('.npmrc', $release, false, null, Template::LAYER_VUE),
-            new Template('scripts/release.sh', $release, true, null, Template::LAYER_VUE),
             new Template('docker-compose.squire.yml', $parity, false, null, Template::LAYER_VUE),
         ];
     }

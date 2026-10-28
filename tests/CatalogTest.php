@@ -129,7 +129,7 @@ final class CatalogTest extends SquireTestCase
         $catalog = new Catalog(Squire::templatesDir());
         $layer = array_map(static fn(Template $t): string => $t->destination, $catalog->selectLayer(Template::LAYER_VUE, Catalog::GROUPS));
 
-        self::assertSame(['.npmrc', 'scripts/release.sh', 'docker-compose.squire.yml'], $layer);
+        self::assertSame(['.npmrc', 'docker-compose.squire.yml'], $layer);
     }
 
     public function testTheVueLayerReplacesTheCommonReleaseAndComposeFiles(): void
@@ -154,8 +154,27 @@ final class CatalogTest extends SquireTestCase
                 $byDestination[$template->destination] = $template;
             }
             self::assertSame('vue/.npmrc', $byDestination['.npmrc']->source());
-            self::assertSame('vue/scripts/release.sh', $byDestination['scripts/release.sh']->source());
+            self::assertSame('common/scripts/release.sh', $byDestination['scripts/release.sh']->source());
             self::assertSame('vue/docker-compose.squire.yml', $byDestination['docker-compose.squire.yml']->source());
+        }
+    }
+
+    public function testNoDestinationIsListedTwiceForAnyKindAndLayer(): void
+    {
+        $catalog = new Catalog(Squire::templatesDir());
+
+        foreach (Catalog::TARGETS as $target) {
+            foreach ([null, ...Catalog::LAYERS] as $layer) {
+                foreach ([Catalog::GROUPS, [Template::GROUP_RELEASE], [Template::GROUP_PARITY]] as $groups) {
+                    $destinations = array_map(static fn(Template $t): string => $t->destination, $catalog->select($target, $groups, $layer));
+                    self::assertSame($destinations, array_values(array_unique($destinations)), sprintf('%s / %s', $target, $layer ?? 'no layer'));
+                }
+            }
+        }
+
+        foreach (Catalog::LAYERS as $layer) {
+            $destinations = array_map(static fn(Template $t): string => $t->destination, $catalog->selectLayer($layer, Catalog::GROUPS));
+            self::assertSame($destinations, array_values(array_unique($destinations)), $layer);
         }
     }
 

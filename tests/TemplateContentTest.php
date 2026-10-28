@@ -43,7 +43,7 @@ final class TemplateContentTest extends SquireTestCase
 
     public function testBashScriptsUseStrictModeWithPipefail(): void
     {
-        foreach (['common/scripts/release.sh', 'vue/scripts/release.sh', 'common/deployments/001-first-release.sh', 'common/scripts/parity.sh'] as $source) {
+        foreach (['common/scripts/release.sh', 'common/deployments/001-first-release.sh', 'common/scripts/parity.sh'] as $source) {
             self::assertStringContainsString("set -euo pipefail\n", $this->read($source), $source);
         }
     }
@@ -66,7 +66,7 @@ final class TemplateContentTest extends SquireTestCase
 
     public function testReleaseScriptNeverRunsComposerUpdateOrNpmInstall(): void
     {
-        foreach (['common/scripts/release.sh', 'vue/scripts/release.sh'] as $source) {
+        foreach (['common/scripts/release.sh'] as $source) {
             $code = implode("\n", array_filter(explode("\n", $this->read($source)), static fn(string $l): bool => !str_starts_with(ltrim($l), '#')));
 
             self::assertDoesNotMatchRegularExpression('/(^|&&|;)\s*composer\s+update\b/m', $code, $source);
@@ -75,20 +75,16 @@ final class TemplateContentTest extends SquireTestCase
         }
     }
 
-    public function testTheFrontendBuildStepIsOnlyInTheVueReleaseTemplate(): void
+    public function testTheCommonReleaseScriptHasTheFrontendInstallAndBuildStep(): void
     {
         $common = $this->read('common/scripts/release.sh');
-        $vue = $this->read('vue/scripts/release.sh');
 
-        self::assertStringNotContainsString('step "frontend install and build"', $common);
-        self::assertStringNotContainsString('SQUIRE_NPM', $common);
-        self::assertStringNotContainsString('run_build', $common);
-
-        self::assertStringContainsString('step "frontend install and build"', $vue);
-        self::assertStringContainsString('npm ci $ignore_flag', $vue);
-        self::assertStringContainsString('corepack pnpm install --frozen-lockfile $ignore_flag', $vue);
-        self::assertStringContainsString('npm run "$SQUIRE_NPM_BUILD_SCRIPT"', $vue);
-        self::assertStringContainsString('corepack pnpm run "$SQUIRE_NPM_BUILD_SCRIPT"', $vue);
+        self::assertStringContainsString('step "frontend install and build"', $common);
+        self::assertStringContainsString('npm ci $ignore_flag', $common);
+        self::assertStringContainsString('corepack pnpm install --frozen-lockfile $ignore_flag', $common);
+        self::assertStringContainsString('npm run "$SQUIRE_NPM_BUILD_SCRIPT"', $common);
+        self::assertStringContainsString('corepack pnpm run "$SQUIRE_NPM_BUILD_SCRIPT"', $common);
+        self::assertFileDoesNotExist(Squire::templatesDir() . '/vue/scripts/release.sh', 'one release script, for every app');
     }
 
     public function testNoTemplateMountsTheDockerSocketOrRunsPrivileged(): void

@@ -285,16 +285,20 @@ final class ReleaseScriptTest extends SquireTestCase
         self::assertSame([], array_filter($this->calls(), static fn(string $c): bool => str_starts_with($c, 'npm ') || str_starts_with($c, 'corepack ')));
     }
 
-    public function testTheCommonReleaseScriptDoesNotInstallFrontendPackages(): void
+    public function testALaravelAppWithoutVueStillGetsTheFrontendBuild(): void
     {
-        $app = $this->initializedApp();
-        $this->put($app, 'package.json', '{"scripts":{"build":"vite build"}}');
+        $app = $this->initializedApp(true);
+        $this->put($app, '.env', "APP_ENV=testing
+");
+        $this->put($app, 'package.json', '{"devDependencies":{"vite":"^6.0.0"},"scripts":{"build":"vite build"}}');
         $this->put($app, 'package-lock.json', '{}');
 
         $result = $this->exec($app, 'scripts/release.sh');
 
         self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
-        self::assertSame([], array_filter($this->calls(), static fn(string $c): bool => str_starts_with($c, 'npm ') || str_starts_with($c, 'corepack ')));
+        $calls = $this->calls();
+        self::assertContains('npm ci --ignore-scripts', $calls);
+        self::assertContains('npm run build', $calls);
     }
 
     public function testAFailingFrontendBuildStopsTheRelease(): void
@@ -377,7 +381,6 @@ final class ReleaseScriptTest extends SquireTestCase
             'build.sh' => ['common/build.sh', 'sh'],
             'hook' => ['common/deployments/001-first-release.sh', 'bash'],
             'release.sh' => ['common/scripts/release.sh', 'bash'],
-            'vue release.sh' => ['vue/scripts/release.sh', 'bash'],
             'parity.sh' => ['common/scripts/parity.sh', 'bash'],
             'fallback entrypoint' => ['common/.squire/fallback/citadel-apache-entrypoint', 'bash'],
             'fallback deploy' => ['common/.squire/fallback/citadel-deploy', 'bash'],

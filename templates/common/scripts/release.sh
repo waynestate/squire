@@ -7,8 +7,7 @@
 #   Quick Update post-script in the Citadel dashboard:  user `citadel`, script `./scripts/release.sh`
 #
 # Steps: preconditions, composer install from the lock file without dev packages, composer audit (report),
-# Laravel migrate and optimize, PROCTOR as a report, and a smoke test of /up. The Vue layer's copy adds the frontend
-# install and build step.
+# frontend install and build, Laravel migrate and optimize, PROCTOR as a report, and a smoke test of /up.
 # PROCTOR is a report here, never a gate: a failing post-script cannot undo a Quick Update, because the new commit is
 # already live (S20). The real gates are CI and the platform.
 #
@@ -19,6 +18,9 @@
 #   SQUIRE_REQUIRE_ENV=auto          1 requires a .env file, 0 does not (auto: yes for Laravel)
 #   SQUIRE_WRITABLE_DIRS=            directories to create (default: storage and bootstrap/cache for Laravel)
 #   SQUIRE_COMPOSER_AUDIT=report     report | fail | skip
+#   SQUIRE_NPM=auto                  auto | skip
+#   SQUIRE_NPM_IGNORE_SCRIPTS=1      1 runs the installer with --ignore-scripts (S57)
+#   SQUIRE_NPM_BUILD_SCRIPT=build    the package.json script to run after install
 #   SQUIRE_MIGRATE=1                 Laravel: run `migrate --force`
 #   SQUIRE_ARTISAN_OPTIMIZE=1        Laravel: run `optimize` after the environment is in place (S16)
 #   SQUIRE_PROCTOR=auto              auto | skip
@@ -68,6 +70,9 @@ trap 'on_error $? $LINENO' ERR
 : "${SQUIRE_REQUIRE_ENV:=auto}"
 : "${SQUIRE_WRITABLE_DIRS:=}"
 : "${SQUIRE_COMPOSER_AUDIT:=report}"
+: "${SQUIRE_NPM:=auto}"
+: "${SQUIRE_NPM_IGNORE_SCRIPTS:=1}"
+: "${SQUIRE_NPM_BUILD_SCRIPT:=build}"
 : "${SQUIRE_MIGRATE:=1}"
 : "${SQUIRE_ARTISAN_OPTIMIZE:=1}"
 : "${SQUIRE_PROCTOR:=auto}"
@@ -173,6 +178,35 @@ case "$SQUIRE_COMPOSER_AUDIT" in
         ;;
     *) fail "SQUIRE_COMPOSER_AUDIT must be report, fail or skip; got '$SQUIRE_COMPOSER_AUDIT'" ;;
 esac
+
+step "frontend install and build"
+if [ "$SQUIRE_NPM" = "skip" ] || [ ! -f package.json ]; then
+    note "skipped (no package.json, or SQUIRE_NPM=skip)"
+else
+    ignore_flag=""
+    if [ "$SQUIRE_NPM_IGNORE_SCRIPTS" = "1" ]; then
+        ignore_flag="--ignore-scripts"
+    fi
+    if [ -f package-lock.json ]; then
+        command -v npm >/dev/null 2>&1 || fail "package-lock.json found but npm is not on PATH"
+        npm --version
+        # shellcheck disable=SC2086  # the flag is empty or one word
+        npm ci $ignore_flag
+        run_build=(npm run "$SQUIRE_NPM_BUILD_SCRIPT")
+    elif [ -f pnpm-lock.yaml ]; then
+        command -v corepack >/dev/null 2>&1 || fail "pnpm-lock.yaml found but corepack is not on PATH"
+        # shellcheck disable=SC2086  # the flag is empty or one word
+        corepack pnpm install --frozen-lockfile $ignore_flag
+        run_build=(corepack pnpm run "$SQUIRE_NPM_BUILD_SCRIPT")
+    else
+        fail "package.json has no package-lock.json or pnpm-lock.yaml; commit a lock file, or set SQUIRE_NPM=skip if the built assets are committed"
+    fi
+    if grep -q "\"${SQUIRE_NPM_BUILD_SCRIPT}\"[[:space:]]*:" package.json; then
+        "${run_build[@]}"
+    else
+        note "no \"${SQUIRE_NPM_BUILD_SCRIPT}\" script in package.json; nothing to build"
+    fi
+fi
 
 if [ "$framework" = "laravel" ]; then
     step "laravel migrate"

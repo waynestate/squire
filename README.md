@@ -80,9 +80,9 @@ each file in `.squire.json`; commit that file. `--only=release` writes just the 
 local setup.
 
 A Vue/Inertia app is a layer on `raw` or `laravel`, not a third target: `init` detects `vue` in `package.json`
-(dependencies or devDependencies) and writes the layer's `.npmrc`, its `scripts/release.sh` and its
-`docker-compose.squire.yml` beside the target's files. The layer's release script installs the frontend from the lock
-file and runs the build; the plain raw and Laravel release scripts do not touch frontend packages.
+(dependencies or devDependencies) and writes the layer's `.npmrc` and its `docker-compose.squire.yml` (with a Node 22 service) beside the target's files.
+Every app, Vue or not, gets the one common `scripts/release.sh`, which installs the frontend from the lock file and runs
+the `build` script whenever there is a `package.json`.
 
 `update` reads that record: a file you never edited takes the new template, a file you edited is left alone and shown as a
 diff, and a file SQUIRE did not write is never touched. A squire polishes the armour; the knight keeps the sword.
@@ -98,7 +98,6 @@ diff, and a file SQUIRE did not write is never touched. A squire polishes the ar
 | `health.php` | Citadel's health check (`["php","health.php"]`): one HTTP request to `/up`, never boots the framework. |
 | `public/up.php` | Raw PHP only: the endpoint that answers `ok`. Laravel has `/up` built in. |
 | `.npmrc` | Vue layer only: sets `min-release-age=1` for the frontend install. |
-| Vue `scripts/release.sh` | Vue layer only: the common release plus the frontend install from `package-lock.json` or `pnpm-lock.yaml` and the build script. |
 | Vue `docker-compose.squire.yml` | Vue layer only: the common parity compose plus a Node 22 service for frontend tooling. |
 | `docker-compose.squire.yml`, `.squire/`, `.env.squire.example`, `scripts/parity.sh`, `scripts/parity.ps1` | Local parity. |
 
@@ -169,7 +168,7 @@ It is good for trying SQUIRE out and not for proving parity. If the build step f
 
 All optional. On Citadel set them in the dashboard; locally, in `.env.squire`.
 
-Release script (`scripts/release.sh`; the `SQUIRE_NPM*` variables apply to the Vue layer's copy):
+Release script (`scripts/release.sh`):
 
 | Variable | Default | Meaning |
 |---|---|---|
