@@ -43,7 +43,7 @@ final class TemplateContentTest extends SquireTestCase
 
     public function testBashScriptsUseStrictModeWithPipefail(): void
     {
-        foreach (['common/scripts/release.sh', 'common/deployments/001-first-release.sh', 'common/scripts/parity.sh'] as $source) {
+        foreach (['common/scripts/release.sh', 'vue/scripts/release.sh', 'common/deployments/001-first-release.sh', 'common/scripts/parity.sh'] as $source) {
             self::assertStringContainsString("set -euo pipefail\n", $this->read($source), $source);
         }
     }
@@ -66,11 +66,29 @@ final class TemplateContentTest extends SquireTestCase
 
     public function testReleaseScriptNeverRunsComposerUpdateOrNpmInstall(): void
     {
-        $code = implode("\n", array_filter(explode("\n", $this->read('common/scripts/release.sh')), static fn(string $l): bool => !str_starts_with(ltrim($l), '#')));
+        foreach (['common/scripts/release.sh', 'vue/scripts/release.sh'] as $source) {
+            $code = implode("\n", array_filter(explode("\n", $this->read($source)), static fn(string $l): bool => !str_starts_with(ltrim($l), '#')));
 
-        self::assertDoesNotMatchRegularExpression('/(^|&&|;)\s*composer\s+update\b/m', $code);
-        self::assertDoesNotMatchRegularExpression('/\bnpm\s+install\b/', $code);
-        self::assertStringContainsString('--no-dev', $code);
+            self::assertDoesNotMatchRegularExpression('/(^|&&|;)\s*composer\s+update\b/m', $code, $source);
+            self::assertDoesNotMatchRegularExpression('/\bnpm\s+install\b/', $code, $source);
+            self::assertStringContainsString('--no-dev', $code, $source);
+        }
+    }
+
+    public function testTheFrontendBuildStepIsOnlyInTheVueReleaseTemplate(): void
+    {
+        $common = $this->read('common/scripts/release.sh');
+        $vue = $this->read('vue/scripts/release.sh');
+
+        self::assertStringNotContainsString('step "frontend install and build"', $common);
+        self::assertStringNotContainsString('SQUIRE_NPM', $common);
+        self::assertStringNotContainsString('run_build', $common);
+
+        self::assertStringContainsString('step "frontend install and build"', $vue);
+        self::assertStringContainsString('npm ci $ignore_flag', $vue);
+        self::assertStringContainsString('corepack pnpm install --frozen-lockfile $ignore_flag', $vue);
+        self::assertStringContainsString('npm run "$SQUIRE_NPM_BUILD_SCRIPT"', $vue);
+        self::assertStringContainsString('corepack pnpm run "$SQUIRE_NPM_BUILD_SCRIPT"', $vue);
     }
 
     public function testNoTemplateMountsTheDockerSocketOrRunsPrivileged(): void
@@ -93,15 +111,27 @@ final class TemplateContentTest extends SquireTestCase
 
     public function testComposeFileFailsClosedOnMissingPasswordsAndPinsItsImages(): void
     {
-        $compose = $this->read('common/docker-compose.squire.yml');
+        foreach (['common/docker-compose.squire.yml', 'vue/docker-compose.squire.yml'] as $source) {
+            $compose = $this->read($source);
 
-        self::assertStringContainsString('SQUIRE_DB_PASSWORD:?', $compose);
-        self::assertStringContainsString('SQUIRE_DB_ROOT_PASSWORD:?', $compose);
-        self::assertMatchesRegularExpression('#haproxy:3\.0-alpine@sha256:[a-f0-9]{64}#', $compose);
-        self::assertMatchesRegularExpression('#mysql:5\.6\.51@sha256:[a-f0-9]{64}#', $compose);
-        self::assertStringContainsString('127.0.0.1:${SQUIRE_DB_PORT', $compose, 'the database is bound to loopback only');
-        self::assertStringContainsString('interval: 5m', $compose);
-        self::assertStringContainsString('timeout: 15s', $compose);
+            self::assertStringContainsString('SQUIRE_DB_PASSWORD:?', $compose, $source);
+            self::assertStringContainsString('SQUIRE_DB_ROOT_PASSWORD:?', $compose, $source);
+            self::assertMatchesRegularExpression('#haproxy:3\.0-alpine@sha256:[a-f0-9]{64}#', $compose, $source);
+            self::assertMatchesRegularExpression('#mysql:5\.6\.51@sha256:[a-f0-9]{64}#', $compose, $source);
+            self::assertStringContainsString('127.0.0.1:${SQUIRE_DB_PORT', $compose, $source . ': the database is bound to loopback only');
+            self::assertStringContainsString('interval: 5m', $compose, $source);
+            self::assertStringContainsString('timeout: 15s', $compose, $source);
+        }
+    }
+
+    public function testTheVueComposePinsNode22InOnePlace(): void
+    {
+        $common = $this->read('common/docker-compose.squire.yml');
+        $vue = $this->read('vue/docker-compose.squire.yml');
+
+        self::assertStringNotContainsString('node:', $common);
+        self::assertStringContainsString('image: ${SQUIRE_NODE_IMAGE:-node:22-bookworm-slim}', $vue);
+        self::assertSame(1, substr_count($vue, 'node:22-bookworm-slim'), 'the Node image is pinned once, not repeated');
     }
 
     public function testEnvExamplesHoldPlaceholdersOnly(): void

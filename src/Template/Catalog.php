@@ -54,6 +54,8 @@ final class Catalog
             new Template('.env.squire.example', $parity, false, 'laravel'),
 
             new Template('.npmrc', $release, false, null, Template::LAYER_VUE),
+            new Template('scripts/release.sh', $release, true, null, Template::LAYER_VUE),
+            new Template('docker-compose.squire.yml', $parity, false, null, Template::LAYER_VUE),
         ];
     }
 
@@ -79,6 +81,15 @@ final class Catalog
             throw new ToolError(sprintf('Unknown layer "%s". Allowed values: %s.', $layer, implode(', ', self::LAYERS)));
         }
 
+        $layerDestinations = [];
+        if ($layer !== null) {
+            foreach (self::all() as $template) {
+                if ($template->layer === $layer && in_array($template->group, $groups, true)) {
+                    $layerDestinations[$template->destination] = true;
+                }
+            }
+        }
+
         $selected = [];
         foreach (self::all() as $template) {
             if ($template->layer !== null ? ($layer === null || $template->layer !== $layer) : ($template->target !== null && $template->target !== $target)) {
@@ -86,6 +97,9 @@ final class Catalog
             }
             if (!in_array($template->group, $groups, true)) {
                 continue;
+            }
+            if ($layer !== null && $template->layer === null && isset($layerDestinations[$template->destination])) {
+                continue; // the layer's copy of this file replaces the common one
             }
             $selected[] = $template;
         }

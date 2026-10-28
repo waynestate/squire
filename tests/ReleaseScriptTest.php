@@ -8,8 +8,8 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use Waynestate\Squire\Squire;
 
 /**
- * Runs the real shell templates with stub composer, curl, npm and proctor programs on PATH. Needs bash, which the
- * php:*-cli images have and the Alpine composer image does not; the tests skip themselves when it is missing.
+ * Runs the real shell templates with stub composer, curl, npm, corepack and proctor programs on PATH. Needs bash,
+ * which the php:*-cli images have and the Alpine composer image does not; the tests skip themselves when it is missing.
  */
 final class ReleaseScriptTest extends SquireTestCase
 {
@@ -41,6 +41,13 @@ final class ReleaseScriptTest extends SquireTestCase
         $this->stub('npm', <<<'SH'
             #!/bin/sh
             echo "npm $*" >> "$STUB_LOG"
+            if [ "$1" = "run" ] && [ "$2" = "build" ]; then exit "${STUB_NPM_BUILD_EXIT:-0}"; fi
+            exit 0
+            SH);
+        $this->stub('corepack', <<<'SH'
+            #!/bin/sh
+            echo "corepack $*" >> "$STUB_LOG"
+            if [ "$1" = "pnpm" ] && [ "$2" = "run" ] && [ "$3" = "build" ]; then exit "${STUB_COREPACK_BUILD_EXIT:-0}"; fi
             exit 0
             SH);
         $this->stub('proctor', <<<'SH'
@@ -225,7 +232,7 @@ final class ReleaseScriptTest extends SquireTestCase
 
     public function testFrontendPackagesInstallFromTheLockFileWithoutInstallScripts(): void
     {
-        $app = $this->initializedApp();
+        $app = $this->initializedVueApp();
         $this->put($app, 'package.json', '{"scripts":{"build":"vite build"}}');
         $this->put($app, 'package-lock.json', '{}');
 
@@ -238,9 +245,25 @@ final class ReleaseScriptTest extends SquireTestCase
         self::assertLessThan((int) array_search('npm run build', $calls, true), (int) array_search('npm ci --ignore-scripts', $calls, true));
     }
 
+    public function testPnpmLockSelectsPnpmInstallAndBuild(): void
+    {
+        $app = $this->initializedVueApp();
+        $this->put($app, 'package.json', '{"scripts":{"build":"vite build"}}');
+        $this->put($app, 'pnpm-lock.yaml', "lockfileVersion: '9.0'\n");
+
+        $result = $this->exec($app, 'scripts/release.sh');
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        $calls = $this->calls();
+        self::assertContains('corepack pnpm install --frozen-lockfile --ignore-scripts', $calls);
+        self::assertContains('corepack pnpm run build', $calls);
+        self::assertNotContains('npm ci --ignore-scripts', $calls);
+        self::assertLessThan((int) array_search('corepack pnpm run build', $calls, true), (int) array_search('corepack pnpm install --frozen-lockfile --ignore-scripts', $calls, true));
+    }
+
     public function testAPackageJsonWithoutALockFileIsRefusedNotInstalled(): void
     {
-        $app = $this->initializedApp();
+        $app = $this->initializedVueApp();
         $this->put($app, 'package.json', '{"scripts":{"build":"vite build"}}');
 
         $result = $this->exec($app, 'scripts/release.sh');
@@ -248,17 +271,58 @@ final class ReleaseScriptTest extends SquireTestCase
         self::assertSame(1, $result['exit']);
         self::assertStringContainsString('commit a lock file', $result['stderr']);
         self::assertNotContains('npm install', $this->calls());
+        self::assertNotContains('npm ci --ignore-scripts', $this->calls());
     }
 
     public function testFrontendInstallCanBeSkippedWhenBuiltAssetsAreCommitted(): void
     {
-        $app = $this->initializedApp();
+        $app = $this->initializedVueApp();
         $this->put($app, 'package.json', '{}');
 
         $result = $this->exec($app, 'scripts/release.sh', ['SQUIRE_NPM' => 'skip']);
 
         self::assertSame(0, $result['exit']);
-        self::assertSame([], array_filter($this->calls(), static fn(string $c): bool => str_starts_with($c, 'npm ')));
+        self::assertSame([], array_filter($this->calls(), static fn(string $c): bool => str_starts_with($c, 'npm ') || str_starts_with($c, 'corepack ')));
+    }
+
+    public function testTheCommonReleaseScriptDoesNotInstallFrontendPackages(): void
+    {
+        $app = $this->initializedApp();
+        $this->put($app, 'package.json', '{"scripts":{"build":"vite build"}}');
+        $this->put($app, 'package-lock.json', '{}');
+
+        $result = $this->exec($app, 'scripts/release.sh');
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertSame([], array_filter($this->calls(), static fn(string $c): bool => str_starts_with($c, 'npm ') || str_starts_with($c, 'corepack ')));
+    }
+
+    public function testAFailingFrontendBuildStopsTheRelease(): void
+    {
+        $app = $this->initializedVueApp();
+        $this->put($app, 'package.json', '{"scripts":{"build":"vite build"}}');
+        $this->put($app, 'package-lock.json', '{}');
+
+        $result = $this->exec($app, 'scripts/release.sh', ['STUB_NPM_BUILD_EXIT' => '1']);
+
+        self::assertSame(1, $result['exit']);
+        self::assertStringContainsString('frontend install and build', $result['stderr']);
+        self::assertContains('npm ci --ignore-scripts', $this->calls());
+        self::assertContains('npm run build', $this->calls());
+    }
+
+    public function testAFailingPnpmBuildStopsTheRelease(): void
+    {
+        $app = $this->initializedVueApp();
+        $this->put($app, 'package.json', '{"scripts":{"build":"vite build"}}');
+        $this->put($app, 'pnpm-lock.yaml', "lockfileVersion: '9.0'\n");
+
+        $result = $this->exec($app, 'scripts/release.sh', ['STUB_COREPACK_BUILD_EXIT' => '1']);
+
+        self::assertSame(1, $result['exit']);
+        self::assertStringContainsString('frontend install and build', $result['stderr']);
+        self::assertContains('corepack pnpm install --frozen-lockfile --ignore-scripts', $this->calls());
+        self::assertContains('corepack pnpm run build', $this->calls());
     }
 
     public function testRunningAsRootIsRefusedUnlessAllowed(): void
@@ -313,6 +377,7 @@ final class ReleaseScriptTest extends SquireTestCase
             'build.sh' => ['common/build.sh', 'sh'],
             'hook' => ['common/deployments/001-first-release.sh', 'bash'],
             'release.sh' => ['common/scripts/release.sh', 'bash'],
+            'vue release.sh' => ['vue/scripts/release.sh', 'bash'],
             'parity.sh' => ['common/scripts/parity.sh', 'bash'],
             'fallback entrypoint' => ['common/.squire/fallback/citadel-apache-entrypoint', 'bash'],
             'fallback deploy' => ['common/.squire/fallback/citadel-deploy', 'bash'],

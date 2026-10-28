@@ -106,16 +106,39 @@ final class ExporterTest extends SquireTestCase
 
         self::assertFileExists($dir . '/vue/.npmrc');
         self::assertStringContainsString('min-release-age=1', (string) file_get_contents($dir . '/vue/.npmrc'));
+        self::assertFileExists($dir . '/vue/scripts/release.sh');
+        self::assertStringContainsString('step "frontend install and build"', (string) file_get_contents($dir . '/vue/scripts/release.sh'));
+        self::assertFileExists($dir . '/vue/docker-compose.squire.yml');
+        self::assertStringContainsString('image: ${SQUIRE_NODE_IMAGE:-node:22-bookworm-slim}', (string) file_get_contents($dir . '/vue/docker-compose.squire.yml'));
 
         $catalog = json_decode((string) file_get_contents($dir . '/catalog.json'), true);
         self::assertIsArray($catalog);
         self::assertArrayHasKey('vue', $catalog);
-        self::assertSame(['.npmrc'], array_column($catalog['vue'], 'path'));
+        self::assertSame(['.npmrc', 'scripts/release.sh', 'docker-compose.squire.yml'], array_column($catalog['vue'], 'path'));
 
         $manifest = json_decode((string) file_get_contents($dir . '/manifest.json'), true);
         self::assertIsArray($manifest);
         self::assertArrayHasKey('vue/.npmrc', $manifest['files']);
+        self::assertArrayHasKey('vue/scripts/release.sh', $manifest['files']);
+        self::assertArrayHasKey('vue/docker-compose.squire.yml', $manifest['files']);
         self::assertSame('644', $manifest['files']['vue/.npmrc']['mode']);
+        self::assertSame('755', $manifest['files']['vue/scripts/release.sh']['mode']);
+        self::assertSame('644', $manifest['files']['vue/docker-compose.squire.yml']['mode']);
+    }
+
+    public function testTheRawAndLaravelExportsKeepTheCommonReleaseAndComposeFiles(): void
+    {
+        $dir = $this->tempDir();
+        $this->exporter()->export($dir);
+
+        foreach (['raw', 'laravel'] as $kind) {
+            $release = (string) file_get_contents($dir . '/' . $kind . '/scripts/release.sh');
+            $compose = (string) file_get_contents($dir . '/' . $kind . '/docker-compose.squire.yml');
+
+            self::assertStringNotContainsString('step "frontend install and build"', $release, $kind);
+            self::assertStringNotContainsString('SQUIRE_NPM', $release, $kind);
+            self::assertStringNotContainsString('node:22-bookworm-slim', $compose, $kind);
+        }
     }
 
     public function testTheManifestRecordsTheSquireVersion(): void

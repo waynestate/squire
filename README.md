@@ -44,8 +44,8 @@ Status: 0.1, unreleased. This repository is published from Wayne State Universit
 ## What it does
 
 - `squire init` writes the scripts a Citadel app needs from templates, for raw PHP or Laravel, and detects a Vue/Inertia
-  layer from `package.json`. `squire init --check` reports when your copies have drifted from the templates (depend, do
-  not copy).
+  layer from `package.json`, adding the layer's release script and Node 22 parity service. `squire init --check` reports
+  when your copies have drifted from the templates (depend, do not copy).
 - `squire update` takes the new template versions for the files you never edited, and shows a diff for the ones you did.
   It never overwrites your edits, and it runs the same in CI and on a laptop.
 - `squire doctor` checks an app against the best practices a machine can decide ([BEST_PRACTICES.md](BEST_PRACTICES.md)).
@@ -80,8 +80,9 @@ each file in `.squire.json`; commit that file. `--only=release` writes just the 
 local setup.
 
 A Vue/Inertia app is a layer on `raw` or `laravel`, not a third target: `init` detects `vue` in `package.json`
-(dependencies or devDependencies) and writes the layer's `.npmrc` beside the target's files. The release script already
-installs from the lock file and runs the build; the layer only keeps the install boring.
+(dependencies or devDependencies) and writes the layer's `.npmrc`, its `scripts/release.sh` and its
+`docker-compose.squire.yml` beside the target's files. The layer's release script installs the frontend from the lock
+file and runs the build; the plain raw and Laravel release scripts do not touch frontend packages.
 
 `update` reads that record: a file you never edited takes the new template, a file you edited is left alone and shown as a
 diff, and a file SQUIRE did not write is never touched. A squire polishes the armour; the knight keeps the sword.
@@ -93,10 +94,12 @@ diff, and a file SQUIRE did not write is never touched. A squire polishes the ar
 |---|---|
 | `build.sh` | Citadel's build hook: system packages only, POSIX sh, runs as root with no app source. No Composer, no npm. |
 | `deployments/001-first-release.sh` | Runs once per app: calls the release script with the smoke test off (Apache is not up yet). |
-| `scripts/release.sh` | The idempotent release: preconditions, `composer install --no-dev` from the lock file, audit, frontend build from the lock file, Laravel `migrate --force` and `optimize`, PROCTOR as a report, `/up` smoke test. Use it as the Quick Update post-script as well. |
+| `scripts/release.sh` | The idempotent release: preconditions, `composer install --no-dev` from the lock file, audit, Laravel `migrate --force` and `optimize`, PROCTOR as a report, `/up` smoke test. Use it as the Quick Update post-script as well. |
 | `health.php` | Citadel's health check (`["php","health.php"]`): one HTTP request to `/up`, never boots the framework. |
 | `public/up.php` | Raw PHP only: the endpoint that answers `ok`. Laravel has `/up` built in. |
-| `.npmrc` | Vue layer only: sets `min-release-age=1` for the frontend install. The release script already installs with `--ignore-scripts`. |
+| `.npmrc` | Vue layer only: sets `min-release-age=1` for the frontend install. |
+| Vue `scripts/release.sh` | Vue layer only: the common release plus the frontend install from `package-lock.json` or `pnpm-lock.yaml` and the build script. |
+| Vue `docker-compose.squire.yml` | Vue layer only: the common parity compose plus a Node 22 service for frontend tooling. |
 | `docker-compose.squire.yml`, `.squire/`, `.env.squire.example`, `scripts/parity.sh`, `scripts/parity.ps1` | Local parity. |
 
 <div align="center">
@@ -154,7 +157,8 @@ It starts the app container from the Citadel image (built by Citadel's `build_im
 keep it) with your source mounted at `/citadel/src`, runs your `deployments/` as the `citadel` user the way Citadel does,
 and puts an HA-Proxy in front that adds the same forwarding headers. MySQL 5.6.51 is reachable from the app as host
 `mysql` and from your machine on `127.0.0.1:3307`. Containers drop capabilities, set `no-new-privileges`, and carry memory
-and process limits. The database port is bound to loopback only.
+and process limits. The database port is bound to loopback only. The Vue layer's compose file adds a Node 22 service,
+pinned to the same major as the Citadel image, for frontend tooling.
 
 No access to the real image? `--fallback` builds an approximation from the official `php` image plus Citadel's extensions.
 It is good for trying SQUIRE out and not for proving parity. If the build step fails with a permission error writing
@@ -165,7 +169,7 @@ It is good for trying SQUIRE out and not for proving parity. If the build step f
 
 All optional. On Citadel set them in the dashboard; locally, in `.env.squire`.
 
-Release script (`scripts/release.sh`):
+Release script (`scripts/release.sh`; the `SQUIRE_NPM*` variables apply to the Vue layer's copy):
 
 | Variable | Default | Meaning |
 |---|---|---|
@@ -194,8 +198,10 @@ Citadel's 15), `SQUIRE_HEALTH_VENDOR` (`1` also requires `vendor/autoload.php`).
 Local parity (`.env.squire`): `SQUIRE_PROJECT`, `SQUIRE_BASE_IMAGE`, `SQUIRE_PROXY_IMAGE`, `SQUIRE_MYSQL_IMAGE`,
 `SQUIRE_PUBLIC_DIR`, `SQUIRE_SERVER_NAME`, `SQUIRE_TZ`, `SQUIRE_ENVIRONMENT`, `SQUIRE_DEPLOYMENTS`, `SQUIRE_HTTP_PORT`,
 `SQUIRE_APP_MEMORY`, `SQUIRE_SOURCE_UID`, `SQUIRE_SOURCE_GID`, `SQUIRE_DB_NAME`, `SQUIRE_DB_USER`, `SQUIRE_DB_PASSWORD`,
-`SQUIRE_DB_ROOT_PASSWORD`, `SQUIRE_DB_PORT`, `SQUIRE_DB_MEMORY`. The compose file refuses to start without the two
-passwords. See `.env.squire.example`; it holds placeholders only.
+`SQUIRE_DB_ROOT_PASSWORD`, `SQUIRE_DB_PORT`, `SQUIRE_DB_MEMORY`. The Vue layer's compose file also reads
+`SQUIRE_NODE_IMAGE` (default `node:22-bookworm-slim`), `SQUIRE_NODE_ENV` (default `production`) and `SQUIRE_NODE_MEMORY`
+(default `512m`). The compose file refuses to start without the two passwords. See `.env.squire.example`; it holds
+placeholders only.
 
 ## Development
 
@@ -212,7 +218,7 @@ docker run --rm -v "$PWD:/app" -w /app composer:2.10.3 sh -c "composer install -
 
 The shell templates are linted with shellcheck in Docker (`scripts/lint-shell.sh`, or `scripts/lint-shell.ps1` on
 Windows) and the PowerShell with PSScriptAnalyzer (`scripts/lint-powershell.ps1`). The tests run the real shell templates
-against stub `composer`, `curl`, `npm` and `proctor` programs, and start a PHP server to test `health.php`.
+against stub `composer`, `curl`, `npm`, `corepack` and `proctor` programs, and start a PHP server to test `health.php`.
 
 ## Known limits in 0.1
 

@@ -129,7 +129,34 @@ final class CatalogTest extends SquireTestCase
         $catalog = new Catalog(Squire::templatesDir());
         $layer = array_map(static fn(Template $t): string => $t->destination, $catalog->selectLayer(Template::LAYER_VUE, Catalog::GROUPS));
 
-        self::assertSame(['.npmrc'], $layer);
+        self::assertSame(['.npmrc', 'scripts/release.sh', 'docker-compose.squire.yml'], $layer);
+    }
+
+    public function testTheVueLayerReplacesTheCommonReleaseAndComposeFiles(): void
+    {
+        $catalog = new Catalog(Squire::templatesDir());
+
+        foreach (['raw', 'laravel'] as $target) {
+            $without = array_map(static fn(Template $t): string => $t->destination, $catalog->select($target, Catalog::GROUPS));
+            self::assertContains('scripts/release.sh', $without);
+            self::assertContains('docker-compose.squire.yml', $without);
+            self::assertNotContains('.npmrc', $without);
+
+            $selected = $catalog->select($target, Catalog::GROUPS, Template::LAYER_VUE);
+            $destinations = array_map(static fn(Template $t): string => $t->destination, $selected);
+            self::assertSame($destinations, array_values(array_unique($destinations)));
+            self::assertContains('.npmrc', $destinations);
+            self::assertContains('scripts/release.sh', $destinations);
+            self::assertContains('docker-compose.squire.yml', $destinations);
+
+            $byDestination = [];
+            foreach ($selected as $template) {
+                $byDestination[$template->destination] = $template;
+            }
+            self::assertSame('vue/.npmrc', $byDestination['.npmrc']->source());
+            self::assertSame('vue/scripts/release.sh', $byDestination['scripts/release.sh']->source());
+            self::assertSame('vue/docker-compose.squire.yml', $byDestination['docker-compose.squire.yml']->source());
+        }
     }
 
     public function testAnUnknownLayerIsAToolError(): void
