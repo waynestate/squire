@@ -77,7 +77,6 @@
       [".item", false],
       [".patch", true],
       [".step", false],
-      [".letter", false],
       [".rail__tag", false],
       [".roster__list li", true],
       [".dents li", false],

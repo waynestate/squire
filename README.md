@@ -4,7 +4,7 @@
 
 Checks: `composer ci` (the same command runs on GitLab and GitHub).
 
-SQUIRE is the Citadel kit: build.sh, the release script, the health check, local parity on the real images, and evidence-backed upstream fixes. It is part of WELD, the Wayne State application stack, beside WayneUI (project 0, the interface layer), CREED, PROCTOR, PREFLIGHT, SESAME, HELMET, Pinstripe and Sourdough.
+SQUIRE is the Citadel kit: build.sh, the release script, the health check, and local parity on the real images. It is part of WELD, the Wayne State application stack, beside WayneUI (project 0, the interface layer), CREED, PROCTOR, PREFLIGHT, SESAME, HELMET, Pinstripe and Sourdough.
 
 > A knight never suits up alone. Your app shouldn't deploy alone either.
 
@@ -18,8 +18,7 @@ Status: 0.1, unreleased. This repository is published from Wayne State Universit
   when your copies have drifted from the templates (depend, do not copy).
 - `squire doctor` checks an app against the best practices a machine can decide ([BEST_PRACTICES.md](BEST_PRACTICES.md)).
 - A local setup that runs your app on the Citadel PHP image, behind a proxy like Citadel's, with the same MySQL 5.6.
-- Upstream proposals to the platform (`upstream/`): `php.ini` hardening, opcache, Apache hardening, a deploy gate that calls
-  PROCTOR, queue workers. Proposals only; SQUIRE never touches a server.
+- SQUIRE's maintainers send platform improvement proposals to the platform team privately. SQUIRE never touches a server.
 
 ## Install
 
@@ -151,9 +150,9 @@ against stub `composer`, `curl`, `npm` and `proctor` programs, and start a PHP s
 
 ## Known limits in 0.1
 
-See [OPEN_QUESTIONS.md](OPEN_QUESTIONS.md). The big ones: the local `php.ini` is an approximation of Citadel's, the Citadel
-image has no digest to pin, a full Update may not refresh `vendor/` (upstream proposal 06), and PROCTOR cannot yet act as a
-deploy gate (proposal 04).
+See [OPEN_QUESTIONS.md](OPEN_QUESTIONS.md). The big ones: the local `php.ini` holds safe defaults rather than the
+platform's file, the Citadel image has no digest to pin, a full Update may not refresh `vendor/`, and PROCTOR cannot yet
+act as a deploy gate.
 
 ## Licence
 

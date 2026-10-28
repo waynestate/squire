@@ -9,7 +9,7 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
    closest that works. Changes if Citadel starts running the script with bash.
 2. **How does `vendor/` refresh on a full Update?** Deployment hooks run once per app lifetime, so a changed
    `composer.lock` on a full Update has no install step. Default: tell teams to also use `scripts/release.sh` as the Quick
-   Update post-script. Needs a Citadel maintainer's answer; see `upstream/06-rerunnable-release-hook.md`.
+    Update post-script. Needs a Citadel maintainer's answer.
 3. **Is the public directory `src/public`?** Default for local parity: `SQUIRE_PUBLIC_DIR=src/public`. The dashboard passes
    the real value; check it matches.
 4. **Can a secret be mounted?** SQUIRE assumes environment variables from the dashboard only. Default: the scripts read
@@ -24,8 +24,9 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
 8. **`cap_drop: [ALL]` on the real image.** Verified on the fallback image only (the app starts and answers `/up.php`).
    Apache needs `CHOWN`, `SETUID`, `SETGID`, `DAC_OVERRIDE` and `NET_BIND_SERVICE` on some images; the compose file adds back
    what the fallback needed. Re-check on the real image.
-9. **`php.ini` is an approximation.** `.squire/php.ini` holds the active settings of Citadel's `php8.ini`, read on
-   2026-10-28. For exact parity, replace it with a copy of Citadel's file.
+9. **`php.ini` is safe defaults, not a mirror.** `.squire/php.ini` holds the safe defaults HELMET also enforces at
+   runtime, not a copy of the platform's file, so the local app runs with hardened PHP settings. For exact parity with
+   the platform, replace it with a copy of the platform's file.
 10. **Docker Hub digests.** The brief says to pin by digest where one can be found in the Citadel clone. The clone has none
     for any image it uses (Citadel builds images locally). Default: pin HA-Proxy and MySQL to the digests observed on Docker
     Hub on 2026-10-28 (`haproxy:3.0-alpine`, `mysql:5.6.51`) and leave the Citadel image unpinned (below). A deviation from
@@ -53,16 +54,16 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
   image locally from `build-images/*.dockerfile`; there is no registry digest to copy. `doctor` warns (S67) until one is
   set. After building: `scripts/parity.sh pin`.
 - **PROCTOR policy file.** `SQUIRE_PROCTOR_POLICY` has no default. Without it the PROCTOR step is skipped.
-- **PROCTOR phar and `gate` command.** PROCTOR 0.1 has only `check`; upstream proposal 04 needs both.
+- **PROCTOR phar and `gate` command.** PROCTOR 0.1 has only `check`; a deploy gate needs both.
 - **PREFLIGHT tag pin.** The GitHub workflow pins PREFLIGHT to a commit; the GitLab file pins the component to `0.1.0`.
   Update both when PREFLIGHT cuts a release tag on GitHub.
 - **Database passwords.** `.env.squire.example` holds `change-me-local-only` placeholders. The compose file refuses to start
   without real values.
-- **Citadel's actual `php8.ini`.** See question 9.
+- **The platform's actual PHP settings.** `.squire/php.ini` holds safe defaults, not the platform's file. See question 9.
 
 ## Not built yet
 
-- A deploy gate that calls PROCTOR (proposal 04) and queue workers (proposal 05): proposals only.
+- A deploy gate that calls PROCTOR, and queue workers.
 - Checks for rules that need a running app or a server (most of the list of S-rules beyond the 26 in `BEST_PRACTICES.md`).
 - A GitLab or GitHub release job; 0.1 is not tagged or published.
 - Templates for apps that are neither raw PHP nor Laravel.

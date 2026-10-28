@@ -14,7 +14,7 @@
    assets/fonts, a sturdy slab that reads like a stamped luggage label.
 
    File map:
-     1. fonts, tokens, frame      7. setup steps, letters
+      1. fonts, tokens, frame      7. setup steps
      2. header, labels, buttons   8. party: the rail of tags, roster
      3. hero                      9. limits, footer, toast
      4. packing list and bag     10. responsive
@@ -105,10 +105,6 @@ code {
 .os,
 .site-footer {
   --sq-focus: var(--sq-gold);
-}
-
-.section--green .letter {
-  --sq-focus: var(--sq-green);
 }
 
 /* -------------------------------------------- 2. header, labels, buttons */
@@ -1381,7 +1377,7 @@ code {
   border-radius: 0 8px 8px 0;
 }
 
-/* ------------------------------------------------ 7. setup steps, letters */
+/* ------------------------------------------------------ 7. setup steps */
 
 .steps {
   display: grid;
@@ -1464,67 +1460,6 @@ code {
 
 .exits dd {
   margin: 0;
-}
-
-.letters {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--wsu-space-4);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-/* A letter: a paper card with a gold edge and a gold wax seal. */
-.letter {
-  position: relative;
-  padding: 1.3rem 1.3rem 1.35rem 4.4rem;
-  color: var(--sq-ink);
-  background: var(--sq-paper);
-  border-top: 3px solid var(--sq-gold);
-  border-radius: 6px;
-  box-shadow: 0 18px 30px -22px rgba(0, 0, 0, 0.75);
-  transition: transform 0.35s var(--sq-ease-spring);
-}
-
-.letter:nth-child(odd):hover { transform: rotate(-1.2deg) translateY(-4px); }
-.letter:nth-child(even):hover { transform: rotate(1.2deg) translateY(-4px); }
-
-.letter h3 {
-  margin: 0 0 0.3rem;
-  font-family: var(--sq-display);
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--sq-green);
-}
-
-.letter p {
-  margin: 0;
-  font-size: 0.9375rem;
-  line-height: 1.5;
-  color: var(--sq-ink-muted);
-}
-
-.letter__seal {
-  position: absolute;
-  left: 1rem;
-  top: 1.15rem;
-  display: grid;
-  place-items: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  font-family: var(--sq-display);
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--sq-leather-ink);
-  background: radial-gradient(circle at 35% 30%, #ffe28a, var(--sq-gold) 55%, var(--sq-gold-deep));
-  border-radius: 47% 53% 50% 50% / 52% 46% 54% 48%;
-  box-shadow: 0 0 0 3px rgba(255, 204, 51, 0.3), 0 4px 8px -3px rgba(0, 0, 0, 0.4);
-  transition: transform 0.4s var(--sq-ease-spring);
-}
-
-.letter:hover .letter__seal {
-  transform: scale(1.15) rotate(14deg);
 }
 
 /* ------------------------------------------- 8. party: rail of tags, roster */
@@ -1820,7 +1755,6 @@ code {
 
 @media (max-width: 1024px) {
   .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .letters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .inspect { grid-template-columns: minmax(0, 1fr); }
   .roster { grid-template-columns: minmax(0, 1fr); }
 }
@@ -1878,7 +1812,6 @@ code {
 
   .field__rider { left: 50%; top: 0; }
 
-  .letters { grid-template-columns: minmax(0, 1fr); }
   .dents { grid-template-columns: minmax(0, 1fr); }
 }
 
@@ -2053,16 +1986,6 @@ code {
 
   .motion .rail__tag.reveal.is-in .ptag {
     animation: settle 1.4s var(--sq-ease-out) calc(0.3s + var(--i, 0) * 110ms) backwards;
-  }
-
-  .motion .letter.reveal {
-    rotate: -3deg;
-    transition: opacity 0.6s var(--sq-ease-out), translate 0.7s var(--sq-ease-spring), rotate 0.7s var(--sq-ease-spring);
-    transition-delay: calc(var(--i, 0) * 90ms);
-  }
-
-  .motion .letter.reveal.is-in {
-    rotate: 0deg;
   }
 
   .motion .field.is-in .field__rider {

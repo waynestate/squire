@@ -380,22 +380,14 @@ scripts\parity.ps1 up                  <span class="t-dim"># or: scripts\parity.
     </div>
   </section>
 
-  <!-- ========================================================= upstream -->
-  <section class="section section--green" id="upstream" aria-labelledby="upstream-title">
+  <!-- ======================================================== proposals -->
+  <section class="section section--green" id="proposals" aria-labelledby="proposals-title">
     <div class="wsu-container">
       <div class="section__head">
-        <p class="label label--on-green">upstream/</p>
-        <h2 id="upstream-title">Letters for the castle</h2>
-        <p>A good squire carries messages too. SQUIRE holds proposals for the platform team, each with the evidence, the exact change, how to verify it, the risk and how to roll it back. Text only: SQUIRE never touches a server, and nothing in its own scripts waits on them.</p>
+        <p class="label label--on-green">The platform</p>
+        <h2 id="proposals-title">Letters for the castle</h2>
+        <p>A good squire carries messages too. SQUIRE's maintainers send platform improvement proposals to the platform team privately. Text only: SQUIRE never touches a server, and nothing in its own scripts waits on them.</p>
       </div>
-      <ul class="letters">
-        <li class="letter" style="--i:0"><span class="letter__seal" aria-hidden="true">01</span><h3>Harden <code>php.ini</code></h3><p>Safer defaults for the shared PHP images.</p></li>
-        <li class="letter" style="--i:1"><span class="letter__seal" aria-hidden="true">02</span><h3>Turn on opcache</h3><p>Faster PHP, with a check for the newest version.</p></li>
-        <li class="letter" style="--i:2"><span class="letter__seal" aria-hidden="true">03</span><h3>A quieter Apache</h3><p>Say less about the server in every response.</p></li>
-        <li class="letter" style="--i:3"><span class="letter__seal" aria-hidden="true">04</span><h3>A deploy gate</h3><p>Let PROCTOR stop a release before it goes live.</p></li>
-        <li class="letter" style="--i:4"><span class="letter__seal" aria-hidden="true">05</span><h3>Queue workers</h3><p>A supported way to run background jobs.</p></li>
-        <li class="letter" style="--i:5"><span class="letter__seal" aria-hidden="true">06</span><h3>A release hook that re-runs</h3><p>So <code>vendor/</code> refreshes on every new container.</p></li>
-      </ul>
     </div>
   </section>
 
@@ -452,7 +444,7 @@ scripts\parity.ps1 up                  <span class="t-dim"># or: scripts\parity.
         <p>SQUIRE 0.1 is unreleased, and honest about where it guessed. The full list, with the default each guess chose, is <code>OPEN_QUESTIONS.md</code>.</p>
       </div>
       <ul class="dents">
-        <li>The local <code>php.ini</code> is an approximation of Citadel's. For exact parity, copy theirs in.</li>
+        <li>The local <code>php.ini</code> holds the safe defaults HELMET also enforces at runtime, not the platform's file.</li>
         <li>The Citadel image has no registry digest to pin yet; doctor warns under S67 until you run <code>pin</code>.</li>
         <li>A full Update may not refresh <code>vendor/</code>. Use <code>scripts/release.sh</code> as the Quick Update post-script too.</li>
         <li>PROCTOR can report during a release, but cannot act as a deploy gate yet.</li>

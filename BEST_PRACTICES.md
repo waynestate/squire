@@ -23,7 +23,7 @@ here.
 | S20 | fail / warn | PROCTOR runs as a report (the command is followed by an OR branch that records the status), never as a bare command. | After a Quick Update the new commit is already live; a failing post-script cannot undo it. |
 | S21 | warn | The release requests `/up` at the end. | A release that cannot answer a request did not ship. |
 | S22 | warn | The release prints a marker per step. | The dashboard log shows where it stopped. |
-| S35 | warn | The compose file uses a `citadel/php-apache` image. | Same PHP, same `php.ini`, same extensions as production. |
+| S35 | warn | The compose file uses a `citadel/php-apache` image. | Same PHP and extensions as production. |
 | S36 | warn | A proxy that adds `X-Forwarded-For` and `X-Forwarded-Proto` is in front of the app. | Trusted-proxy and HTTPS detection bugs only show behind one. |
 | S37 | warn | The local database is MySQL 5.6. | Its limits then show up locally. |
 | S41 | fail | The Docker socket is not mounted. | It is root on the host. |

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Local copy of the deployments runner: each executable file in $CITADEL_DEPLOYMENTS runs once per file name.
-# Mirrors citadel/build-images/lib/citadel-deploy (run as the `citadel` user from /citadel/src).
+# Mirrors the platform's deployments runner (run as the `citadel` user from /citadel/src).
 set -u
 
 pushd /citadel/src > /dev/null || exit 1

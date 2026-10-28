@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 #
-# The local mirror of the Dockerfile that Citadel generates for an app (citadel/bootstrap/lib/views/Dockerfile.php):
+# The local mirror of the Dockerfile that Citadel generates for an app:
 # the base image, the Citadel vhost, php.ini, YOUR build.sh run the way Citadel runs it (as root, with /bin/sh, in a
 # directory that holds only that file), the 5-minute health check, and Citadel's entrypoint. So a local build breaks
 # the way a Citadel build breaks (S35, S43).

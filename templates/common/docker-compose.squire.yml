@@ -1,6 +1,6 @@
 # docker-compose.squire.yml: local parity with Citadel (SQUIRE S35 to S37, S67, S70, S71).
 #
-#   app    the Citadel PHP image (Apache + mod_php) plus Citadel's vhost, php.ini, YOUR build.sh and deployments/
+#   app    the Citadel PHP image (Apache + mod_php) plus the vhost, php.ini, YOUR build.sh and deployments/
 #   proxy  HA-Proxy in front, adding X-Forwarded-For and X-Forwarded-Proto the way Citadel's does
 #   mysql  MySQL 5.6.51, the version of Citadel's shared database server (it has no JSON columns, indexed strings
 #          stop at 191 characters)

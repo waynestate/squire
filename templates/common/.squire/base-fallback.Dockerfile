@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 #
-# FALLBACK base image: an approximation of Citadel's PHP 8.4 image (citadel/build-images/citadel-php8.4r5-apache.dockerfile)
+# FALLBACK base image: an approximation of Citadel's PHP 8.4 image
 # for developers who cannot build or pull the real one. Same official php:8.4.x-apache base, same users, Apache
 # modules, PHP extensions and Node 22. It leaves out what local work rarely needs: Oracle Instant Client (oci8),
 # imagick and ssmtp. It is NOT the real image, so run the real one before you trust a release (S35).
@@ -90,7 +90,7 @@ RUN ln -s ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
     && ln -s ../lib/node_modules/corepack/dist/corepack.js /usr/local/bin/corepack
 
 # Citadel's entrypoint, reduced to what matters locally: run the deployments/ scripts once per file name as the
-# `citadel` user, then start Apache. The semantics follow citadel/build-images/lib/citadel-deploy.
+# `citadel` user, then start Apache. The semantics follow the platform's deployments runner.
 COPY fallback/citadel-apache-entrypoint fallback/citadel-deploy /usr/local/bin/
 RUN chmod 755 /usr/local/bin/citadel-apache-entrypoint /usr/local/bin/citadel-deploy
 

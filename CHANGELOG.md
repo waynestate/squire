@@ -13,5 +13,4 @@ Versioning once 1.0 is out.
   `public/up.php`.
 - Local parity kit: compose file with digest-pinned HA-Proxy and MySQL 5.6.51 images, `.squire/` build context, a fallback
   base image, `scripts/parity.sh` and `scripts/parity.ps1`.
-- Six upstream proposals under `upstream/`.
 - CI for GitLab and GitHub: `composer ci`, shellcheck and PSScriptAnalyzer, run in Docker.

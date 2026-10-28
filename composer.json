@@ -1,6 +1,6 @@
 {
     "name": "waynestate/squire",
-    "description": "The Citadel kit: standard build.sh, release script and health check, local parity on the Citadel images, and evidence-backed upstream proposals.",
+    "description": "The Citadel kit: standard build.sh, release script and health check, and local parity on the Citadel images.",
     "type": "library",
     "license": "MIT",
     "authors": [

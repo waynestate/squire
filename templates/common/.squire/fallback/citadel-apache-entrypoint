@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Local copy of the Citadel entrypoint: run the deployments as `citadel`, then replace the shell with the command.
-# Mirrors citadel/build-images/lib/citadel-apache-entrypoint without the Composer download.
+# Mirrors the platform's entrypoint without the Composer download.
 set -u
 
 if [ -d "${CITADEL_DEPLOYMENTS:-}" ]; then
