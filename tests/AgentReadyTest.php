@@ -122,7 +122,7 @@ final class AgentReadyTest extends SquireTestCase
 
         $twin = (string) file_get_contents($dir . '/site/index.md');
         self::assertStringStartsWith("---\ntitle: \"DEMO: a test page\"\n", $twin);
-        self::assertStringContainsString('generator: SQUIRE agent-ready', $twin);
+        self::assertStringContainsString('generator: Squire agent-ready', $twin);
         self::assertStringContainsString('[the guide](https://demo.apps.wayne.edu/guide.html)', $twin);
         self::assertStringContainsString('1 *Spaced* apart', $twin);
         self::assertStringContainsString('| a\|b | security_until |', $twin);
@@ -216,6 +216,23 @@ final class AgentReadyTest extends SquireTestCase
         self::assertStringContainsString('drift: guide.md (no longer generated)', $check['stderr']);
         self::assertSame(0, $this->generate('--root=' . $dir)['code']);
         self::assertFileDoesNotExist($dir . '/site/guide.md');
+    }
+
+    public function testALegacyLabelIsStillRecognised(): void
+    {
+        $dir = $this->site();
+        self::assertSame(0, $this->generate('--root=' . $dir)['code']);
+        // An older release wrote the label in capitals; a file headed with it is still this tool's.
+        $twin = $dir . '/site/guide.md';
+        file_put_contents($twin, str_replace('generator: Squire agent-ready', 'generator: SQUIRE agent-ready', (string) file_get_contents($twin)));
+        unlink($dir . '/site/guide.html');
+        $this->put($dir, 'site/index.html', str_replace('guide.html', 'index.html', $this->page()));
+
+        $check = $this->generate('--root=' . $dir, '--check');
+        self::assertSame(1, $check['code']);
+        self::assertStringContainsString('drift: guide.md (no longer generated)', $check['stderr']);
+        self::assertSame(0, $this->generate('--root=' . $dir)['code']);
+        self::assertFileDoesNotExist($twin);
     }
 
     public function testSyncRefusesFromACopyWithoutTheKit(): void

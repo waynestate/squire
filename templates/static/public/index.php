@@ -10,7 +10,7 @@ declare(strict_types=1);
  * carries HELMET's headers. The only solo is the nonce.
  *
  * Agent-ready (ADR-0019): a page with a Markdown twin beside it (index.md
- * for index.html, written by SQUIRE's bin/agent-ready.php) is sent as that
+ * for index.html, written by Squire's bin/agent-ready.php) is sent as that
  * twin to a client that asks for text/markdown, and every HTML answer
  * points at its twin with a Link header. A twin can also be fetched by its
  * own name. Any other .md in the site folder (a README) stays private.

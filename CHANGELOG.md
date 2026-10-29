@@ -9,6 +9,10 @@ Versioning once 1.0 is out.
 
 - Changed: project names written as words except acronyms.
 
+- Changed: templates and the agent-ready label write Squire as a word; older labels are still recognised.
+
+- Changed: CI uses Preflight 0.1.1.
+
 ## 0.2.1 (2026-10-29)
 
 ### Fixed

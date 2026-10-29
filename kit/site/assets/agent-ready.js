@@ -1,6 +1,6 @@
 /*
  * agent-ready.js: prompt blocks and the page menu, for readers who start with an agent (ADR-0019).
- * Same bytes on every stack front page; copy it, don't fork it. SQUIRE owns it (kit/site/assets/), and
+ * Same bytes on every stack front page; copy it, don't fork it. Squire owns it (kit/site/assets/), and
  * `php bin/agent-ready.php --check` fails when a site's copy drifts.
  *
  * The page carries everything an agent or a no-JS reader needs: the prompt is plain text in the HTML and
@@ -19,7 +19,7 @@
   "use strict";
 
   /* One switch for the whole stack. WarriorGPT Desktop is built in and goes first once its build is
-     signed; flip warriorgptDesktop in SQUIRE's kit and sync, never in one site's copy. Until the app
+     signed; flip warriorgptDesktop in Squire's kit and sync, never in one site's copy. Until the app
      publishes a deep link, warriorgptDesktopUrl stays null and the target copies the prompt instead. */
   var CONFIG = {
     warriorgptDesktop: false,

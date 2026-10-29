@@ -1,5 +1,5 @@
 /* agent-ready.css: the prompt block and the page menu (ADR-0019).
- Same bytes on every stack front page; copy it, don't fork it. SQUIRE owns it (kit/site/assets/).
+ Same bytes on every stack front page; copy it, don't fork it. Squire owns it (kit/site/assets/).
 
  The kit brings the layout and none of the look. Every colour, font and corner comes from a --ar-*
  token, and each site maps those onto its own palette in its own sheet, the way proof.css maps
