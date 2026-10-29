@@ -205,6 +205,8 @@ placeholders only.
 
 ## Development
 
+Maintainers: how to build, test and release this project, and where its data comes from, is in [MAINTAINING.md](MAINTAINING.md).
+
 ```
 composer install
 composer ci          # validate, phpunit, pint, phpstan, audit
