@@ -71,6 +71,8 @@ final class ExporterTest extends SquireTestCase
         self::assertSame('755', $manifest['files']['raw/build.sh']['mode']);
         self::assertSame('644', $manifest['files']['raw/health.php']['mode']);
         self::assertSame('755', $manifest['files']['laravel/scripts/parity.sh']['mode']);
+        self::assertSame('644', $manifest['files']['static/public/index.php']['mode']);
+        self::assertSame('644', $manifest['files']['static/public/.htaccess']['mode']);
         self::assertArrayHasKey('sha256', $manifest['files']['raw/build.sh']);
     }
 
@@ -83,16 +85,27 @@ final class ExporterTest extends SquireTestCase
         self::assertIsArray($catalog);
         self::assertArrayHasKey('raw', $catalog);
         self::assertArrayHasKey('laravel', $catalog);
+        self::assertArrayHasKey('static', $catalog);
 
         $rawPaths = array_column($catalog['raw'], 'path');
         $laravelPaths = array_column($catalog['laravel'], 'path');
+        $staticPaths = array_column($catalog['static'], 'path');
         self::assertContains('public/up.php', $rawPaths);
         self::assertNotContains('public/up.php', $laravelPaths);
         self::assertContains('build.sh', $rawPaths);
         self::assertContains('build.sh', $laravelPaths);
 
+        // Static is raw plus the front controller: every raw path, and only those two additions.
+        foreach ($rawPaths as $path) {
+            self::assertContains($path, $staticPaths);
+        }
+        self::assertSame(count($rawPaths) + 2, count($staticPaths));
+        self::assertContains('public/index.php', $staticPaths);
+        self::assertContains('public/.htaccess', $staticPaths);
+        self::assertNotContains('public/index.php', $laravelPaths);
+
         // Every listed file exists in the export, at its target path.
-        foreach (['raw', 'laravel'] as $kind) {
+        foreach (['raw', 'laravel', 'static'] as $kind) {
             foreach ($catalog[$kind] as $entry) {
                 self::assertFileExists($dir . '/' . $kind . '/' . $entry['path']);
             }
@@ -124,18 +137,33 @@ final class ExporterTest extends SquireTestCase
         self::assertSame('644', $manifest['files']['vue/docker-compose.squire.yml']['mode']);
     }
 
-    public function testTheRawAndLaravelExportsKeepTheCommonReleaseAndComposeFiles(): void
+    public function testEveryTargetExportKeepsTheCommonReleaseAndComposeFiles(): void
     {
         $dir = $this->tempDir();
         $this->exporter()->export($dir);
 
-        foreach (['raw', 'laravel'] as $kind) {
+        foreach (Catalog::TARGETS as $kind) {
             $release = (string) file_get_contents($dir . '/' . $kind . '/scripts/release.sh');
             $compose = (string) file_get_contents($dir . '/' . $kind . '/docker-compose.squire.yml');
 
             self::assertStringContainsString('step "frontend install and build"', $release, $kind);
             self::assertStringNotContainsString('node:22-bookworm-slim', $compose, $kind);
         }
+    }
+
+    public function testTheStaticExportCarriesTheFrontControllerForAStaticSite(): void
+    {
+        $dir = $this->tempDir();
+        $this->exporter()->export($dir);
+
+        $index = (string) file_get_contents($dir . '/static/public/index.php');
+        self::assertStringContainsString("use function Waynestate\\Helmet\\helmet_boot;", $index);
+        self::assertStringContainsString("getenv('SQUIRE_STATIC_ROOT')", $index);
+        self::assertStringContainsString("'preset' => 'citadel'", $index);
+
+        $htaccess = (string) file_get_contents($dir . '/static/public/.htaccess');
+        self::assertStringContainsString('RewriteRule ^ index.php [L]', $htaccess);
+        self::assertStringContainsString('Options -Indexes', $htaccess);
     }
 
     public function testTheManifestRecordsTheSquireVersion(): void

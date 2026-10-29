@@ -33,7 +33,7 @@ final class CatalogTest extends SquireTestCase
     /** @return array<string, array{string}> */
     public static function targets(): array
     {
-        return ['raw' => ['raw'], 'laravel' => ['laravel']];
+        return ['raw' => ['raw'], 'laravel' => ['laravel'], 'static' => ['static']];
     }
 
     #[DataProvider('targets')]
@@ -60,6 +60,40 @@ final class CatalogTest extends SquireTestCase
 
         self::assertContains('public/up.php', $raw);
         self::assertNotContains('public/up.php', $laravel);
+    }
+
+    public function testStaticTakesEverythingRawTakesPlusTheFrontController(): void
+    {
+        $catalog = new Catalog(Squire::templatesDir());
+        $raw = array_map(static fn(Template $t): string => $t->destination, $catalog->select('raw', Catalog::GROUPS));
+        $static = array_map(static fn(Template $t): string => $t->destination, $catalog->select('static', Catalog::GROUPS));
+        $laravel = array_map(static fn(Template $t): string => $t->destination, $catalog->select('laravel', Catalog::GROUPS));
+
+        foreach ($raw as $destination) {
+            self::assertContains($destination, $static);
+        }
+        self::assertSame(count($raw) + 2, count($static));
+        self::assertContains('public/index.php', $static);
+        self::assertContains('public/.htaccess', $static);
+        self::assertNotContains('public/index.php', $raw);
+        self::assertNotContains('public/.htaccess', $raw);
+        self::assertNotContains('public/index.php', $laravel);
+        self::assertNotContains('public/.htaccess', $laravel);
+    }
+
+    public function testStaticFilesComeFromTheirOwnDirectoryAndInheritRawFromTheRawDirectory(): void
+    {
+        $catalog = new Catalog(Squire::templatesDir());
+        $byDestination = [];
+        foreach ($catalog->select('static', Catalog::GROUPS) as $template) {
+            $byDestination[$template->destination] = $template;
+        }
+
+        self::assertSame('static/public/index.php', $byDestination['public/index.php']->source());
+        self::assertSame('static/public/.htaccess', $byDestination['public/.htaccess']->source());
+        self::assertSame('raw/public/up.php', $byDestination['public/up.php']->source());
+        self::assertFalse($byDestination['public/index.php']->executable);
+        self::assertFalse($byDestination['public/.htaccess']->executable);
     }
 
     public function testTheGroupOptionNarrowsTheSelection(): void
@@ -94,10 +128,12 @@ final class CatalogTest extends SquireTestCase
         self::assertSame("a\nb\n", (new Catalog($dir))->content(new Template('build.sh', 'release')));
     }
 
-    public function testTheTargetIsDetectedFromTheArtisanFile(): void
+    public function testTheTargetIsDetectedFromTheArtisanFileAndAutoNeverPicksStatic(): void
     {
         self::assertSame('raw', Catalog::detectTarget($this->app()));
         self::assertSame('laravel', Catalog::detectTarget($this->app([], true)));
+        self::assertNotSame('static', Catalog::detectTarget($this->app()));
+        self::assertNotSame('static', Catalog::detectTarget($this->app([], true)));
     }
 
     public function testTheVueLayerIsDetectedFromPackageJson(): void
@@ -136,7 +172,7 @@ final class CatalogTest extends SquireTestCase
     {
         $catalog = new Catalog(Squire::templatesDir());
 
-        foreach (['raw', 'laravel'] as $target) {
+        foreach (Catalog::TARGETS as $target) {
             $without = array_map(static fn(Template $t): string => $t->destination, $catalog->select($target, Catalog::GROUPS));
             self::assertContains('scripts/release.sh', $without);
             self::assertContains('docker-compose.squire.yml', $without);

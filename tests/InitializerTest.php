@@ -148,6 +148,49 @@ final class InitializerTest extends SquireTestCase
         self::assertStringContainsString('DB_HOST=mysql', (string) file_get_contents($app . '/.env.squire.example'));
     }
 
+    public function testAStaticAppGetsTheRawKitPlusTheFrontController(): void
+    {
+        $app = $this->app();
+        $results = $this->initializer()->run($app, 'static', ['release', 'parity'], false, false);
+
+        foreach ($results as $result) {
+            self::assertSame(FileResult::CREATED, $result->state, $result->path);
+            self::assertFileExists($app . '/' . $result->path);
+        }
+        self::assertFileExists($app . '/public/index.php');
+        self::assertFileExists($app . '/public/.htaccess');
+        self::assertFileExists($app . '/public/up.php');
+        $manifest = Manifest::load($app);
+        self::assertNotNull($manifest);
+        self::assertSame('static', $manifest->target);
+        self::assertCount(count($results), $manifest->files);
+    }
+
+    public function testStaticCheckPassesAfterInitAndReportsDriftAfterAnEdit(): void
+    {
+        $app = $this->app();
+        $this->initializer()->run($app, 'static', ['release'], false, false);
+        $ok = $this->states($this->initializer()->run($app, 'static', ['release'], false, true));
+        self::assertSame([FileResult::OK], array_values(array_unique($ok)));
+
+        file_put_contents($app . '/public/index.php', (string) file_get_contents($app . '/public/index.php') . "// edited\n");
+        $modified = $this->states($this->initializer()->run($app, 'static', ['release'], false, true));
+        self::assertSame(FileResult::MODIFIED, $modified['public/index.php']);
+    }
+
+    public function testStaticFrontControllerFilesAreNotExecutable(): void
+    {
+        if (DIRECTORY_SEPARATOR === '\\') {
+            self::markTestSkipped('Windows has no executable bit.');
+        }
+        $app = $this->app();
+        $this->initializer()->run($app, 'static', ['release'], false, false);
+
+        self::assertFalse(is_executable($app . '/public/index.php'));
+        self::assertFalse(is_executable($app . '/public/.htaccess'));
+        self::assertTrue(is_executable($app . '/scripts/release.sh'));
+    }
+
     public function testABrokenManifestIsAToolError(): void
     {
         $app = $this->app([Squire::MANIFEST => '{"nope":true}']);

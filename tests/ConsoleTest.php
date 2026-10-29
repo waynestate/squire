@@ -78,6 +78,47 @@ final class ConsoleTest extends SquireTestCase
         self::assertStringContainsString('modified', $edited['stdout']);
     }
 
+    public function testInitWithTheStaticTargetWritesTheFrontControllerAndRecordsIt(): void
+    {
+        $app = $this->app();
+        $result = $this->runSquire(['init', '--target=static', '--path=' . $app]);
+
+        self::assertSame(0, $result['exit'], $result['stderr']);
+        self::assertStringContainsString('Target: static', $result['stdout']);
+        self::assertFileExists($app . '/public/index.php');
+        self::assertFileExists($app . '/public/.htaccess');
+        self::assertFileExists($app . '/public/up.php');
+        self::assertFileExists($app . '/scripts/release.sh');
+        $manifest = json_decode((string) file_get_contents($app . '/' . Squire::MANIFEST), true);
+        self::assertSame('static', $manifest['target']);
+    }
+
+    public function testStaticCheckWithoutATargetKeepsTheRecordedTarget(): void
+    {
+        $app = $this->app();
+        $this->runSquire(['init', '--target=static', '--path=' . $app]);
+
+        $current = $this->runSquire(['init', '--check', '--path=' . $app]);
+        self::assertSame(0, $current['exit'], $current['stdout']);
+        self::assertStringContainsString('RESULT: pass (0 of', $current['stdout']);
+
+        file_put_contents($app . '/public/index.php', (string) file_get_contents($app . '/public/index.php') . "// edited\n");
+        $edited = $this->runSquire(['init', '--check', '--path=' . $app]);
+        self::assertSame(1, $edited['exit']);
+        self::assertStringContainsString('public/index.php', $edited['stdout']);
+        self::assertStringContainsString('modified', $edited['stdout']);
+    }
+
+    public function testDetectionNeverPicksStaticForAPlainApp(): void
+    {
+        $app = $this->app();
+        $result = $this->runSquire(['init', '--path=' . $app]);
+
+        self::assertSame(0, $result['exit'], $result['stderr']);
+        self::assertStringContainsString('Target: raw', $result['stdout']);
+        self::assertFileDoesNotExist($app . '/public/index.php');
+    }
+
     public function testOnlyLimitsTheGroups(): void
     {
         $app = $this->app();

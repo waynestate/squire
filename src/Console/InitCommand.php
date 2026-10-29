@@ -12,6 +12,7 @@ use Waynestate\Squire\Squire;
 use Waynestate\Squire\Template\Catalog;
 use Waynestate\Squire\Template\FileResult;
 use Waynestate\Squire\Template\Initializer;
+use Waynestate\Squire\Template\Manifest;
 use Waynestate\Squire\Template\Template;
 use Waynestate\Squire\ToolError;
 
@@ -26,7 +27,7 @@ final class InitCommand extends Command
             ->setName('init')
             ->setDescription('Write the standard Citadel scripts into an app, or report drift with --check.')
             ->addOption('path', null, InputOption::VALUE_REQUIRED, 'Path to the application.', '.')
-            ->addOption('target', null, InputOption::VALUE_REQUIRED, 'raw or laravel (default: laravel when an artisan file exists).')
+            ->addOption('target', null, InputOption::VALUE_REQUIRED, 'raw, laravel or static (default: the target recorded in .squire.json, else laravel when an artisan file exists; static must be asked for).')
             ->addOption('only', null, InputOption::VALUE_REQUIRED, 'Comma-separated groups to write: release, parity.', 'release,parity')
             ->addOption('check', null, InputOption::VALUE_NONE, 'Write nothing; report files that are missing, outdated or edited. Exit 1 on drift.')
             ->addOption('force', null, InputOption::VALUE_NONE, 'Overwrite files that were edited or that SQUIRE did not write.');
@@ -47,7 +48,15 @@ final class InitCommand extends Command
                 throw new ToolError(sprintf('Not a directory: %s', $path));
             }
             $targetOption = $input->getOption('target');
-            $target = is_string($targetOption) && $targetOption !== '' ? $targetOption : Catalog::detectTarget($path);
+            if (is_string($targetOption) && $targetOption !== '') {
+                $target = $targetOption;
+            } else {
+                // Without --target, an app SQUIRE already initialized keeps its recorded target: detection
+                // cannot see a static app, so a plain folder would read as raw and the front controller
+                // would slip past --check.
+                $manifest = Manifest::load($path);
+                $target = $manifest !== null ? $manifest->target : Catalog::detectTarget($path);
+            }
             $groups = array_values(array_filter(array_map('trim', explode(',', (string) $input->getOption('only'))), static fn(string $g): bool => $g !== ''));
             if ($groups === []) {
                 throw new ToolError('--only needs at least one group: release, parity.');

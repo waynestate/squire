@@ -30,7 +30,7 @@ if (!$autoloaded) {
 
 $usage = "Usage: php bin/export-templates.php --to=<dir> [--check]\n"
     . "\n"
-    . "Export a generated copy of SQUIRE's templates (for raw and laravel apps, plus the Vue layer) into <dir>, with a\n"
+    . "Export a generated copy of SQUIRE's templates (for raw, laravel and static apps, plus the Vue layer) into <dir>, with a\n"
     . "catalog.json and a manifest.json. With --check, compare an existing copy with a fresh export\n"
     . "and exit 1 on drift.\n";
 
