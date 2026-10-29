@@ -26,6 +26,7 @@ import sharp from "sharp";
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { FORBIDDEN } from "./forbidden.mjs";
 
 /* ------------------------------------------------------------- paths, limits */
 
@@ -36,7 +37,6 @@ const outDir = path.join(repoRoot, "docs", "readme");
 const castDir = path.join(outDir, "cast");
 
 const MAX_BYTES = 300 * 1024; // every file in docs/readme/ stays at or under this
-const FORBIDDEN = /noug[a]t|snu[.]gs|citadel/i; // internal names never ship in art
 
 // The site's own palette, from site/assets/squire.css (:root).
 const C = {
@@ -208,10 +208,9 @@ async function assertClean(page, selector, what) {
 
 /* ------------------------------------------------------------------ 4. hero */
 
-// The hero's own copy names the platform in its label, tagline and blurb, and
-// the README art does not. Those three lines are hidden for the shot (the
-// title, the command, the tags and the satchel stay), and the build checks
-// that every word still visible is clean.
+// The hero's label, tagline and blurb are hidden for the shot (the title, the
+// command, the stack note, the tags and the satchel stay), and the build
+// checks that every word still visible is clean.
 async function buildHero(page) {
   console.log("hero:");
   await page.addStyleTag({
@@ -268,7 +267,7 @@ async function buildPackingList(page) {
   console.log("packing list:");
   const pl = await readPackList(page);
   if (pl.items.length < 4) fail("the packing list has fewer than four items");
-  // The destination row names the platform; the other rows are the bag's own.
+  // A row that carries a forbidden word drops out; the rest are the bag's own.
   const rows = pl.rows.filter((r) => !FORBIDDEN.test(r.k + " " + r.v));
   const items = pl.items;
   assertCleanText(
@@ -435,9 +434,9 @@ ${labelRows}
 /* -------------------------------------------------------------- 6. gallery */
 
 // A contact sheet of two more cuts of the real front page: the party's
-// riding order, and the inspection patches. Any patch
-// that names the platform is left out of the shot, and the build checks every
-// word that is in.
+// riding order, and the inspection patches. Any patch that carries a
+// forbidden word is left out of the shot, and the build checks every word
+// that is in.
 async function buildGallery(page) {
   console.log("gallery:");
   await page.evaluate((src) => {
