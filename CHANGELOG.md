@@ -5,6 +5,15 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+### Added
+
+- `--target=static`: writes everything the `raw` target writes plus a front controller (`public/index.php`) and an
+  `.htaccess` that serve a committed static site behind HELMET. The site folder is `../../site` by default; point
+  `SQUIRE_STATIC_ROOT` at another. `squire init --check` and `squire update` cover the new files, and the template export
+  carries them under `static/`.
+- `SQUIRE_PROCTOR=enforce`: a failed PROCTOR check now stops the release. The default stays report-only, so existing apps
+  are unaffected.
+
 ## 0.1.0 (2026-10-29)
 
 ### Added

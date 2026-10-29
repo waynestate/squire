@@ -43,9 +43,9 @@ Status: 0.1, unreleased. This repository is published from Wayne State Universit
 
 ## What it does
 
-- `squire init` writes the scripts a Citadel app needs from templates, for raw PHP or Laravel, and detects a Vue/Inertia
-  layer from `package.json`, adding the layer's release script and Node 22 parity service. `squire init --check` reports
-  when your copies have drifted from the templates (depend, do not copy).
+- `squire init` writes the scripts a Citadel app needs from templates, for raw PHP, Laravel or a static site, and detects
+  a Vue/Inertia layer from `package.json`, adding the layer's release script and Node 22 parity service. `squire init
+  --check` reports when your copies have drifted from the templates (depend, do not copy).
 - `squire update` takes the new template versions for the files you never edited, and shows a diff for the ones you did.
   It never overwrites your edits, and it runs the same in CI and on a laptop.
 - `squire doctor` checks an app against the best practices a machine can decide ([BEST_PRACTICES.md](BEST_PRACTICES.md)).
@@ -67,8 +67,8 @@ is the scripts it wrote.
 ## Commands
 
 ```
-vendor/bin/squire init   [--path=.] [--target=auto|raw|laravel] [--only=release|parity] [--check] [--force]
-vendor/bin/squire update [--path=.] [--target=raw|laravel] [--only=release|parity] [--dry-run]
+vendor/bin/squire init   [--path=.] [--target=auto|raw|laravel|static] [--only=release|parity] [--check] [--force]
+vendor/bin/squire update [--path=.] [--target=raw|laravel|static] [--only=release|parity] [--dry-run]
 vendor/bin/squire doctor [--path=.] [--format=text|json]
 ```
 
@@ -79,10 +79,17 @@ Exit codes: `0` pass, `1` findings (`init --check`: drift; `update`: an edited f
 each file in `.squire.json`; commit that file. `--only=release` writes just the Citadel scripts, `--only=parity` just the
 local setup.
 
-A Vue/Inertia app is a layer on `raw` or `laravel`, not a third target: `init` detects `vue` in `package.json`
+A Vue/Inertia app is a layer on `raw`, `laravel` or `static`, not a fourth target: `init` detects `vue` in `package.json`
 (dependencies or devDependencies) and writes the layer's `.npmrc` and its `docker-compose.squire.yml` (with a Node 22 service) beside the target's files.
 Every app, Vue or not, gets the one common `scripts/release.sh`, which installs the frontend from the lock file and runs
 the `build` script whenever there is a `package.json`.
+
+A static site is a target of its own: `--target=static` writes everything the `raw` target writes plus a front
+controller, `public/index.php`, and an `.htaccess` that routes every request that is not a real file to it. The site
+itself is plain files you commit; the front controller serves them with HELMET's headers, injects the CSP nonce into the
+HTML, and caches the assets. The site folder is `../../site` by default (the app lives in `deploy/` beside it); point
+`SQUIRE_STATIC_ROOT` at a different folder. `public/up.php` still answers the health check, because a real file is served
+straight by Apache and never reaches the front controller.
 
 `update` reads that record: a file you never edited takes the new template, a file you edited is left alone and shown as a
 diff, and a file SQUIRE did not write is never touched. A squire polishes the armour; the knight keeps the sword.
@@ -94,9 +101,11 @@ diff, and a file SQUIRE did not write is never touched. A squire polishes the ar
 |---|---|
 | `build.sh` | Citadel's build hook: system packages only, POSIX sh, runs as root with no app source. No Composer, no npm. |
 | `deployments/001-first-release.sh` | Runs once per app: calls the release script with the smoke test off (Apache is not up yet). |
-| `scripts/release.sh` | The idempotent release: preconditions, `composer install --no-dev` from the lock file, audit, Laravel `migrate --force` and `optimize`, PROCTOR as a report, `/up` smoke test. Use it as the Quick Update post-script as well. |
+| `scripts/release.sh` | The idempotent release: preconditions, `composer install --no-dev` from the lock file, audit, Laravel `migrate --force` and `optimize`, PROCTOR (a report by default, a gate with `SQUIRE_PROCTOR=enforce`), `/up` smoke test. Use it as the Quick Update post-script as well. |
 | `health.php` | Citadel's health check (`["php","health.php"]`): one HTTP request to `/up`, never boots the framework. |
-| `public/up.php` | Raw PHP only: the endpoint that answers `ok`. Laravel has `/up` built in. |
+| `public/up.php` | Raw PHP and static: the endpoint that answers `ok`. Laravel has `/up` built in. |
+| `public/index.php` | Static target only: the front controller that serves the committed site with HELMET's headers. |
+| `public/.htaccess` | Static target only: routes every request that is not a real file to the front controller. |
 | `.npmrc` | Vue layer only: sets `min-release-age=1` for the frontend install. |
 | Vue `docker-compose.squire.yml` | Vue layer only: the common parity compose plus a Node 22 service for frontend tooling. |
 | `docker-compose.squire.yml`, `.squire/`, `.env.squire.example`, `scripts/parity.sh`, `scripts/parity.ps1` | Local parity. |
@@ -121,7 +130,7 @@ php bin/export-templates.php --to=templates/squire            # write the copy
 php bin/export-templates.php --to=templates/squire --check    # verify it; exit 1 on drift
 ```
 
-The copy holds, for each kind (`raw`, `laravel`) and for the Vue layer (`vue`), the files a new app gets from
+The copy holds, for each kind (`raw`, `laravel`, `static`) and for the Vue layer (`vue`), the files a new app gets from
 `squire init`, at their target paths, with each file's mode recorded so executables stay executable. `catalog.json` lists
 which files each kind and layer installs and where; `manifest.json` records the SQUIRE version and a SHA-256 per file.
 Refresh the copy when SQUIRE's templates move on, and run `--check` in CI to keep it honest. A squire keeps the armour
@@ -184,11 +193,11 @@ Release script (`scripts/release.sh`):
 | `SQUIRE_NPM_BUILD_SCRIPT` | `build` | The `package.json` script to run. |
 | `SQUIRE_MIGRATE` | `1` | Laravel: `migrate --force`. |
 | `SQUIRE_ARTISAN_OPTIMIZE` | `1` | Laravel: `optimize`. |
-| `SQUIRE_PROCTOR` | `auto` | `auto` or `skip`. |
+| `SQUIRE_PROCTOR` | `auto` | `auto`, `skip` or `enforce`. By default PROCTOR is a report and never stops the release; `enforce` makes a failed check stop it. |
 | `SQUIRE_PROCTOR_BIN` | `vendor/bin/proctor`, then `PATH` | Where PROCTOR is. It is a dev dependency, so `--no-dev` removes it: point this at a copy. |
 | `SQUIRE_PROCTOR_POLICY` | none | Path to the policy file. PROCTOR needs one; without it the step is skipped with a reason. |
 | `SQUIRE_SMOKE` | `1` | Request the health URL at the end and fail unless it answers 200. |
-| `SQUIRE_SMOKE_URL` | `http://127.0.0.1:80/up` (Laravel), `/up.php` (raw) | Full URL. |
+| `SQUIRE_SMOKE_URL` | `http://127.0.0.1:80/up` (Laravel), `/up.php` (raw and static) | Full URL. |
 | `SQUIRE_SMOKE_RETRIES` | `5` | Attempts. |
 | `SQUIRE_SMOKE_DELAY` | `2` | Seconds between attempts. |
 
@@ -223,8 +232,8 @@ against stub `composer`, `curl`, `npm`, `corepack` and `proctor` programs, and s
 ## Known limits in 0.1
 
 See [OPEN_QUESTIONS.md](OPEN_QUESTIONS.md). The big ones: the local `php.ini` holds safe defaults rather than the
-platform's file, the Citadel image has no digest to pin, a full Update may not refresh `vendor/`, and PROCTOR cannot yet
-act as a deploy gate.
+platform's file, the Citadel image has no digest to pin, and a full Update may not refresh `vendor/`. PROCTOR can now
+gate a release with `SQUIRE_PROCTOR=enforce`; what is still missing on its side is a phar and a dedicated `gate` command.
 
 ## Licence
 
