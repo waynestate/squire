@@ -5,6 +5,8 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+## 0.2.0 (2026-10-29)
+
 ### Added
 
 - `--target=static`: writes everything the `raw` target writes plus a front controller (`public/index.php`) and an
