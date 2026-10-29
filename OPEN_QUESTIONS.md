@@ -17,7 +17,8 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
 5. **PowerShell minimum.** The `.ps1` scripts are written for Windows PowerShell 5.1 and PowerShell 7; the lint (PSScriptAnalyzer)
    runs on 7.4 only. 5.1 behaviour is by inspection, not run.
 6. **PROCTOR is a dev dependency.** `composer install --no-dev` removes it, so the release step needs
-   `SQUIRE_PROCTOR_BIN` and `SQUIRE_PROCTOR_POLICY`. Default: the step skips with a stated reason when either is missing.
+   `SQUIRE_PROCTOR_BIN`. Default: the step skips with a stated reason when it is missing; the policy falls back to the
+   copy CREED ships, and to PROCTOR's own default with a notice when CREED is not installed.
    Changes when PROCTOR ships a phar.
 7. **Local proxy version.** Locally HA-Proxy 3.0; Citadel's template targets 1.5. Both add `X-Forwarded-For` and
    `X-Forwarded-Proto`; other 1.5 behaviours (connection reuse, header casing) may differ.
@@ -53,18 +54,18 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
 - **Citadel app image digest.** `SQUIRE_BASE_IMAGE=citadel/php-apache:8.4r5` is unpinned (placeholder). Citadel builds the
   image locally from `build-images/*.dockerfile`; there is no registry digest to copy. `doctor` warns (S67) until one is
   set. After building: `scripts/parity.sh pin`.
-- **PROCTOR policy file.** `SQUIRE_PROCTOR_POLICY` has no default. Without it the PROCTOR step is skipped.
+- **PROCTOR policy file.** `SQUIRE_PROCTOR_POLICY` defaults to the policy in `vendor/waynestate/creed`, when CREED is installed. Without CREED, PROCTOR runs on its own default policy with a notice.
 - **PROCTOR phar and `gate` command.** PROCTOR (0.2.6) still has only `check`, and its phar is built from source but not published; a deploy gate needs a `gate` command and a published phar.
-- **Preflight tag pin.** The GitHub workflow pins Preflight to a commit; the GitLab file pins the component to `0.1.0`. Preflight has since tagged 0.1.1 on nougat, so both pins are one release behind.
-  Update both when Preflight cuts a release tag on GitHub.
+- **Preflight tag pin.** The GitHub workflow pins Preflight to a commit; the GitLab file pins the components to `0.1.1`, the current Preflight tag.
+  Pin the GitHub workflow to a tag when Preflight cuts a release tag on GitHub.
 - **Database passwords.** `.env.squire.example` holds `change-me-local-only` placeholders. The compose file refuses to start
   without real values.
 - **The platform's actual PHP settings.** `.squire/php.ini` holds safe defaults, not the platform's file. See question 9.
 
 ## Not built yet
 
-- A deploy gate that calls PROCTOR, and queue workers.
+- A deploy gate that calls PROCTOR as a dedicated `gate` command (`SQUIRE_PROCTOR=enforce` already stops a release), and queue workers.
 - Checks for rules that need a running app or a server (most of the list of S-rules beyond the 26 in `BEST_PRACTICES.md`).
-- A GitLab or GitHub release job; 0.1.0 is tagged and on Packagist; a release job is not built.
-- Templates for apps that are neither raw PHP nor Laravel.
+- A GitLab or GitHub release job; releases are tagged and published to Packagist by hand.
+- Templates for apps that are none of raw PHP, Laravel or a static site.
 - Running the PowerShell scripts on Windows PowerShell 5.1 itself (see question 5) and on macOS.
