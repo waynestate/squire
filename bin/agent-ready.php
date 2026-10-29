@@ -938,7 +938,7 @@ final class AgentReady
             $out .= $readme['intro'] . "\n\n";
         }
         $out .= 'Every page below is Markdown. The HTML pages send the same Markdown to a client that asks for '
-            . "`text/markdown`. Written by SQUIRE's agent-ready kit from the README and the pages; do not edit.\n\n";
+            . "`text/markdown`. Written by Squire's agent-ready kit from the README and the pages; do not edit.\n\n";
 
         $out .= "## Pages\n\n";
         foreach ($pages as $page) {
@@ -1003,7 +1003,7 @@ final class AgentReady
             $out .= '> ' . $pages[0]->description . "\n\n";
         }
         $out .= 'The README and the Markdown twin of every page, joined. The index is ' . $this->base . 'llms.txt. '
-            . "Written by SQUIRE's agent-ready kit; do not edit.\n";
+            . "Written by Squire's agent-ready kit; do not edit.\n";
         $out .= "\n---\n\n## README\n\n";
         if ($this->source !== '') {
             $out .= 'Source: ' . $this->source . '/blob/HEAD/' . basename($this->readme) . "\n\n";
@@ -1020,7 +1020,7 @@ final class AgentReady
 
     private function robots(): string
     {
-        return '# robots.txt for ' . $this->base . ", written by SQUIRE's agent-ready kit (ADR-0019); do not edit.\n"
+        return '# robots.txt for ' . $this->base . ", written by Squire's agent-ready kit (ADR-0019); do not edit.\n"
             . "# Content Signals (contentsignals.org): find it and answer from it, yes; train on it, no.\n"
             . "User-agent: *\n"
             . "Content-Signal: search=yes, ai-input=yes, ai-train=no\n"
@@ -1033,7 +1033,7 @@ final class AgentReady
     private function sitemap(array $pages): string
     {
         $out = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-            . "<!-- Written by SQUIRE's agent-ready kit from the pages in the site folder; do not edit. -->\n"
+            . "<!-- Written by Squire's agent-ready kit from the pages in the site folder; do not edit. -->\n"
             . "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n";
         foreach ($pages as $page) {
             $out .= '  <url><loc>' . htmlspecialchars($page->url, ENT_XML1) . "</loc></url>\n";

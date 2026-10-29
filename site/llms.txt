@@ -15,7 +15,7 @@ On Citadel it is served by the raw-PHP deploy layer in [`deploy/`](https://githu
 
 Status: 0.2.1, tagged and on Packagist. This repository is published from Wayne State University's internal GitLab and mirrored to GitHub.
 
-Every page below is Markdown. The HTML pages send the same Markdown to a client that asks for `text/markdown`. Written by SQUIRE's agent-ready kit from the README and the pages; do not edit.
+Every page below is Markdown. The HTML pages send the same Markdown to a client that asks for `text/markdown`. Written by Squire's agent-ready kit from the README and the pages; do not edit.
 
 ## Pages
 
