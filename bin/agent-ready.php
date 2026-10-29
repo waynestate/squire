@@ -5,7 +5,7 @@ declare(strict_types=1);
 /*
  * agent-ready.php: makes a static front page readable by agents (ADR-0019).
  *
- * Same bytes in every stack repo; copy it, don't fork it. SQUIRE owns it, and `--sync-to` (run from SQUIRE)
+ * Same bytes in every stack repo; copy it, don't fork it. Squire owns it, and `--sync-to` (run from Squire)
  * is how a site takes a new version, together with the kit's agent-ready.js and agent-ready.css.
  *
  * From the site folder and the README it writes, into the site folder:
@@ -20,8 +20,8 @@ declare(strict_types=1);
  * Usage:
  *   php bin/agent-ready.php [--root=.]                 write the files
  *   php bin/agent-ready.php [--root=.] --check         write nothing; exit 1 on drift or a finding
- *   php bin/agent-ready.php --sync-to=<repo>           from SQUIRE only: copy the kit and this file
- *   php bin/agent-ready.php --rehash                   from SQUIRE only: record the kit's hashes below
+ *   php bin/agent-ready.php --sync-to=<repo>           from Squire only: copy the kit and this file
+ *   php bin/agent-ready.php --rehash                   from Squire only: record the kit's hashes below
  *
  * Settings come from <root>/agent-ready.json, all optional: site (default "site"), readme ("README.md"),
  * base (composer.json homepage), source (composer.json support.source), exclude (page paths, relative to
@@ -36,7 +36,7 @@ final class AgentReadyError extends RuntimeException {}
 
 /**
  * The kit's files, by path inside the site folder, with the SHA-256 of their bytes (LF line endings).
- * SQUIRE's tests fail when these drift from kit/site/assets/.
+ * Squire's tests fail when these drift from kit/site/assets/.
  */
 final class AgentReadyKit
 {
@@ -916,11 +916,11 @@ final class AgentReady
         foreach (AgentReadyKit::FILES as $relative => $hash) {
             $path = $this->site . '/' . $relative;
             if (!is_file($path)) {
-                $this->findings[] = "{$relative} is missing. Copy the kit with SQUIRE: php bin/agent-ready.php --sync-to=<this repo>.";
+                $this->findings[] = "{$relative} is missing. Copy the kit with Squire: php bin/agent-ready.php --sync-to=<this repo>.";
                 continue;
             }
             if (hash('sha256', $this->normalise((string) file_get_contents($path))) !== $hash) {
-                $this->findings[] = "{$relative} differs from SQUIRE's kit. Never edit it here; change the kit in SQUIRE and sync.";
+                $this->findings[] = "{$relative} differs from Squire's kit. Never edit it here; change the kit in Squire and sync.";
             }
         }
     }
@@ -1172,7 +1172,7 @@ final class AgentReady
 function agent_ready_main(array $argv): int
 {
     $usage = "Usage: php bin/agent-ready.php [--root=.] [--check]\n"
-        . "       php bin/agent-ready.php --sync-to=<repo>   (from SQUIRE: copy the kit and this file)\n";
+        . "       php bin/agent-ready.php --sync-to=<repo>   (from Squire: copy the kit and this file)\n";
     $root = '.';
     $check = false;
     $syncTo = null;
@@ -1262,12 +1262,12 @@ function agent_ready_main(array $argv): int
     }
 }
 
-/** Records the SHA-256 of each kit file in AgentReadyKit::FILES, in this file. SQUIRE's maintainers run it. */
+/** Records the SHA-256 of each kit file in AgentReadyKit::FILES, in this file. Squire's maintainers run it. */
 function agent_ready_rehash(): int
 {
     $kit = dirname(__DIR__) . '/kit/site';
     if (!is_dir($kit)) {
-        throw new AgentReadyError('--rehash runs from SQUIRE, where the kit lives (kit/site/).');
+        throw new AgentReadyError('--rehash runs from Squire, where the kit lives (kit/site/).');
     }
     $source = str_replace("\r\n", "\n", (string) file_get_contents(__FILE__));
     foreach (array_keys(AgentReadyKit::FILES) as $relative) {
@@ -1287,12 +1287,12 @@ function agent_ready_rehash(): int
     return 0;
 }
 
-/** Copies the kit and this file into a repo. Only SQUIRE has the kit, so only SQUIRE can sync. */
+/** Copies the kit and this file into a repo. Only Squire has the kit, so only Squire can sync. */
 function agent_ready_sync(string $repo): int
 {
     $kit = dirname(__DIR__) . '/kit/site';
     if (!is_dir($kit)) {
-        throw new AgentReadyError('--sync-to runs from SQUIRE, where the kit lives (kit/site/). This copy has no kit.');
+        throw new AgentReadyError('--sync-to runs from Squire, where the kit lives (kit/site/). This copy has no kit.');
     }
     $tool = new AgentReady(rtrim($repo, '/\\'));
     $copies = [__FILE__ => rtrim($repo, '/\\') . '/bin/agent-ready.php'];

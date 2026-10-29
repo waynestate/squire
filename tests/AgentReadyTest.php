@@ -171,7 +171,7 @@ final class AgentReadyTest extends SquireTestCase
 
         $check = $this->generate('--root=' . $dir, '--check');
         self::assertSame(1, $check['code']);
-        self::assertStringContainsString("assets/agent-ready.css differs from SQUIRE's kit", $check['stderr']);
+        self::assertStringContainsString("assets/agent-ready.css differs from Squire's kit", $check['stderr']);
     }
 
     public function testCheckFailsAPromptThatDriftsFromTheDocsOrBreaksAShell(): void
@@ -248,7 +248,7 @@ final class AgentReadyTest extends SquireTestCase
         fclose($pipes[1]);
         fclose($pipes[2]);
         self::assertSame(2, proc_close($process));
-        self::assertStringContainsString('--sync-to runs from SQUIRE', $stderr);
+        self::assertStringContainsString('--sync-to runs from Squire', $stderr);
     }
 
     // ------------------------------------------------------------ the front controller
