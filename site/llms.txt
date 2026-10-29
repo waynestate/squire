@@ -21,6 +21,10 @@ Every page below is Markdown. The HTML pages send the same Markdown to a client 
 
 - [Squire: Suits you up for the Citadel.](https://squire.apps.wayne.edu/index.md): Squire is the Citadel kit: it packs your app's deploy scripts, inspects them against the S-rules, and runs your app locally on the same image, proxy and MySQL as Citadel.
 
+## Prompts
+
+- [Get started with Squire](https://squire.apps.wayne.edu/#get-started): Pack your app for the Citadel and try it at home first. The prompt itself is in https://squire.apps.wayne.edu/index.md.
+
 ## Source
 
 - [README](https://github.com/waynestate/squire/blob/HEAD/README.md): the project's README, with install, commands and checks

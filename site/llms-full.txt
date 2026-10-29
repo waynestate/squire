@@ -281,6 +281,18 @@ A squire carries the kit, readies the armour and gets the knight on the field. S
 
 [See the packing list](https://squire.apps.wayne.edu/#kit) [Meet the party](https://squire.apps.wayne.edu/#party)
 
+#### Get started with Squire
+
+Pack your app for the Citadel and try it at home first.
+
+A prompt for your coding agent. Copy it as it stands:
+
+```text
+You are a coding agent. Read https://squire.apps.wayne.edu/llms.txt and ask ADVISOR.
+Install it with `composer require waynestate/squire --dev`, then run `vendor/bin/squire init` at the root of your app.
+Ask me before you guess.
+```
+
 vendor/bin/squire init
 
 ### The packing list for deploy day
