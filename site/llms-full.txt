@@ -23,7 +23,7 @@ Squire is the Citadel kit: build.sh, the release script, the health check, and l
 Front page: [`site/index.html`](https://github.com/waynestate/squire/blob/HEAD/site/index.html), a static page you can serve from anywhere.
 On Citadel it is served by the raw-PHP deploy layer in [`deploy/`](https://github.com/waynestate/squire/blob/HEAD/deploy/): a Squire kit whose front controller serves `site/` behind HELMET's security headers. For local development, keep serving `site/` directly.
 
-Status: 0.3.2, tagged and on Packagist. This repository is published from Wayne State University's internal GitLab and mirrored to GitHub.
+Status: 0.3.3, tagged and on Packagist. This repository is published from Wayne State University's internal GitLab and mirrored to GitHub.
 
 ### What it does
 
@@ -196,8 +196,9 @@ It is good for trying Squire out and not for proving parity. If the build step f
 
 ### Configuration
 
-All optional. On Citadel set them in the app's `./.env` configuration file (the configuration-files step after the
-wizard); locally, in `.env.squire`.
+All optional. On Citadel, add `./.env.squire` as a configuration file (the configuration-files step after the wizard;
+the wizard has no environment field) and keep it out of git. `release.sh` reads the release options from it, and a
+variable already in the environment wins. Locally, the same file holds the parity settings.
 
 Release script (`scripts/release.sh`):
 
