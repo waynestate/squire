@@ -116,7 +116,7 @@ final class Updater
         }
 
         if (!$dryRun && $written !== $manifest->files) {
-            (new Manifest(Squire::VERSION, $manifest->target, $manifest->groups, $written, $manifest->layer))->save($appPath);
+            (new Manifest(Squire::version(), $manifest->target, $manifest->groups, $written, $manifest->layer))->save($appPath);
         }
 
         return $results;

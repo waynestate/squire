@@ -105,7 +105,7 @@ final class Initializer
         }
 
         if (!$check) {
-            (new Manifest(Squire::VERSION, $target, $groups, $written, $layer))->save($appPath);
+            (new Manifest(Squire::version(), $target, $groups, $written, $layer))->save($appPath);
         }
 
         return $results;

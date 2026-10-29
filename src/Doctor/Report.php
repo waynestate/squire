@@ -39,7 +39,7 @@ final class Report
         $exit = Doctor::exitCode($findings);
         $data = [
             'tool' => Squire::TOOL,
-            'version' => Squire::VERSION,
+            'version' => Squire::version(),
             'path' => $path,
             'result' => $exit === 0 ? 'pass' : 'fail',
             'exit' => $exit,

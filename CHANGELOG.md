@@ -5,6 +5,10 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+### Fixed
+
+- Fixed: SQUIRE reported 0.1.0 after the 0.2.0 release.
+
 ## 0.2.0 (2026-10-29)
 
 ### Added
