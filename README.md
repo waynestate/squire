@@ -20,6 +20,7 @@ SQUIRE is the Citadel kit: build.sh, the release script, the health check, and l
 > A knight never suits up alone. Your app shouldn't deploy alone either.
 
 Front page: [`site/index.html`](site/index.html), a static page you can serve from anywhere.
+On Citadel it is served by the raw-PHP deploy layer in [`deploy/`](deploy/): a SQUIRE kit whose front controller serves `site/` behind HELMET's security headers. For local development, keep serving `site/` directly.
 
 Status: 0.1, unreleased. This repository is published from Wayne State University's internal GitLab and mirrored to GitHub.
 
