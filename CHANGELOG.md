@@ -5,6 +5,8 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+- Fixed: docs say app settings go in a ./.env configuration file; Citadel has no dashboard environment field.
+
 ## 0.3.2 (2026-10-29)
 
 - Added: collapsed prompt blocks show a "Show the whole prompt" button; the fade stays inside the panel.

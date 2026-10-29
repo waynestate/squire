@@ -180,7 +180,11 @@ so a `composer require` of the package never ships the kit. A squire packs what 
    post-script to `./scripts/release.sh` (user `citadel`).
 2. Commit `composer.lock`, and `package-lock.json` or `pnpm-lock.yaml` if you have a frontend.
 3. Mark the scripts executable in git. On Windows: `git update-index --chmod=+x build.sh scripts/*.sh deployments/*.sh`.
-4. Set `SQUIRE_*` values in the dashboard environment (below), not in a file in the repository.
+4. Set `SQUIRE_*` values in the app's `./.env` configuration file (below), not in a file in the repository. The
+   dashboard has no environment field; its configuration-files step, after the wizard, writes `./.env` into the
+   source tree. A Laravel app reads `./.env` already; a raw PHP app loads it with `vlucas/phpdotenv`
+   (`Dotenv\Dotenv::createUnsafeImmutable($root)->safeLoad()`), so `getenv()` sees the values and a real environment
+   variable wins.
 
 ## Local parity
 
@@ -214,7 +218,8 @@ It is good for trying Squire out and not for proving parity. If the build step f
 
 ## Configuration
 
-All optional. On Citadel set them in the dashboard; locally, in `.env.squire`.
+All optional. On Citadel set them in the app's `./.env` configuration file (the configuration-files step after the
+wizard); locally, in `.env.squire`.
 
 Release script (`scripts/release.sh`):
 

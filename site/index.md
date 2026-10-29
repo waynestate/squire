@@ -203,8 +203,8 @@ What lands on Citadel is the scripts Squire packed; the package itself stays on 
    `composer.lock`, and `package-lock.json` or `pnpm-lock.yaml` if you have a frontend. The lock file is the release contract.
 3. ### Mark the scripts executable
    Git on Windows forgets: `git update-index --chmod=+x build.sh scripts/*.sh deployments/*.sh`
-4. ### Settings in the dashboard
-   Set `SQUIRE_*` values in the dashboard environment, never in a file in the repository. All of them are optional.
+4. ### Settings in the configuration file
+   Set `SQUIRE_*` values in the app's `./.env` configuration file, never in a file in the repository. The dashboard has no environment field; its configuration-files step, after the wizard, writes `./.env` into the source tree. A Laravel app reads it already; a raw PHP app loads it with `vlucas/phpdotenv`. All of them are optional.
 
 - **`0`**: pass
 - **`1`**: findings: drift for `init --check`, a failed rule for `doctor`

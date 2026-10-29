@@ -383,8 +383,8 @@ scripts\parity.ps1 up                  <span class="t-dim"># or: scripts\parity.
         </li>
         <li class="step" style="--i:3">
           <span class="step__no" aria-hidden="true">4</span>
-          <h3>Settings in the dashboard</h3>
-          <p>Set <code>SQUIRE_*</code> values in the dashboard environment, never in a file in the repository. All of them are optional.</p>
+          <h3>Settings in the configuration file</h3>
+          <p>Set <code>SQUIRE_*</code> values in the app's <code>./.env</code> configuration file, never in a file in the repository. The dashboard has no environment field; its configuration-files step, after the wizard, writes <code>./.env</code> into the source tree. A Laravel app reads it already; a raw PHP app loads it with <code>vlucas/phpdotenv</code>. All of them are optional.</p>
         </li>
       </ol>
       <dl class="exits">
