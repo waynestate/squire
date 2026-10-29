@@ -12,7 +12,14 @@ use Waynestate\Squire\ToolError;
  */
 final class Catalog
 {
-    public const TARGETS = ['raw', 'laravel'];
+    public const TARGETS = ['raw', 'laravel', 'static'];
+
+    /**
+     * A target may inherit another target's files: static is a raw app plus a front controller for a static site,
+     * so it takes everything raw takes and adds its own two files. `--target=auto` never picks static; it must be
+     * asked for.
+     */
+    public const EXTENDS = ['static' => 'raw'];
 
     public const GROUPS = [Template::GROUP_RELEASE, Template::GROUP_PARITY];
 
@@ -38,6 +45,8 @@ final class Catalog
             new Template('scripts/release.sh', $release, true),
             new Template('health.php', $release),
             new Template('public/up.php', $release, false, 'raw'),
+            new Template('public/index.php', $release, false, 'static'),
+            new Template('public/.htaccess', $release, false, 'static'),
 
             new Template('docker-compose.squire.yml', $parity),
             new Template('.squire/Dockerfile', $parity),
@@ -89,9 +98,14 @@ final class Catalog
             }
         }
 
+        $inherited = self::EXTENDS[$target] ?? null;
         $selected = [];
         foreach (self::all() as $template) {
-            if ($template->layer !== null ? ($layer === null || $template->layer !== $layer) : ($template->target !== null && $template->target !== $target)) {
+            if ($template->layer !== null) {
+                if ($layer === null || $template->layer !== $layer) {
+                    continue;
+                }
+            } elseif ($template->target !== null && $template->target !== $target && $template->target !== $inherited) {
                 continue;
             }
             if (!in_array($template->group, $groups, true)) {

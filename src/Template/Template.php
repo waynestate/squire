@@ -18,7 +18,7 @@ final readonly class Template
      * @param string      $destination path inside the app, with forward slashes
      * @param string      $group       GROUP_RELEASE or GROUP_PARITY
      * @param bool        $executable  whether init marks the file executable
-     * @param string|null $target null for every target, or 'raw' / 'laravel' for a target-only file
+     * @param string|null $target null for every target, or 'raw' / 'laravel' / 'static' for a target-only file
      * @param string|null $layer null for every layer, or `vue` for a layer file
      */
     public function __construct(
