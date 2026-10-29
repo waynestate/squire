@@ -3,7 +3,9 @@
 All notable changes to SQUIRE are recorded here. The format follows Keep a Changelog; the project follows Semantic
 Versioning once 1.0 is out.
 
-## Unreleased (0.1)
+## Unreleased
+
+## 0.1.0 (2026-10-29)
 
 ### Added
 
