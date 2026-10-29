@@ -111,9 +111,10 @@ Every shell script uses `set -euo pipefail` (`build.sh` uses `set -eu`, because 
 
 ## Copies of SQUIRE's templates
 
-Sourdough generates apps that cannot `composer require` SQUIRE from an internal repository (no internal URLs may be
-committed), so it carries a generated copy of SQUIRE's deploy templates instead of writing its own. SQUIRE owns the
-templates; the copy is checked in and verified, never hand-edited.
+Sourdough carries a generated copy of SQUIRE's deploy templates instead of writing its own. The copy began when its
+apps could not `composer require` SQUIRE from an internal repository (no internal URLs may be committed). SQUIRE is
+on Packagist now (`dev-main`, no tag yet), so the copy can become a real requirement; until Sourdough switches, the
+copy stays. SQUIRE owns the templates; the copy is checked in and verified, never hand-edited.
 
 ```
 php bin/export-templates.php --to=templates/squire            # write the copy
