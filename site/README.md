@@ -1,4 +1,4 @@
-# SQUIRE front page
+# Squire front page
 
 A static page: `index.html`, `assets/squire.css`, `assets/squire.js`. No build step. Serve the `site/` folder from
 anywhere (Citadel, any web server, or `python -m http.server` inside `site/` for a look).
@@ -10,7 +10,7 @@ anywhere (Citadel, any web server, or `python -m http.server` inside `site/` for
 - magic: the first time the packing list scrolls into view, the bag empties and packs itself for deploy day. Each tag
   flies into the satchel as `squire init` prints its line, gets stamped PACKED, and the bag gets its own luggage label
   when the buckle fastens. The buttons replay it and try `--check`, an edit, and `--force`.
-- marks: `brand/` is SQUIRE's (generated with ChatGPT, never redrawn). `assets/marks/` holds the other stack parts'
+- marks: `brand/` is Squire's (generated with ChatGPT, never redrawn). `assets/marks/` holds the other stack parts'
   marks, copied from WELD's site; WayneUI uses its own reversed mark on green.
 - reduced motion: the page is the packed bag, every word present at first paint; the buttons still work, instantly.
 

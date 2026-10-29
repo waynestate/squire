@@ -1,10 +1,10 @@
 # MAINTAINING: polishing the armour
 
-How to build, test, release and keep SQUIRE current. SQUIRE is the Citadel kit: the standard `build.sh`, release
+How to build, test, release and keep Squire current. Squire is the Citadel kit: the standard `build.sh`, release
 script, deployment hooks, health check, `/up`, and local parity on the Citadel images. It carries the knight's kit,
 so a knight never deploys without it. A squire who forgets a buckle hears about it in the build log.
 
-## What SQUIRE is and what it depends on
+## What Squire is and what it depends on
 
 - `waynestate/squire` on Packagist, with the CLI `bin/squire` (`squire init`, `squire init --check` and friends).
 - Runtime dependency: `symfony/console` only. Dev: PHPUnit, Pint, PHPStan.
@@ -41,9 +41,9 @@ docker run --rm -v "${PWD}:/app" -w /app composer:2.10.3 sh -c "composer install
 
 ## CI
 
-- **GitLab:** PREFLIGHT's `php-test` (PHP 8.3, 8.4, 8.5) and `composer-audit` components, a `composer-ci` job,
+- **GitLab:** Preflight's `php-test` (PHP 8.3, 8.4, 8.5) and `composer-audit` components, a `composer-ci` job,
   `shellcheck`, and `psscriptanalyzer` (PowerShell lint in a pinned multi-arch image).
-- **GitHub:** `.github/workflows/ci.yml` calls PREFLIGHT's reusable workflow with `composer ci`, plus `shellcheck`.
+- **GitHub:** `.github/workflows/ci.yml` calls Preflight's reusable workflow with `composer ci`, plus `shellcheck`.
   PowerShell lint runs on GitLab only.
 - Green means all of those pass.
 
@@ -74,13 +74,13 @@ docker run --rm -v "${PWD}:/app" -w /app composer:2.10.3 sh -c "composer install
 3. Run a secrets scan of the history and check that nothing internal (server names, people, IDs) is in the tree.
 4. Tag `X.Y.Z` (no `v`) on GitLab. The mirror carries the tag to GitHub, and Packagist picks it up from there.
 5. A release needs a maintainer's approval. Never move or delete a published tag.
-6. When PREFLIGHT releases, update both of this repo's pins: the component tag in `.gitlab-ci.yml` and the commit SHA
+6. When Preflight releases, update both of this repo's pins: the component tag in `.gitlab-ci.yml` and the commit SHA
    in `.github/workflows/ci.yml`.
 
 ## The front page
 
 `site/` is the static front page, for `https://squire.apps.wayne.edu/` on Citadel, served through the raw-PHP kit this
-repo makes. SQUIRE dogfoods SQUIRE.
+repo makes. Squire dogfoods Squire.
 
 ## Who maintains it
 
