@@ -8,6 +8,8 @@ Checks: `composer ci` (the same command runs on GitLab and GitHub).
 
 Squire is the Citadel kit: build.sh, the release script, the health check, and local parity on the real images. It is part of WELD, the Wayne State application stack, beside WayneUI (project 0, the interface layer), CREED, PROCTOR, Preflight, SESAME, HELMET, Pinstripe and Sourdough.
 
+**Not to be confused with:** `squire doctor` checks deploy setup only; standards checks are PROCTOR's.
+
 > A knight never suits up alone. Your app shouldn't deploy alone either.
 
 Front page: [`site/index.html`](https://github.com/waynestate/squire/blob/HEAD/site/index.html), a static page you can serve from anywhere.
