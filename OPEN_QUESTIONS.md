@@ -65,6 +65,6 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
 
 - A deploy gate that calls PROCTOR, and queue workers.
 - Checks for rules that need a running app or a server (most of the list of S-rules beyond the 26 in `BEST_PRACTICES.md`).
-- A GitLab or GitHub release job; 0.1 is not tagged or published.
+- A GitLab or GitHub release job; 0.1.0 is tagged and on Packagist; a release job is not built.
 - Templates for apps that are neither raw PHP nor Laravel.
 - Running the PowerShell scripts on Windows PowerShell 5.1 itself (see question 5) and on macOS.
