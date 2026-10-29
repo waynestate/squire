@@ -6,6 +6,7 @@ Versioning once 1.0 is out.
 ## Unreleased
 
 - Changed: README, site and open questions match 0.3.0 (Sourdough requires Squire, the policy default, the Preflight pin, the static target).
+- Fixed: the agent-ready tool's messages write Squire as a word; the static template's SQUIRE_STATIC_ROOT comment matches the code.
 
 ## 0.3.0 (2026-10-29)
 

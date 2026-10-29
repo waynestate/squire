@@ -16,7 +16,7 @@ declare(strict_types=1);
  * own name. Any other .md in the site folder (a README) stays private.
  *
  * The site folder comes from SQUIRE_STATIC_ROOT when that variable is set and non-empty: a path relative to
- * the app directory, the parent of public/. Otherwise it is ../../site, because the app lives in deploy/
+ * public/, the directory this file sits in. Otherwise it is ../../site, because the app lives in deploy/
  * beside site/.
  */
 
