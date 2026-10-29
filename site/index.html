@@ -47,7 +47,7 @@
       <a href="#parity">Parity</a>
       <a href="#party">The party</a>
     </nav>
-    <span class="brand__version">v0.1</span>
+    <span class="brand__version">v0.2</span>
   </div>
 </header>
 
@@ -103,7 +103,7 @@
       <div class="section__head">
         <p class="label">vendor/bin/squire init</p>
         <h2 id="kit-title">The packing list for deploy day</h2>
-        <p>One command packs the files Citadel needs, from templates, for raw PHP or Laravel. Each one is checked off in <code>.squire.json</code> with a SHA-256, and nothing you edited is ever repacked unless you say <code>--force</code>.</p>
+        <p>One command packs the files Citadel needs, from templates, for raw PHP, Laravel or a static site. Each one is checked off in <code>.squire.json</code> with a SHA-256, and nothing you edited is ever repacked unless you say <code>--force</code>.</p>
       </div>
 
       <div class="packer" data-packer>
@@ -153,7 +153,7 @@
             <span class="item__tag">
               <span class="item__check" aria-hidden="true"></span>
               <span class="item__body">
-                <code class="item__name">The parity kit <span class="item__count">11 files</span></code>
+                <code class="item__name">The parity kit <span class="item__count">12 files</span></code>
                 <span class="item__what"><code>docker-compose.squire.yml</code>, <code>.squire/</code>, <code>.env.squire.example</code>, <code>scripts/parity.sh</code> and <code>scripts/parity.ps1</code>: Citadel, on your machine.</span>
               </span>
               <span class="stamp" aria-hidden="true">Packed</span>
@@ -171,7 +171,7 @@
             <div class="bag__label" data-bag-label>
               <span class="bag__label-row"><b>To</b> the Citadel</span>
               <span class="bag__label-row"><b>From</b> my-app</span>
-              <span class="bag__label-row"><b>Holds</b> <span data-bag-files>15</span> files</span>
+              <span class="bag__label-row"><b>Holds</b> <span data-bag-files>16</span> files</span>
             </div>
           </div>
           <p class="bag__count" aria-live="polite"><span data-count>5</span> of 5 packed<span class="bag__ready" data-ready>, buckled for deploy day</span></p>
@@ -442,15 +442,15 @@ scripts\parity.ps1 up                  <span class="t-dim"># or: scripts\parity.
   <section class="section section--leather" id="limits" aria-labelledby="limits-title">
     <div class="wsu-container">
       <div class="section__head">
-        <p class="label label--on-leather">Known limits in 0.1</p>
+        <p class="label label--on-leather">Known limits in 0.2</p>
         <h2 id="limits-title">Scuffs on the leather</h2>
-        <p>Squire 0.1 is unreleased, and honest about where it guessed. The full list, with the default each guess chose, is <code>OPEN_QUESTIONS.md</code>.</p>
+        <p>Squire 0.2 is tagged, and honest about where it guessed. The full list, with the default each guess chose, is <code>OPEN_QUESTIONS.md</code>.</p>
       </div>
       <ul class="dents">
         <li>The local <code>php.ini</code> holds the safe defaults HELMET also enforces at runtime, not the platform's file.</li>
         <li>The Citadel image has no registry digest to pin yet; doctor warns under S67 until you run <code>pin</code>.</li>
         <li>A full Update may not refresh <code>vendor/</code>. Use <code>scripts/release.sh</code> as the Quick Update post-script too.</li>
-        <li>PROCTOR can report during a release, but cannot act as a deploy gate yet.</li>
+        <li>PROCTOR reports during a release by default; set <code>SQUIRE_PROCTOR=enforce</code> and a failed check stops it.</li>
       </ul>
     </div>
   </section>

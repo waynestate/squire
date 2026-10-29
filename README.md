@@ -112,7 +112,7 @@ diff, and a file Squire did not write is never touched. A squire polishes the ar
 | `docker-compose.squire.yml`, `.squire/`, `.env.squire.example`, `scripts/parity.sh`, `scripts/parity.ps1` | Local parity. |
 
 <div align="center">
-  <img src="docs/readme/packing-list.svg" width="100%" alt="A leather strap hangs a luggage tag for each file Squire packs: build.sh, deployments/001-first-release.sh, scripts/release.sh, health.php and the parity kit of 11 files. Each tag is stamped Packed, then the satchel's own tag reads From my-app, Holds 15 files.">
+  <img src="docs/readme/packing-list.svg" width="100%" alt="A leather strap hangs a luggage tag for each file Squire packs: build.sh, deployments/001-first-release.sh, scripts/release.sh, health.php and the parity kit of 12 files. Each tag is stamped Packed, then the satchel's own tag reads From my-app, Holds 15 files.">
   <br><sub>The packing list for deploy day: each tag lands on the strap and gets its stamp.</sub>
 </div>
 
@@ -237,7 +237,7 @@ The shell templates are linted with shellcheck in Docker (`scripts/lint-shell.sh
 Windows) and the PowerShell with PSScriptAnalyzer (`scripts/lint-powershell.ps1`). The tests run the real shell templates
 against stub `composer`, `curl`, `npm`, `corepack` and `proctor` programs, and start a PHP server to test `health.php`.
 
-## Known limits in 0.1
+## Known limits in 0.2
 
 See [OPEN_QUESTIONS.md](OPEN_QUESTIONS.md). The big ones: the local `php.ini` holds safe defaults rather than the
 platform's file, the Citadel image has no digest to pin, and a full Update may not refresh `vendor/`. PROCTOR can now

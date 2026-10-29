@@ -5,6 +5,8 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+- Fixed: stale capability claims in the site and README.
+
 - Changed: project names written as words except acronyms.
 
 ## 0.2.1 (2026-10-29)
