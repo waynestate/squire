@@ -82,6 +82,17 @@ final class Initializer
                 continue;
             }
 
+            if ($previous === null && $template->appMayOwn) {
+                // The app brought its own (a raw app's index.php, say). It stays the app's: not drift, not recorded,
+                // and not overwritten, --force or no --force. The squire holds the door; the knight picks the room.
+                $results[] = new FileResult(
+                    $template->destination,
+                    FileResult::APP_OWNED,
+                    "the app's own file; Squire writes this one only where there is none, and never overwrites it",
+                );
+                continue;
+            }
+
             $state = $previous !== null ? FileResult::MODIFIED : FileResult::UNTRACKED;
             $detail = $previous !== null
                 ? 'edited since SQUIRE wrote it'

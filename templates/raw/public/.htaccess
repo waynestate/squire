@@ -1,0 +1,11 @@
+# Every request goes to the front controller, real files included, so every
+# response, assets and 404s too, comes from one door that knows HELMET.
+# The two PHP files Squire writes in public/ answer on their own: index.php
+# is the front controller, and up.php is the health check that must work
+# even when the app cannot boot. Any other .php in public/ is a 404, never
+# run (put PHP outside public/ and reach it through the app's entry).
+RewriteEngine On
+RewriteRule ^(index|up)\.php$ - [L]
+RewriteRule ^ index.php [L]
+DirectoryIndex index.php
+Options -Indexes

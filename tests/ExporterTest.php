@@ -73,6 +73,7 @@ final class ExporterTest extends SquireTestCase
         self::assertSame('755', $manifest['files']['laravel/scripts/parity.sh']['mode']);
         self::assertSame('644', $manifest['files']['static/public/index.php']['mode']);
         self::assertSame('644', $manifest['files']['static/public/.htaccess']['mode']);
+        self::assertSame('644', $manifest['files']['raw/public/index.php']['mode']);
         self::assertArrayHasKey('sha256', $manifest['files']['raw/build.sh']);
     }
 
@@ -95,11 +96,9 @@ final class ExporterTest extends SquireTestCase
         self::assertContains('build.sh', $rawPaths);
         self::assertContains('build.sh', $laravelPaths);
 
-        // Static is raw plus the front controller: every raw path, and only those two additions.
-        foreach ($rawPaths as $path) {
-            self::assertContains($path, $staticPaths);
-        }
-        self::assertSame(count($rawPaths) + 2, count($staticPaths));
+        // Static has raw's paths, with its own front controller in place of raw's.
+        self::assertSame($rawPaths, $staticPaths);
+        self::assertContains('public/index.php', $rawPaths);
         self::assertContains('public/index.php', $staticPaths);
         self::assertContains('public/.htaccess', $staticPaths);
         self::assertNotContains('public/index.php', $laravelPaths);
@@ -164,6 +163,26 @@ final class ExporterTest extends SquireTestCase
         $htaccess = (string) file_get_contents($dir . '/static/public/.htaccess');
         self::assertStringContainsString('RewriteRule ^ index.php [L]', $htaccess);
         self::assertStringContainsString('Options -Indexes', $htaccess);
+    }
+
+    public function testTheRawExportCarriesItsOwnFrontControllerAndTheCatalogSaysTheAppMayOwnIt(): void
+    {
+        $dir = $this->tempDir();
+        $this->exporter()->export($dir);
+
+        $index = (string) file_get_contents($dir . '/raw/public/index.php');
+        self::assertStringContainsString("getenv('SQUIRE_APP_ENTRY')", $index);
+        self::assertStringNotContainsString("getenv('SQUIRE_STATIC_ROOT')", $index);
+        self::assertStringContainsString("getenv('SQUIRE_STATIC_ROOT')", (string) file_get_contents($dir . '/static/public/index.php'));
+
+        $catalog = json_decode((string) file_get_contents($dir . '/catalog.json'), true);
+        self::assertIsArray($catalog);
+        $raw = array_column($catalog['raw'], 'appMayOwn', 'path');
+        $static = array_column($catalog['static'], 'appMayOwn', 'path');
+        self::assertTrue($raw['public/index.php']);
+        self::assertTrue($raw['public/.htaccess']);
+        self::assertFalse($raw['public/up.php']);
+        self::assertFalse($static['public/index.php']);
     }
 
     public function testTheManifestRecordsTheSquireVersion(): void

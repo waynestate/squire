@@ -191,6 +191,66 @@ final class InitializerTest extends SquireTestCase
         self::assertTrue(is_executable($app . '/scripts/release.sh'));
     }
 
+    public function testARawAppGetsTheFrontControllerAndItsHtaccess(): void
+    {
+        $app = $this->app();
+        $states = $this->states($this->initializer()->run($app, 'raw', ['release'], false, false));
+
+        self::assertSame(FileResult::CREATED, $states['public/index.php']);
+        self::assertSame(FileResult::CREATED, $states['public/.htaccess']);
+        self::assertStringContainsString("getenv('SQUIRE_APP_ENTRY')", (string) file_get_contents($app . '/public/index.php'));
+        self::assertStringContainsString('RewriteRule ^(index|up)\.php$ - [L]', (string) file_get_contents($app . '/public/.htaccess'));
+    }
+
+    public function testARawAppsOwnIndexAndHtaccessAreNeverOverwrittenNotEvenByForce(): void
+    {
+        $own = "<?php
+echo 'my own front door';
+";
+        $app = $this->app(['public/index.php' => $own, 'public/.htaccess' => "# mine
+"]);
+
+        foreach ([false, true] as $force) {
+            $states = $this->states($this->initializer()->run($app, 'raw', ['release'], $force, false));
+            self::assertSame(FileResult::APP_OWNED, $states['public/index.php']);
+            self::assertSame(FileResult::APP_OWNED, $states['public/.htaccess']);
+            self::assertSame($own, (string) file_get_contents($app . '/public/index.php'));
+            self::assertSame("# mine
+", (string) file_get_contents($app . '/public/.htaccess'));
+        }
+
+        // Not recorded, so update never touches it either, and --check counts it as the app's, not as drift.
+        $manifest = Manifest::load($app);
+        self::assertNotNull($manifest);
+        self::assertArrayNotHasKey('public/index.php', $manifest->files);
+        $checked = $this->initializer()->run($app, 'raw', ['release'], false, true);
+        foreach ($checked as $result) {
+            self::assertTrue($result->isCurrent(), $result->path . ' is ' . $result->state);
+        }
+    }
+
+    public function testAFrontControllerSquireWroteIsTrackedLikeAnyOtherFile(): void
+    {
+        $app = $this->app();
+        $this->initializer()->run($app, 'raw', ['release'], false, false);
+        file_put_contents($app . '/public/index.php', (string) file_get_contents($app . '/public/index.php') . "// edited
+");
+
+        $checked = $this->states($this->initializer()->run($app, 'raw', ['release'], false, true));
+        self::assertSame(FileResult::MODIFIED, $checked['public/index.php']);
+        $again = $this->states($this->initializer()->run($app, 'raw', ['release'], false, false));
+        self::assertSame(FileResult::SKIPPED_MODIFIED, $again['public/index.php']);
+    }
+
+    public function testAStaticAppsOwnIndexStillNeedsForceAsBefore(): void
+    {
+        $app = $this->app(['public/index.php' => "<?php
+"]);
+        $states = $this->states($this->initializer()->run($app, 'static', ['release'], false, false));
+
+        self::assertSame(FileResult::SKIPPED_EXISTS, $states['public/index.php']);
+    }
+
     public function testABrokenManifestIsAToolError(): void
     {
         $app = $this->app([Squire::MANIFEST => '{"nope":true}']);

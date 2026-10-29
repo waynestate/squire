@@ -165,6 +165,7 @@ final class Exporter
                     'path' => $template->destination,
                     'group' => $template->group,
                     'executable' => $template->executable,
+                    'appMayOwn' => $template->appMayOwn,
                 ];
             }
             $data[$kind] = $files;
@@ -177,6 +178,7 @@ final class Exporter
                     'path' => $template->destination,
                     'group' => $template->group,
                     'executable' => $template->executable,
+                    'appMayOwn' => $template->appMayOwn,
                 ];
             }
             $data[$layer] = $files;
