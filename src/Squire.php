@@ -11,7 +11,7 @@ final class Squire
 {
     public const TOOL = 'squire';
 
-    public const VERSION = '0.1.0';
+    public const VERSION = '0.2.0';
 
     /** The file in an app that records which templates SQUIRE wrote, so `init --check` can report drift. */
     public const MANIFEST = '.squire.json';
