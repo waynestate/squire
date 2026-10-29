@@ -5,6 +5,8 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+## 0.3.2 (2026-10-29)
+
 - Added: collapsed prompt blocks show a "Show the whole prompt" button; the fade stays inside the panel.
 - Changed: a long command in the "Run it in" panel folds the same way, behind a "Show the whole command" button, instead of a scroll box with no cue.
 
