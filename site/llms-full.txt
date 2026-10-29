@@ -285,6 +285,8 @@ A squire carries the kit, readies the armour and gets the knight on the field. S
 
 `$ composer require waynestate/squire --dev`
 
+Already packed into every [Sourdough](https://sourdough.apps.wayne.edu/) app, and [WELD](https://weld.apps.wayne.edu/) deploys to Citadel through it. Use Squire on its own to bring an app you already have onto Citadel.
+
 [See the packing list](https://squire.apps.wayne.edu/#kit) [Meet the party](https://squire.apps.wayne.edu/#party)
 
 #### Get started with Squire

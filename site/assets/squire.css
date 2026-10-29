@@ -2155,3 +2155,9 @@ ul.roster__list > li img { transition: transform 160ms ease, filter 160ms ease; 
 .ptag:has(.part-link:hover) img,
 ul.roster__list > li:has(.part-link:hover) img { transform: translateY(-2px); }
 }
+
+/* Stack note: fine print under the quickstart, in the satchel's muted ink. */
+.stack-note { margin: var(--wsu-space-4) 0 0; max-width: 33rem; font-size: 0.9375rem; line-height: 1.6; color: var(--sq-ink-muted); }
+.stack-note__lead { color: var(--sq-ink); font-weight: var(--wsu-font-weight-bold); }
+.stack-note a { color: var(--sq-green); text-decoration-style: dashed; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.stack-note a:hover { text-decoration-style: solid; }
