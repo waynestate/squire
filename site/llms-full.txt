@@ -1,6 +1,6 @@
 # Squire: everything in one file
 
-> Squire is the Citadel kit: it packs your app's deploy scripts, inspects them against the S-rules, and runs your app locally on the same image, proxy and MySQL as Citadel.
+> Squire is the deploy kit for Citadel. It writes your app's build, release and health-check scripts from templates, checks them with squire doctor, and runs the app locally on Citadel's PHP image behind the same kind of proxy.
 
 The README and the Markdown twin of every page, joined. The index is https://squire.apps.wayne.edu/llms.txt. Written by Squire's agent-ready kit; do not edit.
 
@@ -286,7 +286,7 @@ The Citadel kit
 
 Suits you up for the Citadel.
 
-A squire carries the kit, readies the armour and gets the knight on the field. Squire packs your app's Citadel deploy scripts, inspects them against the S-rules, and runs your app at home on the same image, proxy and MySQL that Citadel uses.
+A squire carries the knight's kit. This one carries your app's. `squire init` writes the scripts Citadel runs when you deploy and `squire doctor` checks them. The parity setup runs your app on your laptop on the same PHP image and MySQL 5.6 as Citadel, behind the same kind of proxy.
 
 `$ composer require waynestate/squire --dev`
 
@@ -310,7 +310,7 @@ vendor/bin/squire init
 
 ### The packing list for deploy day
 
-One command packs the files Citadel needs, from templates, for raw PHP, Laravel or a static site. Each one is checked off in `.squire.json` with a SHA-256, and nothing you edited is ever repacked unless you say `--force`.
+`squire init` writes the files Citadel needs from templates, for raw PHP, Laravel or a static site, and adds a Vue layer when `package.json` has Vue. It records a SHA-256 of each file in `.squire.json`. A file you edited is never written over unless you pass `--force`.
 
 1. `build.sh` Citadel's build hook. System packages only, POSIX sh, no Composer or npm (S1).
 2. `deployments/001-first-release.sh` Runs once per app and calls the release with the smoke test off; Apache is not up yet.
@@ -370,7 +370,7 @@ vendor/bin/squire doctor
 
 ### The squire inspects the armour
 
-Doctor reads your repository and checks the rules a machine can decide. It never runs your app and never touches a server. A fail exits 1; a warn or info doesn't. It is a lint, not a gate: wire it into CI if you want it to block.
+Doctor reads your repository and checks the rules a machine can decide. It doesn't run your app or touch a server. A fail exits 1 and a warning or info note doesn't, so if you want doctor to block a merge, run it in CI.
 
 fail exits 1 warn reported info noted
 
@@ -426,7 +426,7 @@ Local parity
 
 ### Practise on the real field
 
-Your app on the Citadel PHP image, behind HA-Proxy adding the same forwarding headers, talking to the same MySQL 5.6. Its limits show up on your laptop, not on deploy day.
+Parity runs your app on the Citadel PHP image, behind an HA-Proxy that adds the same forwarding headers, with MySQL 5.6.51 beside it. If something would only break on Citadel, you should see it on your laptop first.
 
 1. Your browser on localhost
 2. HA-Proxy adds X-Forwarded-For and -Proto
@@ -465,18 +465,18 @@ scripts\parity.ps1 up                  # or: scripts\parity.ps1 up -Fallback
 
 Containers drop capabilities, set `no-new-privileges` and carry memory and process limits; the database listens on loopback only. The compose file refuses to start without real passwords.
 
-No access to the real image? `--fallback` builds an approximation from the official PHP image plus Citadel's extensions. Good for a practice bout, not for proving parity.
+No access to the real image? `--fallback` builds an approximation from the official PHP image plus Citadel's extensions. It's fine for a practice bout. It doesn't prove parity.
 
 Citadel setup
 
 ### Onto the field
 
-What lands on Citadel is the scripts Squire packed; the package itself stays on your machine and in CI.
+Squire itself runs on your machine and in CI. Only the scripts it wrote go to Citadel.
 
 1. ### Point the dashboard at the kit
    Build script `build.sh`, health check `["php","health.php"]`, Quick Update post-script `./scripts/release.sh` as user `citadel`.
 2. ### Commit the lock files
-   `composer.lock`, and `package-lock.json` or `pnpm-lock.yaml` if you have a frontend. The lock file is the release contract.
+   `composer.lock`, and `package-lock.json` or `pnpm-lock.yaml` if you have a frontend. The release installs from them and never runs an update.
 3. ### Mark the scripts executable
    Git on Windows forgets: `git update-index --chmod=+x build.sh scripts/*.sh deployments/*.sh`
 4. ### Settings in the configuration file
@@ -490,13 +490,13 @@ The platform
 
 ### Letters for the castle
 
-A good squire carries messages too. Squire's maintainers send platform improvement proposals to the platform team privately. Text only: Squire never touches a server, and nothing in its own scripts waits on them.
+A good squire carries messages too. When we find something Citadel could do better, we write it up and send it to the platform team privately. Squire never touches a server, and none of its scripts wait on a proposal.
 
 Its place in WELD
 
 ### Every knight rides with a party
 
-Squire is one part of WELD, the Wayne State application stack. It rides last: the others guard, sign in, render, check and test the app, and Squire carries it onto the field.
+Squire is one part of WELD, the Wayne State application stack. It rides last. The parts ahead of it handle the headers, sign-in, the interface, the checks and CI, and Squire takes the finished app to Citadel.
 
 1. **[HELMET](https://helmet.apps.wayne.edu/)** sets security headers
 2. **[SESAME](https://sesame.apps.wayne.edu/)** signs the user in
@@ -512,7 +512,7 @@ Squire is one part of WELD, the Wayne State application stack. It rides last: th
 - **[Sourdough](https://sourdough.apps.wayne.edu/)** starters you feed
 - **[WELD](https://weld.apps.wayne.edu/)** every part, joined
 
-#### The new five
+#### Around your app
 
 - **[Booster](https://booster.apps.wayne.edu/)** gets you onto a supported PHP
 - **[Rollcall](https://rollcall.apps.wayne.edu/)** every app answers “present”
@@ -524,7 +524,7 @@ Known limits
 
 ### Scuffs on the leather
 
-Squire 0.3 is tagged, and honest about where it guessed. The full list, with the default each guess chose, is `OPEN_QUESTIONS.md`.
+Squire 0.3.3 is tagged and on Packagist. Where we had to guess how Citadel behaves, `OPEN_QUESTIONS.md` lists each guess and the default it chose.
 
 - The local `php.ini` holds the safe defaults HELMET also enforces at runtime, not the platform's file.
 - The Citadel image has no registry digest to pin yet; doctor warns under S67 until you run `pin`.

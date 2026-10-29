@@ -8,7 +8,7 @@
 <meta name="stack-env" content="auto">
 <script src="assets/stack-env.js" defer></script>
 <title>Squire: Suits you up for the Citadel.</title>
-<meta name="description" content="Squire is the Citadel kit: it packs your app's deploy scripts, inspects them against the S-rules, and runs your app locally on the same image, proxy and MySQL as Citadel.">
+<meta name="description" content="Squire is the deploy kit for Citadel. It writes your app's build, release and health-check scripts from templates, checks them with squire doctor, and runs the app locally on Citadel's PHP image behind the same kind of proxy.">
 <meta name="theme-color" content="#efe6d4">
 <link rel="icon" href="brand/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="brand/favicon-32.png">
@@ -84,7 +84,7 @@
           <span class="hero__letters" aria-hidden="true"><span style="--i:0">S</span><span style="--i:1">Q</span><span style="--i:2">U</span><span style="--i:3">I</span><span style="--i:4">R</span><span style="--i:5">E</span></span>
         </h1>
         <p class="hero__tagline">Suits you up for <span class="strap">the Citadel.<span class="strap__band" aria-hidden="true"></span><span class="strap__buckle" aria-hidden="true"></span></span></p>
-        <p class="hero__blurb">A squire carries the kit, readies the armour and gets the knight on the field. Squire packs your app's Citadel deploy scripts, inspects them against the S-rules, and runs your app at home on the same image, proxy and MySQL that Citadel uses.</p>
+        <p class="hero__blurb">A squire carries the knight's kit. This one carries your app's. <code>squire init</code> writes the scripts Citadel runs when you deploy and <code>squire doctor</code> checks them. The parity setup runs your app on your laptop on the same PHP image and MySQL 5.6 as Citadel, behind the same kind of proxy.</p>
         <div class="quickstart">
           <code class="quickstart__code" id="quickstart-cmd" tabindex="0"><span class="t-dim">$</span> composer require waynestate/squire --dev</code>
           <button class="copy-btn" type="button" data-copy="composer require waynestate/squire --dev">
@@ -116,7 +116,7 @@ Ask me before you guess.</code></pre>
       <div class="section__head">
         <p class="label">vendor/bin/squire init</p>
         <h2 id="kit-title">The packing list for deploy day</h2>
-        <p>One command packs the files Citadel needs, from templates, for raw PHP, Laravel or a static site. Each one is checked off in <code>.squire.json</code> with a SHA-256, and nothing you edited is ever repacked unless you say <code>--force</code>.</p>
+        <p><code>squire init</code> writes the files Citadel needs from templates, for raw PHP, Laravel or a static site, and adds a Vue layer when <code>package.json</code> has Vue. It records a SHA-256 of each file in <code>.squire.json</code>. A file you edited is never written over unless you pass <code>--force</code>.</p>
       </div>
 
       <div class="packer" data-packer>
@@ -236,7 +236,7 @@ Ask me before you guess.</code></pre>
       <div class="section__head">
         <p class="label label--on-green">vendor/bin/squire doctor</p>
         <h2 id="doctor-title">The squire inspects the armour</h2>
-        <p>Doctor reads your repository and checks the rules a machine can decide. It never runs your app and never touches a server. A fail exits 1; a warn or info doesn't. It is a lint, not a gate: wire it into CI if you want it to block.</p>
+        <p>Doctor reads your repository and checks the rules a machine can decide. It doesn't run your app or touch a server. A fail exits 1 and a warning or info note doesn't, so if you want doctor to block a merge, run it in CI.</p>
       </div>
 
       <div class="inspect">
@@ -297,7 +297,7 @@ Ask me before you guess.</code></pre>
       <div class="section__head">
         <p class="label">Local parity</p>
         <h2 id="parity-title">Practise on the real field</h2>
-        <p>Your app on the Citadel PHP image, behind HA-Proxy adding the same forwarding headers, talking to the same MySQL 5.6. Its limits show up on your laptop, not on deploy day.</p>
+        <p>Parity runs your app on the Citadel PHP image, behind an HA-Proxy that adds the same forwarding headers, with MySQL 5.6.51 beside it. If something would only break on Citadel, you should see it on your laptop first.</p>
       </div>
 
       <!-- Stitched lanes sit in the gaps between the stations, never under them. -->
@@ -352,7 +352,7 @@ scripts\parity.ps1 up                  <span class="t-dim"># or: scripts\parity.
           </ul>
           <p><code>pin</code> prints the digests of the images you pulled, so you can pin them. <code>reset</code> also removes the volumes.</p>
           <p>Containers drop capabilities, set <code>no-new-privileges</code> and carry memory and process limits; the database listens on loopback only. The compose file refuses to start without real passwords.</p>
-          <p class="parity__fallback">No access to the real image? <code>--fallback</code> builds an approximation from the official PHP image plus Citadel's extensions. Good for a practice bout, not for proving parity.</p>
+          <p class="parity__fallback">No access to the real image? <code>--fallback</code> builds an approximation from the official PHP image plus Citadel's extensions. It's fine for a practice bout. It doesn't prove parity.</p>
         </div>
       </div>
     </div>
@@ -364,7 +364,7 @@ scripts\parity.ps1 up                  <span class="t-dim"># or: scripts\parity.
       <div class="section__head">
         <p class="label">Citadel setup</p>
         <h2 id="setup-title">Onto the field</h2>
-        <p>What lands on Citadel is the scripts Squire packed; the package itself stays on your machine and in CI.</p>
+        <p>Squire itself runs on your machine and in CI. Only the scripts it wrote go to Citadel.</p>
       </div>
       <ol class="steps">
         <li class="step" style="--i:0">
@@ -375,7 +375,7 @@ scripts\parity.ps1 up                  <span class="t-dim"># or: scripts\parity.
         <li class="step" style="--i:1">
           <span class="step__no" aria-hidden="true">2</span>
           <h3>Commit the lock files</h3>
-          <p><code>composer.lock</code>, and <code>package-lock.json</code> or <code>pnpm-lock.yaml</code> if you have a frontend. The lock file is the release contract.</p>
+          <p><code>composer.lock</code>, and <code>package-lock.json</code> or <code>pnpm-lock.yaml</code> if you have a frontend. The release installs from them and never runs an update.</p>
         </li>
         <li class="step" style="--i:2">
           <span class="step__no" aria-hidden="true">3</span>
@@ -402,7 +402,7 @@ scripts\parity.ps1 up                  <span class="t-dim"># or: scripts\parity.
       <div class="section__head">
         <p class="label label--on-green">The platform</p>
         <h2 id="proposals-title">Letters for the castle</h2>
-        <p>A good squire carries messages too. Squire's maintainers send platform improvement proposals to the platform team privately. Text only: Squire never touches a server, and nothing in its own scripts waits on them.</p>
+        <p>A good squire carries messages too. When we find something Citadel could do better, we write it up and send it to the platform team privately. Squire never touches a server, and none of its scripts wait on a proposal.</p>
       </div>
     </div>
   </section>
@@ -413,7 +413,7 @@ scripts\parity.ps1 up                  <span class="t-dim"># or: scripts\parity.
       <div class="section__head">
         <p class="label">Its place in WELD</p>
         <h2 id="party-title">Every knight rides with a party</h2>
-        <p>Squire is one part of WELD, the Wayne State application stack. It rides last: the others guard, sign in, render, check and test the app, and Squire carries it onto the field.</p>
+        <p>Squire is one part of WELD, the Wayne State application stack. It rides last. The parts ahead of it handle the headers, sign-in, the interface, the checks and CI, and Squire takes the finished app to Citadel.</p>
       </div>
 
       <!-- The journey, as tags hung on one strap in riding order. The strings
@@ -438,7 +438,7 @@ scripts\parity.ps1 up                  <span class="t-dim"># or: scripts\parity.
           </ul>
         </div>
         <div class="roster__group">
-          <h3 class="minor">The new five</h3>
+          <h3 class="minor">Around your app</h3>
           <ul class="roster__list">
             <li><img src="assets/marks/booster.png" width="40" height="40" alt=""><span><b><a class="part-link" href="https://booster.apps.wayne.edu/">Booster</a></b> gets you onto a supported PHP</span></li>
             <li><img src="assets/marks/rollcall.png" width="40" height="40" alt=""><span><b><a class="part-link" href="https://rollcall.apps.wayne.edu/">Rollcall</a></b> every app answers “present”</span></li>
@@ -457,7 +457,7 @@ scripts\parity.ps1 up                  <span class="t-dim"># or: scripts\parity.
       <div class="section__head">
         <p class="label label--on-leather">Known limits</p>
         <h2 id="limits-title">Scuffs on the leather</h2>
-        <p>Squire 0.3 is tagged, and honest about where it guessed. The full list, with the default each guess chose, is <code>OPEN_QUESTIONS.md</code>.</p>
+        <p>Squire 0.3.3 is tagged and on Packagist. Where we had to guess how Citadel behaves, <code>OPEN_QUESTIONS.md</code> lists each guess and the default it chose.</p>
       </div>
       <ul class="dents">
         <li>The local <code>php.ini</code> holds the safe defaults HELMET also enforces at runtime, not the platform's file.</li>

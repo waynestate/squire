@@ -1,6 +1,6 @@
 # Squire
 
-> Squire is the Citadel kit: it packs your app's deploy scripts, inspects them against the S-rules, and runs your app locally on the same image, proxy and MySQL as Citadel.
+> Squire is the deploy kit for Citadel. It writes your app's build, release and health-check scripts from templates, checks them with squire doctor, and runs the app locally on Citadel's PHP image behind the same kind of proxy.
 
 **Suits you up for deploy day.** A squire carries the kit, readies the armour and gets the knight on the field.
 
@@ -21,7 +21,7 @@ Every page below is Markdown. The HTML pages send the same Markdown to a client 
 
 ## Pages
 
-- [Squire: Suits you up for the Citadel.](https://squire.apps.wayne.edu/index.md): Squire is the Citadel kit: it packs your app's deploy scripts, inspects them against the S-rules, and runs your app locally on the same image, proxy and MySQL as Citadel.
+- [Squire: Suits you up for the Citadel.](https://squire.apps.wayne.edu/index.md): Squire is the deploy kit for Citadel. It writes your app's build, release and health-check scripts from templates, checks them with squire doctor, and runs the app locally on Citadel's PHP image behind the same kind of proxy.
 
 ## Prompts
 
