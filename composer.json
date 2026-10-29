@@ -38,6 +38,7 @@
             "@composer validate --strict",
             "phpunit",
             "pint --test",
+            "vendor/bin/pint --preset laravel --test bin/agent-ready.php",
             "phpstan analyse --memory-limit=1G",
             "@composer audit"
         ]

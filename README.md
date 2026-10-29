@@ -157,6 +157,23 @@ which files each kind and layer installs and where; `manifest.json` records the 
 Refresh the copy when Squire's templates move on, and run `--check` in CI to keep it honest. A squire keeps the armour
 polished; the copy stays in step.
 
+## The agent-ready kit
+
+Every stack repo carries the same bytes: a Markdown twin beside every page in the site folder, plus `llms.txt`,
+`llms-full.txt`, `robots.txt` and `sitemap.xml`, styled by the kit's `agent-ready.css` and `agent-ready.js` in the
+site's `assets/` folder. Squire owns the kit, and a site takes a new version from a Squire checkout with
+`php bin/agent-ready.php --sync-to=<repo>`, which copies the kit and the tool itself. The site then regenerates its
+files with `php bin/agent-ready.php` and commits them, and runs `--check` in CI to stay honest.
+
+A library package that carries the kit should keep it out of Composer downloads: add to its `.gitattributes`
+
+```
+/bin/agent-ready.php export-ignore
+/site export-ignore
+```
+
+so a `composer require` of the package never ships the kit. A squire packs what the knight will carry, and only that.
+
 ## Citadel setup
 
 1. In the dashboard set the build script to `build.sh`, the health check to `["php","health.php"]`, and the Quick Update
