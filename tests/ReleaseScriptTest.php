@@ -191,12 +191,14 @@ final class ReleaseScriptTest extends SquireTestCase
         self::assertStringContainsString('proctor itself failed (exit 2)', $broken['stderr']);
     }
 
-    public function testProctorWithoutAPolicyIsSkippedWithAReason(): void
+    public function testProctorFallsBackToItsOwnDefaultPolicyWhenCreedIsNotInstalled(): void
     {
         $result = $this->exec($this->initializedApp(), 'scripts/release.sh', ['SQUIRE_PROCTOR_BIN' => $this->stubs . '/proctor']);
 
-        self::assertSame(0, $result['exit']);
-        self::assertStringContainsString('SQUIRE_PROCTOR_POLICY is not set', $result['stdout']);
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertSame(1, substr_count($result['stdout'], 'squire: CREED policy not installed; PROCTOR uses its own default policy'), 'the notice is printed exactly once');
+        self::assertContains('proctor check --path .', $this->calls());
+        self::assertNotContains('proctor check --path . --policy vendor/waynestate/creed/policy/policy.json', $this->calls());
     }
 
     public function testProctorPolicyDefaultsToThePolicyCreedShips(): void
@@ -266,7 +268,20 @@ final class ReleaseScriptTest extends SquireTestCase
         self::assertStringContainsString('proctor itself failed (exit 2)', $result['stderr']);
     }
 
-    public function testProctorEnforceNeedsAnExecutableBinAndAPolicy(): void
+    public function testProctorEnforceDoesNotFailWhenTheCreedPolicyIsMissing(): void
+    {
+        $result = $this->exec($this->initializedApp(), 'scripts/release.sh', [
+            'SQUIRE_PROCTOR' => 'enforce',
+            'SQUIRE_PROCTOR_BIN' => $this->stubs . '/proctor',
+        ]);
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertStringContainsString('PROCTOR check (enforced, stops the release)', $result['stdout']);
+        self::assertSame(1, substr_count($result['stdout'], 'squire: CREED policy not installed; PROCTOR uses its own default policy'), 'the notice is printed exactly once');
+        self::assertContains('proctor check --path .', $this->calls());
+    }
+
+    public function testProctorEnforceNeedsAnExecutableBin(): void
     {
         $app = $this->initializedApp();
 
@@ -277,13 +292,6 @@ final class ReleaseScriptTest extends SquireTestCase
         ]);
         self::assertSame(1, $badBin['exit']);
         self::assertStringContainsString('SQUIRE_PROCTOR_BIN is not an executable file', $badBin['stderr']);
-
-        $noPolicy = $this->exec($app, 'scripts/release.sh', [
-            'SQUIRE_PROCTOR' => 'enforce',
-            'SQUIRE_PROCTOR_BIN' => $this->stubs . '/proctor',
-        ]);
-        self::assertSame(1, $noPolicy['exit']);
-        self::assertStringContainsString('SQUIRE_PROCTOR_POLICY is not set', $noPolicy['stderr']);
     }
 
     public function testLaravelRunsMigrateThenOptimizeAndSmokeTestsUp(): void
