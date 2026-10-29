@@ -232,11 +232,11 @@ Squire is one part of WELD, the Wayne State application stack. It rides last: th
 - **[Drawbridge](https://drawbridge.apps.wayne.edu/)** the Citadel sign-in gateway
 - **Squire** the Citadel kit
 
-Known limits in 0.2
+Known limits
 
 ## Scuffs on the leather
 
-Squire 0.2 is tagged, and honest about where it guessed. The full list, with the default each guess chose, is `OPEN_QUESTIONS.md`.
+Squire 0.3 is tagged, and honest about where it guessed. The full list, with the default each guess chose, is `OPEN_QUESTIONS.md`.
 
 - The local `php.ini` holds the safe defaults HELMET also enforces at runtime, not the platform's file.
 - The Citadel image has no registry digest to pin yet; doctor warns under S67 until you run `pin`.

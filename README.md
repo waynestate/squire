@@ -22,7 +22,7 @@ Squire is the Citadel kit: build.sh, the release script, the health check, and l
 Front page: [`site/index.html`](site/index.html), a static page you can serve from anywhere.
 On Citadel it is served by the raw-PHP deploy layer in [`deploy/`](deploy/): a Squire kit whose front controller serves `site/` behind HELMET's security headers. For local development, keep serving `site/` directly.
 
-Status: 0.2.1, tagged and on Packagist. This repository is published from Wayne State University's internal GitLab and mirrored to GitHub.
+Status: 0.3.0, tagged and on Packagist. This repository is published from Wayne State University's internal GitLab and mirrored to GitHub.
 
 <details>
 <summary>Open the bag: two more cuts of the front page</summary>
@@ -144,8 +144,7 @@ Every shell script uses `set -euo pipefail` (`build.sh` uses `set -eu`, because 
 
 Sourdough carries a generated copy of Squire's deploy templates instead of writing its own. The copy began when its
 apps could not `composer require` Squire from an internal repository (no internal URLs may be committed). Squire is
-on Packagist now (`0.2.1`), so the copy can become a real requirement; until Sourdough switches, the
-copy stays. Squire owns the templates; the copy is checked in and verified, never hand-edited.
+on Packagist now, and Sourdough requires it as a dev dependency and regenerates its copy from the package. Squire owns the templates; the copy is checked in and verified, never hand-edited.
 
 ```
 php bin/export-templates.php --to=templates/squire            # write the copy
@@ -261,7 +260,7 @@ The shell templates are linted with shellcheck in Docker (`scripts/lint-shell.sh
 Windows) and the PowerShell with PSScriptAnalyzer (`scripts/lint-powershell.ps1`). The tests run the real shell templates
 against stub `composer`, `curl`, `npm`, `corepack` and `proctor` programs, and start a PHP server to test `health.php`.
 
-## Known limits in 0.2
+## Known limits
 
 See [OPEN_QUESTIONS.md](OPEN_QUESTIONS.md). The big ones: the local `php.ini` holds safe defaults rather than the
 platform's file, the Citadel image has no digest to pin, and a full Update may not refresh `vendor/`. PROCTOR can now

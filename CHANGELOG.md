@@ -5,6 +5,8 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+- Changed: README, site and open questions match 0.3.0 (Sourdough requires Squire, the policy default, the Preflight pin, the static target).
+
 ## 0.3.0 (2026-10-29)
 
 - Added: the raw target ships a front controller.
