@@ -1,8 +1,8 @@
 <div align="center">
-  <a href="site/index.html"><img src="docs/readme/hero.jpg" width="100%" alt="SQUIRE's front page: the headline SQUIRE and the composer require command beside the squire's satchel, with build.sh, release.sh, health.php and the parity kit hanging as luggage tags from a leather rail."></a>
+  <a href="site/index.html"><img src="docs/readme/hero.jpg" width="100%" alt="Squire's front page: the headline Squire and the composer require command beside the squire's satchel, with build.sh, release.sh, health.php and the parity kit hanging as luggage tags from a leather rail."></a>
 </div>
 
-# SQUIRE
+# Squire
 
 <div align="center">
   <img src="docs/readme/badges/php.svg" alt="php ^8.3">
@@ -15,12 +15,12 @@
 
 Checks: `composer ci` (the same command runs on GitLab and GitHub).
 
-SQUIRE is the Citadel kit: build.sh, the release script, the health check, and local parity on the real images. It is part of WELD, the Wayne State application stack, beside WayneUI (project 0, the interface layer), CREED, PROCTOR, PREFLIGHT, SESAME, HELMET, Pinstripe and Sourdough.
+Squire is the Citadel kit: build.sh, the release script, the health check, and local parity on the real images. It is part of WELD, the Wayne State application stack, beside WayneUI (project 0, the interface layer), CREED, PROCTOR, Preflight, SESAME, HELMET, Pinstripe and Sourdough.
 
 > A knight never suits up alone. Your app shouldn't deploy alone either.
 
 Front page: [`site/index.html`](site/index.html), a static page you can serve from anywhere.
-On Citadel it is served by the raw-PHP deploy layer in [`deploy/`](deploy/): a SQUIRE kit whose front controller serves `site/` behind HELMET's security headers. For local development, keep serving `site/` directly.
+On Citadel it is served by the raw-PHP deploy layer in [`deploy/`](deploy/): a Squire kit whose front controller serves `site/` behind HELMET's security headers. For local development, keep serving `site/` directly.
 
 Status: 0.2.1, tagged and on Packagist. This repository is published from Wayne State University's internal GitLab and mirrored to GitHub.
 
@@ -28,7 +28,7 @@ Status: 0.2.1, tagged and on Packagist. This repository is published from Wayne 
 <summary>Open the bag: two more cuts of the front page</summary>
 
 <div align="center">
-  <img src="docs/readme/gallery.jpg" width="720" alt="Two cuts of SQUIRE's front page: the riding order of the stack's parts hung as tags on a strap, ending in SQUIRE, and the S-rules that doctor checks, each sewn on as a round patch.">
+  <img src="docs/readme/gallery.jpg" width="720" alt="Two cuts of Squire's front page: the riding order of the stack's parts hung as tags on a strap, ending in Squire, and the S-rules that doctor checks, each sewn on as a round patch.">
 </div>
 
 </details>
@@ -37,7 +37,7 @@ Status: 0.2.1, tagged and on Packagist. This repository is published from Wayne 
 <summary>The kit bag's label: the brand board</summary>
 
 <div align="center">
-  <img src="docs/readme/board.jpg" width="720" alt="SQUIRE's brand board: the satchel mark, lockups, the green, gold and cream palette, type, favicons, and do and don't panels.">
+  <img src="docs/readme/board.jpg" width="720" alt="Squire's brand board: the satchel mark, lockups, the green, gold and cream palette, type, favicons, and do and don't panels.">
 </div>
 
 </details>
@@ -52,7 +52,7 @@ Status: 0.2.1, tagged and on Packagist. This repository is published from Wayne 
 - `squire doctor` checks an app against the best practices a machine can decide ([BEST_PRACTICES.md](BEST_PRACTICES.md)).
   The lock file, composer audit and MySQL 5.6 checks are owned by PROCTOR; `doctor` hands off to it (S50) instead of repeating them.
 - A local setup that runs your app on the Citadel PHP image, behind a proxy like Citadel's, with the same MySQL 5.6.
-- SQUIRE's maintainers send platform improvement proposals to the platform team privately. SQUIRE never touches a server.
+- Squire's maintainers send platform improvement proposals to the platform team privately. Squire never touches a server.
 
 ## Install
 
@@ -93,7 +93,7 @@ HTML, and caches the assets. The site folder is `../../site` by default (the app
 straight by Apache and never reaches the front controller.
 
 `update` reads that record: a file you never edited takes the new template, a file you edited is left alone and shown as a
-diff, and a file SQUIRE did not write is never touched. A squire polishes the armour; the knight keeps the sword.
+diff, and a file Squire did not write is never touched. A squire polishes the armour; the knight keeps the sword.
 `--dry-run` prints the plan and writes nothing.
 
 ## What lands in your app
@@ -112,19 +112,19 @@ diff, and a file SQUIRE did not write is never touched. A squire polishes the ar
 | `docker-compose.squire.yml`, `.squire/`, `.env.squire.example`, `scripts/parity.sh`, `scripts/parity.ps1` | Local parity. |
 
 <div align="center">
-  <img src="docs/readme/packing-list.svg" width="100%" alt="A leather strap hangs a luggage tag for each file SQUIRE packs: build.sh, deployments/001-first-release.sh, scripts/release.sh, health.php and the parity kit of 11 files. Each tag is stamped Packed, then the satchel's own tag reads From my-app, Holds 15 files.">
+  <img src="docs/readme/packing-list.svg" width="100%" alt="A leather strap hangs a luggage tag for each file Squire packs: build.sh, deployments/001-first-release.sh, scripts/release.sh, health.php and the parity kit of 11 files. Each tag is stamped Packed, then the satchel's own tag reads From my-app, Holds 15 files.">
   <br><sub>The packing list for deploy day: each tag lands on the strap and gets its stamp.</sub>
 </div>
 
 Every shell script uses `set -euo pipefail` (`build.sh` uses `set -eu`, because Citadel runs it with `/bin/sh`), prints a
 `[squire] ==> step N: ...` marker for each step, and can be run twice with the same result.
 
-## Copies of SQUIRE's templates
+## Copies of Squire's templates
 
-Sourdough carries a generated copy of SQUIRE's deploy templates instead of writing its own. The copy began when its
-apps could not `composer require` SQUIRE from an internal repository (no internal URLs may be committed). SQUIRE is
+Sourdough carries a generated copy of Squire's deploy templates instead of writing its own. The copy began when its
+apps could not `composer require` Squire from an internal repository (no internal URLs may be committed). Squire is
 on Packagist now (`0.2.1`), so the copy can become a real requirement; until Sourdough switches, the
-copy stays. SQUIRE owns the templates; the copy is checked in and verified, never hand-edited.
+copy stays. Squire owns the templates; the copy is checked in and verified, never hand-edited.
 
 ```
 php bin/export-templates.php --to=templates/squire            # write the copy
@@ -133,8 +133,8 @@ php bin/export-templates.php --to=templates/squire --check    # verify it; exit 
 
 The copy holds, for each kind (`raw`, `laravel`, `static`) and for the Vue layer (`vue`), the files a new app gets from
 `squire init`, at their target paths, with each file's mode recorded so executables stay executable. `catalog.json` lists
-which files each kind and layer installs and where; `manifest.json` records the SQUIRE version and a SHA-256 per file.
-Refresh the copy when SQUIRE's templates move on, and run `--check` in CI to keep it honest. A squire keeps the armour
+which files each kind and layer installs and where; `manifest.json` records the Squire version and a SHA-256 per file.
+Refresh the copy when Squire's templates move on, and run `--check` in CI to keep it honest. A squire keeps the armour
 polished; the copy stays in step.
 
 ## Citadel setup
@@ -171,7 +171,7 @@ and process limits. The database port is bound to loopback only. The Vue layer's
 pinned to the same major as the Citadel image, for frontend tooling.
 
 No access to the real image? `--fallback` builds an approximation from the official `php` image plus Citadel's extensions.
-It is good for trying SQUIRE out and not for proving parity. If the build step fails with a permission error writing
+It is good for trying Squire out and not for proving parity. If the build step fails with a permission error writing
 `vendor/`, the source folder is not writable by the container's `citadel` user (uid 1000 by default); on Linux set
 `SQUIRE_SOURCE_UID` and `SQUIRE_SOURCE_GID` to yours.
 
@@ -223,8 +223,8 @@ composer ci          # validate, phpunit, pint, phpstan, audit
 ```
 
 PHPStan and Pint follow Pinstripe, the stack's coding standard: `phpstan.neon` includes Pinstripe's raw PHP preset
-(`vendor/waynestate/pinstripe/phpstan/raw.neon`) and keeps only SQUIRE's own paths and PHP version range, and Pint runs
-the same built-in `per` preset that Pinstripe's `pint/per.json` wraps, so `pint.json` stays local with SQUIRE's own
+(`vendor/waynestate/pinstripe/phpstan/raw.neon`) and keeps only Squire's own paths and PHP version range, and Pint runs
+the same built-in `per` preset that Pinstripe's `pint/per.json` wraps, so `pint.json` stays local with Squire's own
 excludes.
 
 Run it in Docker the same way CI does:
@@ -257,12 +257,12 @@ MIT, copyright Wayne State University. A squire carries the armour; the knight s
   <a href="https://github.com/waynestate/sesame"><img src="docs/readme/cast/sesame.png" width="44" alt="SESAME"></a>
   <a href="https://github.com/waynestate/helmet"><img src="docs/readme/cast/helmet.png" width="44" alt="HELMET"></a>
   <a href="https://github.com/waynestate/sourdough"><img src="docs/readme/cast/sourdough.png" width="44" alt="Sourdough"></a>
-  <a href="https://github.com/waynestate/squire"><img src="docs/readme/cast/squire.png" width="44" alt="SQUIRE"></a>
-  <a href="https://github.com/waynestate/preflight"><img src="docs/readme/cast/preflight.png" width="44" alt="PREFLIGHT"></a>
+  <a href="https://github.com/waynestate/squire"><img src="docs/readme/cast/squire.png" width="44" alt="Squire"></a>
+  <a href="https://github.com/waynestate/preflight"><img src="docs/readme/cast/preflight.png" width="44" alt="Preflight"></a>
   <a href="https://github.com/waynestate/pinstripe"><img src="docs/readme/cast/pinstripe.png" width="44" alt="Pinstripe"></a>
-  <a href="https://github.com/waynestate/booster"><img src="docs/readme/cast/booster.png" width="44" alt="BOOSTER"></a>
-  <a href="https://github.com/waynestate/rollcall"><img src="docs/readme/cast/rollcall.png" width="44" alt="ROLLCALL"></a>
-  <a href="https://github.com/waynestate/drawbridge"><img src="docs/readme/cast/drawbridge.png" width="44" alt="DRAWBRIDGE"></a>
+  <a href="https://github.com/waynestate/booster"><img src="docs/readme/cast/booster.png" width="44" alt="Booster"></a>
+  <a href="https://github.com/waynestate/rollcall"><img src="docs/readme/cast/rollcall.png" width="44" alt="Rollcall"></a>
+  <a href="https://github.com/waynestate/drawbridge"><img src="docs/readme/cast/drawbridge.png" width="44" alt="Drawbridge"></a>
   <a href="https://github.com/waynestate/advisor"><img src="docs/readme/cast/advisor.png" width="44" alt="ADVISOR"></a>
   <a href="https://github.com/waynestate/weld"><img src="docs/readme/cast/weld.png" width="44" alt="WELD"></a>
 

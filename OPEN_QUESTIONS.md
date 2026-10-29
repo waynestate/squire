@@ -12,7 +12,7 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
     Update post-script. Needs a Citadel maintainer's answer.
 3. **Is the public directory `src/public`?** Default for local parity: `SQUIRE_PUBLIC_DIR=src/public`. The dashboard passes
    the real value; check it matches.
-4. **Can a secret be mounted?** SQUIRE assumes environment variables from the dashboard only. Default: the scripts read
+4. **Can a secret be mounted?** Squire assumes environment variables from the dashboard only. Default: the scripts read
    `SQUIRE_*` from the environment; nothing is read from a file in the repository.
 5. **PowerShell minimum.** The `.ps1` scripts are written for Windows PowerShell 5.1 and PowerShell 7; the lint (PSScriptAnalyzer)
    runs on 7.4 only. 5.1 behaviour is by inspection, not run.
@@ -55,8 +55,8 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
   set. After building: `scripts/parity.sh pin`.
 - **PROCTOR policy file.** `SQUIRE_PROCTOR_POLICY` has no default. Without it the PROCTOR step is skipped.
 - **PROCTOR phar and `gate` command.** PROCTOR (0.2.4) still has only `check`, and no phar; a deploy gate needs both.
-- **PREFLIGHT tag pin.** The GitHub workflow pins PREFLIGHT to a commit; the GitLab file pins the component to `0.1.0`. PREFLIGHT has since tagged 0.1.1 on nougat, so both pins are one release behind.
-  Update both when PREFLIGHT cuts a release tag on GitHub.
+- **Preflight tag pin.** The GitHub workflow pins Preflight to a commit; the GitLab file pins the component to `0.1.0`. Preflight has since tagged 0.1.1 on nougat, so both pins are one release behind.
+  Update both when Preflight cuts a release tag on GitHub.
 - **Database passwords.** `.env.squire.example` holds `change-me-local-only` placeholders. The compose file refuses to start
   without real values.
 - **The platform's actual PHP settings.** `.squire/php.ini` holds safe defaults, not the platform's file. See question 9.

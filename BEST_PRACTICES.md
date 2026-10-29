@@ -1,4 +1,4 @@
-# Best practices SQUIRE checks
+# Best practices Squire checks
 
 `squire doctor` decides the rules below by reading the files in your repository. It never runs your app and never touches
 a server. A **fail** makes `doctor` exit 1; a **warn** or **info** does not. The numbers (S1 and so on) are the rule
@@ -37,6 +37,6 @@ here.
 The lock file (S13), composer audit and MySQL 5.6 safety (S18) are owned by PROCTOR; `doctor` no longer repeats them
 and hands off instead (S50).
 
-Drift from the SQUIRE templates is reported as a warning under S9, never as a failure: you may edit your copies.
+Drift from the Squire templates is reported as a warning under S9, never as a failure: you may edit your copies.
 
-`doctor` is a lint, not a gate. Wire it into CI if you want it to block; SQUIRE does not decide that for you.
+`doctor` is a lint, not a gate. Wire it into CI if you want it to block; Squire does not decide that for you.

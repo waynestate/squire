@@ -1,9 +1,11 @@
 # Changelog
 
-All notable changes to SQUIRE are recorded here. The format follows Keep a Changelog; the project follows Semantic
+All notable changes to Squire are recorded here. The format follows Keep a Changelog; the project follows Semantic
 Versioning once 1.0 is out.
 
 ## Unreleased
+
+- Changed: project names written as words except acronyms.
 
 ## 0.2.1 (2026-10-29)
 
