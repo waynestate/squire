@@ -54,7 +54,7 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
   image locally from `build-images/*.dockerfile`; there is no registry digest to copy. `doctor` warns (S67) until one is
   set. After building: `scripts/parity.sh pin`.
 - **PROCTOR policy file.** `SQUIRE_PROCTOR_POLICY` has no default. Without it the PROCTOR step is skipped.
-- **PROCTOR phar and `gate` command.** PROCTOR (0.2.4) still has only `check`, and no phar; a deploy gate needs both.
+- **PROCTOR phar and `gate` command.** PROCTOR (0.2.6) still has only `check`, and its phar is built from source but not published; a deploy gate needs a `gate` command and a published phar.
 - **Preflight tag pin.** The GitHub workflow pins Preflight to a commit; the GitLab file pins the component to `0.1.0`. Preflight has since tagged 0.1.1 on nougat, so both pins are one release behind.
   Update both when Preflight cuts a release tag on GitHub.
 - **Database passwords.** `.env.squire.example` holds `change-me-local-only` placeholders. The compose file refuses to start
