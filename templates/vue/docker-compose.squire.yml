@@ -1,4 +1,4 @@
-# docker-compose.squire.yml: local parity with Citadel (SQUIRE S35 to S37, S67, S70, S71).
+# docker-compose.squire.yml: local parity with Citadel (Squire S35 to S37, S67, S70, S71).
 # Vue layer: this copy adds a Node 22 service for the frontend tooling, beside the same app, proxy and database.
 #
 #   app    the Citadel PHP image (Apache + mod_php) plus the vhost, php.ini, YOUR build.sh and deployments/

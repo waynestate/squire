@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# scripts/release.sh: the idempotent release script (SQUIRE S9 to S23).
+# scripts/release.sh: the idempotent release script (Squire S9 to S23).
 #
 # Runs from the first-release hook (deployments/001-first-release.sh) and from the Quick Update post-script.
 # Safe to run twice: every step repeats with the same result (S10).
@@ -12,7 +12,7 @@
 # new commit is already live (S20). With SQUIRE_PROCTOR=enforce a failed check stops the release: the first release
 # never comes up healthy, and a Quick Update keeps the new commit checked out, so fix the findings and re-run.
 #
-# Configuration is environment variables, all optional. See .env.squire.example or the SQUIRE README.
+# Configuration is environment variables, all optional. See .env.squire.example or the Squire README.
 #   SQUIRE_APP_DIR=                  app root (default: the parent of this script's directory)
 #   SQUIRE_FRAMEWORK=auto            auto | laravel | raw
 #   SQUIRE_ALLOW_ROOT=0              1 allows running as root (S19)
