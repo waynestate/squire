@@ -18,7 +18,7 @@ final class Squire
      * a dev checkout of this repository, or a copy without one. An installed
      * copy reports its real release version instead.
      */
-    public const VERSION = '0.3.3';
+    public const VERSION = '0.3.4';
 
     /** The package name SQUIRE publishes under. */
     private const PACKAGE = 'waynestate/squire';
