@@ -1,4 +1,4 @@
-# robots.txt for https://squire.apps.wayne.edu/, written by SQUIRE's agent-ready kit (ADR-0019); do not edit.
+# robots.txt for https://squire.apps.wayne.edu/, written by Squire's agent-ready kit (ADR-0019); do not edit.
 # Content Signals (contentsignals.org): find it and answer from it, yes; train on it, no.
 User-agent: *
 Content-Signal: search=yes, ai-input=yes, ai-train=no

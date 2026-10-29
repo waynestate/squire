@@ -2,7 +2,7 @@
 
 > Squire is the Citadel kit: it packs your app's deploy scripts, inspects them against the S-rules, and runs your app locally on the same image, proxy and MySQL as Citadel.
 
-The README and the Markdown twin of every page, joined. The index is https://squire.apps.wayne.edu/llms.txt. Written by SQUIRE's agent-ready kit; do not edit.
+The README and the Markdown twin of every page, joined. The index is https://squire.apps.wayne.edu/llms.txt. Written by Squire's agent-ready kit; do not edit.
 
 ---
 
