@@ -22,7 +22,7 @@ SQUIRE is the Citadel kit: build.sh, the release script, the health check, and l
 Front page: [`site/index.html`](site/index.html), a static page you can serve from anywhere.
 On Citadel it is served by the raw-PHP deploy layer in [`deploy/`](deploy/): a SQUIRE kit whose front controller serves `site/` behind HELMET's security headers. For local development, keep serving `site/` directly.
 
-Status: 0.1.0, tagged and on Packagist. This repository is published from Wayne State University's internal GitLab and mirrored to GitHub.
+Status: 0.2.1, tagged and on Packagist. This repository is published from Wayne State University's internal GitLab and mirrored to GitHub.
 
 <details>
 <summary>Open the bag: two more cuts of the front page</summary>
@@ -123,7 +123,7 @@ Every shell script uses `set -euo pipefail` (`build.sh` uses `set -eu`, because 
 
 Sourdough carries a generated copy of SQUIRE's deploy templates instead of writing its own. The copy began when its
 apps could not `composer require` SQUIRE from an internal repository (no internal URLs may be committed). SQUIRE is
-on Packagist now (`0.1.0`), so the copy can become a real requirement; until Sourdough switches, the
+on Packagist now (`0.2.1`), so the copy can become a real requirement; until Sourdough switches, the
 copy stays. SQUIRE owns the templates; the copy is checked in and verified, never hand-edited.
 
 ```
