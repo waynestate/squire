@@ -26,7 +26,7 @@
 #   SQUIRE_ARTISAN_OPTIMIZE=1        Laravel: run `optimize` after the environment is in place (S16)
 #   SQUIRE_PROCTOR=auto              auto | skip | enforce (report only by default; enforce stops the release)
 #   SQUIRE_PROCTOR_BIN=              path to proctor (default: vendor/bin/proctor, then `proctor` on PATH)
-#   SQUIRE_PROCTOR_POLICY=           path to the CREED policy.json (PROCTOR needs one)
+#   SQUIRE_PROCTOR_POLICY=           path to the CREED policy.json (default: vendor/waynestate/creed/policy/policy.json, when present)
 #   SQUIRE_SMOKE=1                   1 requests the health URL at the end and fails if it is not 200 (S21)
 #   SQUIRE_SMOKE_URL=                full URL (default: http://127.0.0.1:80/up for Laravel, /up.php for raw PHP)
 #   SQUIRE_SMOKE_RETRIES=5           attempts
@@ -224,6 +224,12 @@ if [ "$framework" = "laravel" ]; then
     else
         note "skipped (SQUIRE_ARTISAN_OPTIMIZE=0)"
     fi
+fi
+
+# The deploy wizard has no environment field, so a static site cannot set SQUIRE_PROCTOR_POLICY there. When it is
+# unset, fall back to the policy the CREED package ships with, if the app depends on CREED. An explicit value wins.
+if [ -z "$SQUIRE_PROCTOR_POLICY" ] && [ -f vendor/waynestate/creed/policy/policy.json ]; then
+    SQUIRE_PROCTOR_POLICY="vendor/waynestate/creed/policy/policy.json"
 fi
 
 proctor_mode="$SQUIRE_PROCTOR"

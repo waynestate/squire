@@ -13,6 +13,8 @@ Versioning once 1.0 is out.
   carries them under `static/`.
 - `SQUIRE_PROCTOR=enforce`: a failed PROCTOR check now stops the release. The default stays report-only, so existing apps
   are unaffected.
+- `SQUIRE_PROCTOR_POLICY` defaults to `vendor/waynestate/creed/policy/policy.json` when unset and present, so a static
+  site needs no environment variables in the deploy wizard. An explicit value always wins.
 
 ## 0.1.0 (2026-10-29)
 

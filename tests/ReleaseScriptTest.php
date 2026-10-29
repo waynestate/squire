@@ -199,6 +199,30 @@ final class ReleaseScriptTest extends SquireTestCase
         self::assertStringContainsString('SQUIRE_PROCTOR_POLICY is not set', $result['stdout']);
     }
 
+    public function testProctorPolicyDefaultsToThePolicyCreedShips(): void
+    {
+        $app = $this->initializedApp();
+        $this->put($app, 'vendor/waynestate/creed/policy/policy.json', '{}');
+        $result = $this->exec($app, 'scripts/release.sh', ['SQUIRE_PROCTOR_BIN' => $this->stubs . '/proctor']);
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertContains('proctor check --path . --policy vendor/waynestate/creed/policy/policy.json', $this->calls());
+    }
+
+    public function testAnExplicitProctorPolicyBeatsTheDefault(): void
+    {
+        $app = $this->initializedApp();
+        $this->put($app, 'vendor/waynestate/creed/policy/policy.json', '{}');
+        $result = $this->exec($app, 'scripts/release.sh', [
+            'SQUIRE_PROCTOR_BIN' => $this->stubs . '/proctor',
+            'SQUIRE_PROCTOR_POLICY' => '/explicit/policy.json',
+        ]);
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertContains('proctor check --path . --policy /explicit/policy.json', $this->calls());
+        self::assertNotContains('proctor check --path . --policy vendor/waynestate/creed/policy/policy.json', $this->calls());
+    }
+
     public function testProctorEnforceStopsTheReleaseOnFailures(): void
     {
         $app = $this->initializedApp();

@@ -195,7 +195,7 @@ Release script (`scripts/release.sh`):
 | `SQUIRE_ARTISAN_OPTIMIZE` | `1` | Laravel: `optimize`. |
 | `SQUIRE_PROCTOR` | `auto` | `auto`, `skip` or `enforce`. By default PROCTOR is a report and never stops the release; `enforce` makes a failed check stop it. |
 | `SQUIRE_PROCTOR_BIN` | `vendor/bin/proctor`, then `PATH` | Where PROCTOR is. It is a dev dependency, so `--no-dev` removes it: point this at a copy. |
-| `SQUIRE_PROCTOR_POLICY` | none | Path to the policy file. PROCTOR needs one; without it the step is skipped with a reason. |
+| `SQUIRE_PROCTOR_POLICY` | `vendor/waynestate/creed/policy/policy.json`, when present | Path to the policy file. When unset, the script falls back to the policy the CREED package ships (the deploy wizard has no environment field); without either, the step is skipped with a reason. |
 | `SQUIRE_SMOKE` | `1` | Request the health URL at the end and fail unless it answers 200. |
 | `SQUIRE_SMOKE_URL` | `http://127.0.0.1:80/up` (Laravel), `/up.php` (raw and static) | Full URL. |
 | `SQUIRE_SMOKE_RETRIES` | `5` | Attempts. |
