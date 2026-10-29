@@ -23,6 +23,9 @@
 <link rel="preload" href="assets/fonts/arvo-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/wayne-ui/wayne-ui.css">
 <link rel="stylesheet" href="assets/squire.css">
+<link rel="alternate" type="text/markdown" href="index.md">
+<link rel="stylesheet" href="assets/agent-ready.css">
+<script src="assets/agent-ready.js" defer></script>
 <script>
   /* The squire only bustles about for people who are happy with motion.
      Everyone else gets the bag already packed and buckled: same words,
@@ -95,6 +98,15 @@
       </div>
 
     </div>
+  </section>
+
+  <!-- ====================================================== get started -->
+  <section class="ar-prompt" id="get-started" data-ar-prompt>
+    <h3 class="ar-prompt__title">Get started with Squire</h3>
+    <p class="ar-prompt__desc">Pack your app for the Citadel and try it at home first.</p>
+    <pre class="ar-prompt__text"><code>You are a coding agent. Read https://squire.apps.wayne.edu/llms.txt and ask ADVISOR.
+Install it with `composer require waynestate/squire --dev`, then run `vendor/bin/squire init` at the root of your app.
+Ask me before you guess.</code></pre>
   </section>
 
   <!-- ====================================================== packing list -->
