@@ -5,6 +5,8 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+## 0.3.0 (2026-10-29)
+
 - Added: the raw target ships a front controller.
 
 ## 0.2.2 (2026-10-29)
