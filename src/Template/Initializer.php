@@ -18,6 +18,7 @@ final class Initializer
     public function __construct(
         private readonly Catalog $catalog,
         private readonly TemplateWriter $writer = new TemplateWriter(),
+        private readonly Gitignore $gitignore = new Gitignore(),
     ) {}
 
     /**
@@ -113,6 +114,13 @@ final class Initializer
             $this->writer->write($path, $content, $template->executable);
             $written[$template->destination] = $newHash;
             $results[] = new FileResult($template->destination, FileResult::OVERWRITTEN, $detail . '; overwritten by --force');
+        }
+
+        // The .gitignore is not a template: SQUIRE appends the missing lines and records no hash, because once the
+        // team edits it, it is theirs. In a directory below the repository root it is part of the layer SQUIRE wrote.
+        $gitignoreResult = $this->gitignore->ensure($appPath, $this->writer, $check);
+        if ($gitignoreResult !== null) {
+            $results[] = $gitignoreResult;
         }
 
         if (!$check) {

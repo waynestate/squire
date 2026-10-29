@@ -6,6 +6,7 @@ Versioning once 1.0 is out.
 ## Unreleased
 
 - Changed: the deploy layer's Squire kit is refreshed to 0.3.3 (release options can now live in ./.env.squire).
+- Fixed: squire init now adds .env and .env.squire to the target .gitignore, so the local deploy secrets file is never committed.
 
 ## 0.3.3 (2026-10-29)
 

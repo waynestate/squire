@@ -201,6 +201,24 @@ final class UpdaterTest extends SquireTestCase
         (new Updater(new Catalog(Squire::templatesDir())))->run($app, 'raw', ['release'], false);
     }
 
+    public function testUpdateNeverTouchesTheGitignoreItOnlyNotesAHole(): void
+    {
+        $layer = $this->deployLayer(['.gitignore' => "/vendor/\n# the team's line\n"]);
+        $catalog = new Catalog(Squire::templatesDir());
+        (new Initializer($catalog))->run($layer, 'raw', ['release', 'parity'], false, false);
+        file_put_contents($layer . '/.gitignore', "/vendor/\n# the team's line\n");
+        $before = (string) file_get_contents($layer . '/.gitignore');
+
+        $results = (new Updater($catalog))->run($layer, 'raw', ['release', 'parity'], false);
+
+        self::assertSame($before, (string) file_get_contents($layer . '/.gitignore'), "an edited .gitignore is the app's; update leaves it alone");
+        $notes = array_values(array_filter($results, static fn(FileResult $r): bool => $r->path === '.gitignore'));
+        self::assertCount(1, $notes);
+        self::assertSame(FileResult::CURRENT, $notes[0]->state, 'a note is not drift');
+        self::assertStringContainsString('.env.squire', $notes[0]->detail);
+        self::assertSame(0, Updater::exitCode($results));
+    }
+
     public function testExitCodeIsOneWhenAnEditedFileDiffers(): void
     {
         self::assertSame(0, Updater::exitCode([

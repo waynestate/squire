@@ -304,4 +304,74 @@ echo 'my own front door';
         self::assertSame([FileResult::UNCHANGED], array_values(array_unique(array_map(static fn(FileResult $r): string => $r->state, $second))));
         self::assertSame($manifestBefore, (string) file_get_contents($app . '/' . Squire::MANIFEST));
     }
+
+    public function testInitInADeployLayerCreatesTheGitignoreWithAllThreeLines(): void
+    {
+        $layer = $this->deployLayer();
+        $states = $this->states($this->initializer()->run($layer, 'raw', ['release', 'parity'], false, false));
+
+        self::assertSame(FileResult::CREATED, $states['.gitignore']);
+        $lines = file($layer . '/.gitignore', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        self::assertContains('/vendor/', $lines);
+        self::assertContains('.env', $lines);
+        self::assertContains('.env.squire', $lines);
+        $manifest = Manifest::load($layer);
+        self::assertNotNull($manifest);
+        self::assertArrayNotHasKey('.gitignore', $manifest->files, 'the app may edit the file, so Squire records no hash');
+    }
+
+    public function testInitAppendsOnlyTheMissingLinesToAnExistingGitignore(): void
+    {
+        $layer = $this->deployLayer(['.gitignore' => "/vendor/\n# mine\nnode_modules/\n"]);
+        $before = (string) file_get_contents($layer . '/.gitignore');
+
+        $states = $this->states($this->initializer()->run($layer, 'raw', ['release'], false, false));
+
+        self::assertSame(FileResult::UPDATED, $states['.gitignore']);
+        $after = (string) file_get_contents($layer . '/.gitignore');
+        self::assertStringStartsWith($before, $after, 'existing lines keep their order and wording');
+        self::assertStringEndsWith(".env\n.env.squire\n", $after, 'the missing lines are appended, in order');
+    }
+
+    public function testInitIsIdempotentOnTheGitignore(): void
+    {
+        $layer = $this->deployLayer(['.gitignore' => "/vendor/\n"]);
+        $this->initializer()->run($layer, 'raw', ['release'], false, false);
+        $afterFirst = (string) file_get_contents($layer . '/.gitignore');
+
+        $states = $this->states($this->initializer()->run($layer, 'raw', ['release'], false, false));
+
+        self::assertSame(FileResult::UNCHANGED, $states['.gitignore']);
+        self::assertSame($afterFirst, (string) file_get_contents($layer . '/.gitignore'), 'a second run changes nothing');
+    }
+
+    public function testCheckReportsAGitignoreMissingLinesAsDrift(): void
+    {
+        $layer = $this->deployLayer(['.gitignore' => "/vendor/\n"]);
+
+        $checked = $this->states($this->initializer()->run($layer, 'raw', ['release'], false, true));
+        self::assertSame(FileResult::MODIFIED, $checked['.gitignore']);
+        self::assertSame("/vendor/\n", (string) file_get_contents($layer . '/.gitignore'), 'check mode must not write');
+
+        $this->initializer()->run($layer, 'raw', ['release'], false, false);
+        $ok = $this->states($this->initializer()->run($layer, 'raw', ['release'], false, true));
+        self::assertSame(FileResult::OK, $ok['.gitignore']);
+    }
+
+    public function testInitAtTheRepositoryRootLeavesTheAppsGitignoreAlone(): void
+    {
+        foreach ([false, true] as $laravel) {
+            $app = $this->app(['.gitignore' => "# the app's own\nstorage/\n"], $laravel);
+            mkdir($app . '/.git');
+            $before = (string) file_get_contents($app . '/.gitignore');
+
+            $states = $this->states($this->initializer()->run($app, $laravel ? 'laravel' : 'raw', ['release', 'parity'], false, false));
+
+            self::assertSame($before, (string) file_get_contents($app . '/.gitignore'), 'the repository root belongs to the app');
+            self::assertArrayNotHasKey('.gitignore', $states, 'Squire reports nothing it did not do');
+            $manifest = Manifest::load($app);
+            self::assertNotNull($manifest);
+            self::assertArrayNotHasKey('.gitignore', $manifest->files);
+        }
+    }
 }

@@ -115,6 +115,24 @@ final class Updater
             );
         }
 
+        // The .gitignore never sits in the record, so update cannot touch it: once the team edits it, it is theirs.
+        // It can still point out a hole in the wall, because the local secrets file must stay out of git.
+        $gitignorePath = $appPath . '/.gitignore';
+        $gitignore = null;
+        if (is_file($gitignorePath)) {
+            $gitignore = file_get_contents($gitignorePath);
+            if ($gitignore === false) {
+                throw new ToolError(sprintf('Cannot read %s.', $gitignorePath));
+            }
+        }
+        if ($gitignore !== null && in_array('.env.squire', Gitignore::missingLines($gitignore), true)) {
+            $results[] = new FileResult(
+                '.gitignore',
+                FileResult::CURRENT,
+                'note: .env.squire is not ignored by .gitignore; add the line so the local secrets stay out of git',
+            );
+        }
+
         if (!$dryRun && $written !== $manifest->files) {
             (new Manifest(Squire::version(), $manifest->target, $manifest->groups, $written, $manifest->layer))->save($appPath);
         }

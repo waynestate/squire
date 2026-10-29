@@ -48,7 +48,10 @@ Status: 0.3.3, tagged and on Packagist. This repository is published from Wayne 
 
 - `squire init` writes the scripts a Citadel app needs from templates, for raw PHP, Laravel or a static site, and detects
   a Vue/Inertia layer from `package.json`, adding the layer's release script and Node 22 parity service. `squire init
-  --check` reports when your copies have drifted from the templates (depend, do not copy).
+  --check` reports when your copies have drifted from the templates (depend, do not copy). In a directory below the
+  repository root (a `deploy/` layer, say), `init` also keeps the `.gitignore` honest: it appends `/vendor/`, `.env` and
+  `.env.squire` when they are missing, never touches a line the app added, and leaves the repository root's `.gitignore`
+  to the app.
 - `squire update` takes the new template versions for the files you never edited, and shows a diff for the ones you did.
   It never overwrites your edits, and it runs the same in CI and on a laptop.
 - `squire doctor` checks an app against the best practices a machine can decide ([BEST_PRACTICES.md](BEST_PRACTICES.md)).

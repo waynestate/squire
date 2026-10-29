@@ -62,6 +62,31 @@ abstract class SquireTestCase extends TestCase
         return $dir;
     }
 
+    /**
+     * A deploy layer inside a git repository: the repository root carries a .git, the layer sits below it in its own
+     * folder, so SQUIRE manages the layer's .gitignore. The .git is a plain directory; no git binary is needed.
+     *
+     * @param array<string, string> $extra relative path => content
+     */
+    protected function deployLayer(array $extra = [], bool $laravel = false): string
+    {
+        $repo = $this->tempDir();
+        mkdir($repo . '/.git');
+        $dir = $repo . '/deploy';
+        mkdir($dir);
+        file_put_contents($dir . '/composer.json', '{"name":"test/app","require":{"php":"^8.3"}}' . "\n");
+        file_put_contents($dir . '/composer.lock', '{"packages":[],"packages-dev":[]}' . "\n");
+        file_put_contents($dir . '/.gitattributes', "* text=auto eol=lf\n*.sh text eol=lf\n");
+        if ($laravel) {
+            file_put_contents($dir . '/artisan', "#!/usr/bin/env php\n<?php\n");
+        }
+        foreach ($extra as $path => $content) {
+            $this->put($dir, $path, $content);
+        }
+
+        return $dir;
+    }
+
     protected function put(string $dir, string $path, string $content): void
     {
         $full = $dir . '/' . $path;
