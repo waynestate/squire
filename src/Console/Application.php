@@ -18,9 +18,9 @@ final class Application extends SymfonyApplication
     public function __construct()
     {
         parent::__construct(Squire::TOOL, Squire::VERSION);
-        $this->add(new InitCommand());
-        $this->add(new UpdateCommand());
-        $this->add(new DoctorCommand());
+        $this->addCommand(new InitCommand());
+        $this->addCommand(new UpdateCommand());
+        $this->addCommand(new DoctorCommand());
         $this->setCatchExceptions(true);
     }
 

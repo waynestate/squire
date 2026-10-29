@@ -212,6 +212,11 @@ composer install
 composer ci          # validate, phpunit, pint, phpstan, audit
 ```
 
+PHPStan and Pint follow Pinstripe, the stack's coding standard: `phpstan.neon` includes Pinstripe's raw PHP preset
+(`vendor/waynestate/pinstripe/phpstan/raw.neon`) and keeps only SQUIRE's own paths and PHP version range, and Pint runs
+the same built-in `per` preset that Pinstripe's `pint/per.json` wraps, so `pint.json` stays local with SQUIRE's own
+excludes.
+
 Run it in Docker the same way CI does:
 
 ```
