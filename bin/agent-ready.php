@@ -46,8 +46,8 @@ final class AgentReadyKit
     public const LEGACY_GENERATOR = 'SQUIRE agent-ready';
 
     public const FILES = [
-        'assets/agent-ready.css' => 'a666ce64d82859bb658f51c33af145d374fcccaca615e699f51dc683ad7b1fc5',
-        'assets/agent-ready.js' => '581f22b237e10ded1fe6dad30d3c01b04cac31f5106faec31a64dde6a870d506',
+        'assets/agent-ready.css' => 'be9bf22d00b10ab07774db1abe7fb6c4c282b4b6a9a0fe91191ee0a49e83de71',
+        'assets/agent-ready.js' => '17b4c83f48264f96b846102f0e0183d9317b800644e6cf6f0c8219f9960f1cb5',
     ];
 
     /** The stack's agent entry points, listed in every llms.txt except their own. */
