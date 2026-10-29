@@ -5,6 +5,8 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+- Changed: the deploy layer's Squire kit is refreshed to 0.3.3 (release options can now live in ./.env.squire).
+
 ## 0.3.3 (2026-10-29)
 
 - Fixed: docs say app settings go in a ./.env configuration file; Citadel has no dashboard environment field.
