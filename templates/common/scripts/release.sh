@@ -12,7 +12,9 @@
 # new commit is already live (S20). With SQUIRE_PROCTOR=enforce a failed check stops the release: the first release
 # never comes up healthy, and a Quick Update keeps the new commit checked out, so fix the findings and re-run.
 #
-# Configuration is environment variables, all optional. See .env.squire.example or the Squire README.
+# Configuration is environment variables, all optional, or the same names in ./.env.squire in the app root. On Citadel
+# add that file as a configuration file (the configuration-files step after the wizard; the wizard has no environment
+# field) and keep it out of git. A variable already in the environment wins over the file. See .env.squire.example.
 #   SQUIRE_APP_DIR=                  app root (default: the parent of this script's directory)
 #   SQUIRE_FRAMEWORK=auto            auto | laravel | raw
 #   SQUIRE_ALLOW_ROOT=0              1 allows running as root (S19)
@@ -65,7 +67,47 @@ on_error() {
 }
 trap 'on_error $? $LINENO' ERR
 
+# --- settings file --------------------------------------------------------------------------------------------------
+
+# Citadel has no environment field, so release options reach this script as a configuration file it writes into the
+# source tree (./.env.squire, kept out of git). The file is parsed, never sourced: KEY=VALUE lines only, no expansion,
+# no command substitution, and only the release options below are taken. A value already in the environment wins.
+squire_load_settings() {
+    [ -f "$1" ] || return 0
+    while IFS= read -r line || [ -n "$line" ]; do
+        line="${line%"$(printf '\r')"}"
+        case "$line" in
+            '' | '#'* | *=*) ;;
+            *) continue ;;
+        esac
+        key="${line%%=*}"
+        value="${line#*=}"
+        case "$key" in
+            SQUIRE_FRAMEWORK | SQUIRE_ALLOW_ROOT | SQUIRE_REQUIRE_ENV | SQUIRE_WRITABLE_DIRS | \
+                SQUIRE_COMPOSER_AUDIT | SQUIRE_NPM | SQUIRE_NPM_IGNORE_SCRIPTS | SQUIRE_NPM_BUILD_SCRIPT | \
+                SQUIRE_MIGRATE | SQUIRE_ARTISAN_OPTIMIZE | SQUIRE_PROCTOR | SQUIRE_PROCTOR_BIN | \
+                SQUIRE_PROCTOR_POLICY | SQUIRE_SMOKE | SQUIRE_SMOKE_URL | SQUIRE_SMOKE_RETRIES | SQUIRE_SMOKE_DELAY) ;;
+            *) continue ;;
+        esac
+        # The key is one of the names above, so this eval only tests whether that variable is already set.
+        if eval "[ \"\${$key+set}\" = set ]"; then
+            continue
+        fi
+        case "$value" in
+            \"*\") value="${value#\"}"; value="${value%\"}" ;;
+            \'*\') value="${value#\'}"; value="${value%\'}" ;;
+        esac
+        export "$key=$value"
+    done <"$1"
+}
+
 : "${SQUIRE_APP_DIR:=}"
+if [ -z "$SQUIRE_APP_DIR" ]; then
+    SQUIRE_APP_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+fi
+cd "$SQUIRE_APP_DIR"
+squire_load_settings ./.env.squire
+
 : "${SQUIRE_FRAMEWORK:=auto}"
 : "${SQUIRE_ALLOW_ROOT:=0}"
 : "${SQUIRE_REQUIRE_ENV:=auto}"
@@ -109,10 +151,6 @@ http_status() {
 
 # --- start ----------------------------------------------------------------------------------------------------------
 
-if [ -z "$SQUIRE_APP_DIR" ]; then
-    SQUIRE_APP_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-fi
-cd "$SQUIRE_APP_DIR"
 echo "[squire] release starting in $SQUIRE_APP_DIR at $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
 
 step "check preconditions"

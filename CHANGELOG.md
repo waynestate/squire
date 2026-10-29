@@ -6,6 +6,8 @@ Versioning once 1.0 is out.
 ## Unreleased
 
 - Fixed: docs say app settings go in a ./.env configuration file; Citadel has no dashboard environment field.
+- Fixed: the .env.squire template says to add it as a Citadel configuration file; Citadel has no dashboard environment field.
+- Added: release.sh reads release options from ./.env.squire (parsed, never sourced; allow-listed keys; the environment wins), so they can be set on Citadel.
 
 ## 0.3.2 (2026-10-29)
 

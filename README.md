@@ -218,8 +218,9 @@ It is good for trying Squire out and not for proving parity. If the build step f
 
 ## Configuration
 
-All optional. On Citadel set them in the app's `./.env` configuration file (the configuration-files step after the
-wizard); locally, in `.env.squire`.
+All optional. On Citadel, add `./.env.squire` as a configuration file (the configuration-files step after the wizard;
+the wizard has no environment field) and keep it out of git. `release.sh` reads the release options from it, and a
+variable already in the environment wins. Locally, the same file holds the parity settings.
 
 Release script (`scripts/release.sh`):
 

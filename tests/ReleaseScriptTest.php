@@ -127,6 +127,74 @@ final class ReleaseScriptTest extends SquireTestCase
         self::assertSame($markers($first['stdout']), $markers($second['stdout']));
     }
 
+    public function testAValueInTheSettingsFileIsUsed(): void
+    {
+        $app = $this->initializedApp();
+        file_put_contents($app . '/.env.squire', "# a comment\n\nSQUIRE_COMPOSER_AUDIT=skip\n");
+        $result = $this->exec($app, 'scripts/release.sh');
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertNotContains('composer audit --locked --no-interaction', $this->calls());
+    }
+
+    public function testQuotesAroundAValueInTheSettingsFileAreStripped(): void
+    {
+        $app = $this->initializedApp();
+        file_put_contents($app . '/.env.squire', "SQUIRE_SMOKE_URL=\"http://127.0.0.1:80/quoted\"\r\nSQUIRE_COMPOSER_AUDIT='skip'\r\n");
+        $result = $this->exec($app, 'scripts/release.sh');
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertStringContainsString('http://127.0.0.1:80/quoted ->', $result['stdout']);
+        self::assertNotContains('composer audit --locked --no-interaction', $this->calls());
+    }
+
+    public function testTheEnvironmentWinsOverTheSettingsFile(): void
+    {
+        $app = $this->initializedApp();
+        file_put_contents($app . '/.env.squire', "SQUIRE_COMPOSER_AUDIT=skip\n");
+        $result = $this->exec($app, 'scripts/release.sh', ['SQUIRE_COMPOSER_AUDIT' => 'report']);
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertContains('composer audit --locked --no-interaction', $this->calls());
+    }
+
+    public function testAKeyThatIsNotAReleaseOptionInTheSettingsFileIsIgnored(): void
+    {
+        $app = $this->initializedApp();
+        file_put_contents($app . '/.env.squire', "SQUIRE_DB_PASSWORD=secret\nSQUIRE_STEP_NO=99\nPATH=/nowhere\n");
+        $this->stub('composer', "#!/bin/sh\necho \"composer $*\" >> \"\$STUB_LOG\"\necho \"leak=\${SQUIRE_DB_PASSWORD:-unset}\" >> \"\$STUB_LOG\"\nexit 0\n");
+        $result = $this->exec($app, 'scripts/release.sh');
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertContains('leak=unset', $this->calls());
+        self::assertStringContainsString('step 1: check preconditions', $result['stdout'], 'SQUIRE_STEP_NO stays internal');
+    }
+
+    public function testAValueWithCommandSubstitutionInTheSettingsFileStaysLiteral(): void
+    {
+        $app = $this->initializedApp();
+        $marker = $app . '/pwned';
+        file_put_contents($app . '/.env.squire', "SQUIRE_SMOKE_URL=http://127.0.0.1:80/\$(touch pwned)`touch pwned2`\${HOME}\n");
+        $result = $this->exec($app, 'scripts/release.sh', ['SQUIRE_SMOKE_RETRIES' => '1']);
+
+        self::assertFileDoesNotExist($marker);
+        self::assertFileDoesNotExist($marker . '2');
+        self::assertStringContainsString('http://127.0.0.1:80/$(touch pwned)`touch pwned2`${HOME} ->', $result['stdout']);
+    }
+
+    public function testEveryReleaseOptionIsInTheSettingsFileAllowList(): void
+    {
+        $script = (string) file_get_contents(Squire::templatesDir() . '/common/scripts/release.sh');
+        preg_match_all('/^: "\$\{(SQUIRE_[A-Z_]+):=/m', $script, $defaults);
+        self::assertNotEmpty($defaults[1]);
+        foreach ($defaults[1] as $name) {
+            if ($name === 'SQUIRE_APP_DIR') {
+                continue;
+            }
+            self::assertMatchesRegularExpression('/\b' . $name . '( \||\))/', $script, "{$name} is missing from squire_load_settings");
+        }
+    }
+
     public function testAMissingLockFileStopsTheReleaseBeforeAnythingInstalls(): void
     {
         $app = $this->initializedApp();
