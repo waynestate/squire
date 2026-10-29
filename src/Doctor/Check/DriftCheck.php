@@ -42,7 +42,7 @@ final class DriftCheck implements Check
             }
         }
         if ($findings === []) {
-            $findings[] = Finding::pass('S9', sprintf('Every SQUIRE file matches template version %s.', Squire::VERSION));
+            $findings[] = Finding::pass('S9', sprintf('Every SQUIRE file matches template version %s.', Squire::version()));
         }
 
         return $findings;

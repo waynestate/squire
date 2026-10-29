@@ -116,7 +116,7 @@ final class Exporter
             return $composer;
         }
 
-        return Squire::VERSION;
+        return Squire::version();
     }
 
     /**
