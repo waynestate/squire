@@ -17,6 +17,14 @@ Versioning once 1.0 is out.
   site needs no environment variables in the deploy wizard. When CREED is not installed, PROCTOR runs on its own default
   policy with a notice instead of the release failing. An explicit value always wins.
 
+### Changed
+
+- PHPStan now includes Pinstripe's raw PHP preset (`waynestate/pinstripe` 0.1) instead of carrying a hand copy of the
+  settings; `phpstan.neon` keeps only SQUIRE's own paths and PHP version range, and the preset's deprecation checks
+  come along with it.
+- `symfony/console` floor raised to `^7.4`: `Application::add()` is deprecated since 7.4, and the CLI now calls
+  `addCommand()`.
+
 ## 0.1.0 (2026-10-29)
 
 ### Added

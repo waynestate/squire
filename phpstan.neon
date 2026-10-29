@@ -1,11 +1,13 @@
-# Same settings as Pinstripe's phpstan/raw.neon. Swap for an include once waynestate/pinstripe is on Packagist.
+# The cut comes from Pinstripe (waynestate/pinstripe), the stack's coding standard:
+# level 8, ignore reporting, strict rules off for an existing app. Below stays only
+# what is SQUIRE's own: the paths and the PHP version range.
+includes:
+    - vendor/waynestate/pinstripe/phpstan/raw.neon
+
 parameters:
-    level: 8
     paths:
         - src
         - bin/squire
-    reportIgnoresWithoutComments: true
-    reportUnmatchedIgnoredErrors: true
     phpVersion:
         min: 80300
         max: 80599

@@ -20,6 +20,7 @@ SQUIRE is the Citadel kit: build.sh, the release script, the health check, and l
 > A knight never suits up alone. Your app shouldn't deploy alone either.
 
 Front page: [`site/index.html`](site/index.html), a static page you can serve from anywhere.
+On Citadel it is served by the raw-PHP deploy layer in [`deploy/`](deploy/): a SQUIRE kit whose front controller serves `site/` behind HELMET's security headers. For local development, keep serving `site/` directly.
 
 Status: 0.1, unreleased. This repository is published from Wayne State University's internal GitLab and mirrored to GitHub.
 
@@ -214,10 +215,17 @@ placeholders only.
 
 ## Development
 
+Maintainers: how to build, test and release this project, and where its data comes from, is in [MAINTAINING.md](MAINTAINING.md).
+
 ```
 composer install
 composer ci          # validate, phpunit, pint, phpstan, audit
 ```
+
+PHPStan and Pint follow Pinstripe, the stack's coding standard: `phpstan.neon` includes Pinstripe's raw PHP preset
+(`vendor/waynestate/pinstripe/phpstan/raw.neon`) and keeps only SQUIRE's own paths and PHP version range, and Pint runs
+the same built-in `per` preset that Pinstripe's `pint/per.json` wraps, so `pint.json` stays local with SQUIRE's own
+excludes.
 
 Run it in Docker the same way CI does:
 
