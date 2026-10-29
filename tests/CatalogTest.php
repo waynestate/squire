@@ -62,23 +62,36 @@ final class CatalogTest extends SquireTestCase
         self::assertNotContains('public/up.php', $laravel);
     }
 
-    public function testStaticTakesEverythingRawTakesPlusTheFrontController(): void
+    public function testStaticTakesEverythingRawTakesWithItsOwnFrontController(): void
     {
         $catalog = new Catalog(Squire::templatesDir());
         $raw = array_map(static fn(Template $t): string => $t->destination, $catalog->select('raw', Catalog::GROUPS));
         $static = array_map(static fn(Template $t): string => $t->destination, $catalog->select('static', Catalog::GROUPS));
         $laravel = array_map(static fn(Template $t): string => $t->destination, $catalog->select('laravel', Catalog::GROUPS));
 
-        foreach ($raw as $destination) {
-            self::assertContains($destination, $static);
-        }
-        self::assertSame(count($raw) + 2, count($static));
-        self::assertContains('public/index.php', $static);
-        self::assertContains('public/.htaccess', $static);
-        self::assertNotContains('public/index.php', $raw);
-        self::assertNotContains('public/.htaccess', $raw);
+        // Same paths, each once: static's front controller and .htaccess replace raw's.
+        self::assertSame($raw, $static);
+        self::assertSame(count($static), count(array_unique($static)));
+        self::assertContains('public/index.php', $raw);
+        self::assertContains('public/.htaccess', $raw);
         self::assertNotContains('public/index.php', $laravel);
         self::assertNotContains('public/.htaccess', $laravel);
+    }
+
+    public function testRawFrontControllerFilesComeFromRawAndTheAppMayOwnThem(): void
+    {
+        $catalog = new Catalog(Squire::templatesDir());
+        $byDestination = [];
+        foreach ($catalog->select('raw', Catalog::GROUPS) as $template) {
+            $byDestination[$template->destination] = $template;
+        }
+
+        self::assertSame('raw/public/index.php', $byDestination['public/index.php']->source());
+        self::assertSame('raw/public/.htaccess', $byDestination['public/.htaccess']->source());
+        self::assertTrue($byDestination['public/index.php']->appMayOwn);
+        self::assertTrue($byDestination['public/.htaccess']->appMayOwn);
+        self::assertFalse($byDestination['public/up.php']->appMayOwn);
+        self::assertFalse($byDestination['scripts/release.sh']->appMayOwn);
     }
 
     public function testStaticFilesComeFromTheirOwnDirectoryAndInheritRawFromTheRawDirectory(): void
@@ -94,6 +107,7 @@ final class CatalogTest extends SquireTestCase
         self::assertSame('raw/public/up.php', $byDestination['public/up.php']->source());
         self::assertFalse($byDestination['public/index.php']->executable);
         self::assertFalse($byDestination['public/.htaccess']->executable);
+        self::assertFalse($byDestination['public/index.php']->appMayOwn);
     }
 
     public function testTheGroupOptionNarrowsTheSelection(): void

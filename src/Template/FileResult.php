@@ -33,6 +33,9 @@ final readonly class FileResult
 
     public const UNTRACKED = 'untracked';
 
+    // Write and check mode: a file the app may own (a raw app's own front controller) that Squire did not write.
+    public const APP_OWNED = 'app-owned';
+
     // Update mode.
     public const CURRENT = 'current';
 
@@ -47,9 +50,9 @@ final readonly class FileResult
         public ?string $diff = null,
     ) {}
 
-    /** True when the file matches the current template (or was just made to). */
+    /** True when the file matches the current template (or was just made to), or is the app's own to keep. */
     public function isCurrent(): bool
     {
-        return in_array($this->state, [self::CREATED, self::UPDATED, self::UNCHANGED, self::OVERWRITTEN, self::OK, self::CURRENT, self::RESTORED], true);
+        return in_array($this->state, [self::CREATED, self::UPDATED, self::UNCHANGED, self::OVERWRITTEN, self::OK, self::CURRENT, self::RESTORED, self::APP_OWNED], true);
     }
 }

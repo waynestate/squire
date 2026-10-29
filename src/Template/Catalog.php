@@ -15,9 +15,9 @@ final class Catalog
     public const TARGETS = ['raw', 'laravel', 'static'];
 
     /**
-     * A target may inherit another target's files: static is a raw app plus a front controller for a static site,
-     * so it takes everything raw takes and adds its own two files. `--target=auto` never picks static; it must be
-     * asked for.
+     * A target may inherit another target's files: static is a raw app with a front controller for a static site,
+     * so it takes everything raw takes, and its own two files replace raw's front controller and .htaccess.
+     * `--target=auto` never picks static; it must be asked for.
      */
     public const EXTENDS = ['static' => 'raw'];
 
@@ -45,6 +45,8 @@ final class Catalog
             new Template('scripts/release.sh', $release, true),
             new Template('health.php', $release),
             new Template('public/up.php', $release, false, 'raw'),
+            new Template('public/index.php', $release, false, 'raw', appMayOwn: true),
+            new Template('public/.htaccess', $release, false, 'raw', appMayOwn: true),
             new Template('public/index.php', $release, false, 'static'),
             new Template('public/.htaccess', $release, false, 'static'),
 
@@ -115,6 +117,20 @@ final class Catalog
                 continue; // the layer's copy of this file replaces the common one
             }
             $selected[] = $template;
+        }
+
+        // A target's own file replaces the one it inherits at the same path (static's front controller beats raw's).
+        if ($inherited !== null) {
+            $own = [];
+            foreach ($selected as $template) {
+                if ($template->target === $target) {
+                    $own[$template->destination] = true;
+                }
+            }
+            $selected = array_values(array_filter(
+                $selected,
+                static fn(Template $t): bool => $t->target !== $inherited || !isset($own[$t->destination]),
+            ));
         }
 
         return $selected;

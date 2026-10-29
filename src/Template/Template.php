@@ -20,6 +20,9 @@ final readonly class Template
      * @param bool        $executable  whether init marks the file executable
      * @param string|null $target null for every target, or 'raw' / 'laravel' / 'static' for a target-only file
      * @param string|null $layer null for every layer, or `vue` for a layer file
+     * @param bool        $appMayOwn   whether the app may keep its own file at this path: init writes the template only
+     *                                 when the path is free, and a file Squire did not write there is the app's own,
+     *                                 never drift and never overwritten, not even by --force
      */
     public function __construct(
         public string $destination,
@@ -27,6 +30,7 @@ final readonly class Template
         public bool $executable = false,
         public ?string $target = null,
         public ?string $layer = null,
+        public bool $appMayOwn = false,
     ) {}
 
     /** The source path relative to the templates directory. */

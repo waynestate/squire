@@ -116,7 +116,7 @@ final class ConsoleTest extends SquireTestCase
 
         self::assertSame(0, $result['exit'], $result['stderr']);
         self::assertStringContainsString('Target: raw', $result['stdout']);
-        self::assertFileDoesNotExist($app . '/public/index.php');
+        self::assertStringNotContainsString("getenv('SQUIRE_STATIC_ROOT')", (string) file_get_contents($app . '/public/index.php'));
     }
 
     public function testOnlyLimitsTheGroups(): void
