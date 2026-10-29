@@ -199,6 +199,69 @@ final class ReleaseScriptTest extends SquireTestCase
         self::assertStringContainsString('SQUIRE_PROCTOR_POLICY is not set', $result['stdout']);
     }
 
+    public function testProctorEnforceStopsTheReleaseOnFailures(): void
+    {
+        $app = $this->initializedApp();
+        $result = $this->exec($app, 'scripts/release.sh', [
+            'SQUIRE_PROCTOR' => 'enforce',
+            'SQUIRE_PROCTOR_BIN' => $this->stubs . '/proctor',
+            'SQUIRE_PROCTOR_POLICY' => '/policy.json',
+            'STUB_PROCTOR_EXIT' => '1',
+        ]);
+
+        self::assertSame(1, $result['exit']);
+        self::assertStringContainsString('PROCTOR check (enforced, stops the release)', $result['stdout']);
+        self::assertStringContainsString('proctor reported failures (exit 1)', $result['stderr']);
+        self::assertStringNotContainsString('smoke test the health endpoint', $result['stdout'], 'a failed enforced check stops before the smoke test');
+        self::assertContains('proctor check --path . --policy /policy.json', $this->calls());
+    }
+
+    public function testProctorEnforcePassesWhenTheCheckPasses(): void
+    {
+        $app = $this->initializedApp();
+        $result = $this->exec($app, 'scripts/release.sh', [
+            'SQUIRE_PROCTOR' => 'enforce',
+            'SQUIRE_PROCTOR_BIN' => $this->stubs . '/proctor',
+            'SQUIRE_PROCTOR_POLICY' => '/policy.json',
+        ]);
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertStringContainsString('proctor: pass', $result['stdout']);
+    }
+
+    public function testProctorEnforceStopsTheReleaseWhenProctorItselfFails(): void
+    {
+        $result = $this->exec($this->initializedApp(), 'scripts/release.sh', [
+            'SQUIRE_PROCTOR' => 'enforce',
+            'SQUIRE_PROCTOR_BIN' => $this->stubs . '/proctor',
+            'SQUIRE_PROCTOR_POLICY' => '/policy.json',
+            'STUB_PROCTOR_EXIT' => '2',
+        ]);
+
+        self::assertSame(1, $result['exit']);
+        self::assertStringContainsString('proctor itself failed (exit 2)', $result['stderr']);
+    }
+
+    public function testProctorEnforceNeedsAnExecutableBinAndAPolicy(): void
+    {
+        $app = $this->initializedApp();
+
+        $badBin = $this->exec($app, 'scripts/release.sh', [
+            'SQUIRE_PROCTOR' => 'enforce',
+            'SQUIRE_PROCTOR_BIN' => $this->stubs . '/not-a-real-proctor',
+            'SQUIRE_PROCTOR_POLICY' => '/policy.json',
+        ]);
+        self::assertSame(1, $badBin['exit']);
+        self::assertStringContainsString('SQUIRE_PROCTOR_BIN is not an executable file', $badBin['stderr']);
+
+        $noPolicy = $this->exec($app, 'scripts/release.sh', [
+            'SQUIRE_PROCTOR' => 'enforce',
+            'SQUIRE_PROCTOR_BIN' => $this->stubs . '/proctor',
+        ]);
+        self::assertSame(1, $noPolicy['exit']);
+        self::assertStringContainsString('SQUIRE_PROCTOR_POLICY is not set', $noPolicy['stderr']);
+    }
+
     public function testLaravelRunsMigrateThenOptimizeAndSmokeTestsUp(): void
     {
         $app = $this->initializedApp(true);
@@ -359,6 +422,10 @@ final class ReleaseScriptTest extends SquireTestCase
 
         self::assertSame(1, $result['exit']);
         self::assertStringContainsString('SQUIRE_FRAMEWORK must be auto, laravel or raw', $result['stderr']);
+
+        $badProctor = $this->exec($this->initializedApp(), 'scripts/release.sh', ['SQUIRE_PROCTOR' => 'loud']);
+        self::assertSame(1, $badProctor['exit']);
+        self::assertStringContainsString('SQUIRE_PROCTOR must be auto, skip or enforce', $badProctor['stderr']);
     }
 
     public function testBuildShRefusesToRunBesideAppSource(): void
