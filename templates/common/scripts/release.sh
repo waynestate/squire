@@ -26,7 +26,7 @@
 #   SQUIRE_ARTISAN_OPTIMIZE=1        Laravel: run `optimize` after the environment is in place (S16)
 #   SQUIRE_PROCTOR=auto              auto | skip | enforce (report only by default; enforce stops the release)
 #   SQUIRE_PROCTOR_BIN=              path to proctor (default: vendor/bin/proctor, then `proctor` on PATH)
-#   SQUIRE_PROCTOR_POLICY=           path to the CREED policy.json (default: vendor/waynestate/creed/policy/policy.json, when present)
+#   SQUIRE_PROCTOR_POLICY=           path to the CREED policy.json (when unset: the one CREED ships, if installed; otherwise PROCTOR's own default)
 #   SQUIRE_SMOKE=1                   1 requests the health URL at the end and fails if it is not 200 (S21)
 #   SQUIRE_SMOKE_URL=                full URL (default: http://127.0.0.1:80/up for Laravel, /up.php for raw PHP)
 #   SQUIRE_SMOKE_RETRIES=5           attempts
@@ -226,12 +226,6 @@ if [ "$framework" = "laravel" ]; then
     fi
 fi
 
-# The deploy wizard has no environment field, so a static site cannot set SQUIRE_PROCTOR_POLICY there. When it is
-# unset, fall back to the policy the CREED package ships with, if the app depends on CREED. An explicit value wins.
-if [ -z "$SQUIRE_PROCTOR_POLICY" ] && [ -f vendor/waynestate/creed/policy/policy.json ]; then
-    SQUIRE_PROCTOR_POLICY="vendor/waynestate/creed/policy/policy.json"
-fi
-
 proctor_mode="$SQUIRE_PROCTOR"
 case "$proctor_mode" in
     auto | skip | enforce) ;;
@@ -261,14 +255,20 @@ else
             fail "proctor not found (it is a dev dependency, so --no-dev leaves it out); set SQUIRE_PROCTOR_BIN to use it here"
         fi
         note "proctor not found (it is a dev dependency, so --no-dev leaves it out); set SQUIRE_PROCTOR_BIN to use it here"
-    elif [ -z "$SQUIRE_PROCTOR_POLICY" ]; then
-        if [ "$proctor_mode" = "enforce" ]; then
-            fail "SQUIRE_PROCTOR_POLICY is not set; PROCTOR needs a policy.json"
-        fi
-        note "SQUIRE_PROCTOR_POLICY is not set; PROCTOR needs a policy.json, so no report this release"
     else
-        proctor_status=0
-        "$proctor_bin" check --path . --policy "$SQUIRE_PROCTOR_POLICY" || proctor_status=$?
+        # An explicit policy wins. When none is set, the policy CREED ships is used when it is installed; otherwise
+        # PROCTOR runs on its own default policy. A missing CREED file never stops the release.
+        if [ -n "$SQUIRE_PROCTOR_POLICY" ]; then
+            proctor_status=0
+            "$proctor_bin" check --path . --policy "$SQUIRE_PROCTOR_POLICY" || proctor_status=$?
+        elif [ -f vendor/waynestate/creed/policy/policy.json ]; then
+            proctor_status=0
+            "$proctor_bin" check --path . --policy vendor/waynestate/creed/policy/policy.json || proctor_status=$?
+        else
+            printf '%s\n' 'squire: CREED policy not installed; PROCTOR uses its own default policy'
+            proctor_status=0
+            "$proctor_bin" check --path . || proctor_status=$?
+        fi
         case "$proctor_status" in
             0) note "proctor: pass" ;;
             1)
