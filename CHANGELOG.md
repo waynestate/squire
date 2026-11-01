@@ -5,6 +5,8 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+- Changed: the deploy layer's Squire kit is refreshed to 0.4.0 (the Oracle check script and the updated build and release scripts).
+
 ## 0.4.0 (2026-11-01)
 
 - Added: oracle-check.php, a plain-language Oracle connection check (settings, host, port, driver, login) shipped in the kit's deploy scripts. release.sh runs it after PROCTOR and before the smoke test; it is a report, never a gate, and stays silent when the app has no ORACLE_* settings.

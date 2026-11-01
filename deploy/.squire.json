@@ -1,6 +1,6 @@
 {
     "squire": "Written by SQUIRE. Commit this file: `vendor/bin/squire init --check` reads it to report drift.",
-    "version": "0.3.4",
+    "version": "0.4.0",
     "target": "raw",
     "groups": [
         "release",
@@ -20,9 +20,10 @@
         "deployments/001-first-release.sh": "adb3a9eb9a7d5b6cfa3f50043169b97253bab90c40ff37adba44201326557803",
         "docker-compose.squire.yml": "b63f411697c670625fb375822e4a393a05e5a1bcc0d08ae50763096a5cacb075",
         "health.php": "b691e07f29b900750d1c4c9ebb93916998e97502155effb2c2fe69691cf17a04",
+        "oracle-check.php": "44dae9fbf0ef3ffe840cd374488fee9f26a63db3ac653a029f49849665ad9640",
         "public/up.php": "84d1b3d8823fcd5519fbe92988f822ce68cdc05eff2c889814deb3f33982600a",
         "scripts/parity.ps1": "b72c0d155801b1dadf8d84d6b3647bd1a4e699936fffb68814cfd3341ff308e2",
         "scripts/parity.sh": "f0fb6a963277bde29b77e8b7869a1775acd517ea8d4f2774567469bf77235eae",
-        "scripts/release.sh": "7f69820bf763669517ffe9e684cb05296159d4553d19eb282260faca2e44098a"
+        "scripts/release.sh": "e9ead3363c2948510abad10b2aa5bc2a9335162599e30ae9a33c64372271ba1f"
     }
 }
