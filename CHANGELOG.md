@@ -5,6 +5,12 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+## 0.4.0 (2026-11-01)
+
+- Added: oracle-check.php, a plain-language Oracle connection check (settings, host, port, driver, login) shipped in the kit's deploy scripts. release.sh runs it after PROCTOR and before the smoke test; it is a report, never a gate, and stays silent when the app has no ORACLE_* settings.
+- Added: opt-in Oracle-ready Docker images, a Laravel Sail flavour (squire/oracle-sail) and a parity flavour (squire/oracle-parity), with scripts/oracle-image-build.sh and scripts/oracle-image-test.sh. Oracle Instant Client 21.7 on amd64 and 19.32 on arm64 is downloaded at build time and checksum-pinned; nothing from Oracle is committed.
+- Changed: the site's agent-ready files cover the Oracle check.
+- Changed: the readme art check allows the word Citadel.
 - Changed: the deploy layer's Squire kit is refreshed to 0.3.4 (the local .env.squire file is now git-ignored).
 
 ## 0.3.4 (2026-10-29)
