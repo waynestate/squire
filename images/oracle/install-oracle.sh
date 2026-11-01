@@ -17,6 +17,13 @@ die() {
     exit 1
 }
 
+# Exact-match test for the soname Oracle's libraries need. Ubuntu 24.04 ships
+# libaio.so.1t64, whose name contains "libaio.so.1" and would fool a plain
+# substring grep.
+libaio_resolved() {
+    ldconfig -p | awk '{print $1}' | grep -qx 'libaio.so.1'
+}
+
 # --- the client, pinned per architecture --------------------------------------
 # amd64 takes the 21 line (21.7 resolved on 2026-10-31); arm64 has no 21.x, so
 # it takes 19.32. Basic Light, not Basic.
@@ -90,35 +97,71 @@ actual_sdk="$(sha256sum "${workdir}/${sdk_zip}" | cut -d' ' -f1)"
 [ "$actual_sdk" = "$sdk_sha256" ] || die "SHA-256 mismatch for ${sdk_zip}: got ${actual_sdk}, want ${sdk_sha256}"
 
 # --- unpack ----------------------------------------------------------------------------
+# The zips wrap their contents in a version-specific folder (for example
+# instantclient_21_7); flatten it so the client always lives at $ic_home.
 mkdir -p "$ic_home"
 unzip -q "${workdir}/${basic_zip}" -d "$ic_home"
 unzip -q "${workdir}/${sdk_zip}" -d "$ic_home"
+
+wrapper=""
+wrapper_count=0
+for candidate in "$ic_home"/instantclient_*; do
+    [ -d "$candidate" ] || continue
+    wrapper="$candidate"
+    wrapper_count=$((wrapper_count + 1))
+done
+[ "$wrapper_count" -le 1 ] || die "expected at most one instantclient_* wrapper in ${ic_home}, found ${wrapper_count}"
+if [ -n "$wrapper" ]; then
+    tar -C "$wrapper" -cf - . > "${workdir}/flatten.tar"
+    tar -C "$ic_home" -xf "${workdir}/flatten.tar"
+    rm -f "${workdir}/flatten.tar"
+    rm -rf "$wrapper"
+fi
+
+# The layout oci8 expects for a zip install: libraries at the top level,
+# headers under sdk/include.
+[ -f "${ic_home:?}/libclntsh.so" ] || die "libclntsh.so is missing from ${ic_home} after unpacking"
+[ -f "${ic_home:?}/sdk/include/oci.h" ] || die "sdk/include/oci.h is missing from ${ic_home} after unpacking"
 
 # --- library resolution, the way Citadel's PHP images do it ------------------------------
 echo "$ic_home" > /etc/ld.so.conf.d/oracle-instantclient.conf
 ldconfig
 
-# Prove libaio.so.1 resolves; add a symlink only if it does not.
-if ! ldconfig -p | grep -q 'libaio\.so\.1'; then
-    libaio_source="$(ldconfig -p | grep 'libaio\.so' | awk '{print $NF}' | head -n 1)"
+# Oracle's libraries carry a DT_NEEDED of the pre-t64 soname libaio.so.1.
+# Debian ships libaio.so.1 itself. Ubuntu 24.04 renamed it to libaio.so.1t64,
+# so when the old name is missing, add it back as a symlink next to the new
+# one; the dynamic loader follows the symlink without a cache entry, and the
+# php -m check at the end of this script proves the whole chain resolves.
+if ! libaio_resolved; then
+    libaio_source="$(ldconfig -p | awk '$1 ~ /^libaio\.so\.1/ {print $NF; exit}')"
     [ -n "$libaio_source" ] || die "libaio.so.1 does not resolve and no other libaio library was found"
     ln -sf "$libaio_source" "$(dirname "$libaio_source")/libaio.so.1"
-    ldconfig
+    [ -e "$(dirname "$libaio_source")/libaio.so.1" ] || die "could not create the libaio.so.1 compatibility symlink"
 fi
-ldconfig -p | grep -q 'libaio\.so\.1' || die "libaio.so.1 still does not resolve after installing ${libaio_package}"
 
 # --- compile oci8 ------------------------------------------------------------------------
 printf '%s\n' "instantclient,${ic_home}" | pecl install oci8-3.4.1
-echo "extension=oci8.so" > "$(php -r 'echo ini_get("extension_dir");')/oci8.ini"
+
+# pecl's build finishes with "ldconfig -n <modules dir>", which only touches
+# that directory. Rebuild the full cache so the image's final state does not
+# depend on how that ldconfig variant merges with the existing cache.
+ldconfig
+
+# Enable the extension where PHP actually scans for ini files. Debian and
+# Ubuntu use /etc/php/<line>/<sapi>/conf.d; the official PHP image uses
+# /usr/local/etc/php/conf.d. Ask PHP rather than guessing.
+conf_dir="$(php --ini | sed -n 's/^[Ss]can for additional \.ini files in:[[:space:]]*//p')"
+[ -n "$conf_dir" ] || die "could not determine the PHP ini scan directory from php --ini"
+echo "extension=oci8.so" > "${conf_dir}/zz-oci8.ini"
 
 # The SDK is only needed to compile; drop it and the zips.
-rm -rf "${ic_home:?}/bin"
-rm -f "$ic_home"/*.h
+rm -rf "${ic_home:?}/sdk"
 rm -rf "$workdir"
 
 # --- prove it ----------------------------------------------------------------------------------
+# Loading oci8 through PHP exercises the whole chain: ini scan, dlopen of
+# oci8.so, its link to libclntsh, and libclntsh's need for libaio.so.1.
 php -m | grep -qx oci8 || die "the oci8 extension is not loaded"
 oci_version="$(php -r 'echo oci_client_version();')"
 [ -n "$oci_version" ] || die "oci_client_version() printed nothing"
-ldconfig -p | grep -q 'libaio\.so\.1' || die "libaio.so.1 does not resolve"
 echo "install-oracle: oci8 loaded (${oci_version}), client ${ic_version} for ${TARGETARCH}"
