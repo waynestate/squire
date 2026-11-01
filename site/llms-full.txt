@@ -111,8 +111,9 @@ diff, and a file Squire did not write is never touched. A squire polishes the ar
 |---|---|
 | `build.sh` | Citadel's build hook: system packages only, POSIX sh, runs as root with no app source. No Composer, no npm. |
 | `deployments/001-first-release.sh` | Runs once per app: calls the release script with the smoke test off (Apache is not up yet). |
-| `scripts/release.sh` | The idempotent release: preconditions, `composer install --no-dev` from the lock file, audit, Laravel `migrate --force` and `optimize`, PROCTOR (a report by default, a gate with `SQUIRE_PROCTOR=enforce`), `/up` smoke test. Use it as the Quick Update post-script as well. |
+| `scripts/release.sh` | The idempotent release: preconditions, `composer install --no-dev` from the lock file, audit, Laravel `migrate --force` and `optimize`, PROCTOR (a report by default, a gate with `SQUIRE_PROCTOR=enforce`), an Oracle connection check (a report, never a gate), `/up` smoke test. Use it as the Quick Update post-script as well. |
 | `health.php` | Citadel's health check (`["php","health.php"]`): one HTTP request to `/up`, never boots the framework. |
+| `oracle-check.php` | The plain-language Oracle connection check the release runs: settings, host, port, driver, login. A report, never a gate; silent when the app has no `ORACLE_*` settings. |
 | `public/up.php` | Raw PHP and static: the endpoint that answers `ok`. Laravel has `/up` built in. |
 | `public/index.php` | Raw: the front controller that serves `public/` files safely and hands the rest to the app's entry. Static: the one that serves the committed site with HELMET's headers. Never written over an app's own. |
 | `public/.htaccess` | Raw: sends every request but `index.php` and `up.php` to the front controller. Static: routes every request that is not a real file to it. |
@@ -122,6 +123,14 @@ diff, and a file Squire did not write is never touched. A squire polishes the ar
 
 Every shell script uses `set -euo pipefail` (`build.sh` uses `set -eu`, because Citadel runs it with `/bin/sh`), prints a
 `[squire] ==> step N: ...` marker for each step, and can be run twice with the same result.
+
+The release also runs an Oracle connection check (`oracle-check.php`) after PROCTOR and before the smoke test. It is a
+report, never a gate: a finding prints in the deployment log and the release goes on. When the app does not use Oracle
+(no `ORACLE_*` settings) it prints nothing. It checks, in order, that the settings are present, that the host resolves,
+that the port answers within 3 seconds, that the `oci8` driver is loaded, and that the login works, stopping at the first
+failure so a bad port never costs a login attempt. Settings: `ORACLE_USERNAME`, `ORACLE_PASSWORD`, and either `ORACLE_TNS`
+(Easy Connect `host:port/service`, or a full `(DESCRIPTION=...)` descriptor) or `ORACLE_HOST`, `ORACLE_PORT` and
+`ORACLE_SERVICE_NAME`. Only setting names are ever printed, never values.
 
 ### Copies of Squire's templates
 
