@@ -230,6 +230,30 @@ It is good for trying Squire out and not for proving parity. If the build step f
 `vendor/`, the source folder is not writable by the container's `citadel` user (uid 1000 by default); on Linux set
 `SQUIRE_SOURCE_UID` and `SQUIRE_SOURCE_GID` to yours.
 
+## Oracle-ready images (local)
+
+Apps that talk to Oracle need the Instant Client and the `oci8` extension. Squire ships two opt-in Docker recipes
+that carry both, so nobody compiles them by hand:
+
+- `squire/oracle-sail:<php>`: Laravel Sail's own runtime plus the Oracle install. In your `docker-compose.yml`,
+  swap the service's `build:` block for `image: squire/oracle-sail:8.4` and keep the rest of the service as Sail
+  wrote it; the image keeps Sail's entrypoint contract, including the `WWWUSER` UID remap.
+- `squire/oracle-parity:<php>`: the official `php:<php>-cli-bookworm` image with the extensions Citadel apps use
+  (intl, ldap, soap, zip, gd, pdo_mysql, mysqli, bcmath, pcntl, exif, redis, imagick), Composer and git, plus the
+  Oracle install. This is the flavour WELD's `compose.oracle.yaml` points its services at. It runs as a non-root
+  `app` user whose UID is a build argument (`APP_UID`) and can still be overridden at run time.
+
+The names above are placeholders until the registry is chosen; re-tag once it is.
+
+Both flavours download Oracle's Instant Client Basic Light at build time under Oracle's licence and never commit
+it: the install script pins the exact SHA-256 of each zip. Oracle does not publish a 21.x client for arm64, so the
+line differs per architecture: linux/amd64 gets 21.7.0.0.0 and linux/arm64 gets 19.32.0.0.0.
+
+```
+scripts/oracle-image-build.sh --flavour sail --php 8.4        # or: --flavour parity
+scripts/oracle-image-test.sh --flavour all --platform linux/amd64
+```
+
 ## Configuration
 
 All optional. On Citadel, add `./.env.squire` as a configuration file (the configuration-files step after the wizard;
