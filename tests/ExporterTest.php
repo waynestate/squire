@@ -39,6 +39,22 @@ final class ExporterTest extends SquireTestCase
         self::assertContains('raw/health.php', $drifted);
     }
 
+    public function testCheckFailsNamingTheChangedOracleCheckFile(): void
+    {
+        $dir = $this->tempDir();
+        $this->exporter()->export($dir);
+
+        $path = $dir . '/laravel/oracle-check.php';
+        $content = (string) file_get_contents($path);
+        self::assertNotSame('', $content);
+        // Change exactly one byte.
+        $content[0] = $content[0] === '<' ? '>' : '<';
+        file_put_contents($path, $content);
+
+        $drifted = $this->exporter()->check($dir);
+        self::assertContains('laravel/oracle-check.php', $drifted);
+    }
+
     public function testCheckReportsAMissingFile(): void
     {
         $dir = $this->tempDir();
@@ -70,6 +86,7 @@ final class ExporterTest extends SquireTestCase
 
         self::assertSame('755', $manifest['files']['raw/build.sh']['mode']);
         self::assertSame('644', $manifest['files']['raw/health.php']['mode']);
+        self::assertSame('644', $manifest['files']['raw/oracle-check.php']['mode']);
         self::assertSame('755', $manifest['files']['laravel/scripts/parity.sh']['mode']);
         self::assertSame('644', $manifest['files']['static/public/index.php']['mode']);
         self::assertSame('644', $manifest['files']['static/public/.htaccess']['mode']);

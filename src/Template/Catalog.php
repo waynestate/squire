@@ -44,6 +44,7 @@ final class Catalog
             new Template('deployments/001-first-release.sh', $release, true),
             new Template('scripts/release.sh', $release, true),
             new Template('health.php', $release),
+            new Template('oracle-check.php', $release),
             new Template('public/up.php', $release, false, 'raw'),
             new Template('public/index.php', $release, false, 'raw', appMayOwn: true),
             new Template('public/.htaccess', $release, false, 'raw', appMayOwn: true),
