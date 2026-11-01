@@ -81,6 +81,11 @@ vendor/bin/squire doctor [--path=.] [--format=text|json]
 Exit codes: `0` pass, `1` findings (`init --check`: drift; `update`: an edited file still differs from the template;
 `doctor`: a failed rule), `2` the tool itself could not run.
 
+`vendor/bin/squire doctor oracle` runs the same plain-language Oracle connection check that `release.sh` runs on
+Citadel, from your terminal or `sail php vendor/bin/squire doctor oracle`. It reads the `ORACLE_*` settings from the
+environment and the app's `.env`, prints setting names and never values, and stays silent when the app has no Oracle
+settings. Add `-v` for the client version.
+
 `init` never overwrites a file you edited, or a file it did not write, unless you pass `--force`. It records a SHA-256 of
 each file in `.squire.json`; commit that file. `--only=release` writes just the Citadel scripts, `--only=parity` just the
 local setup.
