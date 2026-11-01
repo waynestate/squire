@@ -259,6 +259,23 @@ final class ReleaseScriptTest extends SquireTestCase
         self::assertStringContainsString('proctor itself failed (exit 2)', $broken['stderr']);
     }
 
+    public function testTheOracleCheckRunsAndNeverFailsTheRelease(): void
+    {
+        $app = $this->initializedApp();
+        $result = $this->exec($app, 'scripts/release.sh', [
+            'ORACLE_USERNAME' => 'someuser',
+            'ORACLE_PASSWORD' => 'somepass',
+            'ORACLE_HOST' => '127.0.0.1',
+            'ORACLE_PORT' => '1',
+            'ORACLE_SERVICE_NAME' => 'someservice',
+        ]);
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertStringContainsString('check Oracle (never fails the release)', $result['stdout']);
+        self::assertStringContainsString('[oracle] Oracle did not answer', $result['stdout'], 'the real check runs and reports the closed port');
+        self::assertStringContainsString('[squire] release ok', $result['stdout'], 'the release goes on past the finding');
+    }
+
     public function testProctorFallsBackToItsOwnDefaultPolicyWhenCreedIsNotInstalled(): void
     {
         $result = $this->exec($this->initializedApp(), 'scripts/release.sh', ['SQUIRE_PROCTOR_BIN' => $this->stubs . '/proctor']);

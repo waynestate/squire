@@ -47,6 +47,7 @@ final class CatalogTest extends SquireTestCase
         self::assertContains('scripts/release.sh', $destinations);
         self::assertContains('deployments/001-first-release.sh', $destinations);
         self::assertContains('health.php', $destinations);
+        self::assertContains('oracle-check.php', $destinations);
         self::assertContains('docker-compose.squire.yml', $destinations);
         self::assertContains('scripts/parity.sh', $destinations);
         self::assertContains('scripts/parity.ps1', $destinations);
