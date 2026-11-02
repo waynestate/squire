@@ -67,8 +67,10 @@ no `oci8`, `imagick` or `ssmtp`, its HA-Proxy differs from Citadel's, and nothin
 green run is a contract, not a certificate.
 
 **In CI.** The `contract-image` job on GitHub runs the script for both platforms, linux/amd64 and linux/arm64, with
-the arm64 leg under QEMU and allowed to fail until it has been seen green once. GitLab has no job yet because its
-runner has no Docker daemon.
+the arm64 leg under QEMU and allowed to fail until it has been seen green once. The `contract-parity-sh` and
+`contract-parity-pwsh` jobs bring the local parity stack up on the fallback image with `scripts/parity.sh` and
+`scripts/parity.ps1` and check that the proxy answers 200 on `/up.php`. GitLab has no job yet because its runner
+has no Docker daemon.
 
 ## CI
 
