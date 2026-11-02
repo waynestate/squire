@@ -66,6 +66,10 @@ deployment log lands where `citadel-deploy` puts it. It does not prove parity wi
 no `oci8`, `imagick` or `ssmtp`, its HA-Proxy differs from Citadel's, and nothing here touches Citadel itself. A
 green run is a contract, not a certificate.
 
+**In CI.** The `contract-image` job on GitHub runs the script for both platforms, linux/amd64 and linux/arm64, with
+the arm64 leg under QEMU and allowed to fail until it has been seen green once. GitLab has no job yet because its
+runner has no Docker daemon.
+
 ## CI
 
 - **GitLab:** Preflight's `php-test` (PHP 8.3, 8.4, 8.5) and `composer-audit` components, a `composer-ci` job,
