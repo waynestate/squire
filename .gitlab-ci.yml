@@ -53,7 +53,7 @@ psscriptanalyzer:
 # Pinned to the manifest list digest: the image is multi-arch (linux/amd64, linux/arm64). The runner must be able
 # to build linux/amd64 (qemu binfmt); the script says so plainly when it cannot.
 oracle-images:
-  stage: publish
+  stage: deploy
   image: quay.io/buildah/stable@sha256:df01196335b92eaa54b0e84d596c983a01f855bee83f1b32d49ab37b12171a11
   parallel:
     matrix:
@@ -67,7 +67,7 @@ oracle-images:
 # Prove the runner can build both architectures without pushing: manual, on branches (never on tags), so a dry run
 # can pass before anyone tags.
 oracle-images-dry-run:
-  stage: publish
+  stage: deploy
   image: quay.io/buildah/stable@sha256:df01196335b92eaa54b0e84d596c983a01f855bee83f1b32d49ab37b12171a11
   parallel:
     matrix:
