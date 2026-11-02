@@ -52,6 +52,15 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
     binfmt emulation and buildah running inside a container. Default: the `oracle-images-dry-run` job proves it on a
     branch before anyone tags; nothing is pushed until it passes. If the runner cannot emulate amd64, ask its owner
     to enable it.
+18. **Oracle images: amd64 on an arm64 runner.** The CI runner is linux/arm64. A manual dry run of
+    `oracle-images-dry-run` (parity, PHP 8.4) now pulls the images and gets through the arm64 build, but the amd64
+    build dies at the first `RUN` step with an `exec format error` (`process exited with error: exec: not
+    started`): the runner has no qemu-user binfmt emulation, so an amd64 image cannot be built there today. The
+    arm64 half builds without complaint; the amd64 half does not survive its first `RUN`, which is either dramatic
+    or efficient. Three ways out: (a) the runner host gets qemu-user-static binfmt registered (the GitLab
+    administrator's call); (b) an amd64 runner builds the amd64 half and the arm64 runner merges the manifest list;
+    (c) the tag job publishes arm64 now and amd64 is built by hand with `scripts/oracle-image-build.sh` until (a) or
+    (b) lands.
 
 ## Missing configuration
 

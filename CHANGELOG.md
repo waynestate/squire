@@ -9,6 +9,7 @@ Versioning once 1.0 is out.
 - Changed: the deploy layer's Squire kit is refreshed to 0.4.0 (the Oracle check script and the updated build and release scripts).
 - Added: CI publishes the multi-arch Oracle images to the project's container registry when a version is tagged.
 - Changed: the docs name the real image path instead of placeholders.
+- Changed: Oracle image recipes use fully qualified `COPY --from` names so buildah can resolve them; the CI dry run shows amd64 builds need qemu binfmt on the runner (see OPEN_QUESTIONS).
 
 ## 0.4.0 (2026-11-01)
 

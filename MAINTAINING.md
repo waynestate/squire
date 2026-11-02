@@ -61,6 +61,11 @@ docker run --rm -v "${PWD}:/app" -w /app composer:2.10.3 sh -c "composer install
   amd64 build dies with an exec format error, the job says so plainly: ask the runner's owner to enable amd64
   emulation. Until a dry run passes, nothing is pushed.
 
+**Known limit.** The runner is linux/arm64 and has no qemu-user binfmt emulation. A manual dry run of
+`oracle-images-dry-run` (parity, PHP 8.4) pulls the images and gets through the arm64 build, but the amd64 build
+dies at the first `RUN` step with an `exec format error` (`process exited with error: exec: not started`): an
+amd64 image cannot be built there today. See OPEN_QUESTIONS.md, "Oracle images: amd64 on an arm64 runner".
+
 ## Changing a template
 
 - Templates follow Citadel's real behaviour: `build.sh` runs at image build time as root with only that one file
