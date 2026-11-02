@@ -1,0 +1,7 @@
+INDEXJSON
+{"schemaVersion":2,"mediaType":"application/vnd.oci.image.index.v1+json","manifests":[{"mediaType":"application/vnd.oci.image.index.v1+json","digest":"sha256:0b4bed125242e1b8303f0b1f1c24c95586e4e08f1aa356c995e8247dcadcae6b","size":290}]}
+BLOBS
+total 12
+drwxr-xr-x 2 root root 4096 Nov  2 16:23 .
+drwxr-xr-x 3 root root 4096 Nov  2 16:23 ..
+-rw-r--r-- 1 root root  290 Nov  2 16:23 0b4bed125242e1b8303f0b1f1c24c95586e4e08f1aa356c995e8247dcadcae6b

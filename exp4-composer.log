@@ -1,0 +1,164 @@
++ cd /var/lib/containers/storage/vfs/dir/9d98f2607007cdfa51adb34c9a18282e1996915e32867990d46f67e259e18d6c/app
++ chroot /var/lib/containers/storage/vfs/dir/9d98f2607007cdfa51adb34c9a18282e1996915e32867990d46f67e259e18d6c /usr/bin/composer require laravel/sail --no-interaction
+Composer plugins have been disabled for safety in this non-interactive session.
+Set COMPOSER_ALLOW_SUPERUSER=1 if you want to allow plugins to run as root/super user.
+Do not run Composer as root/super user! See https://getcomposer.org/root for details
+./composer.json has been created
+Running composer update laravel/sail
+Loading composer repositories with package information
+Updating dependencies
+Lock file operations: 41 installs, 0 updates, 0 removals
+  - Locking carbonphp/carbon-doctrine-types (3.2.1)
+  - Locking doctrine/inflector (2.1.1)
+  - Locking illuminate/bus (v13.39.0)
+  - Locking illuminate/collections (v13.39.0)
+  - Locking illuminate/conditionable (v13.39.0)
+  - Locking illuminate/console (v13.39.0)
+  - Locking illuminate/container (v13.39.0)
+  - Locking illuminate/contracts (v13.39.0)
+  - Locking illuminate/events (v13.39.0)
+  - Locking illuminate/filesystem (v13.39.0)
+  - Locking illuminate/macroable (v13.39.0)
+  - Locking illuminate/pipeline (v13.39.0)
+  - Locking illuminate/reflection (v13.39.0)
+  - Locking illuminate/support (v13.39.0)
+  - Locking illuminate/view (v13.39.0)
+  - Locking laravel/prompts (v0.3.26)
+  - Locking laravel/sail (v1.69.0)
+  - Locking nesbot/carbon (3.15.1)
+  - Locking nunomaduro/termwind (v2.4.0)
+  - Locking psr/clock (1.0.0)
+  - Locking psr/container (2.0.2)
+  - Locking psr/simple-cache (3.0.0)
+  - Locking symfony/clock (v8.1.9)
+  - Locking symfony/console (v8.1.10)
+  - Locking symfony/deprecation-contracts (v3.7.1)
+  - Locking symfony/finder (v8.1.10)
+  - Locking symfony/polyfill-ctype (v1.37.0)
+  - Locking symfony/polyfill-intl-grapheme (v1.43.3)
+  - Locking symfony/polyfill-intl-normalizer (v1.43.0)
+  - Locking symfony/polyfill-mbstring (v1.43.3)
+  - Locking symfony/polyfill-php84 (v1.43.0)
+  - Locking symfony/polyfill-php85 (v1.43.0)
+  - Locking symfony/polyfill-php86 (v1.43.0)
+  - Locking symfony/polyfill-time (v1.42.0)
+  - Locking symfony/process (v8.1.10)
+  - Locking symfony/service-contracts (v3.7.3)
+  - Locking symfony/string (v8.1.10)
+  - Locking symfony/translation (v8.1.10)
+  - Locking symfony/translation-contracts (v3.7.1)
+  - Locking symfony/yaml (v8.1.10)
+  - Locking voku/portable-ascii (2.1.1)
+Writing lock file
+Installing dependencies from lock file (including require-dev)
+Package operations: 41 installs, 0 updates, 0 removals
+  - Downloading doctrine/inflector (2.1.1)
+  - Downloading voku/portable-ascii (2.1.1)
+  - Downloading symfony/polyfill-php85 (v1.43.0)
+  - Downloading symfony/translation-contracts (v3.7.1)
+  - Downloading symfony/polyfill-mbstring (v1.43.3)
+  - Downloading symfony/translation (v8.1.10)
+  - Downloading symfony/polyfill-time (v1.42.0)
+  - Downloading psr/clock (1.0.0)
+  - Downloading symfony/clock (v8.1.9)
+  - Downloading carbonphp/carbon-doctrine-types (3.2.1)
+  - Downloading nesbot/carbon (3.15.1)
+  - Downloading psr/simple-cache (3.0.0)
+  - Downloading psr/container (2.0.2)
+  - Downloading illuminate/contracts (v13.39.0)
+  - Downloading symfony/polyfill-php86 (v1.43.0)
+  - Downloading symfony/polyfill-php84 (v1.43.0)
+  - Downloading illuminate/macroable (v13.39.0)
+  - Downloading illuminate/conditionable (v13.39.0)
+  - Downloading illuminate/collections (v13.39.0)
+  - Downloading illuminate/reflection (v13.39.0)
+  - Downloading symfony/polyfill-ctype (v1.37.0)
+  - Downloading illuminate/support (v13.39.0)
+  - Downloading illuminate/pipeline (v13.39.0)
+  - Downloading illuminate/bus (v13.39.0)
+  - Downloading symfony/finder (v8.1.10)
+  - Downloading illuminate/filesystem (v13.39.0)
+  - Downloading illuminate/container (v13.39.0)
+  - Downloading illuminate/events (v13.39.0)
+  - Downloading illuminate/view (v13.39.0)
+  - Downloading symfony/polyfill-intl-normalizer (v1.43.0)
+  - Downloading symfony/polyfill-intl-grapheme (v1.43.3)
+  - Downloading symfony/string (v8.1.10)
+  - Downloading symfony/deprecation-contracts (v3.7.1)
+  - Downloading symfony/service-contracts (v3.7.3)
+  - Downloading symfony/console (v8.1.10)
+  - Downloading laravel/prompts (v0.3.26)
+  - Downloading symfony/yaml (v8.1.10)
+  - Downloading symfony/process (v8.1.10)
+  - Downloading nunomaduro/termwind (v2.4.0)
+  - Downloading illuminate/console (v13.39.0)
+  - Downloading laravel/sail (v1.69.0)
+  0/41 [>---------------------------]   0%
+  7/41 [====>-----------------------]  17%
+ 22/41 [===============>------------]  53%
+ 39/41 [==========================>-]  95%
+ 41/41 [============================] 100%
+  - Installing doctrine/inflector (2.1.1): Extracting archive
+  - Installing voku/portable-ascii (2.1.1): Extracting archive
+  - Installing symfony/polyfill-php85 (v1.43.0): Extracting archive
+  - Installing symfony/translation-contracts (v3.7.1): Extracting archive
+  - Installing symfony/polyfill-mbstring (v1.43.3): Extracting archive
+  - Installing symfony/translation (v8.1.10): Extracting archive
+  - Installing symfony/polyfill-time (v1.42.0): Extracting archive
+  - Installing psr/clock (1.0.0): Extracting archive
+  - Installing symfony/clock (v8.1.9): Extracting archive
+  - Installing carbonphp/carbon-doctrine-types (3.2.1): Extracting archive
+  - Installing nesbot/carbon (3.15.1): Extracting archive
+  - Installing psr/simple-cache (3.0.0): Extracting archive
+  - Installing psr/container (2.0.2): Extracting archive
+  - Installing illuminate/contracts (v13.39.0): Extracting archive
+  - Installing symfony/polyfill-php86 (v1.43.0): Extracting archive
+  - Installing symfony/polyfill-php84 (v1.43.0): Extracting archive
+  - Installing illuminate/macroable (v13.39.0): Extracting archive
+  - Installing illuminate/conditionable (v13.39.0): Extracting archive
+  - Installing illuminate/collections (v13.39.0): Extracting archive
+  - Installing illuminate/reflection (v13.39.0): Extracting archive
+  - Installing symfony/polyfill-ctype (v1.37.0): Extracting archive
+  - Installing illuminate/support (v13.39.0): Extracting archive
+  - Installing illuminate/pipeline (v13.39.0): Extracting archive
+  - Installing illuminate/bus (v13.39.0): Extracting archive
+  - Installing symfony/finder (v8.1.10): Extracting archive
+  - Installing illuminate/filesystem (v13.39.0): Extracting archive
+  - Installing illuminate/container (v13.39.0): Extracting archive
+  - Installing illuminate/events (v13.39.0): Extracting archive
+  - Installing illuminate/view (v13.39.0): Extracting archive
+  - Installing symfony/polyfill-intl-normalizer (v1.43.0): Extracting archive
+  - Installing symfony/polyfill-intl-grapheme (v1.43.3): Extracting archive
+  - Installing symfony/string (v8.1.10): Extracting archive
+  - Installing symfony/deprecation-contracts (v3.7.1): Extracting archive
+  - Installing symfony/service-contracts (v3.7.3): Extracting archive
+  - Installing symfony/console (v8.1.10): Extracting archive
+  - Installing laravel/prompts (v0.3.26): Extracting archive
+  - Installing symfony/yaml (v8.1.10): Extracting archive
+  - Installing symfony/process (v8.1.10): Extracting archive
+  - Installing nunomaduro/termwind (v2.4.0): Extracting archive
+  - Installing illuminate/console (v13.39.0): Extracting archive
+  - Installing laravel/sail (v1.69.0): Extracting archive
+  0/41 [>---------------------------]   0%
+ 33/41 [======================>-----]  80%
+ 41/41 [============================] 100%
+34 package suggestions were added by new dependencies, use `composer suggest` to see details.
+Generating autoload files
+23 packages you are using are looking for funding.
+Use the `composer fund` command to find out more!
+No security vulnerability advisories found.
+Using version ^1.69 for laravel/sail
+composer rc=0
+APPDIR
+total 8
+drwxr-xr-x  2 root root 4096 Oct 21 23:29 .
+dr-xr-xr-x 21 root root 4096 Nov  2 16:24 ..
+RESOLV
+# Generated by Docker Engine.
+# This file can be edited; Docker Engine will not make further changes once it
+# has been modified.
+
+nameserver 192.168.65.7
+
+# Based on host file: '/etc/resolv.conf' (legacy)
+# Overrides: []

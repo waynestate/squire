@@ -1,0 +1,12 @@
+INDEXJSON
+{"schemaVersion":2,"mediaType":"application/vnd.oci.image.index.v1+json","manifests":[{"mediaType":"application/vnd.oci.image.index.v1+json","digest":"sha256:7d4b47c2868e9e504e4def43d9106f7f4bda28e42232d7e0a2527074398872d2","size":290}]}
+EXACTMATCHES
+SHAOFINSPECT
+557732be41f5b3e186afb9096c4728c362d4f4c67b9899479cf087b29ade4eb3  /tmp/inspect.json
+SIZES
+438 /tmp/inspect.json
+1197 /tmp/oci-dest/blobs/sha256/0717c5b0c001b88719ea83cb5064f50a0eb76bf199b8e6785ddf39f68a1f8253
+842 /tmp/oci-dest/blobs/sha256/217161669c897a8ae1815f3680f841094199484524a4d5436cdb725d5573964e
+290 /tmp/oci-dest/blobs/sha256/7d4b47c2868e9e504e4def43d9106f7f4bda28e42232d7e0a2527074398872d2
+34 /tmp/oci-dest/blobs/sha256/bd9ddc54bea929a22b334e73e026d4136e5b73f5cc29942896c72e4ece69b13d
+3741667 /tmp/oci-dest/blobs/sha256/c265cb3fa7c80ac67446fc0db739a202eace2b21df78d52382314a7500106fe5
