@@ -5,6 +5,7 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+- Added: an ADVISOR module (waynestate/advisor) with squire_doctor and squire_drift.
 - Added: squire doctor oracle runs the Oracle connection check on demand, reading ORACLE_* settings from the environment and .env.
 - Changed: the deploy layer's Squire kit is refreshed to 0.4.0 (the Oracle check script and the updated build and release scripts).
 - Added: CI publishes the multi-arch Oracle images to the project's container registry when a version is tagged.

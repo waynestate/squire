@@ -171,6 +171,33 @@ A library package that carries the kit should keep it out of Composer downloads:
 
 so a `composer require` of the package never ships the kit. A squire packs what the knight will carry, and only that.
 
+### Use Squire from your coding agent (ADVISOR)
+
+Squire ships an [ADVISOR](https://github.com/waynestate/advisor) module, so a coding agent that runs ADVISOR can run
+Squire's checks without leaving its sandbox. In the app, install ADVISOR as a dev dependency (`composer require
+--dev waynestate/advisor`) and add one line to the app's `modules.json` (or point `ADVISOR_MODULES_FILE` at a file
+that holds it):
+
+```json
+{
+    "modules": [
+        "Waynestate\\Squire\\Advisor\\SquireModule"
+    ]
+}
+```
+
+Two tools appear. Both are read-only, and each takes exactly one argument: a path inside the project root.
+
+- `squire_doctor` runs Squire's deploy-setup checks (the S-rules, S1 to S78) against the app folder and returns the
+  same JSON report `vendor/bin/squire doctor --format=json` prints. It runs in-process: no subprocess, no network,
+  nothing written.
+- `squire_drift` reports which of the files Squire wrote into the app have drifted from the current templates, the
+  same check `vendor/bin/squire init --check` performs: missing, outdated, edited or untracked, per file. It writes
+  nothing; `squire init` is the fix, and it never overwrites an edit.
+
+Every answer labels its source and says plainly what ran. Squire reports; Squire in CI decides pass or fail. A squire
+can tell you where the armour is dented; only the knight gets to charge.
+
 ### Citadel setup
 
 1. In the dashboard set the build script to `build.sh`, the health check to `["php","health.php"]`, and the Quick Update
