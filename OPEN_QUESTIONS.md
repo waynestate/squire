@@ -64,6 +64,15 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
     administrator's call); (b) an amd64 runner builds the amd64 half and the arm64 runner merges the manifest list;
     (c) the tag job publishes arm64 now and amd64 is built by hand with `scripts/oracle-image-build.sh` until (a) or
     (b) lands.
+19. **Contract suite on the real image and on GitLab.** What runs today: the three GitHub jobs in
+    `.github/workflows/ci.yml` (`contract-image` on linux/amd64 and linux/arm64, the arm64 leg under QEMU and allowed
+    to fail until it has been seen green once; `contract-parity-sh`; and `contract-parity-pwsh`, pwsh 7 on Linux, also
+    allowed to fail until it has been seen green once), all on the fallback image, not the real Citadel image. What is
+    not proven: the real Citadel image (internal, with no pullable digest), Windows PowerShell 5.1, and the GitLab
+    runner path (the runner is arm64, has no Docker daemon and no qemu binfmt, so the GitLab pipeline has no contract
+    job). What is needed to close it: Docker access on the GitLab runner (and qemu binfmt for amd64-only images), a
+    pullable copy of the real image with a digest, and a decision on where the suite lives long term. Default: the
+    GitHub jobs stay; no GitLab job is committed until the runner can run it.
 
 ## Missing configuration
 

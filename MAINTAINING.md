@@ -80,6 +80,9 @@ has no Docker daemon.
   PowerShell lint runs on GitLab only.
 - Green means all of those pass.
 
+GitLab runs lint and unit tests only; the contract suite runs on the GitHub mirror (see
+[Contract suite (image)](#contract-suite-image)).
+
 ## Publishing the Oracle images
 
 - The `oracle-images` job runs when a Squire version is tagged. It builds both flavours (`sail` and `parity`) for
