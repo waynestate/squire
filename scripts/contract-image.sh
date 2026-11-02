@@ -24,6 +24,16 @@ set -eu
 
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 
+# Under Git Bash (MSYS) the shell would rewrite arguments that look like Unix paths before docker sees them, so
+# container paths such as /citadel/src arrive mangled. Stop that rewriting and convert host paths to Windows form
+# with cygpath instead. On Linux neither is needed and win_path is the identity.
+if command -v cygpath >/dev/null 2>&1; then
+    export MSYS2_ARG_CONV_EXCL="*"
+    win_path() { cygpath -w "$1"; }
+else
+    win_path() { printf '%s' "$1"; }
+fi
+
 BASE_TAG="squire/php-parity-base:8.4"
 APP_TAG="squire/contract-app:$$"
 CID="squire-contract-$$"
@@ -103,8 +113,8 @@ make_fixture() {
         # No PHP on this machine: run the initializer in Docker. The named vendor volume keeps composer install
         # out of the way and fast on later runs, the same way the composer ci check does it.
         docker run --rm \
-            -v "$REPO:/app" \
-            -v "$TMPROOT:/work" \
+            -v "$(win_path "$REPO"):/app" \
+            -v "$(win_path "$TMPROOT"):/work" \
             -v squire-vendor:/app/vendor \
             -w /app \
             composer:2.10.3 \
@@ -132,15 +142,15 @@ build_images() {
     docker buildx build --load --platform "$PLATFORM" \
         --build-arg "CITADEL_SOURCE_UID=$uid" \
         --build-arg "CITADEL_SOURCE_GID=$gid" \
-        -f "$FIXTURE/.squire/base-fallback.Dockerfile" \
+        -f "$(win_path "$FIXTURE/.squire/base-fallback.Dockerfile")" \
         -t "$BASE_TAG" \
-        "$FIXTURE/.squire"
+        "$(win_path "$FIXTURE/.squire")"
     printf 'building the app image %s for %s\n' "$APP_TAG" "$PLATFORM" >&2
     docker buildx build --load --platform "$PLATFORM" \
         --build-arg "BASE_IMAGE=$BASE_TAG" \
-        -f "$FIXTURE/.squire/Dockerfile" \
+        -f "$(win_path "$FIXTURE/.squire/Dockerfile")" \
         -t "$APP_TAG" \
-        "$FIXTURE"
+        "$(win_path "$FIXTURE")"
 }
 
 run_container() {
@@ -155,7 +165,7 @@ run_container() {
     docker run -d \
         --name "$CID" \
         -p "127.0.0.1:$PORT:80" \
-        -v "$FIXTURE":/citadel/src \
+        -v "$(win_path "$FIXTURE")":/citadel/src \
         -v "$LOGVOL":/citadel/logs \
         "$APP_TAG" >/dev/null
     printf 'container %s up on http://127.0.0.1:%s (the first release runs before Apache starts)\n' "$CID" "$PORT" >&2
