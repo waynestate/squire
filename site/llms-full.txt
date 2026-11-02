@@ -12,7 +12,7 @@ Source: https://github.com/waynestate/squire/blob/HEAD/README.md
 
 ## Squire
 
-**Suits you up for deploy day.** A squire carries the kit, readies the armour and gets the knight on the field.
+**Suits you up for deploy day.** A squire carries the kit, readies the armor and gets the knight on the field.
 
 Checks: `composer ci` (the same command runs on GitLab and GitHub).
 
@@ -107,7 +107,7 @@ HTML, and caches the assets. The site folder is `../../site` by default (the app
 straight by Apache and never reaches the front controller.
 
 `update` reads that record: a file you never edited takes the new template, a file you edited is left alone and shown as a
-diff, and a file Squire did not write is never touched. A squire polishes the armour; the knight keeps the sword.
+diff, and a file Squire did not write is never touched. A squire polishes the armor; the knight keeps the sword.
 `--dry-run` prints the plan and writes nothing.
 
 ### What lands in your app
@@ -151,7 +151,7 @@ php bin/export-templates.php --to=templates/squire --check    # verify it; exit 
 The copy holds, for each kind (`raw`, `laravel`, `static`) and for the Vue layer (`vue`), the files a new app gets from
 `squire init`, at their target paths, with each file's mode recorded so executables stay executable. `catalog.json` lists
 which files each kind and layer installs and where; `manifest.json` records the Squire version and a SHA-256 per file.
-Refresh the copy when Squire's templates move on, and run `--check` in CI to keep it honest. A squire keeps the armour
+Refresh the copy when Squire's templates move on, and run `--check` in CI to keep it honest. A squire keeps the armor
 polished; the copy stays in step.
 
 ### The agent-ready kit
@@ -196,7 +196,7 @@ Two tools appear. Both are read-only, and each takes exactly one argument: a pat
   nothing; `squire init` is the fix, and it never overwrites an edit.
 
 Every answer labels its source and says plainly what ran. Squire reports; Squire in CI decides pass or fail. A squire
-can tell you where the armour is dented; only the knight gets to charge.
+can tell you where the armor is dented; only the knight gets to charge.
 
 ### Citadel setup
 
@@ -277,7 +277,7 @@ CI, `$CI_REGISTRY_IMAGE` is set for you; elsewhere it is the registry address of
 Container Registry page), plus `:8.4-` for a fixed one. CI publishes them when a Squire version is
 tagged, multi-arch (linux/amd64 and linux/arm64); a Sail app swaps `build:` for `image:` with that path.
 
-Both flavours download Oracle's Instant Client Basic Light at build time under Oracle's licence and never commit
+Both flavours download Oracle's Instant Client Basic Light at build time under Oracle's license and never commit
 it: the install script pins the exact SHA-256 of each zip. Oracle does not publish a 21.x client for arm64, so the
 line differs per architecture: linux/amd64 gets 21.7.0.0.0 and linux/arm64 gets 19.32.0.0.0.
 
@@ -359,9 +359,9 @@ See [OPEN_QUESTIONS.md](https://github.com/waynestate/squire/blob/HEAD/OPEN_QUES
 platform's file, the Citadel image has no digest to pin, and a full Update may not refresh `vendor/`. PROCTOR can now
 gate a release with `SQUIRE_PROCTOR=enforce`; what is still missing on its side is a phar and a dedicated `gate` command.
 
-### Licence
+### License
 
-MIT, copyright Wayne State University. A squire carries the armour; the knight still has to show up.
+MIT, copyright Wayne State University. A squire carries the armor; the knight still has to show up.
 
 ---
 
@@ -455,7 +455,7 @@ Every shell script runs with `set -euo pipefail`, prints a `[squire] ==> step N`
 
 vendor/bin/squire doctor
 
-### The squire inspects the armour
+### The squire inspects the armor
 
 Doctor reads your repository and checks the rules a machine can decide. It doesn't run your app or touch a server. A fail exits 1 and a warning or info note doesn't, so if you want doctor to block a merge, run it in CI.
 
@@ -511,7 +511,7 @@ RESULT: pass (0 fail, 2 warn, 0 info, 5 pass)
 
 Local parity
 
-### Practise on the real field
+### Practice on the real field
 
 Parity runs your app on the Citadel PHP image, behind an HA-Proxy that adds the same forwarding headers, with MySQL 5.6.51 beside it. If something would only break on Citadel, you should see it on your laptop first.
 

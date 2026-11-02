@@ -94,7 +94,7 @@ Every shell script runs with `set -euo pipefail`, prints a `[squire] ==> step N`
 
 vendor/bin/squire doctor
 
-## The squire inspects the armour
+## The squire inspects the armor
 
 Doctor reads your repository and checks the rules a machine can decide. It doesn't run your app or touch a server. A fail exits 1 and a warning or info note doesn't, so if you want doctor to block a merge, run it in CI.
 
@@ -150,7 +150,7 @@ RESULT: pass (0 fail, 2 warn, 0 info, 5 pass)
 
 Local parity
 
-## Practise on the real field
+## Practice on the real field
 
 Parity runs your app on the Citadel PHP image, behind an HA-Proxy that adds the same forwarding headers, with MySQL 5.6.51 beside it. If something would only break on Citadel, you should see it on your laptop first.
 
