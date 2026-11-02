@@ -12,6 +12,7 @@ Versioning once 1.0 is out.
 - Changed: the docs name the real image path instead of placeholders.
 - Changed: Oracle image recipes use fully qualified `COPY --from` names so buildah can resolve them; the CI dry run shows amd64 builds need qemu binfmt on the runner (see OPEN_QUESTIONS).
 - Docs: WSL 2 file-location advice and an engines and licenses note for local parity.
+- Changed: CI pulls its Docker Hub images through the GitLab Dependency Proxy (the group's CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX), so pipelines no longer hit Docker Hub's anonymous pull limit.
 
 ## 0.4.0 (2026-11-01)
 
