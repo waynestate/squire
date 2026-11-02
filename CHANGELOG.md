@@ -15,6 +15,7 @@ Versioning once 1.0 is out.
 - Added: scripts/contract-image.sh runs release.sh inside the fallback image and asserts the smoke URL, health.php and the first-release log.
 - Added: a contract-image CI job (GitHub) that runs scripts/contract-image.sh on amd64 and arm64.
 - Changed: CI pulls its Docker Hub images through the GitLab Dependency Proxy (the group's CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX), so pipelines no longer hit Docker Hub's anonymous pull limit.
+- Added: contract-parity-sh and contract-parity-pwsh CI jobs (GitHub) that bring the local parity stack up on the fallback image and check the proxy answers.
 
 ## 0.4.0 (2026-11-01)
 

@@ -47,3 +47,122 @@ jobs:
         uses: docker/setup-buildx-action@v3
       - name: Run the contract image check
         run: sh scripts/contract-image.sh --platform=${{ matrix.platform }}
+
+  contract-parity-sh:
+    # Proves the shell side of the local parity kit on CI: parity.sh up --fallback builds the fallback base image,
+    # compose starts the app behind the HA-Proxy with MySQL 5.6, and the proxy answers 200 on /up.php. It does not
+    # prove parity with the real Citadel image: the fallback is an approximation built from the official php image.
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      # pin by SHA at the first release, the same way the preflight line above does
+      - name: Set up PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+      - name: Install the Composer dependencies
+        run: composer install --no-interaction
+      - name: Generate the fixture app
+        run: |
+          set -eu
+          FIXTURE="$(mktemp -d)/app"
+          mkdir -p "$FIXTURE"
+          cp deploy/composer.json deploy/composer.lock "$FIXTURE/"
+          php bin/squire init --path="$FIXTURE" --target=raw
+          [ -f "$FIXTURE/public/up.php" ] || cp templates/raw/public/up.php "$FIXTURE/public/up.php"
+          echo "FIXTURE=$FIXTURE" >> "$GITHUB_ENV"
+      - name: Prepare .env.squire with dummy passwords
+        run: |
+          set -eu
+          cp "$FIXTURE/.env.squire.example" "$FIXTURE/.env.squire"
+          sed -i 's/^SQUIRE_DB_PASSWORD=.*/SQUIRE_DB_PASSWORD=ci-dummy-password/' "$FIXTURE/.env.squire"
+          sed -i 's/^SQUIRE_DB_ROOT_PASSWORD=.*/SQUIRE_DB_ROOT_PASSWORD=ci-dummy-root-password/' "$FIXTURE/.env.squire"
+      - name: Bring the parity stack up (fallback image)
+        run: |
+          set -eu
+          cd "$FIXTURE"
+          sh scripts/parity.sh up --fallback
+      - name: Wait for the proxy to answer 200 on /up.php
+        run: |
+          set -eu
+          i=0
+          while [ "$i" -lt 60 ]; do
+            code="$(curl --silent --output /dev/null --max-time 5 --write-out '%{http_code}' http://127.0.0.1:8080/up.php || true)"
+            if [ "$code" = "200" ]; then
+              echo "http://127.0.0.1:8080/up.php answered 200 after $((i * 2))s"
+              exit 0
+            fi
+            i=$((i + 1))
+            sleep 2
+          done
+          echo "http://127.0.0.1:8080/up.php did not answer 200 within 120s" >&2
+          exit 1
+      - name: Take the parity stack down
+        if: always()
+        run: |
+          set -eu
+          cd "$FIXTURE"
+          sh scripts/parity.sh down
+
+  contract-parity-pwsh:
+    # The PowerShell twin of the shell leg: proves parity.ps1 up -Fallback brings the same stack up and the proxy
+    # answers 200 on /up.php. Same limit as the shell leg: it runs on the fallback image, an approximation, not the
+    # real Citadel image. This is pwsh 7 on Linux, not Windows PowerShell 5.1 (see OPEN_QUESTIONS), and the leg is
+    # allowed to fail until it has been seen green once, like the arm64 image leg.
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      # pin by SHA at the first release, the same way the preflight line above does
+      - name: Set up PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+      - name: Install the Composer dependencies
+        run: composer install --no-interaction
+      - name: Generate the fixture app
+        run: |
+          set -eu
+          FIXTURE="$(mktemp -d)/app"
+          mkdir -p "$FIXTURE"
+          cp deploy/composer.json deploy/composer.lock "$FIXTURE/"
+          php bin/squire init --path="$FIXTURE" --target=raw
+          [ -f "$FIXTURE/public/up.php" ] || cp templates/raw/public/up.php "$FIXTURE/public/up.php"
+          echo "FIXTURE=$FIXTURE" >> "$GITHUB_ENV"
+      - name: Prepare .env.squire with dummy passwords
+        run: |
+          set -eu
+          cp "$FIXTURE/.env.squire.example" "$FIXTURE/.env.squire"
+          sed -i 's/^SQUIRE_DB_PASSWORD=.*/SQUIRE_DB_PASSWORD=ci-dummy-password/' "$FIXTURE/.env.squire"
+          sed -i 's/^SQUIRE_DB_ROOT_PASSWORD=.*/SQUIRE_DB_ROOT_PASSWORD=ci-dummy-root-password/' "$FIXTURE/.env.squire"
+      - name: Bring the parity stack up (fallback image)
+        run: |
+          set -eu
+          cd "$FIXTURE"
+          pwsh -NoProfile -File scripts/parity.ps1 up -Fallback
+      - name: Wait for the proxy to answer 200 on /up.php
+        run: |
+          pwsh -NoProfile -Command '
+            $deadline = (Get-Date).AddSeconds(120)
+            while ((Get-Date) -lt $deadline) {
+                try {
+                    $response = Invoke-WebRequest -UseBasicParsing -Uri "http://127.0.0.1:8080/up.php" -TimeoutSec 5
+                    if ($response.StatusCode -eq 200) {
+                        Write-Output "http://127.0.0.1:8080/up.php answered 200"
+                        exit 0
+                    }
+                } catch {
+                }
+                Start-Sleep -Seconds 2
+            }
+            Write-Error "http://127.0.0.1:8080/up.php did not answer 200 within 120s"
+            exit 1
+          '
+      - name: Take the parity stack down
+        if: always()
+        run: |
+          set -eu
+          cd "$FIXTURE"
+          pwsh -NoProfile -File scripts/parity.ps1 down
