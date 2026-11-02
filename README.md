@@ -237,6 +237,24 @@ can tell you where the armour is dented; only the knight gets to charge.
 Needs Docker with Compose v2. Windows needs Docker Desktop with the WSL 2 backend; no shell other than PowerShell is
 required.
 
+**On Windows, keep the source in the WSL 2 filesystem.** Advice, not a requirement: keep the app's source tree inside
+the WSL 2 Linux filesystem (for example under `~/src` in your WSL distribution) and run `scripts/parity.sh` from there,
+not from a Windows folder such as `C:\Users\you\...` reached through `/mnt/c`. Bind mounts from the Windows side are much
+slower (Composer and npm installs feel it most), and file ownership and permissions do not map cleanly; that is the cause
+of the `Permission denied` failure described under the bind-mount question (OPEN_QUESTIONS 15). The PowerShell
+`scripts\parity.ps1` still works from a Windows folder, only slower.
+
+### Engines and licenses
+
+Squire needs any engine that runs Docker Compose v2 compatible files. The ones named here:
+
+- **Docker Engine on Linux**: open source, Apache 2.0.
+- **Docker Desktop on Windows** with the WSL 2 backend: a commercial product, free for small business, personal and
+  educational use, and paid for larger organizations, so check your own license.
+- **Podman** with a Compose v2 compatible provider, and **Colima** on macOS: expected to work, not tested here.
+
+Only Docker Desktop and Docker Engine have been run.
+
 ```
 # Linux and macOS
 cp .env.squire.example .env.squire     # then set the passwords

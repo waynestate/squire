@@ -35,7 +35,9 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
 11. **Executable bit from Windows.** Git on Windows does not keep it. Default: documented `git update-index --chmod=+x`.
     Citadel also runs `chmod -R ug+x` on the deployments path and the quick-update and health scripts.
 12. **Apple Silicon.** The real Citadel images and MySQL 5.6 are amd64; Docker emulates them and builds can take 30 minutes
-    or more. The scripts print a warning; nothing else is done.
+    or more. The scripts print a warning; nothing else is done. No emulated build time has been measured yet; the plan is
+    to time one `parity.sh up --fallback` build and one real-image build on an Apple Silicon machine and record both dates
+    and numbers here.
 13. **No Node version check.** `release.sh` uses whatever `node` and `npm` the image has. Citadel's images ship a Node LTS
     from NodeSource; the version is not asserted.
 14. **Audit default.** `SQUIRE_COMPOSER_AUDIT=report`. A finding does not fail a release by default, because a Quick Update
@@ -45,7 +47,8 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
     `vendor/composer/installed.json` because the source folder (created on the host by another tool, owned by root) was not
     writable by the container's `citadel` user. After making it writable the hook ran, the app became healthy and the proxy
     answered. Default: documented in the README; `SQUIRE_SOURCE_UID` and `SQUIRE_SOURCE_GID` match the user on Linux. Not
-    solved for Docker Desktop folders that are root-owned.
+    solved for Docker Desktop folders that are root-owned. See README Local parity: keep the source in the WSL 2
+    filesystem on Windows.
 16. **Which Citadel health check value.** The dashboard wizard value is assumed to be `["php","health.php"]`. Confirm the
     exact form.
 17. **Runner amd64 emulation.** The CI runner is linux/arm64; building the Oracle images for linux/amd64 needs qemu
