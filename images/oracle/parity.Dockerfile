@@ -27,14 +27,14 @@ LABEL org.opencontainers.image.description="PHP CLI with the extensions Citadel 
 # The extensions Citadel apps use, installed by the pinned mlocati installer
 # (it also handles the pecl-based ones, redis and imagick). pcntl is not
 # compiled into the official CLI image, so it goes in the list like the rest.
-COPY --from=mlocati/php-extension-installer:2.13.1 /usr/bin/install-php-extensions /usr/local/bin/
+COPY --from=docker.io/mlocati/php-extension-installer:2.13.1 /usr/bin/install-php-extensions /usr/local/bin/
 RUN install-php-extensions intl ldap soap zip gd pdo_mysql mysqli bcmath pcntl exif redis imagick
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends git \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=composer:2.10.3 /usr/bin/composer /usr/local/bin/composer
+COPY --from=docker.io/library/composer:2.10.3 /usr/bin/composer /usr/local/bin/composer
 
 COPY images/oracle/install-oracle.sh /tmp/install-oracle.sh
 RUN sh /tmp/install-oracle.sh && rm -f /tmp/install-oracle.sh
