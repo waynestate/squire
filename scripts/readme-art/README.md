@@ -37,7 +37,7 @@ same outputs.
 - `docs/readme/board.jpg`: the brand board, re-encoded.
 - `docs/readme/cast/*.png`: one 96x96 mark per stack part, WayneUI on its
   green tile first.
-- `docs/readme/badges/*.svg`: `php`, `licence` and `exit codes`, made locally
+- `docs/readme/badges/*.svg`: `php`, `license` and `exit codes`, made locally
   by `badge-maker`.
 
 Every file must stay at or under 300 KB, and no captured text may name an

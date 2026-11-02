@@ -3,7 +3,7 @@
 A static page: `index.html`, `assets/squire.css`, `assets/squire.js`. No build step. Serve the `site/` folder from
 anywhere (Citadel, any web server, or `python -m http.server` inside `site/` for a look).
 
-- type: **Arvo** (SIL OFL 1.1, self-hosted in `assets/fonts/`, licence in `OFL-arvo.txt`) for display; Lato from WayneUI
+- type: **Arvo** (SIL OFL 1.1, self-hosted in `assets/fonts/`, license in `OFL-arvo.txt`) for display; Lato from WayneUI
   for body text; the system monospace for commands.
 - base: WayneUI 2.0.8, copied from its static path into `assets/wayne-ui/`, then re-dressed in canvas and leather.
 - world: the squire's kit bag. Canvas and waxed leather, stitched seams, luggage tags. Green and gold are the family tie.

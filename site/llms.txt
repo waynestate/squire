@@ -2,7 +2,7 @@
 
 > Squire is the deploy kit for Citadel. It writes your app's build, release and health-check scripts from templates, checks them with squire doctor, and runs the app locally on Citadel's PHP image behind the same kind of proxy.
 
-**Suits you up for deploy day.** A squire carries the kit, readies the armour and gets the knight on the field.
+**Suits you up for deploy day.** A squire carries the kit, readies the armor and gets the knight on the field.
 
 Checks: `composer ci` (the same command runs on GitLab and GitHub).
 

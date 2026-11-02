@@ -1,4 +1,4 @@
-# MAINTAINING: polishing the armour
+# MAINTAINING: polishing the armor
 
 How to build, test, release and keep Squire current. Squire is the Citadel kit: the standard `build.sh`, release
 script, deployment hooks, health check, `/up`, and local parity on the Citadel images. It carries the knight's kit,
@@ -95,7 +95,7 @@ amd64 image cannot be built there today. See OPEN_QUESTIONS.md, "Oracle images: 
 
 ## Changing a template
 
-- Templates follow Citadel's real behaviour: `build.sh` runs at image build time as root with only that one file
+- Templates follow Citadel's real behavior: `build.sh` runs at image build time as root with only that one file
   present; `deployments/` scripts run once per file name at container start; the Quick Update post-script runs after
   `git pull`. Everything that runs twice must be safe to run twice.
 - Citadel can reuse a cached build layer after `build.sh` changes. Bump the `SQUIRE_BUILD_REVISION` marker so the log
@@ -109,7 +109,7 @@ amd64 image cannot be built there today. See OPEN_QUESTIONS.md, "Oracle images: 
   ```
   Commit the copy in Sourdough with this repo's commit in the message. Each stack repo's `deploy/` folder is
   regenerated with `squire init` and checked with `squire init --check`.
-- Local parity runs a newer HA-Proxy than Citadel's; keep proxy-dependent behaviour simple.
+- Local parity runs a newer HA-Proxy than Citadel's; keep proxy-dependent behavior simple.
 
 ## Releasing
 

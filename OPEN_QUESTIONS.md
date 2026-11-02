@@ -15,13 +15,13 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
 4. **Can a secret be mounted?** Squire assumes environment variables from the dashboard only. Default: the scripts read
    `SQUIRE_*` from the environment; nothing is read from a file in the repository.
 5. **PowerShell minimum.** The `.ps1` scripts are written for Windows PowerShell 5.1 and PowerShell 7; the lint (PSScriptAnalyzer)
-   runs on 7.4 only. 5.1 behaviour is by inspection, not run.
+   runs on 7.4 only. 5.1 behavior is by inspection, not run.
 6. **PROCTOR is a dev dependency.** `composer install --no-dev` removes it, so the release step needs
    `SQUIRE_PROCTOR_BIN`. Default: the step skips with a stated reason when it is missing; the policy falls back to the
    copy CREED ships, and to PROCTOR's own default with a notice when CREED is not installed.
    Changes when PROCTOR ships a phar.
 7. **Local proxy version.** Locally HA-Proxy 3.0; Citadel's template targets 1.5. Both add `X-Forwarded-For` and
-   `X-Forwarded-Proto`; other 1.5 behaviours (connection reuse, header casing) may differ.
+   `X-Forwarded-Proto`; other 1.5 behaviors (connection reuse, header casing) may differ.
 8. **`cap_drop: [ALL]` on the real image.** Verified on the fallback image only (the app starts and answers `/up.php`).
    Apache needs `CHOWN`, `SETUID`, `SETGID`, `DAC_OVERRIDE` and `NET_BIND_SERVICE` on some images; the compose file adds back
    what the fallback needed. Re-check on the real image.

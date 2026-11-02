@@ -6,12 +6,12 @@
 
 <div align="center">
   <img src="docs/readme/badges/php.svg" alt="php ^8.3">
-  <img src="docs/readme/badges/license.svg" alt="licence MIT">
+  <img src="docs/readme/badges/license.svg" alt="license MIT">
   <img src="docs/readme/badges/exit-codes.svg" alt="exit codes 0, 1, 2">
   <a href="https://github.com/waynestate/squire/actions/workflows/ci.yml"><img src="https://github.com/waynestate/squire/actions/workflows/ci.yml/badge.svg" alt="GitHub CI"></a>
 </div>
 
-**Suits you up for deploy day.** A squire carries the kit, readies the armour and gets the knight on the field.
+**Suits you up for deploy day.** A squire carries the kit, readies the armor and gets the knight on the field.
 
 Checks: `composer ci` (the same command runs on GitLab and GitHub).
 
@@ -124,7 +124,7 @@ HTML, and caches the assets. The site folder is `../../site` by default (the app
 straight by Apache and never reaches the front controller.
 
 `update` reads that record: a file you never edited takes the new template, a file you edited is left alone and shown as a
-diff, and a file Squire did not write is never touched. A squire polishes the armour; the knight keeps the sword.
+diff, and a file Squire did not write is never touched. A squire polishes the armor; the knight keeps the sword.
 `--dry-run` prints the plan and writes nothing.
 
 ## What lands in your app
@@ -173,7 +173,7 @@ php bin/export-templates.php --to=templates/squire --check    # verify it; exit 
 The copy holds, for each kind (`raw`, `laravel`, `static`) and for the Vue layer (`vue`), the files a new app gets from
 `squire init`, at their target paths, with each file's mode recorded so executables stay executable. `catalog.json` lists
 which files each kind and layer installs and where; `manifest.json` records the Squire version and a SHA-256 per file.
-Refresh the copy when Squire's templates move on, and run `--check` in CI to keep it honest. A squire keeps the armour
+Refresh the copy when Squire's templates move on, and run `--check` in CI to keep it honest. A squire keeps the armor
 polished; the copy stays in step.
 
 ## The agent-ready kit
@@ -218,7 +218,7 @@ Two tools appear. Both are read-only, and each takes exactly one argument: a pat
   nothing; `squire init` is the fix, and it never overwrites an edit.
 
 Every answer labels its source and says plainly what ran. Squire reports; Squire in CI decides pass or fail. A squire
-can tell you where the armour is dented; only the knight gets to charge.
+can tell you where the armor is dented; only the knight gets to charge.
 
 ## Citadel setup
 
@@ -299,7 +299,7 @@ CI, `$CI_REGISTRY_IMAGE` is set for you; elsewhere it is the registry address of
 Container Registry page), plus `:8.4-<squire version>` for a fixed one. CI publishes them when a Squire version is
 tagged, multi-arch (linux/amd64 and linux/arm64); a Sail app swaps `build:` for `image:` with that path.
 
-Both flavours download Oracle's Instant Client Basic Light at build time under Oracle's licence and never commit
+Both flavours download Oracle's Instant Client Basic Light at build time under Oracle's license and never commit
 it: the install script pins the exact SHA-256 of each zip. Oracle does not publish a 21.x client for arm64, so the
 line differs per architecture: linux/amd64 gets 21.7.0.0.0 and linux/arm64 gets 19.32.0.0.0.
 
@@ -381,9 +381,9 @@ See [OPEN_QUESTIONS.md](OPEN_QUESTIONS.md). The big ones: the local `php.ini` ho
 platform's file, the Citadel image has no digest to pin, and a full Update may not refresh `vendor/`. PROCTOR can now
 gate a release with `SQUIRE_PROCTOR=enforce`; what is still missing on its side is a phar and a dedicated `gate` command.
 
-## Licence
+## License
 
-MIT, copyright Wayne State University. A squire carries the armour; the knight still has to show up.
+MIT, copyright Wayne State University. A squire carries the armor; the knight still has to show up.
 
 <div align="center">
 
