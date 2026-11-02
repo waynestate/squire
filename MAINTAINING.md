@@ -47,6 +47,20 @@ docker run --rm -v "${PWD}:/app" -w /app composer:2.10.3 sh -c "composer install
   PowerShell lint runs on GitLab only.
 - Green means all of those pass.
 
+## Publishing the Oracle images
+
+- The `oracle-images` job runs when a Squire version is tagged. It builds both flavours (`sail` and `parity`) for
+  PHP 8.3, 8.4 and 8.5, each for linux/amd64 and linux/arm64, with buildah (the runner has no Docker daemon), and
+  pushes a manifest list to the project's container registry.
+- The published images are `$CI_REGISTRY_IMAGE/oracle-sail:<php>` and `$CI_REGISTRY_IMAGE/oracle-parity:<php>`, each
+  with a floating `<php>` tag and a fixed `<php>-<squire version>` tag. In CI, `$CI_REGISTRY_IMAGE` is set for you;
+  elsewhere it is the registry address of the Squire project shown on its Container Registry page.
+- `oracle-images-dry-run` is manual and runs on branches (never on tags): it builds everything and prints what would
+  be pushed, without logging in or pushing. Run it to prove the runner can build both architectures before you tag.
+- The runner must be able to build linux/amd64 (qemu binfmt emulation) and run buildah inside a container. If the
+  amd64 build dies with an exec format error, the job says so plainly: ask the runner's owner to enable amd64
+  emulation. Until a dry run passes, nothing is pushed.
+
 ## Changing a template
 
 - Templates follow Citadel's real behaviour: `build.sh` runs at image build time as root with only that one file

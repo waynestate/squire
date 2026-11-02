@@ -48,6 +48,10 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
     solved for Docker Desktop folders that are root-owned.
 16. **Which Citadel health check value.** The dashboard wizard value is assumed to be `["php","health.php"]`. Confirm the
     exact form.
+17. **Runner amd64 emulation.** The CI runner is linux/arm64; building the Oracle images for linux/amd64 needs qemu
+    binfmt emulation and buildah running inside a container. Default: the `oracle-images-dry-run` job proves it on a
+    branch before anyone tags; nothing is pushed until it passes. If the runner cannot emulate amd64, ask its owner
+    to enable it.
 
 ## Missing configuration
 
