@@ -39,6 +39,33 @@ docker run --rm -v "${PWD}:/app" -w /app composer:2.10.3 sh -c "composer install
 
 `composer ci` runs `composer validate --strict`, PHPUnit, Pint, PHPStan and `composer audit`.
 
+## Contract suite (image)
+
+`scripts/contract-image.sh` proves that `release.sh` runs inside an image. The real Citadel image is internal, so it
+uses the fallback base Squire already builds for local parity (`.squire/base-fallback.Dockerfile`, tag
+`squire/php-parity-base:8.4`): php:8.4-apache plus Node 22, multi-arch.
+
+```
+sh scripts/contract-image.sh --platform=linux/amd64
+sh scripts/contract-image.sh --platform=linux/arm64   # needs qemu emulation on an amd64 host
+sh scripts/contract-image.sh --keep                   # keep the container, image, volume and temp dir
+```
+
+It makes a throwaway fixture app (`squire init --target=raw`, with `composer.json` and `composer.lock` seeded from
+`deploy/`), builds the fallback base and the app image for the platform, runs the container with the fixture mounted
+at `/citadel/src` the way the kit's compose file mounts it, runs `release.sh` as the `citadel` user with the smoke
+test on, and prints one PASS or FAIL line per assertion: the release.sh exit code, HTTP 200 from `/up.php` on the
+host, `php health.php` inside the container, and the first-release deployment log with no failed sibling. The exit
+code is 1 on any FAIL. It needs Docker with buildx and network access (the fixture installs its Composer
+dependencies); without PHP on the PATH it runs the initializer in a `composer:2.10.3` container.
+
+**What it proves and what it does not.** It proves the release mechanics end to end on the public stand-in: the
+fallback base builds for the platform, the app image builds on top of it, the first-release hook runs at container
+start, `release.sh` is safe to run twice, Apache serves the front controller and the health endpoint, and the
+deployment log lands where `citadel-deploy` puts it. It does not prove parity with the real image: the fallback has
+no `oci8`, `imagick` or `ssmtp`, its HA-Proxy differs from Citadel's, and nothing here touches Citadel itself. A
+green run is a contract, not a certificate.
+
 ## CI
 
 - **GitLab:** Preflight's `php-test` (PHP 8.3, 8.4, 8.5) and `composer-audit` components, a `composer-ci` job,
