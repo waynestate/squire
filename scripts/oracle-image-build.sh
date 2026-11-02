@@ -7,8 +7,9 @@
 #
 #   scripts/oracle-image-build.sh --flavour sail|parity --php 8.4 [--platform linux/amd64]
 #
-# The image names are placeholders until the registry is chosen; whoever picks
-# the registry re-tags them. A squire builds the armour before the knight asks.
+# The image names here (squire/oracle-sail, squire/oracle-parity) are the local
+# build names. CI publishes the same images to the project's container registry
+# on a tag; see scripts/oracle-image-publish.sh and MAINTAINING.md.
 
 set -euo pipefail
 
