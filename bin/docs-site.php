@@ -24,6 +24,13 @@ use League\CommonMark\Renderer\HtmlRenderer;
  * reach a real page, and the kit's files are the kit's bytes. A squire reads the map so the knight can ask
  * for directions.
  *
+ * Generated blocks: a page may hold a region between `<!-- generated:NAME -->` and `<!-- /generated -->`
+ * that the builder owns. docs/docs.json defines the blocks by name; each block runs a command (a leading
+ * `php ` means PHP_BINARY, so the same file works on Windows, macOS and Linux) and rewrites its region from
+ * the command's JSON. The json-table type renders a Markdown table; symfony-commands and env are recognized
+ * names for a later release. A plain run rewrites stale regions in the sources and then builds; --check
+ * reports a stale region instead of writing.
+ *
  * Usage:
  *   php bin/docs-site.php [--root=.]                 write site/docs/ from docs/
  *   php bin/docs-site.php [--root=.] --check         write nothing; exit 1 on stale pages or findings
@@ -32,7 +39,8 @@ use League\CommonMark\Renderer\HtmlRenderer;
  *
  * The only package it loads is league/commonmark, from <root>/vendor/autoload.php (falling back to this
  * checkout's own vendor, so the tests can run against a bare fixture). Exit codes: 0 pass or written,
- * 1 stale pages or findings, 2 the tool itself could not run (no vendor, bad nav.json). Plain PHP 8.3.
+ * 1 stale pages or findings, 2 the tool itself could not run (no vendor, bad nav.json or docs.json, a block
+ * command that fails or prints no JSON). Plain PHP 8.3.
  */
 
 final class DocsSiteError extends RuntimeException {}
@@ -65,8 +73,19 @@ final class DocsSite
     /** @var list<string> */
     public array $findings = [];
 
+    /** @var list<string> stale generated blocks, as `docs/<path>.md (generated block "<name>" is out of date)` */
+    public array $staleBlocks = [];
+
     /** @var list<array{title: string, path: string}> the nav pages, in nav order */
     private array $order = [];
+
+    /** @var array<string, array<string, mixed>> the blocks from docs/docs.json, by name */
+    private array $blocks = [];
+
+    /** @var array<string, string>|null the rendered block content, by name, once computed */
+    private ?array $computed = null;
+
+    private bool $writeBlocks = false;
 
     public function __construct(string $root)
     {
@@ -77,6 +96,13 @@ final class DocsSite
         $this->docs = $this->root.'/docs';
         $this->siteDocs = $this->root.'/site/docs';
         $this->nav = $this->loadNav();
+        $this->loadBlocks();
+    }
+
+    /** A plain run rewrites stale block regions in the sources; --check never writes. */
+    public function setWriteBlocks(bool $write): void
+    {
+        $this->writeBlocks = $write;
     }
 
     public function rootDir(): string
@@ -92,11 +118,20 @@ final class DocsSite
     public function build(): array
     {
         $this->findings = [];
+        $this->staleBlocks = [];
         $sources = $this->sources();
         $order = $this->flattenNav();
         $this->order = $order;
         $this->checkNav($sources, $order);
         $this->checkSource();
+        $this->checkBlocks($sources);
+        $contents = [];
+        foreach ($sources as $path => $file) {
+            $contents[$path] = $this->normalise((string) file_get_contents($file));
+        }
+        if ($this->writeBlocks) {
+            $this->rewriteBlocks($sources, $contents);
+        }
         $stamp = $this->versionStamp();
         $project = $this->projectTitle();
         $this->checkWayneUi();
@@ -104,7 +139,7 @@ final class DocsSite
 
         $files = [];
         foreach ($sources as $path => $file) {
-            $files['site/docs/'.$path.'.html'] = $this->renderPage($path, $file, $sources, $stamp, $project);
+            $files['site/docs/'.$path.'.html'] = $this->renderPage($path, $contents[$path], $sources, $stamp, $project);
         }
         ksort($files);
 
@@ -314,12 +349,346 @@ final class DocsSite
         }
     }
 
+    /** The optional docs/docs.json defines the generated blocks, by name. */
+    private function loadBlocks(): void
+    {
+        $path = $this->docs.'/docs.json';
+        if (! is_file($path)) {
+            return;
+        }
+        $data = json_decode((string) file_get_contents($path), true);
+        if (! is_array($data) || ! isset($data['blocks']) || ! is_array($data['blocks'])) {
+            throw new DocsSiteError("{$path} needs a \"blocks\" object.");
+        }
+        foreach ($data['blocks'] as $name => $block) {
+            $name = (string) $name;
+            if ($name === '' || ! is_array($block) || ! isset($block['type']) || ! is_string($block['type'])) {
+                throw new DocsSiteError("{$path} lists a block that is not an object with a type.");
+            }
+            $this->blocks[$name] = $block;
+        }
+    }
+
+    /**
+     * Findings for the block wiring, then the staleness of every placed region.
+     *
+     * @param  array<string, string>  $sources
+     */
+    private function checkBlocks(array $sources): void
+    {
+        $markers = $this->blockMarkers($sources);
+        $placed = [];
+        foreach ($markers as $marker) {
+            $placed[$marker['name']][] = $marker;
+        }
+        foreach ($placed as $name => $list) {
+            if (! isset($this->blocks[$name])) {
+                $this->findings[] = "docs/{$list[0]['path']}.md places a generated block \"{$name}\" that docs.json does not define.";
+
+                continue;
+            }
+            if (count($list) > 1) {
+                $where = [];
+                foreach ($list as $marker) {
+                    $where[] = 'docs/'.$marker['path'].'.md';
+                }
+                $this->findings[] = 'generated block "'.$name.'" is placed more than once: '.implode(', ', $where).'.';
+            }
+        }
+        foreach (array_keys($this->blocks) as $name) {
+            if (! isset($placed[$name])) {
+                $this->findings[] = "docs.json defines a generated block \"{$name}\" that no page places.";
+            }
+        }
+        $computed = $this->computeBlocks(array_keys($placed));
+        $this->computed = $computed;
+        foreach ($markers as $marker) {
+            $name = $marker['name'];
+            if (count($placed[$name]) !== 1 || ! array_key_exists($name, $computed)) {
+                continue;
+            }
+            if ($marker['content'] !== $computed[$name]) {
+                $this->staleBlocks[] = "docs/{$marker['path']}.md (generated block \"{$name}\" is out of date)";
+            }
+        }
+    }
+
+    /**
+     * Every closed block region in every source, with its current content. An opening marker with no closing
+     * marker is a finding here, so it is recorded exactly once.
+     *
+     * @param  array<string, string>  $sources
+     * @return list<array{path: string, name: string, start: int, end: int, content: string}>
+     */
+    private function blockMarkers(array $sources): array
+    {
+        $markers = [];
+        foreach ($sources as $path => $file) {
+            $raw = $this->normalise((string) file_get_contents($file));
+            foreach ($this->blockRegions($raw) as $region) {
+                if (! $region['closed']) {
+                    $this->findings[] = "docs/{$path}.md opens a generated block \"{$region['name']}\" without a closing marker.";
+
+                    continue;
+                }
+                $markers[] = [
+                    'path' => $path,
+                    'name' => $region['name'],
+                    'start' => $region['start'],
+                    'end' => $region['end'],
+                    'content' => substr($raw, $region['start'], $region['end'] - $region['start']),
+                ];
+            }
+        }
+
+        return $markers;
+    }
+
+    /**
+     * The block markers in one source, in order. A closed region carries the byte offsets of the content between
+     * the markers; an opening marker with no closing marker carries closed = false and ends the scan.
+     *
+     * @return list<array{name: string, closed: bool, start: int, end: int}>
+     */
+    private function blockRegions(string $raw): array
+    {
+        $regions = [];
+        $lines = explode("\n", $raw);
+        $starts = [];
+        $offset = 0;
+        foreach ($lines as $i => $line) {
+            $starts[$i] = $offset;
+            $offset += strlen($line) + 1;
+        }
+        $count = count($lines);
+        for ($i = 0; $i < $count; $i++) {
+            if (preg_match('/^\s*<!--\s+generated:([A-Za-z0-9_-]+)\s+-->\s*$/', $lines[$i], $open) !== 1) {
+                continue;
+            }
+            $name = $open[1];
+            $close = null;
+            for ($j = $i + 1; $j < $count; $j++) {
+                if (preg_match('/^\s*<!--\s+\/generated\s+-->\s*$/', $lines[$j]) === 1) {
+                    $close = $j;
+
+                    break;
+                }
+            }
+            if ($close === null) {
+                $regions[] = ['name' => $name, 'closed' => false, 'start' => 0, 'end' => 0];
+
+                return $regions;
+            }
+            $regions[] = [
+                'name' => $name,
+                'closed' => true,
+                'start' => $starts[$i] + strlen($lines[$i]) + 1,
+                'end' => $starts[$close],
+            ];
+            $i = $close;
+        }
+
+        return $regions;
+    }
+
+    /**
+     * The rendered content of the given blocks, by name; absent for a type that is not implemented yet.
+     * A failed command stops the build.
+     *
+     * @param  list<string>  $names
+     * @return array<string, string>
+     */
+    private function computeBlocks(array $names): array
+    {
+        $out = [];
+        foreach ($names as $name) {
+            if (! isset($this->blocks[$name])) {
+                continue;
+            }
+            $block = $this->blocks[$name];
+            $type = (string) $block['type'];
+            if ($type !== 'json-table') {
+                $line = "block type {$type} is not implemented";
+                if (! in_array($line, $this->findings, true)) {
+                    $this->findings[] = $line;
+                }
+
+                continue;
+            }
+            $out[$name] = $this->renderJsonTable($name, $block);
+        }
+
+        return $out;
+    }
+
+    /**
+     * Rewrites every stale block region in the sources, writing a file only when its content changed.
+     *
+     * @param  array<string, string>  $sources
+     * @param  array<string, string>  $contents
+     */
+    private function rewriteBlocks(array $sources, array &$contents): void
+    {
+        $computed = $this->computed;
+        if ($computed === null) {
+            return;
+        }
+        foreach ($sources as $path => $file) {
+            $raw = $contents[$path];
+            $new = $raw;
+            foreach (array_reverse($this->blockRegions($raw)) as $region) {
+                if (! $region['closed'] || ! array_key_exists($region['name'], $computed)) {
+                    continue;
+                }
+                $new = substr($new, 0, $region['start']).$computed[$region['name']].substr($new, $region['end']);
+            }
+            if ($new === $raw) {
+                continue;
+            }
+            if (file_put_contents($file, $new) === false) {
+                throw new DocsSiteError("Cannot write {$file}.");
+            }
+            $contents[$path] = $new;
+            fwrite(STDOUT, "updated docs/{$path}.md\n");
+        }
+    }
+
+    /**
+     * Runs the block's command, takes the list at its dotted path and renders it as a Markdown table.
+     *
+     * @param  array<string, mixed>  $block
+     */
+    private function renderJsonTable(string $name, array $block): string
+    {
+        $run = $block['run'] ?? null;
+        if (! is_string($run) || trim($run) === '') {
+            throw new DocsSiteError("docs.json block \"{$name}\" needs a run command.");
+        }
+        $data = $this->runBlockCommand($name, $run);
+        $path = is_string($block['path'] ?? null) ? $block['path'] : '';
+        $rows = $this->pathValue($data, $path);
+        if (! is_array($rows) || ! array_is_list($rows)) {
+            throw new DocsSiteError("docs.json block \"{$name}\": the path \"{$path}\" did not reach a list.");
+        }
+        $columns = $block['columns'] ?? null;
+        if (! is_array($columns) || $columns === []) {
+            throw new DocsSiteError("docs.json block \"{$name}\" needs a columns list.");
+        }
+        $head = [];
+        $keys = [];
+        foreach ($columns as $column) {
+            if (! is_array($column) || count($column) < 2 || ! is_string($column[0]) || ! is_string($column[1])) {
+                throw new DocsSiteError("docs.json block \"{$name}\": each column is [heading, key, optional \"code\"].");
+            }
+            $head[] = $this->cellText($column[0]);
+            $keys[] = [$column[1], isset($column[2]) && $column[2] === 'code'];
+        }
+        $lines = ['| '.implode(' | ', $head).' |', '| '.implode(' | ', array_fill(0, count($head), '---')).' |'];
+        foreach ($rows as $row) {
+            $cells = [];
+            foreach ($keys as $key) {
+                $value = is_array($row) ? ($row[$key[0]] ?? null) : null;
+                $text = $this->cellText($value);
+                $cells[] = $key[1] && $text !== '' ? '`'.$text.'`' : $text;
+            }
+            $lines[] = '| '.implode(' | ', $cells).' |';
+        }
+
+        return implode("\n", $lines)."\n";
+    }
+
+    /** A cell's text: booleans print yes or no, lists print comma separated, pipes are escaped, newlines collapse to spaces. */
+    private function cellText(mixed $value): string
+    {
+        if ($value === null) {
+            return '';
+        }
+        if (is_bool($value)) {
+            return $value ? 'yes' : 'no';
+        }
+        if (is_array($value)) {
+            $parts = [];
+            foreach ($value as $item) {
+                $parts[] = $this->cellText($item);
+            }
+
+            return implode(', ', $parts);
+        }
+        if (is_int($value) || is_float($value)) {
+            return (string) $value;
+        }
+        if (! is_string($value)) {
+            return '';
+        }
+        $value = str_replace(["\r\n", "\r"], "\n", $value);
+        $value = (string) preg_replace('/\s*\n+\s*/', ' ', $value);
+
+        return str_replace('|', '\|', trim($value));
+    }
+
+    /**
+     * The value at a dotted path inside decoded JSON, or null when the path does not reach.
+     *
+     * @param  array<mixed>  $data
+     */
+    private function pathValue(array $data, string $path): mixed
+    {
+        if ($path === '') {
+            return $data;
+        }
+        $value = $data;
+        foreach (explode('.', $path) as $segment) {
+            if (! is_array($value) || ! array_key_exists($segment, $value)) {
+                return null;
+            }
+            $value = $value[$segment];
+        }
+
+        return $value;
+    }
+
+    /**
+     * Runs a block's command from the repo root and returns its stdout as decoded JSON. A leading "php " runs
+     * PHP_BINARY, so the same docs.json works on Windows, macOS and Linux.
+     *
+     * @return array<mixed>
+     */
+    private function runBlockCommand(string $name, string $command): array
+    {
+        $argv = preg_split('/\s+/', trim($command)) ?: [];
+        if ($argv === []) {
+            throw new DocsSiteError("docs.json block \"{$name}\" has an empty run command.");
+        }
+        if ($argv[0] === 'php') {
+            $argv = array_merge([PHP_BINARY], array_slice($argv, 1));
+        }
+        $process = proc_open($argv, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, $this->root);
+        if (! is_resource($process)) {
+            throw new DocsSiteError("Could not run the command for docs.json block \"{$name}\": {$command}");
+        }
+        $stdout = (string) stream_get_contents($pipes[1]);
+        $stderr = (string) stream_get_contents($pipes[2]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        $code = proc_close($process);
+        if ($code !== 0) {
+            $detail = trim($stderr);
+            $more = $detail === '' ? '' : ' '.$detail;
+            throw new DocsSiteError("The command for docs.json block \"{$name}\" ({$command}) exited with code {$code}.".$more);
+        }
+        $data = json_decode($stdout, true);
+        if (! is_array($data)) {
+            throw new DocsSiteError("The command for docs.json block \"{$name}\" ({$command}) did not print JSON.");
+        }
+
+        return $data;
+    }
+
     /**
      * @param  array<string, string>  $sources
      */
-    private function renderPage(string $path, string $file, array $sources, string $stamp, string $project): string
+    private function renderPage(string $path, string $raw, array $sources, string $stamp, string $project): string
     {
-        $raw = $this->normalise((string) file_get_contents($file));
         [$meta, $body] = $this->frontMatter($raw);
         $folder = dirname($path) === '.' ? '' : (string) dirname($path);
 
@@ -800,6 +1169,7 @@ function docs_site_main(array $argv): int
         $root = rtrim($root, '/\\');
         docs_site_require_commonmark($root);
         $tool = new DocsSite($root);
+        $tool->setWriteBlocks(! $check);
         $files = $tool->build();
         $leftovers = $tool->leftovers($files);
         $drift = [];
@@ -834,13 +1204,19 @@ function docs_site_main(array $argv): int
         foreach ($drift as $line) {
             fwrite(STDERR, "stale: {$line}\n");
         }
+        if ($check) {
+            foreach ($tool->staleBlocks as $line) {
+                fwrite(STDERR, "stale: {$line}\n");
+            }
+        }
         foreach ($tool->findings as $line) {
             fwrite(STDERR, "finding: {$line}\n");
         }
-        if ($drift !== []) {
+        $stale = $check ? $tool->staleBlocks : [];
+        if ($drift !== [] || $stale !== []) {
             fwrite(STDERR, "The docs site is stale. Run php bin/docs-site.php and commit site/docs/.\n");
         }
-        if ($drift !== [] || $tool->findings !== []) {
+        if ($drift !== [] || $stale !== [] || $tool->findings !== []) {
             return 1;
         }
         fwrite(STDOUT, ($check ? 'Docs site is current: ' : 'Docs site written: ').count($files)." page(s).\n");

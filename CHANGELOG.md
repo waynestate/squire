@@ -28,6 +28,7 @@ Versioning once 1.0 is out.
 - Added: bin/docs-site.php, the shared docs builder, with the kit's docs.css and docs.js; it turns docs/ into a committed, WayneUI-styled site/docs/ and fails CI when the pages are stale or a finding is present.
 - Changed: docs and package metadata name nougat as the canonical repository, with git.wayne.edu and GitHub as read-only mirrors, until git.wayne.edu has CI runners.
 - Added: the docs builder renders a Source link in the header and footer, with a Mirrors list beside it, from the optional `source` and `mirrors` keys in docs/nav.json; a source or mirror URL that is not https is a finding.
+- Added: the docs builder's generated blocks: docs/docs.json defines blocks that own marked regions in docs/**/*.md, the json-table type renders a Markdown table from a command's JSON output, and --check reports a stale block instead of writing.
 
 ## 0.4.0 (2026-11-01)
 

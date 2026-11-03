@@ -212,6 +212,39 @@ builds with `php bin/docs-site.php` (or `composer docs`) and commits `site/docs/
 `composer docs:check`) in CI to fail when a page is stale or a finding is present. A squire keeps the map current, so the
 knight never asks for directions twice.
 
+### Generated blocks
+
+A page may hold a region the builder owns, marked in the Markdown source:
+
+```
+<!-- generated:commands -->
+...whatever the builder wrote last time...
+<!-- /generated -->
+```
+
+`docs/docs.json` defines the blocks by name. Each block runs a command from the repo root (a leading `php ` means the
+PHP binary, so the same file works on Windows, macOS and Linux) and rewrites its region from the command's JSON output:
+
+```json
+{
+    "blocks": {
+        "hops": {
+            "type": "json-table",
+            "run": "php bin/booster hops --format=json",
+            "path": "hops",
+            "columns": [["Hop", "id", "code"], ["What it does", "summary"]]
+        }
+    }
+}
+```
+
+The `json-table` type renders a Markdown table: each column is `[heading, key]` or `[heading, key, "code"]` for a code
+span, a missing key gives an empty cell, booleans print `yes` or `no`, lists print comma separated, and pipes in a cell
+are escaped. `symfony-commands` and `env` are recognized names for a later release; using one is a finding. A plain run
+rewrites stale regions in the sources and then builds; `--check` reports a stale region instead of writing. A region
+whose name is not in `docs.json`, a block no page places, a block placed twice, and an opening marker with no closing
+marker are findings.
+
 ## Use Squire from your coding agent (ADVISOR)
 
 Squire ships an [ADVISOR](https://github.com/waynestate/advisor) module, so a coding agent that runs ADVISOR can run
