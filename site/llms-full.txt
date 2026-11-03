@@ -207,7 +207,8 @@ variables the code reads.
 
 The `json-table` type runs its `run` command, takes the list at its `path` key from the JSON output, and renders a
 Markdown table: each column is `[heading, key]` or `[heading, key, "code"]` for a code span, a missing key gives an
-empty cell, booleans print `yes` or `no`, lists print comma separated, and pipes in a cell are escaped.
+empty cell, booleans print `yes` or `no`, lists print comma separated, Symfony console style tags are stripped so a
+help cell reads plain, and pipes in a cell are escaped.
 
 ```json
 {
