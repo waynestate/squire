@@ -436,7 +436,7 @@ final class DocsExamples
                 $expected[] = $lines[$k];
             }
         }
-        $actual = [];
+        $raw = '';
         $findings = [];
         $failed = false;
         foreach ($commands as $command) {
@@ -453,16 +453,14 @@ final class DocsExamples
 
                 break;
             }
-            foreach (explode("\n", $result['stdout']) as $line) {
-                $actual[] = $line;
+            if ($result['stdout'] !== '' && ! str_ends_with($result['stdout'], "\n")) {
+                $raw .= "\n";
             }
-            foreach (explode("\n", $result['stderr']) as $line) {
-                $actual[] = $line;
-            }
+            $raw .= $result['stdout'].$result['stderr'];
         }
         if (! $failed) {
             $want = $this->normaliseOutput(implode("\n", $expected), $workDir);
-            $got = $this->normaliseOutput(implode("\n", $actual), $workDir);
+            $got = $this->normaliseOutput($raw, $workDir);
             if ($want !== $got) {
                 $findings[] = "docs/{$path}.md:{$fence['line']} output differs";
                 foreach ($this->diffLines(explode("\n", $want), explode("\n", $got)) as $line) {
@@ -592,9 +590,8 @@ final class DocsExamples
         if ($timedOut) {
             proc_terminate($process);
         }
+        // proc_close closes the pipes itself and waits for the command to finish.
         $code = proc_close($process);
-        fclose($pipes[1]);
-        fclose($pipes[2]);
 
         return ['code' => $code, 'stdout' => $stdout, 'stderr' => $stderr, 'timedOut' => $timedOut];
     }
@@ -606,7 +603,7 @@ final class DocsExamples
      */
     private function environment(): array
     {
-        $env = getcurrentenv(true);
+        $env = getenv() ?: [];
         foreach ($this->env as $key => $value) {
             $env[$key] = $value;
         }
@@ -724,7 +721,10 @@ final class DocsExamples
         }
     }
 
-    /** Removes a directory tree; a missing directory is fine. */
+    /**
+     * Removes a directory tree; a missing directory is fine. A timed-out command may still hold a file or the
+     * directory open, so failures are ignored: the leftovers expire when that command exits.
+     */
     private static function removeDir(string $dir): void
     {
         if (! is_dir($dir)) {
@@ -739,12 +739,12 @@ final class DocsExamples
                 continue;
             }
             if ($item->isDir()) {
-                rmdir($item->getPathname());
+                @rmdir($item->getPathname());
             } else {
-                unlink($item->getPathname());
+                @unlink($item->getPathname());
             }
         }
-        rmdir($dir);
+        @rmdir($dir);
     }
 
     /** @return list<string> the Markdown files under a folder, relative, sorted, dot and underscore files skipped */
