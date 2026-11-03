@@ -264,7 +264,12 @@ final class DocsExamples
         return $out;
     }
 
-    /** Replaces the content of every generated-block region with blank lines, keeping the line count and numbers. */
+    /**
+     * Replaces the content of every generated-block region with blank lines, keeping the line count and numbers.
+     *
+     * @param  list<string>  $lines
+     * @return list<string>
+     */
     private function blankGeneratedRegions(array $lines): array
     {
         $count = count($lines);
@@ -290,7 +295,7 @@ final class DocsExamples
             $i = $close === -1 ? $count : $close + 1;
         }
 
-        return $lines;
+        return array_values($lines);
     }
 
     /**

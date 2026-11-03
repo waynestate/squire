@@ -313,6 +313,31 @@ closing marker are findings.
 - `--require-tag` fails when the repo's latest version tag does not match the stamp (a tag such as `v1.6.0` counts as
   `1.6.0`); the flag is off by default, so an untagged repo builds clean.
 
+### Tested examples
+
+`php bin/docs-site.php --examples` runs the tagged command examples in the docs and fails when reality drifts from
+what they promise. A fenced block whose info string is `bash run`, `sh run`, `console run` or `shell run`
+(optionally `exit=N`, default 0) is a command block: each non-empty line is a command (a leading `$ ` is stripped),
+run in order in a fresh temp copy of the `examples.cwd` folder; the next fenced block, when its info string is exactly
+`output`, is the expected output (stdout then stderr). Both sides are normalized before the comparison: CRLF to LF,
+trailing spaces trimmed per line, trailing blank lines removed, the example working directory and the repo root
+rewritten to the placeholders below, plus every regex rule in `examples.normalize`:
+
+```
+<cwd>
+<root>
+```
+
+Every shell block (bash, sh, shell, console, powershell or pwsh) must be tagged `run` or carry an HTML comment line
+reading `docs-test: skip REASON` directly before it; a block with neither, and a marker without a reason, are
+findings naming the file and line. Skips are counted and grouped by the words before the first comma, case-folded, in
+the one-line summary (`Examples: 7 run, 12 skipped (reasons: needs network 5, needs Docker 4)`), and `examples.maxSkips`
+in `docs/docs.json` caps them. The other keys of `examples` are optional: `cwd` names the repo folder copied into each
+example working directory, `alias` replaces a matching first word with another command (a leading `php ` means the
+PHP binary, a relative script path resolves against the repo root), `env` adds environment variables, and `timeout`
+caps each command in seconds (default 60). Generated-block regions are ignored, and a plain build and `--check`
+never run examples.
+
 ### JavaScript tests
 
 The kit's `docs.js` carries its own tests in `tests/js/` (node:test with jsdom, pinned exactly in `package.json` and
