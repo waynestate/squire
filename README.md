@@ -306,6 +306,12 @@ closing marker are findings.
 - Every image a page references (a Markdown image or an HTML `<img>`) must name a file under `docs/`, resolved against
   the source page's folder, and the build copies it byte for byte to the same relative path under `site/docs/` so the
   built page's relative src still resolves; a missing image is a finding, and unreferenced files are never copied.
+- Every page carries the version stamp as a `docs-version` meta tag and in the footer, so a reader sees which release
+  the docs describe.
+- A `composer.json` with a `version` field must agree with the stamp; a different version is a finding.
+- `--require-release` fails when `CHANGELOG.md` has no released heading yet, because the stamp would be `unreleased`.
+- `--require-tag` fails when the repo's latest version tag does not match the stamp (a tag such as `v1.6.0` counts as
+  `1.6.0`); the flag is off by default, so an untagged repo builds clean.
 
 ## Use Squire from your coding agent (ADVISOR)
 
