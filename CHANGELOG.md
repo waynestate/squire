@@ -18,6 +18,7 @@ Versioning once 1.0 is out.
 - Added: contract-parity-sh and contract-parity-pwsh CI jobs (GitHub) that bring the local parity stack up on the fallback image and check the proxy answers.
 - Docs: the contract suite gap on GitLab and the real image is recorded as an open question.
 - Fixed: the fallback base image builds when the host's uid or gid already exists in the image (GitHub runners use 1001).
+- Fixed: the front page shows the current version.
 
 ## 0.4.0 (2026-11-01)
 
