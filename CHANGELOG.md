@@ -9,6 +9,7 @@ Versioning once 1.0 is out.
 - Changed: the front-page deploy layer pins HELMET ^0.3, PROCTOR ^0.4 and CREED ^0.1 (lock: HELMET 0.3.0, PROCTOR 0.4.0, CREED 0.1.6).
 - Changed: CI pins Preflight 0.1.4 (GitLab component includes and the GitHub reusable workflow at its tag commit); the deploy layer sets minimum-stability to stable.
 - Added: the docs builder's link gate for the built pages: every content link must reach a built page, a file under site/, or an external address, a fragment must name a real heading on the page it points at, and a relative link to a file the site does not serve (for example ../README.md) is a finding.
+- Added: a GitHub release workflow (`.github/workflows/release.yml`) creates the release when a version tag arrives through the push mirror, using the CHANGELOG section for the notes and only the built-in `GITHUB_TOKEN`.
 
 ## 0.5.0 (2026-11-03)
 
