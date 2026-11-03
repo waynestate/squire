@@ -5,6 +5,8 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+## 0.5.0 (2026-11-03)
+
 - GitHub CI now pins the PREFLIGHT reusable workflow to the 0.1.3 tag instead of a commit SHA.
 - Added: an ADVISOR module (waynestate/advisor) with squire_doctor and squire_drift.
 - Added: squire doctor oracle runs the Oracle connection check on demand, reading ORACLE_* settings from the environment and .env.

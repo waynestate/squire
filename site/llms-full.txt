@@ -8,7 +8,7 @@ The README and the Markdown twin of every page, joined. The index is https://squ
 
 ## README
 
-Source: https://github.com/waynestate/squire/blob/HEAD/README.md
+Source: https://nougat.snu.gs/enterprise-apps/squire/blob/HEAD/README.md
 
 ## Squire
 
@@ -22,10 +22,16 @@ Squire is the Citadel kit: build.sh, the release script, the health check, and l
 
 > A knight never suits up alone. Your app shouldn't deploy alone either.
 
-Front page: [`site/index.html`](https://github.com/waynestate/squire/blob/HEAD/site/index.html), a static page you can serve from anywhere.
-On Citadel it is served by the raw-PHP deploy layer in [`deploy/`](https://github.com/waynestate/squire/blob/HEAD/deploy/): a Squire kit whose front controller serves `site/` behind HELMET's security headers. For local development, keep serving `site/` directly.
+Front page: [`site/index.html`](https://nougat.snu.gs/enterprise-apps/squire/blob/HEAD/site/index.html), a static page you can serve from anywhere.
+On Citadel it is served by the raw-PHP deploy layer in [`deploy/`](https://nougat.snu.gs/enterprise-apps/squire/blob/HEAD/deploy/): a Squire kit whose front controller serves `site/` behind HELMET's security headers. For local development, keep serving `site/` directly.
 
-Status: 0.4.0, tagged and on Packagist. This repository is published from Wayne State University's internal GitLab and mirrored to GitHub.
+Status: 0.5.0, tagged and on Packagist.
+
+### Where the code lives
+
+The canonical repository is on nougat: [enterprise-apps/squire](https://nougat.snu.gs/enterprise-apps/squire). git.wayne.edu and GitHub ([waynestate/squire](https://github.com/waynestate/squire)) are read-only mirrors of it.
+Open issues and merge requests on nougat, not on the mirrors.
+This moves to git.wayne.edu once it has CI runners. Your squire serves one banner, and it flies over nougat.
 
 ### What it does
 
@@ -37,7 +43,7 @@ Status: 0.4.0, tagged and on Packagist. This repository is published from Wayne 
   to the app.
 - `squire update` takes the new template versions for the files you never edited, and shows a diff for the ones you did.
   It never overwrites your edits, and it runs the same in CI and on a laptop.
-- `squire doctor` checks an app against the best practices a machine can decide ([BEST_PRACTICES.md](https://github.com/waynestate/squire/blob/HEAD/BEST_PRACTICES.md)).
+- `squire doctor` checks an app against the best practices a machine can decide ([BEST_PRACTICES.md](https://nougat.snu.gs/enterprise-apps/squire/blob/HEAD/BEST_PRACTICES.md)).
   The lock file, composer audit and MySQL 5.6 checks are owned by PROCTOR; `doctor` hands off to it (S50) instead of repeating them.
 - A local setup that runs your app on the Citadel PHP image, behind a proxy like Citadel's, with the same MySQL 5.6.
 - Squire's maintainers send platform improvement proposals to the platform team privately. Squire never touches a server.
@@ -170,6 +176,98 @@ A library package that carries the kit should keep it out of Composer downloads:
 ```
 
 so a `composer require` of the package never ships the kit. A squire packs what the knight will carry, and only that.
+
+### The docs builder
+
+`bin/docs-site.php` turns the Markdown under `docs/` into committed, accessible HTML pages under `site/docs/`: one page
+per file, in the order of `docs/nav.json`, with a sidebar, an "On this page" list, prev and next links, and the version
+stamped from the top of `CHANGELOG.md`. The optional `source` and `mirrors` keys in `docs/nav.json` render a Source link
+in the header and footer, with the mirrors beside it, so the canonical repo home is one config value, never a hard-coded
+URL. Pages are styled by WayneUI plus the kit's `docs.css` and `docs.js` in the site's
+`assets/` folder, so every stack repo reads the same way. Squire owns the kit, and a repo takes a new version from a
+Squire checkout with `php bin/docs-site.php --sync-to=`, which copies the kit and the tool itself. The repo then
+builds with `php bin/docs-site.php` (or `composer docs`) and commits `site/docs/`, and runs `--check` (or
+`composer docs:check`) in CI to fail when a page is stale or a finding is present. A squire keeps the map current, so the
+knight never asks for directions twice.
+
+#### Generated blocks
+
+A page may hold a region the builder owns, marked in the Markdown source:
+
+```
+
+...whatever the builder wrote last time...
+
+```
+
+`docs/docs.json` defines the blocks by name. Each block rewrites its region from the repo's own state: `json-table` and
+`symfony-commands` run a command from the repo root (a leading `php ` means the PHP binary, so the same file works on
+Windows, macOS and Linux) and render the command's JSON output, and `env` scans the source files for the environment
+variables the code reads.
+
+The `json-table` type runs its `run` command, takes the list at its `path` key from the JSON output, and renders a
+Markdown table: each column is `[heading, key]` or `[heading, key, "code"]` for a code span, a missing key gives an
+empty cell, booleans print `yes` or `no`, lists print comma separated, and pipes in a cell are escaped.
+
+```json
+{
+    "blocks": {
+        "hops": {
+            "type": "json-table",
+            "run": "php bin/booster hops --format=json",
+            "path": "hops",
+            "columns": [["Hop", "id", "code"], ["What it does", "summary"]]
+        }
+    }
+}
+```
+
+The `symfony-commands` type runs ` list --format=json` and renders the command reference: an overview table of
+command and description, then per command a heading at `level` (default 3), its description, one `Usage:` line per
+usage string, an Arguments table when it has arguments, and an Options table when it has options. An option prints its
+shortcut first (`-p`, `--path=VALUE`) and gets `=VALUE` only when it takes a value; its default prints in a code span,
+or stays empty when it is false. The built-in commands (`help`, `list`, `completion`, `_complete`) and hidden commands
+are skipped, and the application-level options (`--help`, `--quiet`, `--verbose`, `--version`, `--ansi`, `--no-ansi`,
+`--no-interaction`) are listed once, under "Options every command accepts".
+
+```json
+{
+    "blocks": {
+        "commands": {
+            "type": "symfony-commands",
+            "run": "php bin/console",
+            "cli": "bin/console",
+            "level": 3
+        }
+    }
+}
+```
+
+The `env` type walks the `scan` folders for quoted environment variable names that start with `prefix`, skips the
+names in `ignore` (an exact name, or a trailing `*` for a prefix), and renders one row per variable, sorted by name:
+its meaning and default from `describe` (a `[meaning, default]` pair) and the first file that reads it. A variable the
+code reads that `describe` does not list, and a variable `describe` lists that no scanned file reads, are findings.
+
+```json
+{
+    "blocks": {
+        "environment": {
+            "type": "env",
+            "scan": ["src", "config"],
+            "prefix": "APP_",
+            "ignore": ["APP_KEY"],
+            "describe": {
+                "APP_NAME": ["The app name", "Demo"],
+                "APP_ENV": ["The environment", "production"]
+            }
+        }
+    }
+}
+```
+
+A plain run rewrites stale regions in the sources and then builds; `--check` reports a stale region instead of writing.
+A region whose name is not in `docs.json`, a block no page places, a block placed twice, and an opening marker with no
+closing marker are findings.
 
 ### Use Squire from your coding agent (ADVISOR)
 
@@ -331,7 +429,7 @@ placeholders only.
 
 ### Development
 
-Maintainers: how to build, test and release this project, and where its data comes from, is in [MAINTAINING.md](https://github.com/waynestate/squire/blob/HEAD/MAINTAINING.md).
+Maintainers: how to build, test and release this project, and where its data comes from, is in [MAINTAINING.md](https://nougat.snu.gs/enterprise-apps/squire/blob/HEAD/MAINTAINING.md).
 
 ```
 composer install
@@ -353,9 +451,14 @@ The shell templates are linted with shellcheck in Docker (`scripts/lint-shell.sh
 Windows) and the PowerShell with PSScriptAnalyzer (`scripts/lint-powershell.ps1`). The tests run the real shell templates
 against stub `composer`, `curl`, `npm`, `corepack` and `proctor` programs, and start a PHP server to test `health.php`.
 
+The front page has its own accessibility gate: `scripts/a11y.sh` on Linux and macOS, `scripts\a11y.ps1` on Windows.
+It serves `site/`, opens it in a real Chromium (Playwright in Docker, so no host browser is needed) and runs
+axe-core against it with the WCAG 2.2 AA tag set, in light and dark mode at 360 px and 1280 px. It stays out of
+`composer ci` because CI has no browser; GitHub runs it as a separate `a11y` job.
+
 ### Known limits
 
-See [OPEN_QUESTIONS.md](https://github.com/waynestate/squire/blob/HEAD/OPEN_QUESTIONS.md). The big ones: the local `php.ini` holds safe defaults rather than the
+See [OPEN_QUESTIONS.md](https://nougat.snu.gs/enterprise-apps/squire/blob/HEAD/OPEN_QUESTIONS.md). The big ones: the local `php.ini` holds safe defaults rather than the
 platform's file, the Citadel image has no digest to pin, and a full Update may not refresh `vendor/`. PROCTOR can now
 gate a release with `SQUIRE_PROCTOR=enforce`; what is still missing on its side is a phar and a dedicated `gate` command.
 
@@ -614,7 +717,7 @@ Known limits
 
 ### Scuffs on the leather
 
-Squire 0.4.0 is tagged and on Packagist. Where we had to guess how Citadel behaves, `OPEN_QUESTIONS.md` lists each guess and the default it chose.
+Squire 0.5.0 is tagged and on Packagist. Where we had to guess how Citadel behaves, `OPEN_QUESTIONS.md` lists each guess and the default it chose.
 
 - The local `php.ini` holds the safe defaults HELMET also enforces at runtime, not the platform's file.
 - The Citadel image has no registry digest to pin yet; doctor warns under S67 until you run `pin`.
