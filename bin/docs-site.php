@@ -25,11 +25,12 @@ use League\CommonMark\Renderer\HtmlRenderer;
  * for directions.
  *
  * Generated blocks: a page may hold a region between `<!-- generated:NAME -->` and `<!-- /generated -->`
- * that the builder owns. docs/docs.json defines the blocks by name; each block runs a command (a leading
- * `php ` means PHP_BINARY, so the same file works on Windows, macOS and Linux) and rewrites its region from
- * the command's JSON. The json-table type renders a Markdown table; symfony-commands and env are recognized
- * names for a later release. A plain run rewrites stale regions in the sources and then builds; --check
- * reports a stale region instead of writing.
+ * that the builder owns. docs/docs.json defines the blocks by name and rewrites each placed region: json-table
+ * runs a command (a leading `php ` means PHP_BINARY, so the same file works on Windows, macOS and Linux) and
+ * renders the list at its path as a Markdown table; symfony-commands runs <run> list --format=json and renders
+ * the command reference; env scans the scan folders for the prefixed environment variable names the code reads.
+ * A plain run rewrites stale regions in the sources and then builds; --check reports a stale region instead of
+ * writing.
  *
  * Usage:
  *   php bin/docs-site.php [--root=.]                 write site/docs/ from docs/
@@ -61,6 +62,17 @@ final class DocsKit
 
 final class DocsSite
 {
+    /** @var array<string, true> the application-level options every Symfony command accepts, listed once, never per command */
+    private const APPLICATION_OPTIONS = [
+        '--help' => true,
+        '--quiet' => true,
+        '--verbose' => true,
+        '--version' => true,
+        '--ansi' => true,
+        '--no-ansi' => true,
+        '--no-interaction' => true,
+    ];
+
     private string $root;
 
     private string $docs;
@@ -507,15 +519,25 @@ final class DocsSite
             }
             $block = $this->blocks[$name];
             $type = (string) $block['type'];
-            if ($type !== 'json-table') {
-                $line = "block type {$type} is not implemented";
-                if (! in_array($line, $this->findings, true)) {
-                    $this->findings[] = $line;
-                }
+            if ($type === 'json-table') {
+                $out[$name] = $this->renderJsonTable($name, $block);
 
                 continue;
             }
-            $out[$name] = $this->renderJsonTable($name, $block);
+            if ($type === 'symfony-commands') {
+                $out[$name] = $this->renderSymfonyCommands($name, $block);
+
+                continue;
+            }
+            if ($type === 'env') {
+                $out[$name] = $this->renderEnv($name, $block);
+
+                continue;
+            }
+            $line = "block type {$type} is not implemented";
+            if (! in_array($line, $this->findings, true)) {
+                $this->findings[] = $line;
+            }
         }
 
         return $out;
@@ -595,6 +617,261 @@ final class DocsSite
         }
 
         return implode("\n", $lines)."\n";
+    }
+
+    /**
+     * The symfony-commands type: runs <run> list --format=json and renders the command reference: an overview
+     * table, then per command a heading, its description, its usage lines, and its argument and option tables.
+     *
+     * @param  array<string, mixed>  $block
+     */
+    private function renderSymfonyCommands(string $name, array $block): string
+    {
+        $run = $block['run'] ?? null;
+        if (! is_string($run) || trim($run) === '') {
+            throw new DocsSiteError("docs.json block \"{$name}\" needs a run command.");
+        }
+        $cli = $block['cli'] ?? null;
+        if (! is_string($cli) || trim($cli) === '') {
+            throw new DocsSiteError("docs.json block \"{$name}\" needs a cli name for the code spans.");
+        }
+        $level = $block['level'] ?? 3;
+        if (! is_int($level) || $level < 1 || $level > 6) {
+            throw new DocsSiteError("docs.json block \"{$name}\": level must be an integer from 1 to 6.");
+        }
+        $data = $this->runBlockCommand($name, trim($run).' list --format=json');
+        $commands = $data['commands'] ?? null;
+        if (! is_array($commands) || ! array_is_list($commands)) {
+            throw new DocsSiteError("docs.json block \"{$name}\": the command output needs a commands list.");
+        }
+        $kept = [];
+        foreach ($commands as $command) {
+            if (! is_array($command) || ! isset($command['name']) || ! is_string($command['name'])) {
+                continue;
+            }
+            if (in_array($command['name'], ['help', 'list', 'completion', '_complete'], true) || (bool) ($command['hidden'] ?? false)) {
+                continue;
+            }
+            $kept[] = $command;
+        }
+        $hash = str_repeat('#', $level);
+        $lines = ['| Command | What it does |', '| --- | --- |'];
+        foreach ($kept as $command) {
+            $lines[] = '| `'.$cli.' '.$command['name'].'` | '.$this->cellText($command['description'] ?? '').' |';
+        }
+        $appOptions = [];
+        foreach ($kept as $command) {
+            $lines[] = '';
+            $lines[] = $hash.' `'.$cli.' '.$command['name'].'`';
+            $description = $this->cellText($command['description'] ?? '');
+            if ($description !== '') {
+                $lines[] = '';
+                $lines[] = $description;
+            }
+            $usage = $command['usage'] ?? [];
+            if (is_array($usage)) {
+                foreach ($usage as $entry) {
+                    if (! is_string($entry) || trim($entry) === '') {
+                        continue;
+                    }
+                    $lines[] = '';
+                    $lines[] = 'Usage: `'.$cli.' '.$entry.'`';
+                }
+            }
+            $definition = $command['definition'] ?? [];
+            if (! is_array($definition)) {
+                $definition = [];
+            }
+            $arguments = $definition['arguments'] ?? [];
+            if (is_array($arguments) && $arguments !== []) {
+                $lines[] = '';
+                $lines[] = '| Argument | Required | Meaning |';
+                $lines[] = '| --- | --- | --- |';
+                foreach ($arguments as $key => $argument) {
+                    if (! is_array($argument)) {
+                        continue;
+                    }
+                    $argName = is_string($argument['name'] ?? null) && $argument['name'] !== '' ? $argument['name'] : (string) $key;
+                    $required = ($argument['is_required'] ?? false) === true ? 'yes' : 'no';
+                    $lines[] = '| `'.$argName.'` | '.$required.' | '.$this->cellText($argument['description'] ?? '').' |';
+                }
+            }
+            $options = $definition['options'] ?? [];
+            if (is_array($options)) {
+                $rows = [];
+                foreach ($options as $key => $option) {
+                    if (! is_array($option)) {
+                        continue;
+                    }
+                    $optName = is_string($option['name'] ?? null) && $option['name'] !== '' ? $option['name'] : (string) $key;
+                    if (isset(self::APPLICATION_OPTIONS[$optName])) {
+                        $appOptions[$optName] ??= $option;
+
+                        continue;
+                    }
+                    $rows[] = '| '.$this->optionCell($option, $optName).' | '.$this->cellText($option['description'] ?? '').' | '.$this->defaultCell($option['default'] ?? null).' |';
+                }
+                if ($rows !== []) {
+                    $lines[] = '';
+                    $lines[] = '| Option | Meaning | Default |';
+                    $lines[] = '| --- | --- | --- |';
+                    foreach ($rows as $row) {
+                        $lines[] = $row;
+                    }
+                }
+            }
+        }
+        if ($appOptions !== []) {
+            $lines[] = '';
+            $lines[] = $hash.' Options every command accepts';
+            $lines[] = '';
+            $lines[] = '| Option | Meaning | Default |';
+            $lines[] = '| --- | --- | --- |';
+            foreach ($appOptions as $option) {
+                $optName = is_string($option['name'] ?? null) && $option['name'] !== '' ? $option['name'] : '';
+                $lines[] = '| '.$this->optionCell($option, $optName).' | '.$this->cellText($option['description'] ?? '').' | '.$this->defaultCell($option['default'] ?? null).' |';
+            }
+        }
+
+        return implode("\n", $lines)."\n";
+    }
+
+    /**
+     * The option cell: the shortcut first when there is one, then the name, with =VALUE when the option takes a value.
+     *
+     * @param  array<string, mixed>  $option
+     */
+    private function optionCell(array $option, string $name): string
+    {
+        $label = ($option['accept_value'] ?? false) === true ? $name.'=VALUE' : $name;
+        $shortcut = $option['shortcut'] ?? null;
+        if (is_string($shortcut) && $shortcut !== '') {
+            return '`'.$shortcut.'`, `'.$label.'`';
+        }
+
+        return '`'.$label.'`';
+    }
+
+    /** The default cell: the default in a code span, or empty when null or false. */
+    private function defaultCell(mixed $default): string
+    {
+        if ($default === null || $default === false) {
+            return '';
+        }
+        $text = is_bool($default) ? 'true' : $this->cellText($default);
+
+        return $text === '' ? '' : '`'.$text.'`';
+    }
+
+    /**
+     * The env type: scans the scan folders for quoted environment variable names that start with prefix and
+     * renders them sorted by name, with the meaning and default from describe and the first file that reads them.
+     *
+     * @param  array<string, mixed>  $block
+     */
+    private function renderEnv(string $name, array $block): string
+    {
+        $scan = $block['scan'] ?? null;
+        if (! is_array($scan) || $scan === [] || ! array_is_list($scan)) {
+            throw new DocsSiteError("docs.json block \"{$name}\" needs a scan list of folders.");
+        }
+        $prefix = $block['prefix'] ?? null;
+        if (! is_string($prefix) || $prefix === '') {
+            throw new DocsSiteError("docs.json block \"{$name}\" needs a prefix.");
+        }
+        $ignore = $block['ignore'] ?? [];
+        if (! is_array($ignore)) {
+            throw new DocsSiteError("docs.json block \"{$name}\": ignore must be a list of names.");
+        }
+        $ignoreList = [];
+        foreach ($ignore as $entry) {
+            $ignoreList[] = $entry;
+        }
+        $describe = $block['describe'] ?? [];
+        if (! is_array($describe)) {
+            throw new DocsSiteError("docs.json block \"{$name}\": describe must be an object of [meaning, default].");
+        }
+        $described = [];
+        foreach ($describe as $variable => $entry) {
+            if (! is_string($variable) || ! is_array($entry)) {
+                throw new DocsSiteError("docs.json block \"{$name}\": describe must be an object of [meaning, default].");
+            }
+            $described[$variable] = [$entry[0] ?? null, $entry[1] ?? null];
+        }
+        $files = [];
+        foreach ($scan as $folder) {
+            if (! is_string($folder) || trim($folder) === '') {
+                throw new DocsSiteError("docs.json block \"{$name}\": each scan folder must be a path.");
+            }
+            $folder = rtrim($folder, '/\\');
+            if (! is_dir($this->root.'/'.$folder)) {
+                $this->findings[] = "env block \"{$name}\": the scan folder {$folder} does not exist.";
+
+                continue;
+            }
+            foreach ($this->walk($this->root.'/'.$folder, 'php') as $relative) {
+                $files[$folder.'/'.$relative] = true;
+            }
+        }
+        ksort($files);
+        $found = [];
+        foreach (array_keys($files) as $file) {
+            $source = (string) file_get_contents($this->root.'/'.$file);
+            $matches = [];
+            if (preg_match_all('/[\'"]([A-Z][A-Z0-9_]*)[\'"]/', $source, $matches) === false) {
+                continue;
+            }
+            foreach ($matches[1] as $variable) {
+                if (! str_starts_with($variable, $prefix) || $this->envIgnored($variable, $ignoreList)) {
+                    continue;
+                }
+                $found[$variable] ??= $file;
+            }
+        }
+        ksort($found);
+        foreach ($found as $variable => $file) {
+            if (! array_key_exists($variable, $described)) {
+                $this->findings[] = "env block \"{$name}\": {$variable} is read in {$file} but has no describe entry.";
+            }
+        }
+        foreach (array_keys($described) as $variable) {
+            if (! isset($found[$variable])) {
+                $this->findings[] = "env block \"{$name}\": describe lists {$variable}, which no scanned file reads.";
+            }
+        }
+        $lines = ['| Variable | Meaning | Default | Read in |', '| --- | --- | --- | --- |'];
+        foreach ($found as $variable => $file) {
+            $entry = $described[$variable] ?? [null, null];
+            $lines[] = '| '.$this->cellText($variable).' | '.$this->cellText($entry[0]).' | '.$this->cellText($entry[1]).' | '.$this->cellText($file).' |';
+        }
+
+        return implode("\n", $lines)."\n";
+    }
+
+    /**
+     * Whether an env name matches the ignore list: an exact name, or a trailing * for a prefix.
+     *
+     * @param  list<mixed>  $ignore
+     */
+    private function envIgnored(string $name, array $ignore): bool
+    {
+        foreach ($ignore as $entry) {
+            if (! is_string($entry) || $entry === '') {
+                continue;
+            }
+            if (str_ends_with($entry, '*')) {
+                if (str_starts_with($name, substr($entry, 0, -1))) {
+                    return true;
+                }
+
+                continue;
+            }
+            if ($entry === $name) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /** A cell's text: booleans print yes or no, lists print comma separated, pipes are escaped, newlines collapse to spaces. */

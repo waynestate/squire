@@ -222,8 +222,14 @@ A page may hold a region the builder owns, marked in the Markdown source:
 <!-- /generated -->
 ```
 
-`docs/docs.json` defines the blocks by name. Each block runs a command from the repo root (a leading `php ` means the
-PHP binary, so the same file works on Windows, macOS and Linux) and rewrites its region from the command's JSON output:
+`docs/docs.json` defines the blocks by name. Each block rewrites its region from the repo's own state: `json-table` and
+`symfony-commands` run a command from the repo root (a leading `php ` means the PHP binary, so the same file works on
+Windows, macOS and Linux) and render the command's JSON output, and `env` scans the source files for the environment
+variables the code reads.
+
+The `json-table` type runs its `run` command, takes the list at its `path` key from the JSON output, and renders a
+Markdown table: each column is `[heading, key]` or `[heading, key, "code"]` for a code span, a missing key gives an
+empty cell, booleans print `yes` or `no`, lists print comma separated, and pipes in a cell are escaped.
 
 ```json
 {
@@ -238,12 +244,52 @@ PHP binary, so the same file works on Windows, macOS and Linux) and rewrites its
 }
 ```
 
-The `json-table` type renders a Markdown table: each column is `[heading, key]` or `[heading, key, "code"]` for a code
-span, a missing key gives an empty cell, booleans print `yes` or `no`, lists print comma separated, and pipes in a cell
-are escaped. `symfony-commands` and `env` are recognized names for a later release; using one is a finding. A plain run
-rewrites stale regions in the sources and then builds; `--check` reports a stale region instead of writing. A region
-whose name is not in `docs.json`, a block no page places, a block placed twice, and an opening marker with no closing
-marker are findings.
+The `symfony-commands` type runs `<run> list --format=json` and renders the command reference: an overview table of
+command and description, then per command a heading at `level` (default 3), its description, one `Usage:` line per
+usage string, an Arguments table when it has arguments, and an Options table when it has options. An option prints its
+shortcut first (`-p`, `--path=VALUE`) and gets `=VALUE` only when it takes a value; its default prints in a code span,
+or stays empty when it is false. The built-in commands (`help`, `list`, `completion`, `_complete`) and hidden commands
+are skipped, and the application-level options (`--help`, `--quiet`, `--verbose`, `--version`, `--ansi`, `--no-ansi`,
+`--no-interaction`) are listed once, under "Options every command accepts".
+
+```json
+{
+    "blocks": {
+        "commands": {
+            "type": "symfony-commands",
+            "run": "php bin/console",
+            "cli": "bin/console",
+            "level": 3
+        }
+    }
+}
+```
+
+The `env` type walks the `scan` folders for quoted environment variable names that start with `prefix`, skips the
+names in `ignore` (an exact name, or a trailing `*` for a prefix), and renders one row per variable, sorted by name:
+its meaning and default from `describe` (a `[meaning, default]` pair) and the first file that reads it. A variable the
+code reads that `describe` does not list, and a variable `describe` lists that no scanned file reads, are findings.
+
+```json
+{
+    "blocks": {
+        "environment": {
+            "type": "env",
+            "scan": ["src", "config"],
+            "prefix": "APP_",
+            "ignore": ["APP_KEY"],
+            "describe": {
+                "APP_NAME": ["The app name", "Demo"],
+                "APP_ENV": ["The environment", "production"]
+            }
+        }
+    }
+}
+```
+
+A plain run rewrites stale regions in the sources and then builds; `--check` reports a stale region instead of writing.
+A region whose name is not in `docs.json`, a block no page places, a block placed twice, and an opening marker with no
+closing marker are findings.
 
 ## Use Squire from your coding agent (ADVISOR)
 

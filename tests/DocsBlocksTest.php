@@ -283,9 +283,9 @@ final class DocsBlocksTest extends SquireTestCase
     {
         $dir = $this->repo();
         $this->blockPage($dir, 'commands', 'stale content.');
-        $this->docsJson($dir, ['commands' => ['type' => 'symfony-commands', 'run' => 'php bin/demo', 'cli' => 'demo', 'level' => 3]]);
+        $this->docsJson($dir, ['commands' => ['type' => 'bogus', 'run' => 'php bin/demo']]);
         $result = $this->invoke(['--root=' . $dir, '--check']);
         self::assertSame(1, $result['code']);
-        self::assertStringContainsString('finding: block type symfony-commands is not implemented', $result['stderr']);
+        self::assertStringContainsString('finding: block type bogus is not implemented', $result['stderr']);
     }
 }

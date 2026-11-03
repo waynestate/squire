@@ -29,6 +29,7 @@ Versioning once 1.0 is out.
 - Changed: docs and package metadata name nougat as the canonical repository, with git.wayne.edu and GitHub as read-only mirrors, until git.wayne.edu has CI runners.
 - Added: the docs builder renders a Source link in the header and footer, with a Mirrors list beside it, from the optional `source` and `mirrors` keys in docs/nav.json; a source or mirror URL that is not https is a finding.
 - Added: the docs builder's generated blocks: docs/docs.json defines blocks that own marked regions in docs/**/*.md, the json-table type renders a Markdown table from a command's JSON output, and --check reports a stale block instead of writing.
+- Added: the docs builder's symfony-commands block type runs <run> list --format=json and renders the command reference (overview table, per-command headings with usage, argument and option tables, application options listed once), and its env block type scans the scan folders for prefixed environment variable names and renders them with describe meanings and defaults; a read variable without a describe entry, or a described variable no scanned file reads, is a finding.
 
 ## 0.4.0 (2026-11-01)
 
