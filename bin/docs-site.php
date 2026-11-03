@@ -2154,7 +2154,7 @@ final class DocsSite
         return false;
     }
 
-    /** A cell's text: booleans print yes or no, lists print comma separated, pipes are escaped, newlines collapse to spaces. */
+    /** A cell's text: booleans print yes or no, lists print comma separated, Symfony console style tags are stripped, pipes are escaped, newlines collapse to spaces. */
     private function cellText(mixed $value): string
     {
         if ($value === null) {
@@ -2179,6 +2179,9 @@ final class DocsSite
         }
         $value = str_replace(["\r\n", "\r"], "\n", $value);
         $value = (string) preg_replace('/\s*\n+\s*/', ' ', $value);
+        // Symfony console style tags would otherwise reach the table as literal angle text, so strip them before
+        // escaping. Other angle text (for example a <path> placeholder) is left alone.
+        $value = (string) preg_replace('/<\/?(?:info|comment|error|question)>|<fg=[^>]*>|<\/>/', '', $value);
 
         return str_replace('|', '\|', trim($value));
     }
