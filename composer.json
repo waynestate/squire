@@ -3,7 +3,8 @@
     "description": "The Citadel kit: standard build.sh, release script and health check, and local parity on the Citadel images.",
     "homepage": "https://squire.apps.wayne.edu/",
     "support": {
-        "source": "https://github.com/waynestate/squire"
+        "source": "https://nougat.snu.gs/enterprise-apps/squire",
+        "issues": "https://nougat.snu.gs/enterprise-apps/squire/-/issues"
     },
     "type": "library",
     "license": "MIT",
