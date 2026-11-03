@@ -19,6 +19,8 @@ Versioning once 1.0 is out.
 - Docs: the contract suite gap on GitLab and the real image is recorded as an open question.
 - Fixed: the fallback base image builds when the host's uid or gid already exists in the image (GitHub runners use 1001).
 - Fixed: the front page shows the current version.
+- Fixed: the contract-image CI job installs PHP and the Composer dependencies before running scripts/contract-image.sh, so it no longer stops on the missing vendor/autoload.php.
+- Fixed: the PowerShell parity script passes the host's uid and gid to the fallback base image build (1000 on Windows, the current user's ids on Linux and macOS) instead of hard-coded 1000, so the app container starts when the bind-mounted source is owned by another user.
 
 ## 0.4.0 (2026-11-01)
 
