@@ -17,9 +17,9 @@ so a knight never deploys without it. A squire who forgets a buckle hears about 
 
 ## Where it lives
 
-Development happens on Wayne State's GitLab. This GitHub repository is a read-only release mirror: `main` and tags are
-copied here automatically, and changes, issues and merge requests go to GitLab first. Nobody pushes to GitHub
-directly.
+Development happens on nougat, the canonical repository (https://nougat.snu.gs/enterprise-apps/squire). This GitHub
+repository and git.wayne.edu are read-only mirrors of it: `main` and tags are copied automatically. Changes, issues
+and merge requests go to nougat. Nobody pushes to the mirrors.
 
 ## Build and test
 
@@ -128,7 +128,7 @@ amd64 image cannot be built there today. See OPEN_QUESTIONS.md, "Oracle images: 
    the two disagree.
 2. `composer ci` and both linters green locally, then both pipelines green for that commit.
 3. Run a secrets scan of the history and check that nothing internal (server names, people, IDs) is in the tree.
-4. Tag `X.Y.Z` (no `v`) on GitLab. The mirror carries the tag to GitHub, and Packagist picks it up from there.
+4. Tag `X.Y.Z` (no `v`) on nougat. The mirror carries the tag to GitHub, and Packagist picks it up from there.
 5. A release needs a maintainer's approval. Never move or delete a published tag.
 6. When Preflight releases, update both of this repo's pins: the component tag in `.gitlab-ci.yml` and the commit SHA
    in `.github/workflows/ci.yml`.

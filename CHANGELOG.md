@@ -25,6 +25,7 @@ Versioning once 1.0 is out.
 - Fixed: scripts/a11y.sh and scripts/a11y.ps1 create tools/a11y/node_modules on the host before docker run, so the named volume's mount point exists when the repo is mounted read-only.
 - Changed: the PROCTOR deploy job is blocking now.
 - Fixed: the contract-image job builds with the docker buildx driver so the app image finds the freshly built fallback base.
+- Changed: docs and package metadata name nougat as the canonical repository, with git.wayne.edu and GitHub as read-only mirrors, until git.wayne.edu has CI runners.
 
 ## 0.4.0 (2026-11-01)
 
