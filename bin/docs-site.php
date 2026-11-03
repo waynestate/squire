@@ -2313,8 +2313,9 @@ final class DocsSite
         $env->addExtension(new GithubFlavoredMarkdownExtension);
         // Callouts: a flagged blockquote renders as an aside with a label; every other blockquote keeps the core
         // markup byte for byte. Registered after the extensions, ahead of the core renderer's priority.
-        $env->addRenderer(BlockQuote::class, new class implements NodeRendererInterface {
-            /** @return \Stringable|string|null */
+        $env->addRenderer(BlockQuote::class, new class implements NodeRendererInterface
+        {
+            /** @return Stringable|string|null */
             public function render(Node $node, ChildNodeRendererInterface $childRenderer)
             {
                 if (! $node instanceof BlockQuote) {

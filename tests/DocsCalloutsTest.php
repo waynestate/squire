@@ -97,16 +97,16 @@ final class DocsCalloutsTest extends SquireTestCase
     {
         $dir = $this->repo();
         $content = "# Kinds\n\n"
-            ."> [!NOTE]\n> A note.\n\n"
-            ."> [!TIP]\n> A tip.\n\n"
-            ."> [!WARNING]\n> A warning.\n\n"
-            ."> [!DANGER]\n> A danger.\n\n"
-            ."> [!tIp]\n> Mixed case counts.\n";
+            . "> [!NOTE]\n> A note.\n\n"
+            . "> [!TIP]\n> A tip.\n\n"
+            . "> [!WARNING]\n> A warning.\n\n"
+            . "> [!DANGER]\n> A danger.\n\n"
+            . "> [!tIp]\n> Mixed case counts.\n";
         $this->guidePage($dir, 'guides/kinds', 'Kinds', $content);
         $html = $this->page($dir, 'guides/kinds');
         foreach (['note' => 'Note', 'tip' => 'Tip', 'warning' => 'Warning', 'danger' => 'Danger'] as $kind => $label) {
-            self::assertStringContainsString('<aside class="docs-callout docs-callout--'.$kind.'" role="note">', $html);
-            self::assertStringContainsString('<p class="docs-callout__label">'.$label.'</p>', $html);
+            self::assertStringContainsString('<aside class="docs-callout docs-callout--' . $kind . '" role="note">', $html);
+            self::assertStringContainsString('<p class="docs-callout__label">' . $label . '</p>', $html);
         }
         self::assertStringContainsString('<p>Mixed case counts.</p>', $html);
     }
@@ -125,8 +125,8 @@ final class DocsCalloutsTest extends SquireTestCase
     {
         $dir = $this->repo();
         $content = "# Marker\n\n"
-            ."> [!NOTE]\n> The body keeps the note.\n\n"
-            ."> [!TIP]\n>\n> The body starts below the marker.\n";
+            . "> [!NOTE]\n> The body keeps the note.\n\n"
+            . "> [!TIP]\n>\n> The body starts below the marker.\n";
         $this->guidePage($dir, 'guides/marker', 'Marker', $content);
         $html = $this->page($dir, 'guides/marker');
         self::assertStringNotContainsString('[!NOTE]', $html);
@@ -140,7 +140,7 @@ final class DocsCalloutsTest extends SquireTestCase
     {
         $dir = $this->repo();
         $content = "# Inline\n\n"
-            ."> [!WARNING]\n> Read the **bold** words, the `code` span and [the overview](../index.html).\n";
+            . "> [!WARNING]\n> Read the **bold** words, the `code` span and [the overview](../index.html).\n";
         $this->guidePage($dir, 'guides/inline', 'Inline', $content);
         $html = $this->page($dir, 'guides/inline');
         self::assertStringContainsString('<strong>bold</strong>', $html);
@@ -152,8 +152,8 @@ final class DocsCalloutsTest extends SquireTestCase
     {
         $dir = $this->repo();
         $content = "# Unknown\n\n"
-            ."> [!INFO]\n> Not a real kind.\n\n"
-            ."> [!NOTE extra]\n> Not a marker line.\n";
+            . "> [!INFO]\n> Not a real kind.\n\n"
+            . "> [!NOTE extra]\n> Not a marker line.\n";
         $this->guidePage($dir, 'guides/unknown', 'Unknown', $content);
         $html = $this->page($dir, 'guides/unknown');
         self::assertStringContainsString('<blockquote>', $html);
