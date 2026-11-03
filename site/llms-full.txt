@@ -359,6 +359,9 @@ See [OPEN_QUESTIONS.md](https://github.com/waynestate/squire/blob/HEAD/OPEN_QUES
 platform's file, the Citadel image has no digest to pin, and a full Update may not refresh `vendor/`. PROCTOR can now
 gate a release with `SQUIRE_PROCTOR=enforce`; what is still missing on its side is a phar and a dedicated `gate` command.
 
+- The release script is contract-tested inside the fallback image on GitHub, not yet on the real image (OPEN_QUESTIONS
+  19, "Contract suite on the real image and on GitLab").
+
 ### License
 
 MIT, copyright Wayne State University. A squire carries the armor; the knight still has to show up.
@@ -611,7 +614,7 @@ Known limits
 
 ### Scuffs on the leather
 
-Squire 0.3.3 is tagged and on Packagist. Where we had to guess how Citadel behaves, `OPEN_QUESTIONS.md` lists each guess and the default it chose.
+Squire 0.4.0 is tagged and on Packagist. Where we had to guess how Citadel behaves, `OPEN_QUESTIONS.md` lists each guess and the default it chose.
 
 - The local `php.ini` holds the safe defaults HELMET also enforces at runtime, not the platform's file.
 - The Citadel image has no registry digest to pin yet; doctor warns under S67 until you run `pin`.
