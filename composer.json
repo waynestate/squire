@@ -40,18 +40,23 @@
         "fix": "pint",
         "analyse": "phpstan analyse --memory-limit=1G",
         "a11y": "echo \"Front page accessibility gate: run scripts/a11y.sh (Linux, macOS) or scripts/a11y.ps1 (Windows). It stays out of composer ci because CI has no browser.\"",
+        "docs": "php bin/docs-site.php",
+        "docs:check": "php bin/docs-site.php --check",
         "ci": [
             "@composer validate --strict",
             "phpunit",
             "pint --test",
             "vendor/bin/pint --preset laravel --test bin/agent-ready.php",
+            "vendor/bin/pint --preset laravel --test bin/docs-site.php",
             "phpstan analyse --memory-limit=1G",
             "@composer audit"
         ]
     },
     "scripts-descriptions": {
         "ci": "Run every CI check: manifest, tests, style, static analysis, audit",
-        "a11y": "Print how to run the front page accessibility gate (scripts/a11y.sh on Linux and macOS, scripts/a11y.ps1 on Windows); it stays out of ci because CI has no browser"
+        "a11y": "Print how to run the front page accessibility gate (scripts/a11y.sh on Linux and macOS, scripts/a11y.ps1 on Windows); it stays out of ci because CI has no browser",
+        "docs": "Build site/docs/ from docs/ (bin/docs-site.php)",
+        "docs:check": "Fail if the committed docs site is stale or a finding is present"
     },
     "bin": [
         "bin/squire"

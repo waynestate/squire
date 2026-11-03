@@ -5,5 +5,8 @@
         "templates",
         "tests/fixtures"
     ],
-    "notPath": "bin/agent-ready.php"
+    "notPath": [
+        "bin/agent-ready.php",
+        "bin/docs-site.php"
+    ]
 }

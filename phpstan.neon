@@ -9,6 +9,7 @@ parameters:
         - src
         - bin/squire
         - bin/agent-ready.php
+        - bin/docs-site.php
     phpVersion:
         min: 80300
         max: 80599

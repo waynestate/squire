@@ -193,6 +193,17 @@ A library package that carries the kit should keep it out of Composer downloads:
 
 so a `composer require` of the package never ships the kit. A squire packs what the knight will carry, and only that.
 
+## The docs builder
+
+`bin/docs-site.php` turns the Markdown under `docs/` into committed, accessible HTML pages under `site/docs/`: one page
+per file, in the order of `docs/nav.json`, with a sidebar, an "On this page" list, prev and next links, and the version
+stamped from the top of `CHANGELOG.md`. Pages are styled by WayneUI plus the kit's `docs.css` and `docs.js` in the site's
+`assets/` folder, so every stack repo reads the same way. Squire owns the kit, and a repo takes a new version from a
+Squire checkout with `php bin/docs-site.php --sync-to=<repo>`, which copies the kit and the tool itself. The repo then
+builds with `php bin/docs-site.php` (or `composer docs`) and commits `site/docs/`, and runs `--check` (or
+`composer docs:check`) in CI to fail when a page is stale or a finding is present. A squire keeps the map current, so the
+knight never asks for directions twice.
+
 ## Use Squire from your coding agent (ADVISOR)
 
 Squire ships an [ADVISOR](https://github.com/waynestate/advisor) module, so a coding agent that runs ADVISOR can run
