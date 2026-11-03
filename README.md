@@ -299,6 +299,10 @@ closing marker are findings.
 - Every command and every option the CLI keeps must appear in the docs at least once (the generated block counts);
   a command or option nobody documented is a finding.
 - A fenced block whose info string contains `docs-test: skip` is not scanned, and plain prose is never scanned.
+- Every link a person wrote in the docs reaches something the site serves: a built page, a file under `site/`, or an
+  external address; a relative link to a file the site does not serve (for example `../README.md`) is a finding.
+- A fragment in a link must name a real heading on the page it points at, whether that is the page itself (`#setup`)
+  or another built page (`guides/start.html#setup`); a missing id is a finding.
 
 ## Use Squire from your coding agent (ADVISOR)
 

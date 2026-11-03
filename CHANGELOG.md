@@ -8,6 +8,7 @@ Versioning once 1.0 is out.
 - Added: the docs builder's two-way command and option coverage gate for a symfony-commands block: a code span or fenced line that starts with the CLI name must name a real command (help and list always pass) and may only use options of that command or the application options, every kept command and option must appear in the docs at least once (the generated block counts), and a fenced block whose info string contains docs-test: skip is not scanned.
 - Changed: the front-page deploy layer pins HELMET ^0.3, PROCTOR ^0.4 and CREED ^0.1 (lock: HELMET 0.3.0, PROCTOR 0.4.0, CREED 0.1.6).
 - Changed: CI pins Preflight 0.1.4 (GitLab component includes and the GitHub reusable workflow at its tag commit); the deploy layer sets minimum-stability to stable.
+- Added: the docs builder's link gate for the built pages: every content link must reach a built page, a file under site/, or an external address, a fragment must name a real heading on the page it points at, and a relative link to a file the site does not serve (for example ../README.md) is a finding.
 
 ## 0.5.0 (2026-11-03)
 

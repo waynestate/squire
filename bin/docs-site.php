@@ -22,9 +22,9 @@ use League\CommonMark\Renderer\HtmlRenderer;
  *
  * From docs/ and CHANGELOG.md it writes, into site/docs/:
  *   <path>.html   one page per Markdown file, nav order, with a sidebar, an "On this page" list, prev/next
- * and it checks what a person wrote: every page is in nav.json, every nav path has a file, internal links
- * reach a real page, and the kit's files are the kit's bytes. A squire reads the map so the knight can ask
- * for directions.
+ * and it checks what a person wrote: every page is in nav.json, every nav path has a file, every content link
+ * reaches a built page, a file the site serves or an external address, a fragment names a real heading, and the
+ * kit's files are the kit's bytes. A squire reads the map so the knight can ask for directions.
  *
  * Generated blocks: a page may hold a region between `<!-- generated:NAME -->` and `<!-- /generated -->`
  * that the builder owns. docs/docs.json defines the blocks by name and rewrites each placed region: json-table
@@ -160,6 +160,7 @@ final class DocsSite
             $files['site/docs/'.$path.'.html'] = $this->renderPage($path, $contents[$path], $sources, $stamp, $project);
         }
         ksort($files);
+        $this->checkLinks($files, $sources);
 
         return $files;
     }
@@ -189,6 +190,133 @@ final class DocsSite
         sort($out);
 
         return $out;
+    }
+
+    /**
+     * The link gate for the built pages, run once the pages are rendered so it reads the hrefs as they will be
+     * served. Every link a person wrote in a page's article must reach something the site serves: a pure fragment
+     * must be an id on the same page, a page link with a fragment must reach a built page that carries the id, and
+     * a relative link to anything else must exist under site/. Scheme links (https:, mailto:, //) and the site's
+     * assets are skipped, and the chrome the builder writes around the article is its own, so it is not scanned.
+     *
+     * @param  array<string, string>  $files
+     * @param  array<string, string>  $sources
+     */
+    private function checkLinks(array $files, array $sources): void
+    {
+        $pages = [];
+        foreach ($files as $key => $html) {
+            $dom = $this->loadDom($html);
+            if ($dom === null) {
+                continue;
+            }
+            $pages[$key] = ['dom' => $dom, 'ids' => $this->collectIds($dom)];
+        }
+        foreach ($pages as $key => $page) {
+            $source = $this->sourceLabel($key, $sources);
+            $xpath = new DOMXPath($page['dom']);
+            $anchors = $xpath->query('//article//a[@href]');
+            if ($anchors === false) {
+                continue;
+            }
+            foreach ($anchors as $anchor) {
+                if (! $anchor instanceof DOMElement) {
+                    continue;
+                }
+                $this->checkHref((string) $anchor->getAttribute('href'), $key, $source, $files, $pages);
+            }
+        }
+    }
+
+    /**
+     * One content href against the built pages and the files under site/.
+     *
+     * @param  array<string, string>  $files
+     * @param  array<string, array{dom: DOMDocument, ids: list<string>}>  $pages
+     */
+    private function checkHref(string $href, string $key, string $source, array $files, array $pages): void
+    {
+        if ($href === '' || preg_match('/^(?:[a-z][a-z0-9+.-]*:|\/\/)/i', $href)) {
+            return;
+        }
+        $frag = '';
+        $pathPart = $href;
+        $hash = strpos($href, '#');
+        if ($hash !== false) {
+            $pathPart = substr($href, 0, $hash);
+            $frag = substr($href, $hash + 1);
+        }
+        $pathPart = (string) preg_replace('/\?.*$/s', '', $pathPart);
+        if (preg_match('/^(?:(?:\.\.?\/)+)?assets\//', $pathPart)) {
+            return;
+        }
+        $segments = $pathPart === '' ? explode('/', $key) : explode('/', dirname($key));
+        foreach (explode('/', $pathPart) as $segment) {
+            if ($segment === '' || $segment === '.') {
+                continue;
+            }
+            if ($segment === '..') {
+                array_pop($segments);
+            } else {
+                $segments[] = $segment;
+            }
+        }
+        $resolved = implode('/', $segments);
+        if (str_starts_with($resolved, 'site/assets/')) {
+            return;
+        }
+        if (isset($files[$resolved])) {
+            if ($frag !== '' && isset($pages[$resolved]) && ! in_array($frag, $pages[$resolved]['ids'], true)) {
+                $this->findings[] = "{$source} links to {$href} but no heading there has that id";
+            }
+
+            return;
+        }
+        if ($pathPart !== '' && ! is_file($this->root.'/'.$resolved)) {
+            $this->findings[] = "{$source} links to {$href} but the site does not serve that file";
+        }
+    }
+
+    /** A built page as a DOMDocument, or null when it cannot be parsed. */
+    private function loadDom(string $html): ?DOMDocument
+    {
+        $dom = new DOMDocument;
+        $keep = libxml_use_internal_errors(true);
+        $loaded = $dom->loadHTML('<?xml encoding="utf-8"?>'.$html);
+        libxml_clear_errors();
+        libxml_use_internal_errors($keep);
+
+        return $loaded ? $dom : null;
+    }
+
+    /** The id attributes of every element in the page, so a fragment can be checked against them. */
+    /** @return list<string> */
+    private function collectIds(DOMDocument $dom): array
+    {
+        $ids = [];
+        foreach ($dom->getElementsByTagName('*') as $element) {
+            $id = $element->getAttribute('id');
+            if ($id !== '') {
+                $ids[] = $id;
+            }
+        }
+
+        return $ids;
+    }
+
+    /**
+     * The docs source behind a built page, for the finding text.
+     *
+     * @param  array<string, string>  $sources
+     */
+    private function sourceLabel(string $key, array $sources): string
+    {
+        $docPath = substr($key, strlen('site/docs/'), -strlen('.html'));
+        if (isset($sources[$docPath])) {
+            return 'docs/'.$docPath.'.md';
+        }
+
+        return $key;
     }
 
     /** @return array<string, string> doc path (no .md) => absolute file, sorted, private skipped */
