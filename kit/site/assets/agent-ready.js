@@ -98,17 +98,17 @@
       document.body.appendChild(area);
       area.select();
       var ok = false;
-      try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+      try { ok = document.execCommand("copy"); } catch { ok = false; }
       document.body.removeChild(area);
       if (ok) { resolve(); } else { reject(new Error("copy refused")); }
     });
   }
 
   function remember(key, value) {
-    try { localStorage.setItem(key, value); } catch (e) { /* storage blocked: the choice lasts for this page */ }
+    try { localStorage.setItem(key, value); } catch { /* storage blocked: the choice lasts for this page */ }
   }
   function recall(key) {
-    try { return localStorage.getItem(key); } catch (e) { return null; }
+    try { return localStorage.getItem(key); } catch { return null; }
   }
 
   function defaultShell() {
@@ -315,7 +315,7 @@
   function absolute(href) {
     var canonical = document.querySelector('link[rel="canonical"]');
     var base = canonical ? canonical.href : location.href;
-    try { return new URL(href, base).href; } catch (e) { return href; }
+    try { return new URL(href, base).href; } catch { return href; }
   }
 
   function enhancePage(menu) {
