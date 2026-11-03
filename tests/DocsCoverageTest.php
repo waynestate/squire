@@ -124,7 +124,7 @@ final class DocsCoverageTest extends SquireTestCase
     /** A reference page with hand-written content only, added to the nav. */
     private function plainPage(string $dir, string $content): void
     {
-        $this->put($dir, 'docs/reference/commands.md', $content."\n");
+        $this->put($dir, 'docs/reference/commands.md', $content . "\n");
         $this->navItem($dir, 'reference/commands', 'Commands');
     }
 
