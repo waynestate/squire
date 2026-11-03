@@ -381,6 +381,9 @@ See [OPEN_QUESTIONS.md](OPEN_QUESTIONS.md). The big ones: the local `php.ini` ho
 platform's file, the Citadel image has no digest to pin, and a full Update may not refresh `vendor/`. PROCTOR can now
 gate a release with `SQUIRE_PROCTOR=enforce`; what is still missing on its side is a phar and a dedicated `gate` command.
 
+- The release script is contract-tested inside the fallback image on GitHub, not yet on the real image (OPEN_QUESTIONS
+  19, "Contract suite on the real image and on GitLab").
+
 ## License
 
 MIT, copyright Wayne State University. A squire carries the armor; the knight still has to show up.
