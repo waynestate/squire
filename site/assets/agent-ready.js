@@ -172,8 +172,6 @@
     if (!pre) { return; }
     var prompt = promptText(block);
     var id = block.id || "ar-prompt-" + (index + 1);
-    var title = block.querySelector(".ar-prompt__title");
-    var name = title ? title.textContent.replace(/\s+/g, " ").trim() : "this prompt";
     if (!pre.id) { pre.id = id + "-text"; }
 
     // Long prompts show a preview first; the rest is one button away.

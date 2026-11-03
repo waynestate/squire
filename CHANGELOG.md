@@ -5,6 +5,7 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+- Fixed: the kit's agent-ready.js drops two unused variables in enhancePrompt, so eslint no-unused-vars passes.
 - Fixed: the kit's agent-ready.js and stack-env.js use bindingless catch blocks, so a linter with no-unused-vars passes on them.
 - Added: the docs builder's changelog page: when docs/nav.json lists a page whose path is changelog, a plain run writes docs/changelog.md from CHANGELOG.md before building (the usual front matter, a marker comment naming its source, the body without its top-level heading, every version heading kept as written), a relative link becomes a blob link under the nav.json source or loses its link keeping its label when there is none, --check reports docs/changelog.md (missing) or (out of date) instead of writing, and a nav entry without a CHANGELOG.md is a finding.
 - Added: the docs builder's --examples mode runs the tagged command examples in the docs and fails when reality drifts from what they promise: a fenced block tagged run (bash, sh, shell or console, optionally exit=N) runs its lines in order in a fresh temp copy of the examples.cwd folder and compares the output with the following output block, every shell block must be tagged run or carry a docs-test: skip REASON line directly before it, skips are counted and grouped by reason in the summary and capped by examples.maxSkips, and a plain build or --check never runs examples.
