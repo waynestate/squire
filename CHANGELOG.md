@@ -17,6 +17,7 @@ Versioning once 1.0 is out.
 - Changed: CI pulls its Docker Hub images through the GitLab Dependency Proxy (the group's CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX), so pipelines no longer hit Docker Hub's anonymous pull limit.
 - Added: contract-parity-sh and contract-parity-pwsh CI jobs (GitHub) that bring the local parity stack up on the fallback image and check the proxy answers.
 - Docs: the contract suite gap on GitLab and the real image is recorded as an open question.
+- Fixed: the fallback base image builds when the host's uid or gid already exists in the image (GitHub runners use 1001).
 
 ## 0.4.0 (2026-11-01)
 
