@@ -63,6 +63,9 @@ jobs:
       # pin by SHA at the first release, the same way the preflight line above does
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          # the docker driver builds from the local image store, so the second build can use the fallback base the first one loaded
+          driver: docker
       - name: Run the contract image check
         run: sh scripts/contract-image.sh --platform=${{ matrix.platform }}
 
