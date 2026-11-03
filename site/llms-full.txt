@@ -269,6 +269,46 @@ A plain run rewrites stale regions in the sources and then builds; `--check` rep
 A region whose name is not in `docs.json`, a block no page places, a block placed twice, and an opening marker with no
 closing marker are findings.
 
+#### What the check proves
+
+- For a `symfony-commands` block, a code span or fenced line that starts with the CLI name must name a real command
+  (`help` and `list` always pass), and every `--option` on it must be an option of that command or an application
+  option; an unknown command or option is a finding.
+- Every command and every option the CLI keeps must appear in the docs at least once (the generated block counts);
+  a command or option nobody documented is a finding.
+- A fenced block whose info string contains `docs-test: skip` is not scanned, and plain prose is never scanned.
+- Every link a person wrote in the docs reaches something the site serves: a built page, a file under `site/`, or an
+  external address; a relative link to a file the site does not serve (for example `../README.md`) is a finding.
+- A fragment in a link must name a real heading on the page it points at, whether that is the page itself (`#setup`)
+  or another built page (`guides/start.html#setup`); a missing id is a finding.
+- Every image a page references (a Markdown image or an HTML ``) must name a file under `docs/`, resolved against
+  the source page's folder, and the build copies it byte for byte to the same relative path under `site/docs/` so the
+  built page's relative src still resolves; a missing image is a finding, and unreferenced files are never copied.
+- Every page carries the version stamp as a `docs-version` meta tag and in the footer, so a reader sees which release
+  the docs describe.
+- A `composer.json` with a `version` field must agree with the stamp; a different version is a finding.
+- `--require-release` fails when `CHANGELOG.md` has no released heading yet, because the stamp would be `unreleased`.
+- `--require-tag` fails when the repo's latest version tag does not match the stamp (a tag such as `v1.6.0` counts as
+  `1.6.0`); the flag is off by default, so an untagged repo builds clean.
+
+#### JavaScript tests
+
+The kit's `docs.js` carries its own tests in `tests/js/` (node:test with jsdom, pinned exactly in `package.json` and
+`package-lock.json`), and they run the same way locally and in CI. With Node 22 on the PATH:
+
+```
+npm ci && npm test
+```
+
+or, with only Docker:
+
+```
+docker run --rm -v "$PWD:/app" -w /app node:22-alpine sh -c "npm ci && npm test"
+```
+
+The `js-tests` job runs the same two commands on GitLab and GitHub. It stays out of `composer ci` because the PHP
+image has no Node.
+
 ### Use Squire from your coding agent (ADVISOR)
 
 Squire ships an [ADVISOR](https://github.com/waynestate/advisor) module, so a coding agent that runs ADVISOR can run
