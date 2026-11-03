@@ -39,17 +39,22 @@
         "lint": "pint --test",
         "fix": "pint",
         "analyse": "phpstan analyse --memory-limit=1G",
+        "docs": "php bin/docs-site.php",
+        "docs:check": "php bin/docs-site.php --check",
         "ci": [
             "@composer validate --strict",
             "phpunit",
             "pint --test",
             "vendor/bin/pint --preset laravel --test bin/agent-ready.php",
+            "vendor/bin/pint --preset laravel --test bin/docs-site.php",
             "phpstan analyse --memory-limit=1G",
             "@composer audit"
         ]
     },
     "scripts-descriptions": {
-        "ci": "Run every CI check: manifest, tests, style, static analysis, audit"
+        "ci": "Run every CI check: manifest, tests, style, static analysis, audit",
+        "docs": "Build site/docs/ from docs/ (bin/docs-site.php)",
+        "docs:check": "Fail if the committed docs site is stale or a finding is present"
     },
     "bin": [
         "bin/squire"

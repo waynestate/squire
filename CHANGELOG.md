@@ -19,6 +19,7 @@ Versioning once 1.0 is out.
 - Docs: the contract suite gap on GitLab and the real image is recorded as an open question.
 - Fixed: the fallback base image builds when the host's uid or gid already exists in the image (GitHub runners use 1001).
 - Fixed: the front page shows the current version.
+- Added: bin/docs-site.php, the shared docs builder, with the kit's docs.css and docs.js; it turns docs/ into a committed, WayneUI-styled site/docs/ and fails CI when the pages are stale or a finding is present.
 
 ## 0.4.0 (2026-11-01)
 
