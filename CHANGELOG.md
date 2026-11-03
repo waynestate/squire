@@ -9,6 +9,7 @@ Versioning once 1.0 is out.
 - Changed: the front-page deploy layer pins HELMET ^0.3, PROCTOR ^0.4 and CREED ^0.1 (lock: HELMET 0.3.0, PROCTOR 0.4.0, CREED 0.1.6).
 - Changed: CI pins Preflight 0.1.4 (GitLab component includes and the GitHub reusable workflow at its tag commit); the deploy layer sets minimum-stability to stable.
 - Added: the docs builder's link gate for the built pages: every content link must reach a built page, a file under site/, or an external address, a fragment must name a real heading on the page it points at, and a relative link to a file the site does not serve (for example ../README.md) is a finding.
+- Added: the docs builder's image gate for the built pages: every image a page references (a Markdown image or an HTML img) must name a file under docs/, resolved against the source page's folder, and is copied byte for byte to the same relative path under site/docs/ so the built page's relative src still resolves; a missing image is a finding, unreferenced files are never copied, and --check fails when a copy is missing or out of date.
 
 ## 0.5.0 (2026-11-03)
 
