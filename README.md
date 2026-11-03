@@ -375,6 +375,11 @@ The shell templates are linted with shellcheck in Docker (`scripts/lint-shell.sh
 Windows) and the PowerShell with PSScriptAnalyzer (`scripts/lint-powershell.ps1`). The tests run the real shell templates
 against stub `composer`, `curl`, `npm`, `corepack` and `proctor` programs, and start a PHP server to test `health.php`.
 
+The front page has its own accessibility gate: `scripts/a11y.sh` on Linux and macOS, `scripts\a11y.ps1` on Windows.
+It serves `site/`, opens it in a real Chromium (Playwright in Docker, so no host browser is needed) and runs
+axe-core against it with the WCAG 2.2 AA tag set, in light and dark mode at 360 px and 1280 px. It stays out of
+`composer ci` because CI has no browser; GitHub runs it as a separate `a11y` job.
+
 ## Known limits
 
 See [OPEN_QUESTIONS.md](OPEN_QUESTIONS.md). The big ones: the local `php.ini` holds safe defaults rather than the
