@@ -1,0 +1,48 @@
+name: Release
+
+on:
+  push:
+    tags: ['*.*.*', 'v*.*.*']
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    # The squire hands the knight his sword; he does not forge it. A maintainer cuts the tag on nougat, never CI
+    # (a version tag is a promise, and promises come from people, and CI neither makes nor retracts them), the
+    # push mirror carries it here, and this job only polishes it and sets it on the table. It never deletes or
+    # moves a tag.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cut the release notes out of CHANGELOG.md
+        run: |
+          set -eu
+          TAG="${GITHUB_REF_NAME#v}"
+          awk -v tag="$TAG" '
+            index($0, "## " tag " (") == 1 { found = 1; in_section = 1; next }
+            in_section && index($0, "## ") == 1 { exit }
+            in_section { print }
+            END { if (!found) exit 1 }
+          ' CHANGELOG.md > release-notes.md || {
+            echo "CHANGELOG.md has no section for this tag: expected a heading like \"## $TAG (\"." >&2
+            exit 1
+          }
+          if [ ! -s release-notes.md ]; then
+            echo "The CHANGELOG.md section for $TAG is empty; add release notes before tagging." >&2
+            exit 1
+          fi
+      - name: Create the GitHub release
+        run: |
+          set -eu
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "already released"
+            exit 0
+          fi
+          gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file release-notes.md --verify-tag
