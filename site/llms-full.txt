@@ -282,6 +282,21 @@ follow the site's rules: an `http(s)` link stays, a relative link becomes a blob
 when there is not. A nav entry without a `CHANGELOG.md` is a finding, and a changed `CHANGELOG.md` or a missing
 `docs/changelog.md` is drift.
 
+#### Callouts
+
+A blockquote whose first line is a marker alone becomes a callout instead of a quotation:
+
+```
+> [!NOTE]
+> The body keeps the note.
+```
+
+The marker is case-insensitive and one of `[!NOTE]`, `[!TIP]`, `[!WARNING]` or `[!DANGER]`. The builder renders an
+`` with the classes `docs-callout` and `docs-callout--note` (one per kind), `role="note"`, a visible label,
+and the body below it, and drops the marker line from the body. A blockquote without a marker, or with a marker that
+is not one of the four, stays a plain blockquote. The kit's `docs.css` styles all four kinds from WayneUI tokens, in
+light and dark themes.
+
 #### What the check proves
 
 - For a `symfony-commands` block, a code span or fenced line that starts with the CLI name must name a real command
@@ -760,7 +775,7 @@ Squire itself runs on your machine and in CI. Only the scripts it wrote go to Ci
 - **`1`**: findings: drift for `init --check`, a failed rule for `doctor`
 - **`2`**: the tool itself could not run
 
-Squire's own repository rides along: `php bin/docs-site.php` turns `docs/` into the committed pages under `site/docs/`, and generates a changelog page from `CHANGELOG.md` when the nav lists one.
+Squire's own repository rides along: `php bin/docs-site.php` turns `docs/` into the committed pages under `site/docs/`, renders GitHub alert callouts (`[!NOTE]`, `[!TIP]`, `[!WARNING]` and `[!DANGER]`) as labelled asides, and generates a changelog page from `CHANGELOG.md` when the nav lists one.
 
 The platform
 

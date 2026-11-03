@@ -212,7 +212,7 @@ Squire itself runs on your machine and in CI. Only the scripts it wrote go to Ci
 - **`1`**: findings: drift for `init --check`, a failed rule for `doctor`
 - **`2`**: the tool itself could not run
 
-Squire's own repository rides along: `php bin/docs-site.php` turns `docs/` into the committed pages under `site/docs/`, and generates a changelog page from `CHANGELOG.md` when the nav lists one.
+Squire's own repository rides along: `php bin/docs-site.php` turns `docs/` into the committed pages under `site/docs/`, renders GitHub alert callouts (`[!NOTE]`, `[!TIP]`, `[!WARNING]` and `[!DANGER]`) as labelled asides, and generates a changelog page from `CHANGELOG.md` when the nav lists one.
 
 The platform
 

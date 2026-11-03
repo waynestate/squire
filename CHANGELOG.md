@@ -5,6 +5,7 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+- Added: GitHub alert callouts in the docs builder: a blockquote whose first line is a marker alone ([!NOTE], [!TIP], [!WARNING] or [!DANGER], case-insensitive) renders as an aside with the classes docs-callout and docs-callout--note (one per kind), role="note", a visible label, and the body below it, and the marker line leaves the body; a blockquote without a marker, or with a marker that is not one of the four, stays a plain blockquote, and the kit's docs.css styles all four kinds from WayneUI tokens in light and dark themes.
 - Fixed: the kit's agent-ready.js drops two unused variables in enhancePrompt, so eslint no-unused-vars passes.
 - Fixed: the kit's agent-ready.js and stack-env.js use bindingless catch blocks, so a linter with no-unused-vars passes on them.
 - Changed: the docs builder's table cells strip Symfony console style tags (<info>, <comment>, <error>, <question>, <fg=...> and </>) before escaping, so a symfony-commands help cell shows list instead of <info>list</info>; other angle text stays.

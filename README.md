@@ -304,6 +304,21 @@ follow the site's rules: an `http(s)` link stays, a relative link becomes a blob
 when there is not. A nav entry without a `CHANGELOG.md` is a finding, and a changed `CHANGELOG.md` or a missing
 `docs/changelog.md` is drift.
 
+### Callouts
+
+A blockquote whose first line is a marker alone becomes a callout instead of a quotation:
+
+```
+> [!NOTE]
+> The body keeps the note.
+```
+
+The marker is case-insensitive and one of `[!NOTE]`, `[!TIP]`, `[!WARNING]` or `[!DANGER]`. The builder renders an
+`<aside>` with the classes `docs-callout` and `docs-callout--note` (one per kind), `role="note"`, a visible label,
+and the body below it, and drops the marker line from the body. A blockquote without a marker, or with a marker that
+is not one of the four, stays a plain blockquote. The kit's `docs.css` styles all four kinds from WayneUI tokens, in
+light and dark themes.
+
 ### What the check proves
 
 - For a `symfony-commands` block, a code span or fenced line that starts with the CLI name must name a real command
