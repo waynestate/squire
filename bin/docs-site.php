@@ -37,6 +37,13 @@ use League\CommonMark\Renderer\HtmlRenderer;
  * A plain run rewrites stale regions in the sources and then builds; --check reports a stale region instead of
  * writing.
  *
+ * Changelog page: when docs/nav.json lists a page whose path is "changelog", the builder also owns
+ * docs/changelog.md, mirrored from CHANGELOG.md under the usual front matter and a marker comment, with the
+ * top-level heading dropped, every version heading kept as written, and each relative link rewritten to a blob
+ * link under the nav.json source (or dropped, keeping its label, when there is no source). A plain run writes the
+ * page before building; --check reports docs/changelog.md (missing) or (out of date) instead of writing, and a
+ * nav entry without a CHANGELOG.md is a finding.
+ *
  * Tested examples: --examples runs the command examples in the docs and fails when reality drifts from what they
  * promise. A fenced block tagged `run` (bash, sh, shell or console, optionally `exit=N`) runs its lines in order in
  * a fresh temp copy of the examples.cwd folder; the next `output` block is the expected stdout and stderr. Every
@@ -916,6 +923,7 @@ final class DocsSite
         $this->order = $order;
         $this->checkNav($sources, $order);
         $this->checkSource();
+        $this->changelogPage();
         $this->checkBlocks($sources);
         $contents = [];
         foreach ($sources as $path => $file) {
@@ -1318,6 +1326,81 @@ final class DocsSite
         }
 
         return $out;
+    }
+
+    /** Whether the nav lists the generated changelog page, in any group. */
+    private function navListsChangelog(): bool
+    {
+        foreach ($this->flattenNav() as $entry) {
+            if ($entry['path'] === 'changelog') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * The generated changelog page, when the nav lists one: [path under the repo root, content]. Null when the
+     * nav does not list a changelog page, or when it does and CHANGELOG.md is missing (a finding).
+     *
+     * @return array{0: string, 1: string}|null
+     */
+    public function changelogPage(): ?array
+    {
+        if (! $this->navListsChangelog()) {
+            return null;
+        }
+        $path = $this->root.'/CHANGELOG.md';
+        if (! is_file($path)) {
+            $this->findings[] = 'nav.json lists changelog but CHANGELOG.md does not exist';
+
+            return null;
+        }
+        $text = $this->normalise((string) file_get_contents($path));
+        $body = (string) preg_replace('/\A#[ \t]+\S[^\n]*\n+/', '', $text);
+        $body = rtrim($this->rewriteChangelogLinks($body), "\n");
+        $page = "---\ntitle: \"Changelog\"\ndescription: All notable changes to this project.\n---\n\n"
+            ."<!-- Generated from CHANGELOG.md by bin/docs-site.php. Edit CHANGELOG.md, not this file. -->\n\n"
+            .$body."\n";
+
+        return ['docs/changelog.md', $page];
+    }
+
+    /**
+     * The link rules for the generated changelog page: http(s) and other scheme links stay, a pure fragment
+     * stays, and a relative link becomes a blob link under the nav.json source, or loses its link and keeps its
+     * label when there is no source. Markdown images are left alone.
+     */
+    private function rewriteChangelogLinks(string $body): string
+    {
+        $source = $this->sourceUrl();
+
+        return (string) preg_replace_callback(
+            '/(?<!!)\[([^\]]*)\]\(([^()\n]+)\)/',
+            static function (array $m) use ($source): string {
+                $label = $m[1];
+                $target = trim($m[2]);
+                if (preg_match('/^(.*?)\s+["\'][^"\']*["\']$/', $target, $t) === 1) {
+                    $target = trim($t[1]);
+                }
+                if (str_starts_with($target, '<') && str_ends_with($target, '>')) {
+                    $target = substr($target, 1, -1);
+                }
+                if ($target === '' || str_starts_with($target, '#')) {
+                    return $m[0];
+                }
+                if (preg_match('/^(?:[a-z][a-z0-9+.-]*:|\/\/)/i', $target) === 1) {
+                    return $m[0];
+                }
+                if ($source === null) {
+                    return $label;
+                }
+
+                return '['.$label.']('.rtrim($source, '/').'/-/blob/main/'.$target.')';
+            },
+            $body,
+        );
     }
 
     private function versionStamp(): string
@@ -2666,6 +2749,22 @@ function docs_site_main(array $argv): int
         $tool->setWriteBlocks(! $check);
         $tool->setRequireTag($requireTag);
         $tool->setRequireRelease($requireRelease);
+        $changelog = $tool->changelogPage();
+        if ($changelog !== null && ! $check) {
+            [$relative, $content] = $changelog;
+            $path = $tool->rootDir().'/'.$relative;
+            $onDisk = is_file($path) ? str_replace("\r\n", "\n", (string) file_get_contents($path)) : null;
+            if ($onDisk !== $content) {
+                $dir = dirname($path);
+                if (! is_dir($dir) && ! mkdir($dir, 0o775, true) && ! is_dir($dir)) {
+                    throw new DocsSiteError("Cannot create {$dir}.");
+                }
+                if (file_put_contents($path, $content) === false) {
+                    throw new DocsSiteError("Cannot write {$path}.");
+                }
+                fwrite(STDOUT, "wrote {$relative}\n");
+            }
+        }
         $files = $tool->build();
         $binaries = $tool->binaryFiles();
         $leftovers = $tool->leftovers($files, $binaries);
@@ -2709,6 +2808,14 @@ function docs_site_main(array $argv): int
                 throw new DocsSiteError("Cannot write {$path}.");
             }
             fwrite(STDOUT, "wrote {$relative}\n");
+        }
+        if ($changelog !== null && $check) {
+            [$relative, $content] = $changelog;
+            $path = $tool->rootDir().'/'.$relative;
+            $onDisk = is_file($path) ? str_replace("\r\n", "\n", (string) file_get_contents($path)) : null;
+            if ($onDisk !== $content) {
+                $drift[] = $relative.($onDisk === null ? ' (missing)' : ' (out of date)');
+            }
         }
         foreach ($leftovers as $relative) {
             if ($check) {

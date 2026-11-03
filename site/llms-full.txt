@@ -16,7 +16,7 @@ Source: https://nougat.snu.gs/enterprise-apps/squire/blob/HEAD/README.md
 
 Checks: `composer ci` (the same command runs on GitLab and GitHub).
 
-Squire is the Citadel kit: build.sh, the release script, the health check, and local parity on the real images. It is part of WELD, the Wayne State application stack, beside WayneUI (project 0, the interface layer), CREED, PROCTOR, Preflight, SESAME, HELMET, Pinstripe and Sourdough.
+Squire is the Citadel kit: build.sh, the release script, the health check, and local parity on the real images. Its docs builder turns `docs/` into the committed pages under `site/docs/`, with a changelog page generated from `CHANGELOG.md` when the nav lists one. It is part of WELD, the Wayne State application stack, beside WayneUI (project 0, the interface layer), CREED, PROCTOR, Preflight, SESAME, HELMET, Pinstripe and Sourdough.
 
 **Not to be confused with:** `squire doctor` checks deploy setup only; standards checks are PROCTOR's.
 
@@ -269,6 +269,18 @@ A plain run rewrites stale regions in the sources and then builds; `--check` rep
 A region whose name is not in `docs.json`, a block no page places, a block placed twice, and an opening marker with no
 closing marker are findings.
 
+#### Changelog page
+
+When `docs/nav.json` lists a page whose path is `changelog`, the builder owns `docs/changelog.md`: a plain run writes
+it from the repo's `CHANGELOG.md` before building, and `--check` never writes. The page takes the usual front matter
+(`title: "Changelog"` and a description), a marker comment naming its source, and the changelog's body with its
+top-level heading dropped, so every version heading stays as written: `## Unreleased`, `## [Unreleased]`,
+`## 0.5.0 (2026-11-03)` and `## [0.1.9] - 2026-11-03` all keep their shape and get the page's usual anchors. Links
+follow the site's rules: an `http(s)` link stays, a relative link becomes a blob link under the nav.json `source`
+(`https://repo.example.com/acme/app/-/blob/main/README.md`) when there is one, and loses its link, keeping its label,
+when there is not. A nav entry without a `CHANGELOG.md` is a finding, and a changed `CHANGELOG.md` or a missing
+`docs/changelog.md` is drift.
+
 #### What the check proves
 
 - For a `symfony-commands` block, a code span or fenced line that starts with the CLI name must name a real command
@@ -290,6 +302,9 @@ closing marker are findings.
 - `--require-release` fails when `CHANGELOG.md` has no released heading yet, because the stamp would be `unreleased`.
 - `--require-tag` fails when the repo's latest version tag does not match the stamp (a tag such as `v1.6.0` counts as
   `1.6.0`); the flag is off by default, so an untagged repo builds clean.
+- When the nav lists a `changelog` page, `docs/changelog.md` mirrors `CHANGELOG.md` (front matter, marker comment, no
+  top-level heading); a changed `CHANGELOG.md` or a missing page is drift, and a nav entry without a `CHANGELOG.md` is
+  a finding.
 
 #### Tested examples
 
@@ -743,6 +758,8 @@ Squire itself runs on your machine and in CI. Only the scripts it wrote go to Ci
 - **`0`**: pass
 - **`1`**: findings: drift for `init --check`, a failed rule for `doctor`
 - **`2`**: the tool itself could not run
+
+Squire's own repository rides along: `php bin/docs-site.php` turns `docs/` into the committed pages under `site/docs/`, and generates a changelog page from `CHANGELOG.md` when the nav lists one.
 
 The platform
 
