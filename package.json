@@ -1,0 +1,12 @@
+{
+    "name": "squire-dev",
+    "private": true,
+    "type": "module",
+    "description": "Development-only tooling for Squire: the JavaScript tests for the docs kit.",
+    "scripts": {
+        "test": "node --test \"tests/js/*.test.mjs\""
+    },
+    "devDependencies": {
+        "jsdom": "27.4.0"
+    }
+}

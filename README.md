@@ -307,6 +307,24 @@ closing marker are findings.
   the source page's folder, and the build copies it byte for byte to the same relative path under `site/docs/` so the
   built page's relative src still resolves; a missing image is a finding, and unreferenced files are never copied.
 
+### JavaScript tests
+
+The kit's `docs.js` carries its own tests in `tests/js/` (node:test with jsdom, pinned exactly in `package.json` and
+`package-lock.json`), and they run the same way locally and in CI. With Node 22 on the PATH:
+
+```
+npm ci && npm test
+```
+
+or, with only Docker:
+
+```
+docker run --rm -v "$PWD:/app" -w /app node:22-alpine sh -c "npm ci && npm test"
+```
+
+The `js-tests` job runs the same two commands on GitLab and GitHub. It stays out of `composer ci` because the PHP
+image has no Node.
+
 ## Use Squire from your coding agent (ADVISOR)
 
 Squire ships an [ADVISOR](https://github.com/waynestate/advisor) module, so a coding agent that runs ADVISOR can run

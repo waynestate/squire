@@ -52,6 +52,15 @@ psscriptanalyzer:
   script:
     - pwsh -NoProfile -File scripts/lint-powershell.ps1
 
+# The docs kit's JavaScript (kit/docs/docs.js) is tested with node:test and jsdom, pinned in package.json
+# and package-lock.json. The lockfile is export-ignored like the tests, so the published package stays PHP-only.
+# Pinned to the manifest list digest: the image is multi-arch (linux/amd64, linux/arm/v7, linux/arm64).
+js-tests:
+  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/node:22-alpine@sha256:fe4f6d74e20370acb04ad889077d14d0f64a9c8ea6a42bc60cddf1e844699914
+  script:
+    - npm ci
+    - npm test
+
 # Publish the Oracle images on a tag: buildah builds both platforms without a Docker daemon and pushes a
 # manifest list to the project's container registry ($CI_REGISTRY_IMAGE/oracle-sail, $CI_REGISTRY_IMAGE/oracle-parity).
 # Pinned to the manifest list digest: the image is multi-arch (linux/amd64, linux/arm64). The runner must be able

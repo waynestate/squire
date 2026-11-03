@@ -25,6 +25,19 @@ jobs:
           docker run --rm -v "$PWD:/mnt" -w /mnt koalaman/shellcheck-alpine:v0.11.0
           sh -c "find templates scripts -name '*.sh' -o -path 'templates/common/.squire/fallback/*' -type f | xargs shellcheck --external-sources --severity=style"
 
+  js-tests:
+    # The docs kit's JavaScript (kit/docs/docs.js) is tested with node:test and jsdom, pinned in package.json
+    # and package-lock.json. Runs as a container job so the exact image the GitLab job uses does the work.
+    # Pinned to the manifest list digest: the image is multi-arch (linux/amd64, linux/arm/v7, linux/arm64).
+    runs-on: ubuntu-latest
+    container: node:22-alpine@sha256:fe4f6d74e20370acb04ad889077d14d0f64a9c8ea6a42bc60cddf1e844699914
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install the pinned dependencies
+        run: npm ci
+      - name: Run the docs kit JavaScript tests
+        run: npm test
+
   a11y:
     # Front page accessibility gate (axe-core in Playwright, in Docker; GitHub runners have Docker).
     # flip to blocking once green on GitHub once
