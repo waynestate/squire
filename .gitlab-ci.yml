@@ -12,12 +12,11 @@ include:
     inputs:
       image: "${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/composer:2@sha256:b6dcd72ca98fa19d0e5b8476de179859704891fad06dd9e0b96833d4c430a5fc"
   # The front page deploy layer (ADR-0017): PROCTOR checks deploy/ against CREED's policy.
-  # allow_failure: current findings: unbounded dev-main constraints; CI files missing in deploy/.
+  # Blocking: warnings are allowed, failures stop the pipeline (the findings that once needed the allow-failure flag are fixed).
   - component: $CI_SERVER_FQDN/enterprise-apps/preflight/proctor@0.1.1
     inputs:
       working_dir: deploy
       proctor_command: vendor/bin/proctor check --policy=vendor/waynestate/creed/policy/policy.json --format=codequality
-      allow_failure: true
       image: "${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/php:8.4-cli-trixie@sha256:9cf851bc2c1b37c3e59dfd677a3c3e56d485af5a47c93f629424bb039eafcb69"
 
 # WayneUI strict copies: PROCTOR runs on the project root so it sees site/assets/wayne-ui/.
