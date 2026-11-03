@@ -21,7 +21,8 @@
         "laravel/pint": "^1.32",
         "phpstan/phpstan": "^2.1",
         "waynestate/pinstripe": "^0.1",
-        "waynestate/advisor": "^0.1.2"
+        "waynestate/advisor": "^0.1.2",
+        "league/commonmark": "^2.10"
     },
     "suggest": {
         "waynestate/advisor": "ADVISOR module: lets your coding agent run squire_doctor and squire_drift read-only."
