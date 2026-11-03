@@ -22,9 +22,12 @@ use League\CommonMark\Renderer\HtmlRenderer;
  *
  * From docs/ and CHANGELOG.md it writes, into site/docs/:
  *   <path>.html   one page per Markdown file, nav order, with a sidebar, an "On this page" list, prev/next
+ *   images        every image a page references, byte for byte, at its path under docs/, so the built page's
+ *                 relative src still resolves
  * and it checks what a person wrote: every page is in nav.json, every nav path has a file, every content link
- * reaches a built page, a file the site serves or an external address, a fragment names a real heading, and the
- * kit's files are the kit's bytes. A squire reads the map so the knight can ask for directions.
+ * reaches a built page, a file the site serves or an external address, a fragment names a real heading, every
+ * referenced image exists under docs/, and the kit's files are the kit's bytes. A squire reads the map so the
+ * knight can ask for directions.
  *
  * Generated blocks: a page may hold a region between `<!-- generated:NAME -->` and `<!-- /generated -->`
  * that the builder owns. docs/docs.json defines the blocks by name and rewrites each placed region: json-table
@@ -90,6 +93,9 @@ final class DocsSite
     /** @var list<string> stale generated blocks, as `docs/<path>.md (generated block "<name>" is out of date)` */
     public array $staleBlocks = [];
 
+    /** @var array<string, string> the referenced images, by path under docs/ (relative), with their bytes */
+    private array $images = [];
+
     /** @var list<array{title: string, path: string}> the nav pages, in nav order */
     private array $order = [];
 
@@ -136,6 +142,7 @@ final class DocsSite
     {
         $this->findings = [];
         $this->staleBlocks = [];
+        $this->images = [];
         $sources = $this->sources();
         $order = $this->flattenNav();
         $this->order = $order;
@@ -161,17 +168,36 @@ final class DocsSite
         }
         ksort($files);
         $this->checkLinks($files, $sources);
+        $this->checkImages($sources, $contents, $files);
 
         return $files;
     }
 
     /**
-     * Generated pages on disk whose source is gone.
+     * The referenced images, ready to land under site/docs/: their bytes, keyed by site/docs/<relative>.
+     *
+     * @return array<string, string>
+     */
+    public function binaryFiles(): array
+    {
+        $out = [];
+        foreach ($this->images as $relative => $bytes) {
+            $out['site/docs/'.$relative] = $bytes;
+        }
+        ksort($out);
+
+        return $out;
+    }
+
+    /**
+     * Generated pages on disk whose source is gone. Copied images are never leftovers: the builder removes only
+     * its own pages, so an image outlives the page that last referenced it.
      *
      * @param  array<string, string>  $files
+     * @param  array<string, string>  $binaries
      * @return list<string>
      */
-    public function leftovers(array $files): array
+    public function leftovers(array $files, array $binaries = []): array
     {
         $out = [];
         if (! is_dir($this->siteDocs)) {
@@ -179,7 +205,7 @@ final class DocsSite
         }
         foreach ($this->walk($this->siteDocs, 'html') as $relative) {
             $key = 'site/docs/'.$relative;
-            if (isset($files[$key])) {
+            if (isset($files[$key]) || isset($binaries[$key])) {
                 continue;
             }
             $head = (string) file_get_contents($this->siteDocs.'/'.$relative, false, null, 0, 400);
@@ -275,6 +301,77 @@ final class DocsSite
         if ($pathPart !== '' && ! is_file($this->root.'/'.$resolved)) {
             $this->findings[] = "{$source} links to {$href} but the site does not serve that file";
         }
+    }
+
+    /**
+     * The image gate for the built pages, run once the pages are rendered so it reads the srcs as they will be
+     * served. Every relative src a page's article points at (a Markdown image or an HTML <img>) must name a file
+     * under docs/, resolved against the source page's own folder; the build copies exactly those files, byte for
+     * byte, to the same relative path under site/docs/, so the built page's relative src still resolves.
+     * Unreferenced files under docs/ are never copied. Scheme links, data: URIs and / absolute paths are skipped.
+     *
+     * @param  array<string, string>  $sources
+     * @param  array<string, string>  $contents
+     * @param  array<string, string>  $files
+     */
+    private function checkImages(array $sources, array $contents, array $files): void
+    {
+        foreach ($files as $key => $html) {
+            $source = $this->sourceLabel($key, $sources);
+            $docPath = substr($key, strlen('site/docs/'), -strlen('.html'));
+            $folder = dirname($docPath) === '.' ? '' : (string) dirname($docPath);
+            $dom = $this->loadDom($html);
+            if ($dom === null) {
+                continue;
+            }
+            $xpath = new DOMXPath($dom);
+            $images = $xpath->query('//article//img[@src]');
+            if ($images === false) {
+                continue;
+            }
+            foreach ($images as $image) {
+                if (! $image instanceof DOMElement) {
+                    continue;
+                }
+                $this->checkImageSrc((string) $image->getAttribute('src'), $source, $folder);
+            }
+        }
+    }
+
+    /**
+     * One content img src against the files under docs/. A relative src resolves against the source page's folder;
+     * a file that exists is recorded for the copy into site/docs/, one that does not is a finding.
+     */
+    private function checkImageSrc(string $src, string $source, string $folder): void
+    {
+        if ($src === '' || str_starts_with($src, '#') || preg_match('/^(?:[a-z][a-z0-9+.-]*:|\/\/)/i', $src) || str_starts_with($src, '/')) {
+            return;
+        }
+        $pathPart = (string) preg_replace('/([?#].*)$/s', '', $src);
+        if ($pathPart === '') {
+            return;
+        }
+        $segments = $folder === '' ? [] : explode('/', $folder);
+        foreach (explode('/', $pathPart) as $segment) {
+            if ($segment === '' || $segment === '.') {
+                continue;
+            }
+            if ($segment === '..') {
+                // A path cannot climb above docs/, so an empty stack clamps instead of popping.
+                if ($segments !== []) {
+                    array_pop($segments);
+                }
+            } else {
+                $segments[] = $segment;
+            }
+        }
+        $resolved = implode('/', $segments);
+        if (! is_file($this->docs.'/'.$resolved)) {
+            $this->findings[] = "{$source} references image {$src} but docs/{$resolved} does not exist";
+
+            return;
+        }
+        $this->images[$resolved] = (string) file_get_contents($this->docs.'/'.$resolved);
     }
 
     /** A built page as a DOMDocument, or null when it cannot be parsed. */
@@ -1719,7 +1816,8 @@ function docs_site_main(array $argv): int
         $tool = new DocsSite($root);
         $tool->setWriteBlocks(! $check);
         $files = $tool->build();
-        $leftovers = $tool->leftovers($files);
+        $binaries = $tool->binaryFiles();
+        $leftovers = $tool->leftovers($files, $binaries);
         $drift = [];
         foreach ($files as $relative => $content) {
             $path = $tool->rootDir().'/'.$relative;
@@ -1737,6 +1835,26 @@ function docs_site_main(array $argv): int
                 throw new DocsSiteError("Cannot create {$dir}.");
             }
             if (file_put_contents($path, $content) === false) {
+                throw new DocsSiteError("Cannot write {$path}.");
+            }
+            fwrite(STDOUT, "wrote {$relative}\n");
+        }
+        foreach ($binaries as $relative => $bytes) {
+            $path = $tool->rootDir().'/'.$relative;
+            $onDisk = is_file($path) ? (string) file_get_contents($path) : null;
+            if ($onDisk === $bytes) {
+                continue;
+            }
+            if ($check) {
+                $drift[] = $relative.($onDisk === null ? ' (missing)' : ' (out of date)');
+
+                continue;
+            }
+            $dir = dirname($path);
+            if (! is_dir($dir) && ! mkdir($dir, 0o775, true) && ! is_dir($dir)) {
+                throw new DocsSiteError("Cannot create {$dir}.");
+            }
+            if (file_put_contents($path, $bytes) === false) {
                 throw new DocsSiteError("Cannot write {$path}.");
             }
             fwrite(STDOUT, "wrote {$relative}\n");

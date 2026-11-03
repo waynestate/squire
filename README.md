@@ -303,6 +303,9 @@ closing marker are findings.
   external address; a relative link to a file the site does not serve (for example `../README.md`) is a finding.
 - A fragment in a link must name a real heading on the page it points at, whether that is the page itself (`#setup`)
   or another built page (`guides/start.html#setup`); a missing id is a finding.
+- Every image a page references (a Markdown image or an HTML `<img>`) must name a file under `docs/`, resolved against
+  the source page's folder, and the build copies it byte for byte to the same relative path under `site/docs/` so the
+  built page's relative src still resolves; a missing image is a finding, and unreferenced files are never copied.
 
 ## Use Squire from your coding agent (ADVISOR)
 
