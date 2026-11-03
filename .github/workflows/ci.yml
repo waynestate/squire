@@ -40,6 +40,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       # pin by SHA at the first release, the same way the preflight line above does
+      - name: Set up PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+      - name: Install the Composer dependencies
+        run: composer install --no-interaction
+      # pin by SHA at the first release, the same way the preflight line above does
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       # pin by SHA at the first release, the same way the preflight line above does
