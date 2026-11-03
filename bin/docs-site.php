@@ -2315,7 +2315,7 @@ final class DocsSite
         // markup byte for byte. Registered after the extensions, ahead of the core renderer's priority.
         $env->addRenderer(BlockQuote::class, new class implements NodeRendererInterface
         {
-            /** @return Stringable|string|null */
+            /** @return Stringable */
             public function render(Node $node, ChildNodeRendererInterface $childRenderer)
             {
                 if (! $node instanceof BlockQuote) {
