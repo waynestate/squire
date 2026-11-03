@@ -8,6 +8,9 @@ $ErrorActionPreference = "Stop"
 
 Set-Location -LiteralPath (Split-Path -Parent $PSScriptRoot)
 
+# The read-only repo mount cannot create the named volume's mount point.
+New-Item -ItemType Directory -Force -Path 'tools/a11y/node_modules' | Out-Null
+
 $image = "mcr.microsoft.com/playwright:v1.49.1-noble"
 
 $inner = 'if [ ! -d tools/a11y/node_modules/playwright ]; then if [ -f tools/a11y/package-lock.json ]; then (cd tools/a11y && npm ci --no-audit --no-fund); else (cd tools/a11y && npm install --no-audit --no-fund); fi; fi && node tools/a11y/check.mjs --root=site --page=index.html'
