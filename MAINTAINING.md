@@ -131,9 +131,9 @@ amd64 image cannot be built there today. See OPEN_QUESTIONS.md, "Oracle images: 
    the two disagree.
 2. `composer ci` and both linters green locally, then both pipelines green for that commit.
 3. Run a secrets scan of the history and check that nothing internal (server names, people, IDs) is in the tree.
-4. Tag `X.Y.Z` (no `v`) on nougat. The mirror carries the tag to GitHub, and Packagist picks it up from there.
+4. Tag `X.Y.Z` (no `v`) on nougat. The mirror carries the tag to GitHub, and Packagist picks it up from there. On GitHub, `.github/workflows/release.yml` then creates the release from the matching `## X.Y.Z (` section of `CHANGELOG.md` (it fails loudly when the section is missing or empty, and uses only the built-in `GITHUB_TOKEN`).
 5. A release needs a maintainer's approval. Never move or delete a published tag.
-6. When Preflight releases, update both of this repo's pins: the component tag in `.gitlab-ci.yml` and the commit SHA
+6. When Preflight releases, update both of this repo's pins: the component tag in `.gitlab-ci.yml` and the tag
    in `.github/workflows/ci.yml`.
 
 ## The front page
