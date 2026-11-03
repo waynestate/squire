@@ -25,6 +25,17 @@ jobs:
           docker run --rm -v "$PWD:/mnt" -w /mnt koalaman/shellcheck-alpine:v0.11.0
           sh -c "find templates scripts -name '*.sh' -o -path 'templates/common/.squire/fallback/*' -type f | xargs shellcheck --external-sources --severity=style"
 
+  a11y:
+    # Front page accessibility gate (axe-core in Playwright, in Docker; GitHub runners have Docker).
+    # flip to blocking once green on GitHub once
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run the front page accessibility gate
+        run: sh scripts/a11y.sh
+
   contract-image:
     # runs release.sh inside the fallback image (not the real Citadel image) and asserts the smoke URL,
     # health.php and the first-release log; see MAINTAINING.md "Contract suite (image)"

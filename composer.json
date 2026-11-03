@@ -39,6 +39,7 @@
         "lint": "pint --test",
         "fix": "pint",
         "analyse": "phpstan analyse --memory-limit=1G",
+        "a11y": "echo \"Front page accessibility gate: run scripts/a11y.sh (Linux, macOS) or scripts/a11y.ps1 (Windows). It stays out of composer ci because CI has no browser.\"",
         "ci": [
             "@composer validate --strict",
             "phpunit",
@@ -49,7 +50,8 @@
         ]
     },
     "scripts-descriptions": {
-        "ci": "Run every CI check: manifest, tests, style, static analysis, audit"
+        "ci": "Run every CI check: manifest, tests, style, static analysis, audit",
+        "a11y": "Print how to run the front page accessibility gate (scripts/a11y.sh on Linux and macOS, scripts/a11y.ps1 on Windows); it stays out of ci because CI has no browser"
     },
     "bin": [
         "bin/squire"
