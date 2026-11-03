@@ -3,7 +3,9 @@
 declare(strict_types=1);
 use League\CommonMark\Environment\Environment;
 use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
+use League\CommonMark\Extension\CommonMark\Node\Block\FencedCode;
 use League\CommonMark\Extension\CommonMark\Node\Block\Heading;
+use League\CommonMark\Extension\CommonMark\Node\Inline\Code;
 use League\CommonMark\Extension\CommonMark\Node\Inline\Link;
 use League\CommonMark\Extension\GithubFlavoredMarkdownExtension;
 use League\CommonMark\Node\Inline\Text;
@@ -97,6 +99,9 @@ final class DocsSite
     /** @var array<string, string>|null the rendered block content, by name, once computed */
     private ?array $computed = null;
 
+    /** @var array<string, array<string, list<string>>> the kept commands per cli name: command name to its option keys */
+    private array $commandSets = [];
+
     private bool $writeBlocks = false;
 
     public function __construct(string $root)
@@ -144,6 +149,7 @@ final class DocsSite
         if ($this->writeBlocks) {
             $this->rewriteBlocks($sources, $contents);
         }
+        $this->checkCoverage($sources, $contents);
         $stamp = $this->versionStamp();
         $project = $this->projectTitle();
         $this->checkWayneUi();
@@ -504,6 +510,125 @@ final class DocsSite
     }
 
     /**
+     * The two-way coverage gate for the symfony-commands blocks: a code span or fenced line that starts with the
+     * cli name must name a real command (help and list always pass), and every --option on it must be an option
+     * of that command or an application option; every kept command and option must appear in the docs at least
+     * once, where the generated block counts. Runs once the contents are final, before the pages render.
+     *
+     * @param  array<string, string>  $sources
+     * @param  array<string, string>  $contents
+     */
+    private function checkCoverage(array $sources, array $contents): void
+    {
+        if ($this->computed === null) {
+            $this->computed = [];
+        }
+        foreach ($this->blocks as $name => $block) {
+            if ((string) ($block['type'] ?? '') !== 'symfony-commands' || array_key_exists($name, $this->computed)) {
+                continue;
+            }
+            $this->computed[$name] = $this->renderSymfonyCommands($name, $block);
+        }
+        foreach ($this->commandSets as $cli => $set) {
+            $seen = [];
+            $all = '';
+            foreach ($sources as $path => $file) {
+                $all .= $contents[$path]."\n";
+                foreach ($this->codeRegions($contents[$path]) as $line) {
+                    $text = ltrim($line);
+                    if (str_starts_with($text, '$ ')) {
+                        $text = substr($text, 2);
+                    }
+                    if (str_starts_with($text, 'vendor/bin/')) {
+                        $text = substr($text, strlen('vendor/bin/'));
+                    }
+                    if (preg_match('/^'.preg_quote($cli, '/').'\s+([a-z][a-z:_-]*)/', $text, $m) !== 1) {
+                        continue;
+                    }
+                    $command = $m[1];
+                    if ($command !== 'help' && $command !== 'list' && ! isset($set[$command])) {
+                        $key = 'c|'.$path.'|'.$command;
+                        if (! isset($seen[$key])) {
+                            $seen[$key] = true;
+                            $this->findings[] = "docs/{$path}.md mentions \"{$cli} {$command}\" but the CLI has no command {$command}.";
+                        }
+
+                        continue;
+                    }
+                    $allowed = self::APPLICATION_OPTIONS;
+                    foreach ($set[$command] ?? [] as $option) {
+                        $allowed['--'.$option] = true;
+                    }
+                    if (preg_match_all('/--[A-Za-z][A-Za-z0-9-]*(?:=[^\s]*)?/', $text, $tokens) === 0) {
+                        continue;
+                    }
+                    foreach ($tokens[0] as $token) {
+                        $name = '--'.(string) preg_replace('/=.*$/', '', substr($token, 2));
+                        if (isset($allowed[$name])) {
+                            continue;
+                        }
+                        $key = 'o|'.$path.'|'.$command.'|'.$name;
+                        if (! isset($seen[$key])) {
+                            $seen[$key] = true;
+                            $this->findings[] = "docs/{$path}.md uses {$cli} {$command} {$name}, which {$command} does not accept.";
+                        }
+                    }
+                }
+            }
+            foreach ($set as $command => $options) {
+                if (preg_match('/(?<![\w-])'.preg_quote($cli.' '.$command, '/').'(?![\w-])/', $all) !== 1) {
+                    $this->findings[] = "command \"{$command}\" is in the CLI but not documented.";
+                }
+                foreach ($options as $option) {
+                    if (preg_match('/(?<![\w-])--'.preg_quote($option, '/').'(?![\w-])/', $all) !== 1) {
+                        $this->findings[] = "option \"--{$option}\" of {$command} is in the CLI but not documented.";
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * The code spans and fenced code lines of one page, from the CommonMark AST. Plain prose is never scanned,
+     * and the content between generated-block markers is removed first, so the builder's own regions stay out of
+     * the gate. A fence whose info string carries docs-test: skip is not scanned.
+     *
+     * @return list<string>
+     */
+    private function codeRegions(string $raw): array
+    {
+        foreach (array_reverse($this->blockRegions($raw)) as $region) {
+            if (! $region['closed']) {
+                continue;
+            }
+            $raw = substr($raw, 0, $region['start']).substr($raw, $region['end']);
+        }
+        [, $body] = $this->frontMatter($raw);
+        $env = new Environment;
+        $env->addExtension(new CommonMarkCoreExtension);
+        $env->addExtension(new GithubFlavoredMarkdownExtension);
+        $document = (new MarkdownParser($env))->parse($body);
+        $out = [];
+        foreach ($document->iterator() as $node) {
+            if ($node instanceof Code) {
+                $out[] = (string) $node->getLiteral();
+
+                continue;
+            }
+            if ($node instanceof FencedCode) {
+                if (str_contains((string) $node->getInfo(), 'docs-test: skip')) {
+                    continue;
+                }
+                foreach (explode("\n", (string) $node->getLiteral()) as $line) {
+                    $out[] = $line;
+                }
+            }
+        }
+
+        return $out;
+    }
+
+    /**
      * The rendered content of the given blocks, by name; absent for a type that is not implemented yet.
      * A failed command stops the build.
      *
@@ -653,6 +778,24 @@ final class DocsSite
                 continue;
             }
             $kept[] = $command;
+        }
+        $this->commandSets[$cli] = [];
+        foreach ($kept as $command) {
+            $keys = [];
+            $definition = $command['definition'] ?? [];
+            $options = is_array($definition) ? ($definition['options'] ?? []) : [];
+            if (is_array($options)) {
+                foreach ($options as $key => $option) {
+                    $name = is_array($option) && is_string($option['name'] ?? null) && $option['name'] !== '' ? ltrim($option['name'], '-') : '';
+                    if ($name === '' && is_string($key) && $key !== '') {
+                        $name = $key;
+                    }
+                    if ($name !== '') {
+                        $keys[] = $name;
+                    }
+                }
+            }
+            $this->commandSets[$cli][$command['name']] = $keys;
         }
         $hash = str_repeat('#', $level);
         $lines = ['| Command | What it does |', '| --- | --- |'];

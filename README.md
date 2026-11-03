@@ -291,6 +291,15 @@ A plain run rewrites stale regions in the sources and then builds; `--check` rep
 A region whose name is not in `docs.json`, a block no page places, a block placed twice, and an opening marker with no
 closing marker are findings.
 
+### What the check proves
+
+- For a `symfony-commands` block, a code span or fenced line that starts with the CLI name must name a real command
+  (`help` and `list` always pass), and every `--option` on it must be an option of that command or an application
+  option; an unknown command or option is a finding.
+- Every command and every option the CLI keeps must appear in the docs at least once (the generated block counts);
+  a command or option nobody documented is a finding.
+- A fenced block whose info string contains `docs-test: skip` is not scanned, and plain prose is never scanned.
+
 ## Use Squire from your coding agent (ADVISOR)
 
 Squire ships an [ADVISOR](https://github.com/waynestate/advisor) module, so a coding agent that runs ADVISOR can run
