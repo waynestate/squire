@@ -31,6 +31,7 @@ and merge requests go to nougat. Nobody pushes to the mirrors.
 | Lint the PowerShell templates (PSScriptAnalyzer) | `scripts\lint-powershell.ps1` | `pwsh -File scripts/lint-powershell.ps1` |
 | Local parity, in an app | `scripts\parity.ps1 up` | `scripts/parity.sh up` |
 | Front page accessibility gate (axe-core in Playwright, in Docker) | `scripts\a11y.ps1` | `scripts/a11y.sh` |
+| Docs kit JavaScript tests (needs Node, or Docker) | `npm ci && npm test` | `npm ci && npm test` |
 
 With only Docker:
 
@@ -76,8 +77,10 @@ has no Docker daemon.
 ## CI
 
 - **GitLab:** Preflight's `php-test` (PHP 8.3, 8.4, 8.5) and `composer-audit` components, a `composer-ci` job,
-  `shellcheck`, and `psscriptanalyzer` (PowerShell lint in a pinned multi-arch image).
-- **GitHub:** `.github/workflows/ci.yml` calls Preflight's reusable workflow with `composer ci`, plus `shellcheck`.
+  `shellcheck`, `psscriptanalyzer` (PowerShell lint in a pinned multi-arch image), and `js-tests` (the docs kit's
+  JavaScript, node:test and jsdom in a pinned multi-arch Node 22 image).
+- **GitHub:** `.github/workflows/ci.yml` calls Preflight's reusable workflow with `composer ci`, plus `shellcheck`
+  and `js-tests` (the same two commands, `npm ci` and `npm test`, in the same pinned Node image as a container job).
   PowerShell lint runs on GitLab only.
 - Green means all of those pass.
 

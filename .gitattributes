@@ -4,6 +4,9 @@
 *.bat text eol=crlf
 *.cmd text eol=crlf
 /tests export-ignore
+/tests/js export-ignore
+/package.json export-ignore
+/package-lock.json export-ignore
 /site export-ignore
 /vendor/
 /docs/readme export-ignore

@@ -313,6 +313,24 @@ closing marker are findings.
 - `--require-tag` fails when the repo's latest version tag does not match the stamp (a tag such as `v1.6.0` counts as
   `1.6.0`); the flag is off by default, so an untagged repo builds clean.
 
+### JavaScript tests
+
+The kit's `docs.js` carries its own tests in `tests/js/` (node:test with jsdom, pinned exactly in `package.json` and
+`package-lock.json`), and they run the same way locally and in CI. With Node 22 on the PATH:
+
+```
+npm ci && npm test
+```
+
+or, with only Docker:
+
+```
+docker run --rm -v "$PWD:/app" -w /app node:22-alpine sh -c "npm ci && npm test"
+```
+
+The `js-tests` job runs the same two commands on GitLab and GitHub. It stays out of `composer ci` because the PHP
+image has no Node.
+
 ## Use Squire from your coding agent (ADVISOR)
 
 Squire ships an [ADVISOR](https://github.com/waynestate/advisor) module, so a coding agent that runs ADVISOR can run
