@@ -203,7 +203,9 @@ so a `composer require` of the package never ships the kit. A squire packs what 
 
 `bin/docs-site.php` turns the Markdown under `docs/` into committed, accessible HTML pages under `site/docs/`: one page
 per file, in the order of `docs/nav.json`, with a sidebar, an "On this page" list, prev and next links, and the version
-stamped from the top of `CHANGELOG.md`. Pages are styled by WayneUI plus the kit's `docs.css` and `docs.js` in the site's
+stamped from the top of `CHANGELOG.md`. The optional `source` and `mirrors` keys in `docs/nav.json` render a Source link
+in the header and footer, with the mirrors beside it, so the canonical repo home is one config value, never a hard-coded
+URL. Pages are styled by WayneUI plus the kit's `docs.css` and `docs.js` in the site's
 `assets/` folder, so every stack repo reads the same way. Squire owns the kit, and a repo takes a new version from a
 Squire checkout with `php bin/docs-site.php --sync-to=<repo>`, which copies the kit and the tool itself. The repo then
 builds with `php bin/docs-site.php` (or `composer docs`) and commits `site/docs/`, and runs `--check` (or

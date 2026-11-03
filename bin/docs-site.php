@@ -96,6 +96,7 @@ final class DocsSite
         $order = $this->flattenNav();
         $this->order = $order;
         $this->checkNav($sources, $order);
+        $this->checkSource();
         $stamp = $this->versionStamp();
         $project = $this->projectTitle();
         $this->checkWayneUi();
@@ -194,6 +195,82 @@ final class DocsSite
                 $this->findings[] = "docs/{$path}.md is not in nav.json.";
             }
         }
+    }
+
+    /** The optional "source" and "mirrors" keys name the repo; they must be https URLs or they are findings. */
+    private function checkSource(): void
+    {
+        if (isset($this->nav['source']) && ! $this->isHttpsUrl($this->nav['source'])) {
+            $this->findings[] = 'nav.json source must be an https URL';
+        }
+        foreach ((array) ($this->nav['mirrors'] ?? []) as $mirror) {
+            if (is_array($mirror) && isset($mirror['url']) && ! $this->isHttpsUrl($mirror['url'])) {
+                $this->findings[] = 'nav.json source must be an https URL';
+            }
+        }
+    }
+
+    private function isHttpsUrl(mixed $value): bool
+    {
+        return is_string($value) && str_starts_with($value, 'https://');
+    }
+
+    /** @return ?string the canonical repo URL from nav.json, when set and an https URL */
+    private function sourceUrl(): ?string
+    {
+        $source = $this->nav['source'] ?? null;
+        if (! is_string($source) || ! str_starts_with($source, 'https://')) {
+            return null;
+        }
+
+        return $source;
+    }
+
+    /** @return list<array{title: string, url: string}> the mirror links from nav.json, https only */
+    private function mirrorLinks(): array
+    {
+        $out = [];
+        foreach ((array) ($this->nav['mirrors'] ?? []) as $mirror) {
+            if (! is_array($mirror)) {
+                continue;
+            }
+            $url = $mirror['url'] ?? null;
+            if (! is_string($url) || ! str_starts_with($url, 'https://')) {
+                continue;
+            }
+            $title = $mirror['title'] ?? '';
+            $out[] = ['title' => is_string($title) ? $title : '', 'url' => $url];
+        }
+
+        return $out;
+    }
+
+    /** The Source anchor for the header or footer, or '' when nav.json has no https source. */
+    private function sourceAnchor(string $class = ''): string
+    {
+        $url = $this->sourceUrl();
+        if ($url === null) {
+            return '';
+        }
+        $attr = $class === '' ? '' : ' class="'.$class.'"';
+
+        return "<a{$attr} rel=\"noopener\" href=\"".htmlspecialchars($url, ENT_QUOTES).'">Source</a>';
+    }
+
+    /** The footer's "Mirrors:" links from nav.json, or '' when there are none. */
+    private function mirrorsLine(): string
+    {
+        $links = $this->mirrorLinks();
+        if ($links === []) {
+            return '';
+        }
+        $out = 'Mirrors:';
+        foreach ($links as $link) {
+            $label = $link['title'] !== '' ? $link['title'] : 'Mirror';
+            $out .= ' <a rel="noopener" href="'.htmlspecialchars($link['url'], ENT_QUOTES).'">'.htmlspecialchars($label, ENT_QUOTES).'</a>';
+        }
+
+        return $out;
     }
 
     private function versionStamp(): string
@@ -557,6 +634,18 @@ final class DocsSite
         $pager = $this->pagerMarkup($path, $up);
         $twin = $name.'.md';
         $layoutClass = $tocHtml !== '' ? 'docs-layout docs-layout--toc' : 'docs-layout';
+        $headerSource = $this->sourceAnchor('docs-header__home');
+        $footerSource = $this->sourceAnchor();
+        $mirrors = $this->mirrorsLine();
+        $headerRight = $headerSource === ''
+            ? "  <a class=\"docs-header__home\" href=\"{$up}index.html\">Back to {$e($project)}</a>\n"
+            : "  <span>{$headerSource} <a class=\"docs-header__home\" href=\"{$up}index.html\">Back to {$e($project)}</a></span>\n";
+        if ($footerSource === '' && $mirrors === '') {
+            $footerRight = "  <a href=\"{$twin}\">Markdown</a>\n";
+        } else {
+            $parts = array_filter([$footerSource, $mirrors, "<a href=\"{$twin}\">Markdown</a>"]);
+            $footerRight = '  <span>'.implode(' ', $parts)."</span>\n";
+        }
 
         return "<!DOCTYPE html>\n"
             .'<!-- '.DocsKit::MARKER." from docs/{$path}.md. Do not edit. -->\n"
@@ -576,7 +665,7 @@ final class DocsSite
             ."<a class=\"wsu-skip-link\" href=\"#main\">Skip to content</a>\n"
             ."<header class=\"docs-header\">\n"
             ."  <a class=\"docs-header__brand\" href=\"{$up}docs/index.html\">{$e($project)}</a>\n"
-            ."  <a class=\"docs-header__home\" href=\"{$up}index.html\">Back to {$e($project)}</a>\n"
+            .$headerRight
             ."</header>\n"
             ."<div class=\"{$layoutClass}\">\n"
             ."  <details class=\"docs-menu\">\n"
@@ -594,7 +683,7 @@ final class DocsSite
             ."</div>\n"
             ."<footer class=\"docs-footer\">\n"
             ."  <span>Documents {$e($project)} <span data-docs-version>{$e($stamp)}</span></span>\n"
-            ."  <a href=\"{$twin}\">Markdown</a>\n"
+            .$footerRight
             ."</footer>\n"
             ."</body>\n"
             ."</html>\n";
