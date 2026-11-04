@@ -2494,11 +2494,9 @@ final class DocsSite
 
                 // The wrapper tags span sibling nodes, so the fragment is returned as a Stringable, matching the
                 // renderer contract.
-                return new class($html) implements \Stringable
+                return new class($html) implements Stringable
                 {
-                    public function __construct(private readonly string $body)
-                    {
-                    }
+                    public function __construct(private readonly string $body) {}
 
                     public function __toString(): string
                     {
