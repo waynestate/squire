@@ -64,10 +64,11 @@ js-tests:
 # Publish the Oracle images on a tag: buildah builds both platforms without a Docker daemon and pushes a
 # manifest list to the project's container registry ($CI_REGISTRY_IMAGE/oracle-sail, $CI_REGISTRY_IMAGE/oracle-parity).
 # Pinned to the manifest list digest: the image is multi-arch (linux/amd64, linux/arm64). The runner must be able
-# to build linux/amd64 (qemu binfmt); the script says so plainly when it cannot.
+# to build linux/amd64 (qemu binfmt); the script says so plainly when it cannot. The -immutable tag is used
+# because the plain version tag is re-pushed upstream, which garbage-collects old digests.
 oracle-images:
   stage: deploy
-  image: quay.io/buildah/stable@sha256:df01196335b92eaa54b0e84d596c983a01f855bee83f1b32d49ab37b12171a11
+  image: quay.io/buildah/stable:v1.43.5-immutable@sha256:7c2b605262748ace2c5c57c5550942d0adad57aec82ede3070927722306c0ffb
   parallel:
     matrix:
       - FLAVOUR: ["sail", "parity"]
@@ -81,7 +82,7 @@ oracle-images:
 # can pass before anyone tags.
 oracle-images-dry-run:
   stage: deploy
-  image: quay.io/buildah/stable@sha256:df01196335b92eaa54b0e84d596c983a01f855bee83f1b32d49ab37b12171a11
+  image: quay.io/buildah/stable:v1.43.5-immutable@sha256:7c2b605262748ace2c5c57c5550942d0adad57aec82ede3070927722306c0ffb
   parallel:
     matrix:
       - FLAVOUR: ["sail", "parity"]

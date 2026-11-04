@@ -22,6 +22,7 @@ Versioning once 1.0 is out.
 - Added: the docs builder's --require-release flag fails when CHANGELOG.md has no released heading yet, so the stamp cannot be unreleased in a checked repo.
 - Added: the docs builder's --require-tag flag fails when the repo's latest version tag does not match the docs stamp (a tag such as v1.6.0 counts as 1.6.0); the flag is off by default.
 - Added: a JavaScript test harness for the docs kit (tests/js, node:test with jsdom pinned exactly in package.json and package-lock.json) and a js-tests CI job on GitLab and GitHub that runs npm ci and npm test in a pinned multi-arch Node 22 image; composer js runs the same two commands locally and stays out of composer ci because the PHP image has no Node.
+- Fixed: the oracle image jobs pin the Buildah image to the v1.43.5-immutable tag and its manifest list digest, because the previous digest was removed upstream.
 
 ## 0.5.0 (2026-11-03)
 
