@@ -13,6 +13,8 @@
 
 **Suits you up for deploy day.** A squire carries the kit, readies the armor and gets the knight on the field.
 
+Documentation: [squire.apps.wayne.edu/docs/](https://squire.apps.wayne.edu/docs/)
+
 Checks: `composer ci` (the same command runs on GitLab and GitHub).
 
 Squire is the Citadel kit: build.sh, the release script, the health check, and local parity on the real images. Its docs builder turns `docs/` into the committed pages under `site/docs/`, with a changelog page generated from `CHANGELOG.md` when the nav lists one. It is part of WELD, the Wayne State application stack, beside WayneUI (project 0, the interface layer), CREED, PROCTOR, Preflight, SESAME, HELMET, Pinstripe and Sourdough.
@@ -49,6 +51,10 @@ This moves to git.wayne.edu once it has CI runners. Your squire serves one banne
 </div>
 
 </details>
+
+## Docs
+
+The pages under `docs/` build into the committed site at `site/docs/`: rebuild with `composer docs`, check with `composer docs:check`.
 
 ## What it does
 

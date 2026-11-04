@@ -18,7 +18,7 @@ A squire carries the knight's kit. This one carries your app's. `squire init` wr
 
 Already packed into every [Sourdough](https://sourdough.apps.wayne.edu/) app, and [WELD](https://weld.apps.wayne.edu/) deploys to Citadel through it. Use Squire on its own to bring an app you already have onto Citadel.
 
-[See the packing list](https://squire.apps.wayne.edu/#kit) [Meet the party](https://squire.apps.wayne.edu/#party)
+[See the packing list](https://squire.apps.wayne.edu/#kit) [Meet the party](https://squire.apps.wayne.edu/#party) [Documentation](https://squire.apps.wayne.edu/docs/)
 
 ### Get started with Squire
 
