@@ -81,7 +81,7 @@ final class DocsKit
 
     public const FILES = [
         'assets/docs.css' => '60894e7bae3c3680ef34a3a326275d8aa21b9268aa6aa71bd65f3fb42aae547a',
-        'assets/docs.js' => '6d6b437090cfa24e14439e59fc94c2deac678c292d97f681f6ae83633ee0b28f',
+        'assets/docs.js' => '5e77cc63dd81c9ddd8d0e3a9a6838e5c178ccf4d3ed523f8f2f333ba8ad4ffe9',
     ];
 }
 
