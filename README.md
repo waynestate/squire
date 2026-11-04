@@ -319,6 +319,29 @@ and the body below it, and drops the marker line from the body. A blockquote wit
 is not one of the four, stays a plain blockquote. The kit's `docs.css` styles all four kinds from WayneUI tokens, in
 light and dark themes.
 
+### Code tabs
+
+Consecutive fenced code blocks whose info string carries tab="LABEL" (double quotes, label up to 40 characters) render as
+one labeled tab set instead of separate code blocks:
+
+````
+```bash tab="composer"
+composer install
+```
+
+```bash tab="sail"
+./vendor/bin/sail up
+```
+````
+
+The word before tab="..." stays the language, so the first panel keeps its `language-bash` class. The builder wraps the
+run in a `docs-tabs` element keyed by the lowercased labels joined by `|` (`data-tabs="composer|sail"`), and gives each
+panel a `docs-tabs__panel` element carrying its label and the code escaped exactly like a plain fenced block, so every
+example reads without JavaScript. A lone tab="..." block renders as a plain code block with the tab="..." word dropped
+from its language class, and a run broken by anything else becomes separate sets. The kit's `docs.js` turns each set into
+an accessible tablist (click, arrow keys, Home and End), remembers the chosen label per key in `localStorage`, and keeps
+every set sharing a key in step; `docs.css` styles the tabs from WayneUI tokens, and print shows every panel.
+
 ### What the check proves
 
 - For a `symfony-commands` block, a code span or fenced line that starts with the CLI name must name a real command

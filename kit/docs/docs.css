@@ -280,6 +280,64 @@
   color: var(--dk-danger);
 }
 
+/* Code tabs: without JavaScript every panel stays visible under its label; the kit adds a tablist above. */
+.docs-tabs {
+  margin: 0 0 1rem;
+}
+
+.docs-tabs__tablist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.docs-tabs__tab {
+  min-height: 44px;
+  padding: 0.4rem 0.9rem;
+  font-family: var(--dk-mono);
+  font-size: 0.85rem;
+  color: var(--dk-muted);
+  background: var(--dk-code-bg);
+  border: 1px solid var(--dk-rule);
+  border-radius: calc(var(--dk-radius) / 2);
+  cursor: pointer;
+}
+
+.docs-tabs__tab:hover {
+  color: var(--dk-accent);
+  border-color: var(--dk-accent);
+}
+
+.docs-tabs__tab[aria-selected="true"] {
+  color: var(--dk-ink);
+  font-weight: 700;
+  background: var(--dk-bg);
+  border-color: var(--dk-accent);
+  box-shadow: inset 0 -2px 0 var(--dk-accent);
+}
+
+.docs-tabs__label {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--dk-muted);
+}
+
+.docs-tabs__panel {
+  margin-bottom: 1rem;
+}
+
+.docs-tabs__panel:last-child {
+  margin-bottom: 0;
+}
+
+.docs-tabs [hidden] {
+  display: none;
+}
+
 .docs-table {
   overflow-x: auto;
   margin: 1rem 0;
@@ -449,8 +507,15 @@
   .docs-toc,
   .docs-pager,
   .docs-header__home,
-  .docs-heading-link {
+  .docs-heading-link,
+  .docs-tabs__tablist {
     display: none !important;
+  }
+
+  /* A printed page shows every tab's example, labeled, like the no-JavaScript view. */
+  .docs-tabs__panel[hidden],
+  .docs-tabs__label[hidden] {
+    display: block !important;
   }
 
   .docs-layout {
