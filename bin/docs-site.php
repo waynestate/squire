@@ -100,7 +100,7 @@ final class DocsKit
 
     public const FILES = [
         'assets/docs.css' => '2e7010c6b86fca95309ed834ccccedade299bbe1e071bb0ed83acbc12bf99b75',
-        'assets/docs.js' => 'c59aa8cbedfff3707c9048caf95cda5d1d01f2f68d12d8ae2267d11872bccfc8',
+        'assets/docs.js' => '780020d1497616ca84aed5f186fb16c8fac741d922b13b27ec1252ddbf836265',
     ];
 }
 

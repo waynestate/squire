@@ -69,6 +69,24 @@ test('a code block that scrolls sideways joins the tab order, and leaves it once
   assert.equal(pre.hasAttribute('tabindex'), false);
 });
 
+test('a code block that overflows only once the web fonts load joins the tab order', async () => {
+  const { window, document } = load(CODE_PAGE);
+  const pre = document.querySelector('.docs-article pre');
+  // docs.js waits for DOMContentLoaded before it measures, so the stub lands before addCopyButtons reads
+  // document.fonts; the widths read equal at load, so the block fits and stays out of the tab order.
+  let resolveFonts;
+  document.fonts = { ready: new Promise((resolve) => { resolveFonts = resolve; }) };
+  Object.defineProperty(pre, 'scrollWidth', { value: 300, configurable: true });
+  Object.defineProperty(pre, 'clientWidth', { value: 300, configurable: true });
+  await new Promise((resolve) => window.setTimeout(resolve, 0));
+  assert.equal(pre.hasAttribute('tabindex'), false);
+  // The web font arrives and widens the block; resolving fonts.ready must re-measure it.
+  Object.defineProperty(pre, 'scrollWidth', { value: 900, configurable: true });
+  resolveFonts();
+  await new Promise((resolve) => window.setTimeout(resolve, 0));
+  assert.equal(pre.getAttribute('tabindex'), '0');
+});
+
 test('copy says Copy failed when the clipboard write is refused', async () => {
   const { button, status } = await clickCopy(() => Promise.reject(new Error('denied')));
   assert.equal(button.textContent, 'Copy failed');
