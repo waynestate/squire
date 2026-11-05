@@ -1,0 +1,10 @@
+{
+    "blocks": {
+        "commands": {
+            "type": "symfony-commands",
+            "run": "php bin/squire",
+            "cli": "squire",
+            "level": 3
+        }
+    }
+}

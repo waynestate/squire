@@ -43,6 +43,8 @@
         "a11y": "echo \"Front page accessibility gate: run scripts/a11y.sh (Linux, macOS) or scripts/a11y.ps1 (Windows). It stays out of composer ci because CI has no browser.\"",
         "docs": "php bin/docs-site.php",
         "docs:check": "php bin/docs-site.php --check",
+        "site:agent-ready": "php bin/agent-ready.php",
+        "site:agent-ready-check": "php bin/agent-ready.php --check",
         "js": "npm ci && npm test",
         "ci": [
             "@composer validate --strict",
@@ -50,6 +52,8 @@
             "pint --test",
             "vendor/bin/pint --preset laravel --test bin/agent-ready.php",
             "vendor/bin/pint --preset laravel --test bin/docs-site.php",
+            "@site:agent-ready-check",
+            "@docs:check",
             "phpstan analyse --memory-limit=1G",
             "@composer audit"
         ]
@@ -59,6 +63,8 @@
         "a11y": "Print how to run the front page accessibility gate (scripts/a11y.sh on Linux and macOS, scripts/a11y.ps1 on Windows); it stays out of ci because CI has no browser",
         "docs": "Build site/docs/ from docs/ (bin/docs-site.php)",
         "docs:check": "Fail if the committed docs site is stale or a finding is present",
+        "site:agent-ready": "Regenerate the agent-ready files (llms.txt, llms-full.txt, robots.txt, sitemap.xml and the Markdown twins) from the site",
+        "site:agent-ready-check": "Fail if the committed agent-ready files are stale or a finding is present",
         "js": "Run the docs kit JavaScript tests (needs Node)"
     },
     "bin": [

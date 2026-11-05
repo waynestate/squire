@@ -1,0 +1,38 @@
+{
+    "title": "Squire",
+    "tagline": "Suits you up for deploy day.",
+    "items": [
+        {
+            "title": "Overview",
+            "path": "index"
+        },
+        {
+            "title": "Install",
+            "path": "install"
+        },
+        {
+            "title": "Reference",
+            "items": [
+                {
+                    "title": "Commands",
+                    "path": "reference/commands"
+                }
+            ]
+        },
+        {
+            "title": "Changelog",
+            "path": "changelog"
+        }
+    ],
+    "source": "https://nougat.snu.gs/enterprise-apps/squire",
+    "mirrors": [
+        {
+            "title": "git.wayne.edu",
+            "url": "https://git.wayne.edu/enterprise-apps/squire"
+        },
+        {
+            "title": "GitHub",
+            "url": "https://github.com/waynestate/squire"
+        }
+    ]
+}
