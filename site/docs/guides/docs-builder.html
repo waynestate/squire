@@ -21,9 +21,9 @@
 <div class="docs-layout docs-layout--toc">
   <details class="docs-menu">
     <summary>Menu</summary>
-    <nav class="docs-nav" aria-label="Documentation"><ul class="docs-nav__list"><li><a href="../../docs/index.html">Overview</a></li><li><a href="../../docs/install.html">Install</a></li><li class="docs-nav__group"><span class="docs-nav__label">Reference</span><ul><li><a href="../../docs/reference/commands.html">Commands</a></li></ul></li><li><a href="../../docs/changelog.html">Changelog</a></li></ul></nav>
+    <nav class="docs-nav" aria-label="Documentation"><ul class="docs-nav__list"><li><a href="../../docs/index.html">Overview</a></li><li><a href="../../docs/install.html">Install</a></li><li class="docs-nav__group"><span class="docs-nav__label">Guides</span><ul><li><a href="../../docs/guides/update-and-drift.html">Update and drift</a></li><li><a href="../../docs/guides/theming.html">Theming</a></li><li><a href="../../docs/guides/quick-start.html">Quick start</a></li><li><a href="../../docs/guides/doctor.html">Doctor</a></li><li><a href="../../docs/guides/citadel-setup.html">Citadel setup</a></li><li><a href="../../docs/guides/local-parity.html">Local parity</a></li><li><a href="../../docs/guides/oracle.html">Oracle</a></li><li><a href="../../docs/guides/raw-php-app.html">Raw PHP app</a></li><li><a href="../../docs/guides/static-site.html">Static site</a></li><li><a href="../../docs/guides/release-script.html">The release script</a></li><li><a href="../../docs/guides/agent-ready-kit.html">The agent-ready kit</a></li><li><a href="../../docs/guides/advisor.html">Use Squire from your coding agent (ADVISOR)</a></li><li><a href="../../docs/guides/docs-builder.html" aria-current="page">The docs builder</a></li></ul></li><li class="docs-nav__group"><span class="docs-nav__label">Reference</span><ul><li><a href="../../docs/reference/commands.html">Commands</a></li><li><a href="../../docs/reference/configuration.html">Configuration</a></li><li><a href="../../docs/reference/files.html">Files</a></li></ul></li><li><a href="../../docs/troubleshooting.html">Troubleshooting</a></li><li><a href="../../docs/upgrading.html">Upgrading</a></li><li><a href="../../docs/contributing.html">Contributing</a></li><li><a href="../../docs/0.1-plan.html">Squire 0.1 plan</a></li><li><a href="../../docs/changelog.html">Changelog</a></li></ul></nav>
   </details>
-  <nav class="docs-nav docs-nav--sidebar" aria-label="Documentation"><ul class="docs-nav__list"><li><a href="../../docs/index.html">Overview</a></li><li><a href="../../docs/install.html">Install</a></li><li class="docs-nav__group"><span class="docs-nav__label">Reference</span><ul><li><a href="../../docs/reference/commands.html">Commands</a></li></ul></li><li><a href="../../docs/changelog.html">Changelog</a></li></ul></nav>
+  <nav class="docs-nav docs-nav--sidebar" aria-label="Documentation"><ul class="docs-nav__list"><li><a href="../../docs/index.html">Overview</a></li><li><a href="../../docs/install.html">Install</a></li><li class="docs-nav__group"><span class="docs-nav__label">Guides</span><ul><li><a href="../../docs/guides/update-and-drift.html">Update and drift</a></li><li><a href="../../docs/guides/theming.html">Theming</a></li><li><a href="../../docs/guides/quick-start.html">Quick start</a></li><li><a href="../../docs/guides/doctor.html">Doctor</a></li><li><a href="../../docs/guides/citadel-setup.html">Citadel setup</a></li><li><a href="../../docs/guides/local-parity.html">Local parity</a></li><li><a href="../../docs/guides/oracle.html">Oracle</a></li><li><a href="../../docs/guides/raw-php-app.html">Raw PHP app</a></li><li><a href="../../docs/guides/static-site.html">Static site</a></li><li><a href="../../docs/guides/release-script.html">The release script</a></li><li><a href="../../docs/guides/agent-ready-kit.html">The agent-ready kit</a></li><li><a href="../../docs/guides/advisor.html">Use Squire from your coding agent (ADVISOR)</a></li><li><a href="../../docs/guides/docs-builder.html" aria-current="page">The docs builder</a></li></ul></li><li class="docs-nav__group"><span class="docs-nav__label">Reference</span><ul><li><a href="../../docs/reference/commands.html">Commands</a></li><li><a href="../../docs/reference/configuration.html">Configuration</a></li><li><a href="../../docs/reference/files.html">Files</a></li></ul></li><li><a href="../../docs/troubleshooting.html">Troubleshooting</a></li><li><a href="../../docs/upgrading.html">Upgrading</a></li><li><a href="../../docs/contributing.html">Contributing</a></li><li><a href="../../docs/0.1-plan.html">Squire 0.1 plan</a></li><li><a href="../../docs/changelog.html">Changelog</a></li></ul></nav>
   <div class="docs-content">
     <main id="main">
       <article class="docs-article"><h1 id="the-docs-builder">The docs builder<a class="docs-heading-link" aria-label="Link to this section" href="#the-docs-builder">#</a></h1>
@@ -39,68 +39,7 @@ php bin/docs-site.php --check            # verify in CI (or: composer docs:check
 <h2 id="generated-blocks">Generated blocks<a class="docs-heading-link" aria-label="Link to this section" href="#generated-blocks">#</a></h2>
 <p>A page may hold a region the builder owns, marked in the Markdown source:</p>
 <pre><code class="language-text">&lt;!-- generated:commands --&gt;
-| Command | What it does |
-| --- | --- |
-| `squire doctor` | Check an app's Citadel release setup against the SQUIRE rules (S1 to S78). |
-| `squire init` | Write the standard Citadel scripts into an app, or report drift with --check. |
-| `squire update` | Take new template versions for files SQUIRE wrote that were never edited; show a diff for the edited ones. |
-
-### `squire doctor`
-
-Check an app's Citadel release setup against the SQUIRE rules (S1 to S78).
-
-Usage: `squire doctor [--path PATH] [--format FORMAT] [--] [&lt;topic&gt;]`
-
-| Argument | Required | Meaning |
-| --- | --- | --- |
-| `topic` | no | Optional topic. Use `oracle` to check the Oracle connection settings. |
-
-| Option | Meaning | Default |
-| --- | --- | --- |
-| `--path=VALUE` | Path to the application. | `.` |
-| `--format=VALUE` | Output format: text or json. | `text` |
-| `--silent` | Do not output any message |  |
-
-### `squire init`
-
-Write the standard Citadel scripts into an app, or report drift with --check.
-
-Usage: `squire init [--path PATH] [--target TARGET] [--only ONLY] [--check] [--force]`
-
-| Option | Meaning | Default |
-| --- | --- | --- |
-| `--path=VALUE` | Path to the application. | `.` |
-| `--target=VALUE` | raw, laravel or static (default: the target recorded in .squire.json, else laravel when an artisan file exists; static must be asked for). |  |
-| `--only=VALUE` | Comma-separated groups to write: release, parity. | `release,parity` |
-| `--check` | Write nothing; report files that are missing, outdated or edited. Exit 1 on drift. |  |
-| `--force` | Overwrite files that were edited or that SQUIRE did not write. |  |
-| `--silent` | Do not output any message |  |
-
-### `squire update`
-
-Take new template versions for files SQUIRE wrote that were never edited; show a diff for the edited ones.
-
-Usage: `squire update [--path PATH] [--target TARGET] [--only ONLY] [--dry-run]`
-
-| Option | Meaning | Default |
-| --- | --- | --- |
-| `--path=VALUE` | Path to the application. | `.` |
-| `--target=VALUE` | raw, laravel or static (default: the target recorded in .squire.json). |  |
-| `--only=VALUE` | Comma-separated groups to update: release, parity. (default: the groups recorded in .squire.json) |  |
-| `--dry-run` | Print the plan; write nothing. |  |
-| `--silent` | Do not output any message |  |
-
-### Options every command accepts
-
-| Option | Meaning | Default |
-| --- | --- | --- |
-| `-h`, `--help` | Display help for the given command. When no command is given display help for the list command |  |
-| `-q`, `--quiet` | Only errors are displayed. All other output is suppressed |  |
-| `-v|-vv|-vvv`, `--verbose` | Increase the verbosity of messages: 1 for normal output, 2 for more verbose output and 3 for debug |  |
-| `-V`, `--version` | Display this application version |  |
-| `--ansi` | Force (or disable --no-ansi) ANSI output |  |
-| `--no-ansi` | Negate the &quot;--ansi&quot; option |  |
-| `-n`, `--no-interaction` | Do not ask any interactive question |  |
+...whatever the builder wrote last time...
 &lt;!-- /generated --&gt;
 </code></pre>
 <p><code>docs/docs.json</code> defines the blocks by name. Each block rewrites its region from the repo's own state: <code>json-table</code> and <code>symfony-commands</code> run a command from the repo root (a leading <code>php </code> means the PHP binary, so the same file works on Windows, macOS and Linux) and render the command's JSON output, and <code>env</code> scans the source files for the environment variables the code reads.</p>
@@ -188,7 +127,7 @@ Usage: `squire update [--path PATH] [--target TARGET] [--only ONLY] [--dry-run]`
 <p>The <code>js-tests</code> job runs the same two commands on GitLab and GitHub. It stays out of <code>composer ci</code> because the PHP image has no Node.</p>
 </article>
     </main>
-    <nav class="docs-pager" aria-label="Pages"></nav>
+    <nav class="docs-pager" aria-label="Pages"><a class="docs-pager__link" href="../../docs/guides/advisor.html"><span class="docs-pager__dir">Previous</span><span class="docs-pager__title">Use Squire from your coding agent (ADVISOR)</span></a><a class="docs-pager__link docs-pager__link--next" href="../../docs/reference/commands.html"><span class="docs-pager__dir">Next</span><span class="docs-pager__title">Commands</span></a></nav>
   </div>
   <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item"><a href="#how-the-build-works">How the build works</a></li><li class="docs-toc__item"><a href="#generated-blocks">Generated blocks</a></li><li class="docs-toc__item--sub"><a href="#the-json-table-type">The json-table type</a></li><li class="docs-toc__item--sub"><a href="#the-symfony-commands-type">The symfony-commands type</a></li><li class="docs-toc__item--sub"><a href="#the-env-type">The env type</a></li><li class="docs-toc__item"><a href="#changelog-page">Changelog page</a></li><li class="docs-toc__item"><a href="#callouts">Callouts</a></li><li class="docs-toc__item"><a href="#what-the-check-proves">What the check proves</a></li><li class="docs-toc__item"><a href="#tested-examples">Tested examples</a></li><li class="docs-toc__item"><a href="#javascript-tests">JavaScript tests</a></li></ul></nav>
 </div>
