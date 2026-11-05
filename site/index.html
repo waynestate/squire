@@ -394,6 +394,7 @@ scripts\parity.ps1 up                  <span class="t-dim"># or: scripts\parity.
         <div><dt><code>2</code></dt><dd>the tool itself could not run</dd></div>
       </dl>
       <p>Squire's own repository rides along: <code>php bin/docs-site.php</code> turns <code>docs/</code> into the committed pages under <code>site/docs/</code>, renders GitHub alert callouts (<code>[!NOTE]</code>, <code>[!TIP]</code>, <code>[!WARNING]</code> and <code>[!DANGER]</code>) as labeled asides, groups consecutive <code>tab="..."</code> code fences into labeled code tabs that read without JavaScript, and generates a changelog page from <code>CHANGELOG.md</code> when the nav lists one.</p>
+      <p>Squire's own repository rides along: <code>php bin/docs-site.php</code> turns <code>docs/</code> into the committed pages under <code>site/docs/</code>, generates a changelog page from <code>CHANGELOG.md</code> when the nav lists one, and lets a site theme its docs with a header partial and a stylesheet through a <code>theme</code> key in <code>docs/docs.json</code>.</p>
     </div>
   </section>
 
