@@ -402,6 +402,12 @@ A small, realistic partial:
   </nav>
 </header>
 ```
+
+Squire's own docs wear this hook: `docs/_header.html` is the front page's masthead (the satchel, SQUIRE, the same
+links and the version tag) and `docs/theme/squire.css` carries the front page's canvas, leather, Arvo titles, luggage
+tags and terminals, with a derived dark set. To change how Squire's docs look, edit those two files and rebuild; never
+edit the kit.
+
 ### Dark mode
 
 The kit's `docs.css` holds every color behind a `--dk-*` alias as `var(--wsu-token, fallback)`, and the fallbacks follow

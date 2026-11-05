@@ -1703,6 +1703,22 @@ code {
   color: var(--sq-gold);
 }
 
+/* The footer's link is gold thread on the deep green, never green on green. */
+.site-footer__links {
+  margin: var(--wsu-space-3) 0 0;
+}
+
+.site-footer__links a {
+  font-weight: var(--wsu-font-weight-bold);
+  color: var(--sq-gold);
+  text-decoration-style: dashed;
+  text-underline-offset: 4px;
+}
+
+.site-footer__links a:hover {
+  text-decoration-style: solid;
+}
+
 .site-footer__org {
   margin: var(--wsu-space-2) 0 0;
   font-size: 0.875rem;

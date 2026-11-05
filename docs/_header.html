@@ -1,0 +1,23 @@
+<!--
+  The docs pages wear the front page's masthead (site/index.html): the satchel, SQUIRE in Arvo, the same doors in the
+  same order, and the version on a luggage tag. The docs builder puts the header element below in place of its generic
+  one on every page, rewrites the relative links (written as if from site/) to the page's depth, fills {{version}} and
+  marks the Documentation link aria-current. Styles: docs/theme/squire.css.
+  Keep the links in step with the front page's .site-nav. A squire always knows where the kit is hung.
+-->
+<header class="site-header">
+  <div class="site-header__row">
+    <a class="brand" href="index.html">
+      <img src="brand/squire-avatar-256.png" width="36" height="36" alt="">
+      <span class="brand__name">SQUIRE</span>
+    </a>
+    <nav class="site-nav" aria-label="Site">
+      <a href="index.html#kit">Packing list</a>
+      <a href="index.html#doctor">Inspection</a>
+      <a href="index.html#parity">Parity</a>
+      <a href="index.html#party">The party</a>
+      <a href="docs/index.html">Documentation</a>
+    </nav>
+    <span class="brand__version">v{{version}}</span>
+  </div>
+</header>

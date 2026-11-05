@@ -39,4 +39,8 @@ The header file takes exactly two placeholders, `{{project}}` and `{{version}}`.
 - [ ] The header uses only `{{project}}` and `{{version}}`.
 - [ ] Header links are relative to `site/`.
 
+## A worked example
+
+These pages are one. Squire's `docs/docs.json` names `theme/squire.css` and `_header.html`: the header is the front page's masthead, and the CSS maps the front page's canvas, leather and gold onto the kit's `--dk-*` tokens, then adds the luggage tags, the stitched seams and a derived dark set. Read those two files in the repository for a theme that passes the accessibility gate in light and dark.
+
 The rest of the builder is in [Building the docs](docs-builder.md).
