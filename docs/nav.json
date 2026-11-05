@@ -11,13 +11,38 @@
             "path": "install"
         },
         {
+            "title": "Guides",
+            "items": [
+                {
+                    "title": "Update and drift",
+                    "path": "guides/update-and-drift"
+                }
+            ]
+        },
+        {
             "title": "Reference",
             "items": [
                 {
                     "title": "Commands",
                     "path": "reference/commands"
+                },
+                {
+                    "title": "Configuration",
+                    "path": "reference/configuration"
+                },
+                {
+                    "title": "Files",
+                    "path": "reference/files"
                 }
             ]
+        },
+        {
+            "title": "Troubleshooting",
+            "path": "troubleshooting"
+        },
+        {
+            "title": "Upgrading",
+            "path": "upgrading"
         },
         {
             "title": "Changelog",
