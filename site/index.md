@@ -214,6 +214,7 @@ Squire itself runs on your machine and in CI. Only the scripts it wrote go to Ci
 
 Squire's own repository rides along: `php bin/docs-site.php` turns `docs/` into the committed pages under `site/docs/`, renders GitHub alert callouts (`[!NOTE]`, `[!TIP]`, `[!WARNING]` and `[!DANGER]`) as labeled asides, groups consecutive `tab="..."` code fences into labeled code tabs that read without JavaScript, and generates a changelog page from `CHANGELOG.md` when the nav lists one.
 Squire's own repository rides along: `php bin/docs-site.php` turns `docs/` into the committed pages under `site/docs/`, generates a changelog page from `CHANGELOG.md` when the nav lists one, and lets a site theme its docs with a header partial and a stylesheet through a `theme` key in `docs/docs.json`.
+Squire's own repository rides along: `php bin/docs-site.php` turns `docs/` into the committed pages under `site/docs/`, renders GitHub alert callouts (`[!NOTE]`, `[!TIP]`, `[!WARNING]` and `[!DANGER]`) as labeled asides, groups consecutive `tab="..."` code fences into labeled code tabs that read without JavaScript, and generates a changelog page from `CHANGELOG.md` when the nav lists one. The kit's `docs.css` styles the pages in light and dark themes (an explicit reader choice first, then the system setting), with every text pair at WCAG AA contrast in both.
 
 The platform
 

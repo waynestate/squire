@@ -390,6 +390,17 @@ A small, realistic partial:
   </nav>
 </header>
 ```
+### Dark mode
+
+The kit's `docs.css` holds every color behind a `--dk-*` alias as `var(--wsu-token, fallback)`, and the fallbacks follow
+WayneUI's own resolution order: an explicit choice first (`data-theme="dark"` or `data-theme="light"` on the root
+element, which WayneUI writes from the reader's saved preference), then the reader's system setting through a
+`prefers-color-scheme: dark` query scoped to `:root:not([data-theme="light"])`, else light. The light `:root` block stays
+the default; `:root[data-theme="dark"]` and the media-query block carry the dark fallbacks, and each declares
+`color-scheme` so form controls and scrollbars follow the theme. With WayneUI loaded its tokens resolve instead and it
+switches them itself, so the hex fallbacks only apply when WayneUI is absent. Every text pair (ink, muted, links,
+callout labels, code, and the accent's on-color) meets WCAG AA contrast in both themes, and nothing outside the three
+alias blocks carries a hard-coded color.
 
 ### What the check proves
 
