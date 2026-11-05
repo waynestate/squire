@@ -16,6 +16,54 @@
                 {
                     "title": "Update and drift",
                     "path": "guides/update-and-drift"
+                },
+                {
+                    "title": "Theming",
+                    "path": "guides/theming"
+                },
+                {
+                    "title": "Quick start",
+                    "path": "guides/quick-start"
+                },
+                {
+                    "title": "Doctor",
+                    "path": "guides/doctor"
+                },
+                {
+                    "title": "Citadel setup",
+                    "path": "guides/citadel-setup"
+                },
+                {
+                    "title": "Local parity",
+                    "path": "guides/local-parity"
+                },
+                {
+                    "title": "Oracle",
+                    "path": "guides/oracle"
+                },
+                {
+                    "title": "Raw PHP app",
+                    "path": "guides/raw-php-app"
+                },
+                {
+                    "title": "Static site",
+                    "path": "guides/static-site"
+                },
+                {
+                    "title": "The release script",
+                    "path": "guides/release-script"
+                },
+                {
+                    "title": "The agent-ready kit",
+                    "path": "guides/agent-ready-kit"
+                },
+                {
+                    "title": "Use Squire from your coding agent (ADVISOR)",
+                    "path": "guides/advisor"
+                },
+                {
+                    "title": "The docs builder",
+                    "path": "guides/docs-builder"
                 }
             ]
         },
@@ -43,6 +91,14 @@
         {
             "title": "Upgrading",
             "path": "upgrading"
+        },
+        {
+            "title": "Contributing",
+            "path": "contributing"
+        },
+        {
+            "title": "Squire 0.1 plan",
+            "path": "0.1-plan"
         },
         {
             "title": "Changelog",

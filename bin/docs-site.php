@@ -304,26 +304,37 @@ final class DocsExamples
     private function blankGeneratedRegions(array $lines): array
     {
         $count = count($lines);
+        $inFence = false;
+        $fenceChar = '';
+        $fenceLength = 0;
         $i = 0;
         while ($i < $count) {
-            if (preg_match('/^\s*<!--\s+generated:([A-Za-z0-9_-]+)\s+-->\s*$/', $lines[$i]) !== 1) {
+            if (docs_site_fence_line($lines[$i], $inFence, $fenceChar, $fenceLength)) {
                 $i++;
 
                 continue;
             }
-            $close = -1;
-            for ($j = $i + 1; $j < $count; $j++) {
-                if (preg_match('/^\s*<!--\s+\/generated\s+-->\s*$/', $lines[$j]) === 1) {
-                    $close = $j;
+            if (! $inFence && preg_match('/^\s*<!--\s+generated:([A-Za-z0-9_-]+)\s+-->\s*$/', $lines[$i]) === 1) {
+                $close = -1;
+                for ($j = $i + 1; $j < $count; $j++) {
+                    if (docs_site_fence_line($lines[$j], $inFence, $fenceChar, $fenceLength)) {
+                        continue;
+                    }
+                    if (preg_match('/^\s*<!--\s+\/generated\s+-->\s*$/', $lines[$j]) === 1) {
+                        $close = $j;
 
-                    break;
+                        break;
+                    }
                 }
+                $end = $close === -1 ? $count - 1 : $close - 1;
+                for ($k = $i + 1; $k <= $end; $k++) {
+                    $lines[$k] = '';
+                }
+                $i = $close === -1 ? $count : $close + 1;
+
+                continue;
             }
-            $end = $close === -1 ? $count - 1 : $close - 1;
-            for ($k = $i + 1; $k <= $end; $k++) {
-                $lines[$k] = '';
-            }
-            $i = $close === -1 ? $count : $close + 1;
+            $i++;
         }
 
         return array_values($lines);
@@ -1770,13 +1781,22 @@ final class DocsSite
             $offset += strlen($line) + 1;
         }
         $count = count($lines);
+        $inFence = false;
+        $fenceChar = '';
+        $fenceLength = 0;
         for ($i = 0; $i < $count; $i++) {
-            if (preg_match('/^\s*<!--\s+generated:([A-Za-z0-9_-]+)\s+-->\s*$/', $lines[$i], $open) !== 1) {
+            if (docs_site_fence_line($lines[$i], $inFence, $fenceChar, $fenceLength)) {
+                continue;
+            }
+            if ($inFence || preg_match('/^\s*<!--\s+generated:([A-Za-z0-9_-]+)\s+-->\s*$/', $lines[$i], $open) !== 1) {
                 continue;
             }
             $name = $open[1];
             $close = null;
             for ($j = $i + 1; $j < $count; $j++) {
+                if (docs_site_fence_line($lines[$j], $inFence, $fenceChar, $fenceLength)) {
+                    continue;
+                }
                 if (preg_match('/^\s*<!--\s+\/generated\s+-->\s*$/', $lines[$j]) === 1) {
                     $close = $j;
 
@@ -3140,6 +3160,36 @@ final class DocsSite
         /** @var array<string, mixed> $data */
         return $data;
     }
+}
+
+/**
+ * Advances the fence state over one line, the same way DocsExamples::fences() finds them: a line starting with
+ * three or more backticks or tildes opens a fence, and the next line of the same character at least as long,
+ * with nothing after it, closes it. Returns true for every line that belongs to a fence (the opening line, the
+ * content lines and the closing line), so a generated-block marker on such a line is an example, not a region.
+ */
+function docs_site_fence_line(string $line, bool &$inFence, string &$fenceChar, int &$fenceLength): bool
+{
+    if (preg_match('/^ {0,3}(`{3,}|~{3,})\s*(.*)$/', $line, $m) !== 1) {
+        return false;
+    }
+    $char = $m[1][0];
+    $length = strlen($m[1]);
+    if ($inFence) {
+        if ($char === $fenceChar && $length >= $fenceLength && trim($m[2]) === '') {
+            $inFence = false;
+        }
+
+        return true;
+    }
+    if ($char === '`' && str_contains($m[2], '`')) {
+        return false;
+    }
+    $inFence = true;
+    $fenceChar = $char;
+    $fenceLength = $length;
+
+    return true;
 }
 
 /** Load league/commonmark from the repo's vendor, falling back to this checkout's own vendor. */
