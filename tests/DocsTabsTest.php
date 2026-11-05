@@ -160,4 +160,54 @@ final class DocsTabsTest extends SquireTestCase
         self::assertStringNotContainsString('<b>&"q"</b>', $page);
         self::assertSame(2, substr_count($page, '<code class="language-html">'));
     }
+
+    public function testTabLabelsMayContainSpaces(): void
+    {
+        $dir = $this->repo();
+        $this->guidePage($dir, 'guides/tabs', 'Tabs', "# Tabs\n\n## Linux / macOS\n\n```bash tab=\"Linux / macOS\"\necho hello\n```\n\n```powershell tab=\"Windows\"\nWrite-Output hello\n```\n");
+        $page = $this->builtPage($dir, 'guides/tabs');
+        // One set keyed by the lowercased labels, and both tab buttons read their full labels.
+        self::assertStringContainsString('<div class="docs-tabs" data-tabs="linux / macos|windows">', $page);
+        self::assertStringContainsString(
+            "<div class=\"docs-tabs__panel\" data-tab-label=\"Linux / macOS\"><p class=\"docs-tabs__label\">Linux / macOS</p><pre><code class=\"language-bash\">echo hello\n</code></pre></div>",
+            $page,
+        );
+        self::assertStringContainsString(
+            "<div class=\"docs-tabs__panel\" data-tab-label=\"Windows\"><p class=\"docs-tabs__label\">Windows</p><pre><code class=\"language-powershell\">Write-Output hello\n</code></pre></div>",
+            $page,
+        );
+        // The ids the builder derives from these labels stay valid: the slug of a spaced label has no space,
+        // and no id attribute on the page carries one.
+        self::assertStringContainsString('id="linux-macos"', $page);
+        self::assertDoesNotMatchRegularExpression('/\bid="[^"]*\s/', $page);
+    }
+
+    public function testTabInfoSpecEdges(): void
+    {
+        require_once dirname(__DIR__) . '/bin/docs-site.php';
+        $class = new \ReflectionClass(\DocsSite::class);
+        $site = $class->newInstanceWithoutConstructor();
+        $method = $class->getMethod('tabInfo');
+        $tabInfo = static fn (string $info): array => $method->invoke($site, $info);
+        $forty = str_repeat('a', 40);
+        $cases = [
+            ['bash tab="Linux / macOS"', ['bash', 'Linux / macOS', 'bash']],
+            ['powershell tab="Windows"', ['powershell', 'Windows', 'powershell']],
+            ['bash tab=""', ['bash', null, 'bash']],
+            ['bash tab="   "', ['bash', null, 'bash']],
+            ['bash tab="' . str_repeat('a', 41) . '"', ['bash', null, 'bash']],
+            ['bash tab="' . $forty . '"', ['bash', $forty, 'bash']],
+            ['bash tab="a"', ['bash', 'a', 'bash']],
+            ['tab="Linux / macOS" bash', ['bash', 'Linux / macOS', 'bash']],
+            ['bash run tab="Linux / macOS"', ['bash', 'Linux / macOS', 'bash run']],
+            ['bash exit=1 tab="Windows"', ['bash', 'Windows', 'bash exit=1']],
+            ['sh tab="a" b', ['sh', 'a', 'sh b']],
+            ['bash', ['bash', null, 'bash']],
+            ['', ['', null, '']],
+            ['bash tab="a" tab="b"', ['bash', 'a', 'bash tab="b"']],
+        ];
+        foreach ($cases as [$info, $want]) {
+            self::assertSame($want, $tabInfo($info), 'info: ' . $info);
+        }
+    }
 }
