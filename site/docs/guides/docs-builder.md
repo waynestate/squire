@@ -1,6 +1,6 @@
 ---
 title: "The docs builder | Squire docs"
-description: "How bin/docs-site.php turns docs/ into committed HTML under site/docs/, with generated blocks, a changelog page, callouts, what the check proves, tested examples and JavaScript tests."
+description: "How bin/docs-site.php turns docs/ into committed HTML under site/docs/, with generated blocks, a changelog page, callouts, task lists, what the check proves, tested examples and JavaScript tests."
 url: https://squire.apps.wayne.edu/docs/guides/docs-builder.html
 llms: https://squire.apps.wayne.edu/llms.txt
 generator: Squire agent-ready
@@ -105,6 +105,10 @@ A blockquote whose first line is a marker alone becomes a callout instead of a q
 ```
 
 The marker is case-insensitive and one of `[!NOTE]`, `[!TIP]`, `[!WARNING]` or `[!DANGER]`. The builder renders an `<aside>` with the classes `docs-callout` and `docs-callout--note` (one per kind), `role="note"`, a visible label, and the body below it, and drops the marker line from the body. A blockquote without a marker, or with a marker that is not one of the four, stays a plain blockquote. The kit's `docs.css` styles all four kinds from WayneUI tokens, in light and dark themes.
+
+## Task lists[#](https://squire.apps.wayne.edu/docs/guides/docs-builder.html#task-lists)
+
+A GitHub task list item (`- [ ] Protect the default branch`) renders a disabled checkbox. The builder wraps the checkbox and the item's own text in a `<label class="docs-task">`, so the checkbox has an accessible name (axe's label rule) and is named by what it checks; a nested list or a second paragraph stays outside the label.
 
 ## What the check proves[#](https://squire.apps.wayne.edu/docs/guides/docs-builder.html#what-the-check-proves)
 

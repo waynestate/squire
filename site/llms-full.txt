@@ -328,6 +328,12 @@ from its language class, and a run broken by anything else becomes separate sets
 an accessible tablist (click, arrow keys, Home and End), remembers the chosen label per key in `localStorage`, and keeps
 every set sharing a key in step; `docs.css` styles the tabs from WayneUI tokens, and print shows every panel.
 
+#### Task lists
+
+A GitHub task list item (`- [ ] Protect the default branch`) renders a disabled checkbox. The builder wraps the checkbox
+and the item's own text in a ``, so the checkbox is named by what it checks; a nested list or a
+second paragraph stays outside the label.
+
 #### Theme
 
 An optional `theme` key in `docs/docs.json` wears the site's own brand on the pages, without touching the kit:
@@ -973,6 +979,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 - Fixed: the kit's agent-ready.js and stack-env.js use bindingless catch blocks, so a linter with no-unused-vars passes on them.
 - Fixed: a docs code block that scrolls sideways is keyboard reachable: the kit's docs.js gives a block wider than its box tabindex="0" and takes it away again when a resize makes it fit, so axe's scrollable-region-focusable rule passes on pages with long commands.
 - Fixed: a scrolling code block inside a code tab stays keyboard reachable: docs.js measures a block again when its tab shows, and a resize leaves a block in a hidden panel as it was (it has no box to measure), so axe's scrollable-region-focusable rule passes on whichever tab is open.
+- Fixed: a GitHub task list checkbox in the docs has an accessible name: the builder wraps the checkbox and its item's own inline text in a label (class docs-task), stopping before a nested list or a second paragraph, so axe's label rule passes on pages with task lists.
 - Fixed: sub-items in the docs "On this page" list carry docs-toc\_\_item as well as docs-toc\_\_item--sub, so the kit's item rules (muted color, padding, hover) and a theme's reach them; docs.css also matches a bare --sub item, so pages built before a resync still look right.
 - Fixed: the docs builder ignores generated: markers inside fenced code blocks, so a page can show the marker syntax in an example without the builder filling or checking it.
 - Fixed: the docs kit's copy button says Copied after a successful copy; clipboard.writeText resolves with undefined, which docs.js read as a failure, so every working copy said Copy failed, and a refused write now says Copy failed instead of staying silent.
@@ -1381,6 +1388,10 @@ A blockquote whose first line is a marker alone becomes a callout instead of a q
 ```
 
 The marker is case-insensitive and one of `[!NOTE]`, `[!TIP]`, `[!WARNING]` or `[!DANGER]`. The builder renders an `<aside>` with the classes `docs-callout` and `docs-callout--note` (one per kind), `role="note"`, a visible label, and the body below it, and drops the marker line from the body. A blockquote without a marker, or with a marker that is not one of the four, stays a plain blockquote. The kit's `docs.css` styles all four kinds from WayneUI tokens, in light and dark themes.
+
+### Task lists[#](https://squire.apps.wayne.edu/docs/guides/docs-builder.html#task-lists)
+
+A GitHub task list item (`- [ ] Protect the default branch`) renders a disabled checkbox. The builder wraps the checkbox and the item's own text in a `<label class="docs-task">`, so the checkbox has an accessible name (axe's label rule) and is named by what it checks; a nested list or a second paragraph stays outside the label.
 
 ### What the check proves[#](https://squire.apps.wayne.edu/docs/guides/docs-builder.html#what-the-check-proves)
 
@@ -1815,12 +1826,6 @@ The builder copies your CSS file to `site/docs/theme/`. Dark mode, fonts and col
 The header file takes exactly two placeholders, `{{project}}` and `{{version}}`. Any other placeholder fails the build with exit 2. Write header links relative to `site/`, not relative to `docs/`.
 
 ### Checklist[#](https://squire.apps.wayne.edu/docs/guides/theming.html#checklist)
-
-- `docs/docs.json` has a `theme` key with `css` and `header`.
-- Both paths are relative to the folder that holds `docs.json`.
-- Your CSS carries dark mode, fonts and colors, and the kit's `docs.css` stays untouched.
-- The header uses only `{{project}}` and `{{version}}`.
-- Header links are relative to `site/`.
 
 The rest of the builder is in [Building the docs](https://squire.apps.wayne.edu/docs/guides/docs-builder.html).
 

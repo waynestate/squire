@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The docs builder | Squire docs</title>
-<meta name="description" content="How bin/docs-site.php turns docs/ into committed HTML under site/docs/, with generated blocks, a changelog page, callouts, what the check proves, tested examples and JavaScript tests.">
+<meta name="description" content="How bin/docs-site.php turns docs/ into committed HTML under site/docs/, with generated blocks, a changelog page, callouts, task lists, what the check proves, tested examples and JavaScript tests.">
 <meta name="docs-version" content="0.5.0">
 <link rel="stylesheet" href="../../assets/wayne-ui/wayne-ui.css">
 <link rel="stylesheet" href="../../assets/docs.css">
@@ -95,6 +95,8 @@ php bin/docs-site.php --check            # verify in CI (or: composer docs:check
 &gt; The body keeps the note.
 </code></pre>
 <p>The marker is case-insensitive and one of <code>[!NOTE]</code>, <code>[!TIP]</code>, <code>[!WARNING]</code> or <code>[!DANGER]</code>. The builder renders an <code>&lt;aside&gt;</code> with the classes <code>docs-callout</code> and <code>docs-callout--note</code> (one per kind), <code>role=&quot;note&quot;</code>, a visible label, and the body below it, and drops the marker line from the body. A blockquote without a marker, or with a marker that is not one of the four, stays a plain blockquote. The kit's <code>docs.css</code> styles all four kinds from WayneUI tokens, in light and dark themes.</p>
+<h2 id="task-lists">Task lists<a class="docs-heading-link" aria-label="Link to this section" href="#task-lists">#</a></h2>
+<p>A GitHub task list item (<code>- [ ] Protect the default branch</code>) renders a disabled checkbox. The builder wraps the checkbox and the item's own text in a <code>&lt;label class=&quot;docs-task&quot;&gt;</code>, so the checkbox has an accessible name (axe's label rule) and is named by what it checks; a nested list or a second paragraph stays outside the label.</p>
 <h2 id="what-the-check-proves">What the check proves<a class="docs-heading-link" aria-label="Link to this section" href="#what-the-check-proves">#</a></h2>
 <ul>
 <li>For a <code>symfony-commands</code> block, a code span or fenced line that starts with the CLI name must name a real command (<code>help</code> and <code>list</code> always pass), and every <code>--option</code> on it must be an option of that command or an application option; an unknown command or option is a finding.</li>
@@ -129,7 +131,7 @@ php bin/docs-site.php --check            # verify in CI (or: composer docs:check
     </main>
     <nav class="docs-pager" aria-label="Pages"><a class="docs-pager__link" href="../../docs/guides/advisor.html"><span class="docs-pager__dir">Previous</span><span class="docs-pager__title">Use Squire from your coding agent (ADVISOR)</span></a><a class="docs-pager__link docs-pager__link--next" href="../../docs/reference/commands.html"><span class="docs-pager__dir">Next</span><span class="docs-pager__title">Commands</span></a></nav>
   </div>
-  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item"><a href="#how-the-build-works">How the build works</a></li><li class="docs-toc__item"><a href="#generated-blocks">Generated blocks</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#the-json-table-type">The json-table type</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#the-symfony-commands-type">The symfony-commands type</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#the-env-type">The env type</a></li><li class="docs-toc__item"><a href="#changelog-page">Changelog page</a></li><li class="docs-toc__item"><a href="#callouts">Callouts</a></li><li class="docs-toc__item"><a href="#what-the-check-proves">What the check proves</a></li><li class="docs-toc__item"><a href="#tested-examples">Tested examples</a></li><li class="docs-toc__item"><a href="#javascript-tests">JavaScript tests</a></li></ul></nav>
+  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item"><a href="#how-the-build-works">How the build works</a></li><li class="docs-toc__item"><a href="#generated-blocks">Generated blocks</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#the-json-table-type">The json-table type</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#the-symfony-commands-type">The symfony-commands type</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#the-env-type">The env type</a></li><li class="docs-toc__item"><a href="#changelog-page">Changelog page</a></li><li class="docs-toc__item"><a href="#callouts">Callouts</a></li><li class="docs-toc__item"><a href="#task-lists">Task lists</a></li><li class="docs-toc__item"><a href="#what-the-check-proves">What the check proves</a></li><li class="docs-toc__item"><a href="#tested-examples">Tested examples</a></li><li class="docs-toc__item"><a href="#javascript-tests">JavaScript tests</a></li></ul></nav>
 </div>
 <footer class="docs-footer">
   <span>Documents Squire <span data-docs-version>0.5.0</span></span>

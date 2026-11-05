@@ -37,10 +37,4 @@ The header file takes exactly two placeholders, `{{project}}` and `{{version}}`.
 
 ## Checklist[#](https://squire.apps.wayne.edu/docs/guides/theming.html#checklist)
 
-- `docs/docs.json` has a `theme` key with `css` and `header`.
-- Both paths are relative to the folder that holds `docs.json`.
-- Your CSS carries dark mode, fonts and colors, and the kit's `docs.css` stays untouched.
-- The header uses only `{{project}}` and `{{version}}`.
-- Header links are relative to `site/`.
-
 The rest of the builder is in [Building the docs](https://squire.apps.wayne.edu/docs/guides/docs-builder.html).
