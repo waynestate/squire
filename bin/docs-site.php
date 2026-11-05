@@ -1427,6 +1427,7 @@ final class DocsSite
         $body = rtrim($this->rewriteChangelogLinks($body), "\n");
         $page = "---\ntitle: \"Changelog\"\ndescription: All notable changes to this project.\n---\n\n"
             ."<!-- Generated from CHANGELOG.md by bin/docs-site.php. Edit CHANGELOG.md, not this file. -->\n\n"
+            ."# Changelog\n\n"
             .$body."\n";
 
         return ['docs/changelog.md', $page];

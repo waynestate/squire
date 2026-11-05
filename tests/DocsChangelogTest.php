@@ -86,6 +86,8 @@ final class DocsChangelogTest extends SquireTestCase
             . "\n"
             . "<!-- Generated from CHANGELOG.md by bin/docs-site.php. Edit CHANGELOG.md, not this file. -->\n"
             . "\n"
+            . "# Changelog\n"
+            . "\n"
             . "All notable changes to the demo are recorded here.\n"
             . "\n"
             . "## Unreleased\n"
@@ -97,6 +99,17 @@ final class DocsChangelogTest extends SquireTestCase
             . "First release, with `composer install`.\n",
             (string) file_get_contents($dir . '/docs/changelog.md'),
         );
+    }
+
+    public function testChangelogPageHasOneH1(): void
+    {
+        $dir = $this->repo();
+        $this->withChangelog($dir, "# Version history\n\n## Unreleased\n\n- One.\n");
+        $result = $this->invoke(['--root=' . $dir]);
+        self::assertSame(0, $result['code'], $result['stderr']);
+        $html = (string) file_get_contents($dir . '/site/docs/changelog.html');
+        self::assertSame(1, substr_count($html, '<h1'));
+        self::assertMatchesRegularExpression('#<h1 id="changelog">Changelog#', $html);
     }
 
     public function testGeneratedPageIsBuiltIntoTheSite(): void
