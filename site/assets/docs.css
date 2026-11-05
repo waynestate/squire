@@ -421,14 +421,17 @@
   border-left: 1px solid var(--dk-rule);
 }
 
-.docs-toc__item a {
+/* A page built before sub-items carried the base class still styles them: --sub alone matches too. */
+.docs-toc__item a,
+.docs-toc__item--sub a {
   display: block;
   padding: 0.25rem 0.75rem;
   color: var(--dk-muted);
   text-decoration: none;
 }
 
-.docs-toc__item a:hover {
+.docs-toc__item a:hover,
+.docs-toc__item--sub a:hover {
   color: var(--dk-accent);
 }
 

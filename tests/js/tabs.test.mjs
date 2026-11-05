@@ -171,3 +171,23 @@ test('tabs work when localStorage throws', async () => {
   assert.equal(tabs[1].getAttribute('aria-selected'), 'true', 'selection still works when storage throws');
   assert.equal(document.querySelectorAll('.docs-tabs__panel')[1].hidden, false);
 });
+
+test('a scrolling code block in a hidden tab joins the tab order when its tab shows, even after a resize', async () => {
+  const { window, document } = load(pageWith(`<main class="docs-article">${setMarkup('sh|powershell', ['sh', 'powershell'])}</main>`));
+  await settled(window);
+  const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
+  const pre = document.querySelectorAll('.docs-tabs__panel pre')[1];
+  // Like a browser: a block inside a hidden panel has no box, so both widths read 0; shown, it overflows.
+  Object.defineProperty(pre, 'scrollWidth', { configurable: true, get: () => (pre.closest('[hidden]') ? 0 : 900) });
+  Object.defineProperty(pre, 'clientWidth', { configurable: true, get: () => (pre.closest('[hidden]') ? 0 : 300) });
+
+  window.dispatchEvent(new window.Event('resize'));
+  tabs[1].click();
+  assert.equal(pre.getAttribute('tabindex'), '0', 'the shown block scrolls, so it is focusable');
+
+  tabs[0].click();
+  window.dispatchEvent(new window.Event('resize'));
+  assert.equal(pre.getAttribute('tabindex'), '0', 'a resize while hidden keeps what the block had');
+  tabs[1].click();
+  assert.equal(pre.getAttribute('tabindex'), '0');
+});

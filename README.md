@@ -214,7 +214,7 @@ in the header and footer, with the mirrors beside it, so the canonical repo home
 URL. Pages are styled by WayneUI plus the kit's `docs.css` and `docs.js` in the site's
 `assets/` folder, so every stack repo reads the same way. `docs.js` adds a copy button to every code block (it says
 Copied or Copy failed, and tells screen readers too) and puts a block that scrolls sideways in the tab order, so a
-keyboard can reach it. Squire owns the kit, and a repo takes a new version from a
+keyboard can reach it (a block inside a code tab is measured again when its tab shows). Squire owns the kit, and a repo takes a new version from a
 Squire checkout with `php bin/docs-site.php --sync-to=<repo>`, which copies the kit and the tool itself. The repo then
 builds with `php bin/docs-site.php` (or `composer docs`) and commits `site/docs/`, and runs `--check` (or
 `composer docs:check`) in CI to fail when a page is stale or a finding is present. A squire keeps the map current, so the

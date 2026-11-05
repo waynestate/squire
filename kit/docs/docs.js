@@ -44,8 +44,12 @@
   }
 
   // A code block wider than its box scrolls sideways; keyboard users can only scroll what they can focus
-  // (WCAG 2.1.1), so a block that overflows joins the tab order and one that fits leaves it.
+  // (WCAG 2.1.1), so a block that overflows joins the tab order and one that fits leaves it. A block in a
+  // hidden tab panel has no box to measure (both widths read 0), so it keeps what it had until its tab shows.
   function markScrollable(pre) {
+    if (pre.closest('[hidden]')) {
+      return;
+    }
     if (pre.scrollWidth > pre.clientWidth) {
       pre.setAttribute('tabindex', '0');
     } else {
@@ -197,6 +201,8 @@
         state.panels.forEach(function (panel, i) {
           panel.hidden = i !== index;
         });
+        // The shown panel's code now has a box: measure it, so a block that scrolls is keyboard reachable.
+        Array.prototype.forEach.call(state.panels[index].querySelectorAll('pre'), markScrollable);
         if (persist) {
           writeStored('squire-docs-tab:' + key, state.labels[index]);
           // Keep every other set that shares this key in step.
