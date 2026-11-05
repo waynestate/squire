@@ -47,6 +47,7 @@ use League\CommonMark\Util\Xml;
  * the kit's docs.js turns each set into an accessible tablist and keeps sets that share a key in step. A lone such
  * block renders as a plain code block with the tab="..." word dropped from its language class, and blocks separated
  * by anything are separate sets.
+ * Task lists: a GitHub task list checkbox sits in a label with its item's own text, so it has an accessible name.
  * Theme: an optional theme key in docs/docs.json wears the site's brand on the pages. Its css member names a
  * stylesheet, copied byte for byte to site/docs/theme/<basename> and linked after docs.css on every page; its
  * header member names an HTML partial whose single <header> element replaces the generic docs header, its relative
@@ -2663,6 +2664,7 @@ final class DocsSite
         [$toc, $h1] = $this->decorate($document, $folder, $sources);
         $content = (string) (new HtmlRenderer($env))->renderDocument($document)->getContent();
         $content = $this->wrapTables($content);
+        $content = $this->labelTasks($content);
 
         $title = trim((string) ($meta['title'] ?? ''));
         if ($title === '') {
@@ -2813,6 +2815,24 @@ final class DocsSite
         $text = trim($text, '-');
 
         return $text === '' ? 'section' : $text;
+    }
+
+    /**
+     * A GitHub task list item renders a bare disabled checkbox, which has no accessible name (axe: label). Wrap the
+     * checkbox and its item's own inline text in a label, stopping before a nested list, a second paragraph or the
+     * end of the item, so the checkbox is named by what it checks.
+     */
+    private function labelTasks(string $html): string
+    {
+        return preg_replace_callback(
+            '#(<li>(?:\s*<p>)?)(<input\b[^>]*\btype="checkbox"[^>]*>)((?:[^<]++|<(?!/?(?:li|ul|ol|p|div|pre|blockquote|table)\b))*+)#',
+            static function (array $m): string {
+                $text = rtrim($m[3]);
+
+                return $m[1].'<label class="docs-task">'.$m[2].$text.'</label>'.substr($m[3], strlen($text));
+            },
+            $html,
+        ) ?? $html;
     }
 
     private function wrapTables(string $html): string

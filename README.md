@@ -350,6 +350,12 @@ from its language class, and a run broken by anything else becomes separate sets
 an accessible tablist (click, arrow keys, Home and End), remembers the chosen label per key in `localStorage`, and keeps
 every set sharing a key in step; `docs.css` styles the tabs from WayneUI tokens, and print shows every panel.
 
+### Task lists
+
+A GitHub task list item (`- [ ] Protect the default branch`) renders a disabled checkbox. The builder wraps the checkbox
+and the item's own text in a `<label class="docs-task">`, so the checkbox is named by what it checks; a nested list or a
+second paragraph stays outside the label.
+
 ### Theme
 
 An optional `theme` key in `docs/docs.json` wears the site's own brand on the pages, without touching the kit:
