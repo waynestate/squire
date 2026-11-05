@@ -14,6 +14,8 @@ Source: https://nougat.snu.gs/enterprise-apps/squire/blob/HEAD/README.md
 
 **Suits you up for deploy day.** A squire carries the kit, readies the armor and gets the knight on the field.
 
+Documentation: [squire.apps.wayne.edu/docs/](https://squire.apps.wayne.edu/docs/)
+
 Checks: `composer ci` (the same command runs on GitLab and GitHub).
 
 Squire is the Citadel kit: build.sh, the release script, the health check, and local parity on the real images. Its docs builder turns `docs/` into the committed pages under `site/docs/`, with a changelog page generated from `CHANGELOG.md` when the nav lists one. It is part of WELD, the Wayne State application stack, beside WayneUI (project 0, the interface layer), CREED, PROCTOR, Preflight, SESAME, HELMET, Pinstripe and Sourdough.
@@ -32,6 +34,10 @@ Status: 0.5.0, tagged and on Packagist.
 The canonical repository is on nougat: [enterprise-apps/squire](https://nougat.snu.gs/enterprise-apps/squire). git.wayne.edu and GitHub ([waynestate/squire](https://github.com/waynestate/squire)) are read-only mirrors of it.
 Open issues and merge requests on nougat, not on the mirrors.
 This moves to git.wayne.edu once it has CI runners. Your squire serves one banner, and it flies over nougat.
+
+### Docs
+
+The pages under `docs/` build into the committed site at `site/docs/`: rebuild with `composer docs`, check with `composer docs:check`.
 
 ### What it does
 
@@ -858,8 +864,7 @@ Squire itself runs on your machine and in CI. Only the scripts it wrote go to Ci
 - **`1`**: findings: drift for `init --check`, a failed rule for `doctor`
 - **`2`**: the tool itself could not run
 
-Squire's own repository rides along: `php bin/docs-site.php` turns `docs/` into the committed pages under `site/docs/`, renders GitHub alert callouts (`[!NOTE]`, `[!TIP]`, `[!WARNING]` and `[!DANGER]`) as labeled asides, groups consecutive `tab="..."` code fences into labeled code tabs that read without JavaScript, and generates a changelog page from `CHANGELOG.md` when the nav lists one.
-Squire's own repository rides along: `php bin/docs-site.php` turns `docs/` into the committed pages under `site/docs/`, generates a changelog page from `CHANGELOG.md` when the nav lists one, and lets a site theme its docs with a header partial and a stylesheet through a `theme` key in `docs/docs.json`.
+Squire's own repository rides along: `php bin/docs-site.php` turns `docs/` into the committed pages under `site/docs/`, renders GitHub alert callouts (`[!NOTE]`, `[!TIP]`, `[!WARNING]` and `[!DANGER]`) as labeled asides, groups consecutive `tab="..."` code fences into labeled code tabs that read without JavaScript, generates a changelog page from `CHANGELOG.md` when the nav lists one, and lets a site theme its docs with a header partial and a stylesheet through a `theme` key in `docs/docs.json`. The kit's `docs.css` styles the pages in light and dark themes (an explicit reader choice first, then the system setting), with every text pair at WCAG AA contrast in both.
 
 The platform
 
@@ -905,3 +910,1494 @@ Squire 0.5.0 is tagged and on Packagist. Where we had to guess how Citadel behav
 - The Citadel image has no registry digest to pin yet; doctor warns under S67 until you run `pin`.
 - A full Update may not refresh `vendor/`. Use `scripts/release.sh` as the Quick Update post-script too.
 - PROCTOR reports during a release by default; set `SQUIRE_PROCTOR=enforce` and a failed check stops it.
+
+---
+
+Source: https://squire.apps.wayne.edu/docs/0.1-plan.html
+
+## Squire 0.1 plan[#](https://squire.apps.wayne.edu/docs/0.1-plan.html#squire-0-1-plan)
+
+Sources: the Squire best-practice rules (S1 to S78), the Citadel facts gathered from a read-only clone of Citadel, and the WELD portfolio entry for Squire. This is the plan the 0.1 build followed; `OPEN_QUESTIONS.md` records where it had to guess.
+
+### Goal[#](https://squire.apps.wayne.edu/docs/0.1-plan.html#goal)
+
+A WSU developer with a PHP app (raw PHP or Laravel) runs `vendor/bin/squire init` and gets the files Citadel needs, plus a local setup that behaves like Citadel. `vendor/bin/squire doctor` tells them which best practices the app breaks.
+
+### Shape[#](https://squire.apps.wayne.edu/docs/0.1-plan.html#shape)
+
+1. **A Composer package**, `waynestate/squire`, PHP `^8.3`, tested on 8.3, 8.4 and 8.5, with a Symfony Console CLI.
+2. **`squire init`** writes the scripts from templates and records a SHA-256 of each file in `.squire.json`. `squire init --check` reports drift and exits 1 (depend, do not copy). It never overwrites a file the team edited unless told to with `--force`.
+3. **`squire doctor`** checks an app against the rules that a machine can decide, exits 1 on a failure, 2 on a tool error, and has a JSON format. Drift from the templates is a warning only.
+4. **Templates** in two targets, raw PHP and Laravel (detected from `artisan`), in two groups:
+   - `release`: `build.sh`, `deployments/001-first-release.sh`, `scripts/release.sh`, `health.php`, `public/up.php` (raw only).
+   - `parity`: `docker-compose.squire.yml`, a `.squire/` folder (Dockerfile, proxy config, php.ini, vhost, a fallback base image), `scripts/parity.sh`, `scripts/parity.ps1`, `.env.squire.example`.
+5. **Platform proposals.** Squire's maintainers send platform improvement proposals to the platform team privately; nothing in this repository touches a server.
+
+### Constraints that shaped the templates[#](https://squire.apps.wayne.edu/docs/0.1-plan.html#constraints-that-shaped-the-templates)
+
+- Citadel runs `build.sh` with `/bin/sh` as root, with only that file copied in. So `build.sh` is POSIX sh and installs system packages only. Composer and npm never run there (S1).
+- Deployment hooks run once per file name for the life of an app, as the `citadel` user, and Apache is not up yet. So the hook calls the release script with the smoke test off, and the same script is the Quick Update post-script, where the smoke test is on.
+- A Quick Update post-script cannot roll anything back. So PROCTOR is a report there, never a gate (S20).
+- The health check runs every five minutes with a 15 second timeout. So `health.php` is a small CLI script that makes one HTTP request and never boots the framework (S55).
+- The shared MySQL is 5.6. So the Laravel template and `doctor` warn about JSON columns and 191 character indexes (S18).
+
+### Build order[#](https://squire.apps.wayne.edu/docs/0.1-plan.html#build-order)
+
+1. Scaffold and CI files (GitLab and GitHub), Pint, PHPStan level 8, PHPUnit.
+2. Template catalog, manifest, `init` and `--check`.
+3. Templates and their tests, including running the real shell templates with stub programs.
+4. `doctor` and its rules.
+5. Local parity kit, run end to end once on Docker Desktop.
+6. Shell and PowerShell linting in Docker (shellcheck, PSScriptAnalyzer).
+7. README, best practices, changelog, open questions.
+
+### Done means[#](https://squire.apps.wayne.edu/docs/0.1-plan.html#done-means)
+
+`composer ci` passes in Docker, the shell templates pass shellcheck, the PowerShell passes PSScriptAnalyzer, the parity kit has been brought up once with a healthy app behind the proxy, and every guess is in `OPEN_QUESTIONS.md`.
+
+---
+
+Source: https://squire.apps.wayne.edu/docs/changelog.html
+
+## Changelog | Squire docs
+
+All notable changes to Squire are recorded here. The format follows Keep a Changelog; the project follows Semantic Versioning once 1.0 is out.
+
+### Unreleased[#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
+
+- Added: dark mode in the docs kit: docs.css redefines its twelve --dk-\* color aliases with dark fallbacks in :root\[data-theme="dark"\] and in a prefers-color-scheme: dark query scoped to :root:not(\[data-theme="light"\]), in WayneUI's own resolution order (an explicit choice first, then the reader's system setting, else light), declares color-scheme in each theme so form controls and scrollbars follow, and keeps every text pair at WCAG AA contrast in both themes; the hex fallbacks only apply when WayneUI is absent.
+- Added: code tabs in the docs builder: consecutive fenced code blocks whose info string carries tab="LABEL" (double quotes, label up to 40 characters) render as one labeled tab set (a docs-tabs element keyed by the lowercased labels joined by |, each panel a docs-tabs\_\_panel with a visible label and the code escaped exactly like a plain fenced block), so every example reads without JavaScript; a lone tab="..." fence stays a plain code block with the tab="..." word dropped from its language class, a run broken by anything else becomes separate sets, and the kit's docs.js turns each set into an accessible tablist (click, arrow keys, Home and End), remembers the chosen label per key in localStorage, and keeps every set sharing a key in step, while docs.css styles the tabs from WayneUI tokens and print shows every panel.
+- Added: Squire's own docs site (docs/ built to site/docs/ by its docs builder) and the composer scripts site:agent-ready, site:agent-ready-check; ci now runs both checks.
+- Added: GitHub alert callouts in the docs builder: a blockquote whose first line is a marker alone (\[!NOTE\], \[!TIP\], \[!WARNING\] or \[!DANGER\], case-insensitive) renders as an aside with the classes docs-callout and docs-callout--note (one per kind), role="note", a visible label, and the body below it, and the marker line leaves the body; a blockquote without a marker, or with a marker that is not one of the four, stays a plain blockquote, and the kit's docs.css styles all four kinds from WayneUI tokens in light and dark themes.
+- Fixed: the kit's agent-ready.js drops two unused variables in enhancePrompt, so eslint no-unused-vars passes.
+- Fixed: the kit's agent-ready.js and stack-env.js use bindingless catch blocks, so a linter with no-unused-vars passes on them.
+- Fixed: a docs code block that scrolls sideways is keyboard reachable: the kit's docs.js gives a block wider than its box tabindex="0" and takes it away again when a resize makes it fit, so axe's scrollable-region-focusable rule passes on pages with long commands.
+- Fixed: the docs kit's copy button says Copied after a successful copy; clipboard.writeText resolves with undefined, which docs.js read as a failure, so every working copy said Copy failed, and a refused write now says Copy failed instead of staying silent.
+- Added: the docs builder's theme hook: an optional theme key in docs/docs.json with css and header members (both optional and independent, both plain relative paths against docs/); css names a stylesheet copied byte for byte to site/docs/theme/ and linked after docs.css on every page, builder-owned like a copied image (--check compares it, reports it stale when it differs, and flags a copy under site/docs/theme/ as a leftover once the key goes away), and header names an HTML fragment whose single element replaces the generic docs header in place, its relative href, src and srcset URLs prefixed with the page depth (#, /, // and scheme URLs stay put), its first link to docs/index.html or docs/ marked aria-current="page" unless it already carries one, and its {{project}} and {{version}} placeholders filled (any other {{...}} fails the build, naming it); a non-object theme, a non-string member, an unknown key, an empty string or a path that does not exist is a tool error naming the key, and with no theme key, or an empty one, every generated byte matches the unthemed build.
+- Changed: the docs builder's table cells strip Symfony console style tags (, , , , \<fg=...> and \</>) before escaping, so a symfony-commands help cell shows list instead of list; other angle text stays.
+- Added: the docs builder's changelog page: when docs/nav.json lists a page whose path is changelog, a plain run writes docs/changelog.md from CHANGELOG.md before building (the usual front matter, a marker comment naming its source, the body without its top-level heading, every version heading kept as written), a relative link becomes a blob link under the nav.json source or loses its link keeping its label when there is none, --check reports docs/changelog.md (missing) or (out of date) instead of writing, and a nav entry without a CHANGELOG.md is a finding.
+- Added: the docs builder's --examples mode runs the tagged command examples in the docs and fails when reality drifts from what they promise: a fenced block tagged run (bash, sh, shell or console, optionally exit=N) runs its lines in order in a fresh temp copy of the examples.cwd folder and compares the output with the following output block, every shell block must be tagged run or carry a docs-test: skip REASON line directly before it, skips are counted and grouped by reason in the summary and capped by examples.maxSkips, and a plain build or --check never runs examples.
+- Added: the docs builder's two-way command and option coverage gate for a symfony-commands block: a code span or fenced line that starts with the CLI name must name a real command (help and list always pass) and may only use options of that command or the application options, every kept command and option must appear in the docs at least once (the generated block counts), and a fenced block whose info string contains docs-test: skip is not scanned.
+- Changed: the front-page deploy layer pins HELMET ^0.3, PROCTOR ^0.4 and CREED ^0.1 (lock: HELMET 0.3.0, PROCTOR 0.4.0, CREED 0.1.6).
+- Changed: CI pins Preflight 0.1.4 (GitLab component includes and the GitHub reusable workflow at its tag commit); the deploy layer sets minimum-stability to stable.
+- Added: the docs builder's link gate for the built pages: every content link must reach a built page, a file under site/, or an external address, a fragment must name a real heading on the page it points at, and a relative link to a file the site does not serve (for example ../README.md) is a finding.
+- Added: a GitHub release workflow (`.github/workflows/release.yml`) creates the release when a version tag arrives through the push mirror, using the CHANGELOG section for the notes and only the built-in `GITHUB_TOKEN`.
+- Added: the docs builder's image gate for the built pages: every image a page references (a Markdown image or an HTML img) must name a file under docs/, resolved against the source page's folder, and is copied byte for byte to the same relative path under site/docs/ so the built page's relative src still resolves; a missing image is a finding, unreferenced files are never copied, and --check fails when a copy is missing or out of date.
+- Added: the docs builder compares composer.json's version field with the docs stamp; a different version is a finding.
+- Added: the docs builder's --require-release flag fails when CHANGELOG.md has no released heading yet, so the stamp cannot be unreleased in a checked repo.
+- Added: the docs builder's --require-tag flag fails when the repo's latest version tag does not match the docs stamp (a tag such as v1.6.0 counts as 1.6.0); the flag is off by default.
+- Added: a JavaScript test harness for the docs kit (tests/js, node:test with jsdom pinned exactly in package.json and package-lock.json) and a js-tests CI job on GitLab and GitHub that runs npm ci and npm test in a pinned multi-arch Node 22 image; composer js runs the same two commands locally and stays out of composer ci because the PHP image has no Node.
+- Fixed: the oracle image jobs pin the Buildah image to the v1.43.5-immutable tag and its manifest list digest, because the previous digest was removed upstream.
+
+### 0.5.0 (2026-11-03)[#](https://squire.apps.wayne.edu/docs/changelog.html#0-5-0-2026-11-03)
+
+- GitHub CI now pins the PREFLIGHT reusable workflow to the 0.1.3 tag instead of a commit SHA.
+- Added: an ADVISOR module (waynestate/advisor) with squire_doctor and squire_drift.
+- Added: squire doctor oracle runs the Oracle connection check on demand, reading ORACLE\_\* settings from the environment and .env.
+- Changed: the deploy layer's Squire kit is refreshed to 0.4.0 (the Oracle check script and the updated build and release scripts).
+- Added: CI publishes the multi-arch Oracle images to the project's container registry when a version is tagged.
+- Changed: the docs name the real image path instead of placeholders.
+- Changed: Oracle image recipes use fully qualified `COPY --from` names so buildah can resolve them; the CI dry run shows amd64 builds need qemu binfmt on the runner (see OPEN_QUESTIONS).
+- Docs: WSL 2 file-location advice and an engines and licenses note for local parity.
+- Added: scripts/contract-image.sh runs release.sh inside the fallback image and asserts the smoke URL, health.php and the first-release log.
+- Added: a contract-image CI job (GitHub) that runs scripts/contract-image.sh on amd64 and arm64.
+- Changed: CI pulls its Docker Hub images through the GitLab Dependency Proxy (the group's CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX), so pipelines no longer hit Docker Hub's anonymous pull limit.
+- Added: contract-parity-sh and contract-parity-pwsh CI jobs (GitHub) that bring the local parity stack up on the fallback image and check the proxy answers.
+- Docs: the contract suite gap on GitLab and the real image is recorded as an open question.
+- Fixed: the fallback base image builds when the host's uid or gid already exists in the image (GitHub runners use 1001).
+- Fixed: the front page shows the current version.
+- Fixed: the contract-image CI job installs PHP and the Composer dependencies before running scripts/contract-image.sh, so it no longer stops on the missing vendor/autoload.php.
+- Fixed: the PowerShell parity script passes the host's uid and gid to the fallback base image build (1000 on Windows, the current user's ids on Linux and macOS) instead of hard-coded 1000, so the app container starts when the bind-mounted source is owned by another user.
+- Added: a front page accessibility gate (tools/a11y: axe-core in Playwright, WCAG 2.2 AA) with scripts/a11y.sh and scripts/a11y.ps1 that run it in Docker; GitHub gets an a11y job, continue-on-error until it has been seen green once.
+- Fixed: scripts/a11y.sh and scripts/a11y.ps1 create tools/a11y/node_modules on the host before docker run, so the named volume's mount point exists when the repo is mounted read-only.
+- Changed: the PROCTOR deploy job is blocking now.
+- Fixed: the contract-image job builds with the docker buildx driver so the app image finds the freshly built fallback base.
+- Added: bin/docs-site.php, the shared docs builder, with the kit's docs.css and docs.js; it turns docs/ into a committed, WayneUI-styled site/docs/ and fails CI when the pages are stale or a finding is present.
+- Changed: docs and package metadata name nougat as the canonical repository, with git.wayne.edu and GitHub as read-only mirrors, until git.wayne.edu has CI runners.
+- Added: the docs builder renders a Source link in the header and footer, with a Mirrors list beside it, from the optional `source` and `mirrors` keys in docs/nav.json; a source or mirror URL that is not https is a finding.
+- Added: the docs builder's generated blocks: docs/docs.json defines blocks that own marked regions in docs/\*\*/\*.md, the json-table type renders a Markdown table from a command's JSON output, and --check reports a stale block instead of writing.
+- Added: the docs builder's symfony-commands block type runs list --format=json and renders the command reference (overview table, per-command headings with usage, argument and option tables, application options listed once), and its env block type scans the scan folders for prefixed environment variable names and renders them with describe meanings and defaults; a read variable without a describe entry, or a described variable no scanned file reads, is a finding.
+
+### 0.4.0 (2026-11-01)[#](https://squire.apps.wayne.edu/docs/changelog.html#0-4-0-2026-11-01)
+
+- Added: oracle-check.php, a plain-language Oracle connection check (settings, host, port, driver, login) shipped in the kit's deploy scripts. release.sh runs it after PROCTOR and before the smoke test; it is a report, never a gate, and stays silent when the app has no ORACLE\_\* settings.
+- Added: opt-in Oracle-ready Docker images, a Laravel Sail flavour (squire/oracle-sail) and a parity flavour (squire/oracle-parity), with scripts/oracle-image-build.sh and scripts/oracle-image-test.sh. Oracle Instant Client 21.7 on amd64 and 19.32 on arm64 is downloaded at build time and checksum-pinned; nothing from Oracle is committed.
+- Changed: the site's agent-ready files cover the Oracle check.
+- Changed: the readme art check allows the word Citadel.
+- Changed: the deploy layer's Squire kit is refreshed to 0.3.4 (the local .env.squire file is now git-ignored).
+
+### 0.3.4 (2026-10-29)[#](https://squire.apps.wayne.edu/docs/changelog.html#0-3-4-2026-10-29)
+
+- Changed: the deploy layer's Squire kit is refreshed to 0.3.3 (release options can now live in ./.env.squire).
+- Fixed: squire init now adds .env and .env.squire to the target .gitignore, so the local deploy secrets file is never committed.
+
+### 0.3.3 (2026-10-29)[#](https://squire.apps.wayne.edu/docs/changelog.html#0-3-3-2026-10-29)
+
+- Fixed: docs say app settings go in a ./.env configuration file; Citadel has no dashboard environment field.
+- Fixed: the .env.squire template says to add it as a Citadel configuration file; Citadel has no dashboard environment field.
+- Added: release.sh reads release options from ./.env.squire (parsed, never sourced; allow-listed keys; the environment wins), so they can be set on Citadel.
+
+### 0.3.2 (2026-10-29)[#](https://squire.apps.wayne.edu/docs/changelog.html#0-3-2-2026-10-29)
+
+- Added: collapsed prompt blocks show a "Show the whole prompt" button; the fade stays inside the panel.
+- Changed: a long command in the "Run it in" panel folds the same way, behind a "Show the whole command" button, instead of a scroll box with no cue.
+
+### 0.3.1 (2026-10-29)[#](https://squire.apps.wayne.edu/docs/changelog.html#0-3-1-2026-10-29)
+
+- Changed: README, site and open questions match 0.3.0 (Sourdough requires Squire, the policy default, the Preflight pin, the static target).
+- Fixed: the agent-ready tool's messages write Squire as a word; the static template's SQUIRE_STATIC_ROOT comment matches the code.
+- Changed: bin/agent-ready.php is clean under Pint's laravel preset (CI checks it); the README says how consumers keep the kit out of Composer downloads.
+
+### 0.3.0 (2026-10-29)[#](https://squire.apps.wayne.edu/docs/changelog.html#0-3-0-2026-10-29)
+
+- Added: the raw target ships a front controller.
+
+### 0.2.2 (2026-10-29)[#](https://squire.apps.wayne.edu/docs/changelog.html#0-2-2-2026-10-29)
+
+- Fixed: stale capability claims in the site and README.
+- Changed: project names written as words except acronyms.
+- Changed: templates and the agent-ready label write Squire as a word; older labels are still recognised.
+- Changed: CI uses Preflight 0.1.1.
+
+### 0.2.1 (2026-10-29)[#](https://squire.apps.wayne.edu/docs/changelog.html#0-2-1-2026-10-29)
+
+#### Fixed[#](https://squire.apps.wayne.edu/docs/changelog.html#fixed)
+
+- Fixed: SQUIRE reported 0.1.0 after the 0.2.0 release.
+
+### 0.2.0 (2026-10-29)[#](https://squire.apps.wayne.edu/docs/changelog.html#0-2-0-2026-10-29)
+
+#### Added[#](https://squire.apps.wayne.edu/docs/changelog.html#added)
+
+- `--target=static`: writes everything the `raw` target writes plus a front controller (`public/index.php`) and an `.htaccess` that serve a committed static site behind HELMET. The site folder is `../../site` by default; point `SQUIRE_STATIC_ROOT` at another. `squire init --check` and `squire update` cover the new files, and the template export carries them under `static/`.
+- `SQUIRE_PROCTOR=enforce`: a failed PROCTOR check now stops the release. The default stays report-only, so existing apps are unaffected.
+- `SQUIRE_PROCTOR_POLICY` defaults to `vendor/waynestate/creed/policy/policy.json` when unset and present, so a static site needs no environment variables in the deploy wizard. When CREED is not installed, PROCTOR runs on its own default policy with a notice instead of the release failing. An explicit value always wins.
+
+#### Changed[#](https://squire.apps.wayne.edu/docs/changelog.html#changed)
+
+- PHPStan now includes Pinstripe's raw PHP preset (`waynestate/pinstripe` 0.1) instead of carrying a hand copy of the settings; `phpstan.neon` keeps only SQUIRE's own paths and PHP version range, and the preset's deprecation checks come along with it.
+- `symfony/console` floor raised to `^7.4`: `Application::add()` is deprecated since 7.4, and the CLI now calls `addCommand()`.
+
+### 0.1.0 (2026-10-29)[#](https://squire.apps.wayne.edu/docs/changelog.html#0-1-0-2026-10-29)
+
+#### Added[#](https://squire.apps.wayne.edu/docs/changelog.html#added-1)
+
+- `squire init` with `--target`, `--only`, `--check` and `--force`; a `.squire.json` manifest of SHA-256 hashes.
+- `squire doctor` with text and JSON output, checking 26 rules (see `BEST_PRACTICES.md`).
+- Templates for raw PHP and Laravel: `build.sh`, `deployments/001-first-release.sh`, `scripts/release.sh`, `health.php`, `public/up.php`.
+- Vue/Inertia layer: `squire init` detects `vue` in `package.json` and writes `.npmrc` with `min-release-age=1` and a Vue `docker-compose.squire.yml` with a Node 22 service (the frontend install and build stay in the one common `scripts/release.sh`); `squire doctor` reports the layer and warns when `node_modules/` is tracked in git (S78); the template export includes the layer under `vue/`.
+- Local parity kit: compose file with digest-pinned HA-Proxy and MySQL 5.6.51 images, `.squire/` build context, a fallback base image, `scripts/parity.sh` and `scripts/parity.ps1`.
+- CI for GitLab and GitHub: `composer ci`, shellcheck and PSScriptAnalyzer, run in Docker.
+- `bin/export-templates.php`: export a generated copy of SQUIRE's templates (for Sourdough and other projects that cannot `composer require` SQUIRE), with a `catalog.json` and a `manifest.json`; `--check` verifies the copy and exits 1 on drift.
+
+#### Changed[#](https://squire.apps.wayne.edu/docs/changelog.html#changed-1)
+
+---
+
+Source: https://squire.apps.wayne.edu/docs/contributing.html
+
+## Contributing[#](https://squire.apps.wayne.edu/docs/contributing.html#contributing)
+
+A squire who forgets a buckle hears about it in the build log, so this page lists where the code lives, the development commands, and the release steps. Before you open a change, read [Quick start](https://squire.apps.wayne.edu/docs/guides/quick-start.html) to see what the kit writes, and keep [Upgrading](https://squire.apps.wayne.edu/docs/upgrading.html) in mind for what a version bump means to apps.
+
+### Where the code lives[#](https://squire.apps.wayne.edu/docs/contributing.html#where-the-code-lives)
+
+The canonical repository is on nougat: [enterprise-apps/squire](https://nougat.snu.gs/enterprise-apps/squire). git.wayne.edu and GitHub ([waynestate/squire](https://github.com/waynestate/squire)) are read-only mirrors of it: `main` and tags are copied automatically, and nobody pushes to the mirrors. Open issues and merge requests on nougat, not on the mirrors. This moves to git.wayne.edu once it has CI runners. Your squire serves one banner, and it flies over nougat.
+
+### Development commands[#](https://squire.apps.wayne.edu/docs/contributing.html#development-commands)
+
+Install the dependencies and run the full check suite, the same command that runs on GitLab and GitHub:
+
+composer install composer ci
+
+`composer ci` runs `composer validate --strict`, PHPUnit, Pint, PHPStan and `composer audit`. With only Docker, run it the same way CI does:
+
+docker run --rm -v "$PWD:/app" -w /app composer:2.10.3 sh -c "composer install --no-interaction && composer ci"
+
+The other gates, by platform:
+
+| Task | Windows (PowerShell) | Linux and macOS |
+| --- | --- | --- |
+| Lint the shell templates (ShellCheck in Docker) | `scripts\lint-shell.ps1` | `scripts/lint-shell.sh` |
+| Lint the PowerShell templates (PSScriptAnalyzer) | `scripts\lint-powershell.ps1` | `pwsh -File scripts/lint-powershell.ps1` |
+| Local parity, in an app | `scripts\parity.ps1 up` | `scripts/parity.sh up` |
+| Front page accessibility gate (axe-core in Playwright, in Docker) | `scripts\a11y.ps1` | `scripts/a11y.sh` |
+| Docs kit JavaScript tests (needs Node, or Docker) | `npm ci && npm test` | `npm ci && npm test` |
+
+PHPStan and Pint follow Pinstripe, the stack's coding standard: `phpstan.neon` includes Pinstripe's raw PHP preset (`vendor/waynestate/pinstripe/phpstan/raw.neon`) and keeps only Squire's own paths and PHP version range, and Pint runs the same built-in `per` preset that Pinstripe's `pint/per.json` wraps, so `pint.json` stays local with Squire's own excludes. The tests run the real shell templates against stub `composer`, `curl`, `npm`, `corepack` and `proctor` programs, and start a PHP server to test `health.php`.
+
+#### The accessibility gate[#](https://squire.apps.wayne.edu/docs/contributing.html#the-accessibility-gate)
+
+The front page has its own accessibility gate: `scripts/a11y.sh` on Linux and macOS, `scripts\a11y.ps1` on Windows. It serves `site/`, opens it in a real Chromium (Playwright in Docker, so no host browser is needed) and runs axe-core against it with the WCAG 2.2 AA tag set, in light and dark mode at 360 px and 1280 px. It stays out of `composer ci` because CI has no browser; GitHub runs it as a separate `a11y` job.
+
+#### The docs builder[#](https://squire.apps.wayne.edu/docs/contributing.html#the-docs-builder)
+
+The pages under `docs/` build into the committed site at `site/docs/`: rebuild with `composer docs`, check with `composer docs:check`. The builder is `bin/docs-site.php`; see [The docs builder](https://squire.apps.wayne.edu/docs/guides/docs-builder.html) for generated blocks, callouts and what the check proves. Other stack repos take the kit from a Squire checkout with `php bin/docs-site.php --sync-to=<repo>`, then build and commit their own `site/docs/`.
+
+The docs kit's JavaScript tests run with Node 22 on the PATH (`npm ci && npm test`) or, with only Docker:
+
+docker run --rm -v "$PWD:/app" -w /app node:22-alpine sh -c "npm ci && npm test"
+
+They run the same way locally and in CI (the `js-tests` job on GitLab and GitHub) and stay out of `composer ci` because the PHP image has no Node.
+
+#### The contract suite[#](https://squire.apps.wayne.edu/docs/contributing.html#the-contract-suite)
+
+`scripts/contract-image.sh` proves that `release.sh` runs inside an image. The real Citadel image is internal, so it uses the fallback base Squire already builds for local parity (`.squire/base-fallback.Dockerfile`, tag `squire/php-parity-base:8.4`): php:8.4-apache plus Node 22, multi-arch. It makes a throwaway fixture app, builds the fallback base and the app image for the platform, runs `release.sh` as the `citadel` user with the smoke test on, and prints one PASS or FAIL line per assertion. A green run is a contract, not a certificate: the fallback has no `oci8`, `imagick` or `ssmtp`, its HA-Proxy differs from Citadel's, and nothing here touches Citadel itself. See [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html) for the stack the fallback stands in for.
+
+### Keeping the docs honest[#](https://squire.apps.wayne.edu/docs/contributing.html#keeping-the-docs-honest)
+
+Every behavior change updates README, docs pages, CHANGELOG (Unreleased), site/llms.txt, site/llms-full.txt and the front page. When the nav lists a `changelog` page, the docs builder owns `docs/changelog.md` from `CHANGELOG.md`, so a changed `CHANGELOG.md` is drift until the page is rewritten.
+
+### Releasing[#](https://squire.apps.wayne.edu/docs/contributing.html#releasing)
+
+1. Move the lines under `## Unreleased` in `CHANGELOG.md` to a new `## X.Y.Z (YYYY-MM-DD)` heading, and bump `Squire::VERSION` in `src/Squire.php` to the same number in the release commit: the version guard test fails when the two disagree.
+2. `composer ci` and both linters green locally, then both pipelines green for that commit.
+3. Run a secrets scan of the history and check that nothing internal (server names, people, IDs) is in the tree.
+4. Tag `X.Y.Z` (no `v`) on nougat. The mirror carries the tag to GitHub, and Packagist picks it up from there. On GitHub, `.github/workflows/release.yml` then creates the release from the matching `## X.Y.Z (` section of `CHANGELOG.md` (it fails loudly when the section is missing or empty, and uses only the built-in `GITHUB_TOKEN`).
+5. A release needs a maintainer's approval. Never move or delete a published tag.
+6. When Preflight releases, update both of this repo's pins: the component tag in `.gitlab-ci.yml` and the tag in `.github/workflows/ci.yml`.
+
+### Known limits[#](https://squire.apps.wayne.edu/docs/contributing.html#known-limits)
+
+See OPEN_QUESTIONS.md in the repository. The big ones: the local `php.ini` holds safe defaults rather than the platform's file, the Citadel image has no digest to pin, and a full Update may not refresh `vendor/`. PROCTOR can now gate a release with `SQUIRE_PROCTOR=enforce`; what is still missing on its side is a phar and a dedicated `gate` command. The release script is contract-tested inside the fallback image on GitHub, not yet on the real image (OPEN_QUESTIONS 19, "Contract suite on the real image and on GitLab").
+
+### Who maintains it[#](https://squire.apps.wayne.edu/docs/contributing.html#who-maintains-it)
+
+Wayne State University Enterprise Applications maintains Squire. The internal runbook (accounts, tokens, mirrors, Citadel access) lives with Enterprise Applications; ask them.
+
+---
+
+Source: https://squire.apps.wayne.edu/docs/guides/advisor.html
+
+## Use Squire from your coding agent (ADVISOR)[#](https://squire.apps.wayne.edu/docs/guides/advisor.html#use-squire-from-your-coding-agent-advisor)
+
+Squire ships an [ADVISOR](https://github.com/waynestate/advisor) module, so a coding agent that runs ADVISOR can run Squire's checks without leaving its sandbox. Install ADVISOR in the app, register the Squire module, and the agent gains two read-only tools. Next, see [Doctor](https://squire.apps.wayne.edu/docs/guides/doctor.html) for what the checks cover and [Update and drift](https://squire.apps.wayne.edu/docs/guides/update-and-drift.html) for what the drift report means.
+
+### Install ADVISOR[#](https://squire.apps.wayne.edu/docs/guides/advisor.html#install-advisor)
+
+In the app, install ADVISOR as a dev dependency:
+
+```bash
+composer require --dev waynestate/advisor
+```
+
+Then add one line to the app's `modules.json` (or point `ADVISOR_MODULES_FILE` at a file that holds it):
+
+```json
+{
+    "modules": [
+        "Waynestate\\Squire\\Advisor\\SquireModule"
+    ]
+}
+```
+
+### The two read-only tools[#](https://squire.apps.wayne.edu/docs/guides/advisor.html#the-two-read-only-tools)
+
+Two tools appear. Both are read-only, and each takes exactly one argument: a path inside the project root.
+
+#### squire_doctor[#](https://squire.apps.wayne.edu/docs/guides/advisor.html#squire-doctor)
+
+`squire_doctor` runs Squire's deploy-setup checks (the S-rules, S1 to S78) against the app folder and returns the same JSON report `vendor/bin/squire doctor --format=json` prints. It runs in-process: no subprocess, no network, nothing written.
+
+#### squire_drift[#](https://squire.apps.wayne.edu/docs/guides/advisor.html#squire-drift)
+
+`squire_drift` reports which of the files Squire wrote into the app have drifted from the current templates, the same check `vendor/bin/squire init --check` performs: missing, outdated, edited or untracked, per file. It writes nothing; `squire init` is the fix, and it never overwrites an edit.
+
+Note
+
+Every answer labels its source and says plainly what ran. Squire reports; Squire in CI decides pass or fail. A squire can tell you where the armor is dented; only the knight gets to charge.
+
+---
+
+Source: https://squire.apps.wayne.edu/docs/guides/agent-ready-kit.html
+
+## The agent-ready kit[#](https://squire.apps.wayne.edu/docs/guides/agent-ready-kit.html#the-agent-ready-kit)
+
+Every stack repo carries the same bytes so that agents and crawlers find the same material as people do. This page lists what the kit ships, how a site takes a new version, and the export-ignore lines a library package adds. Next, see [The docs builder](https://squire.apps.wayne.edu/docs/guides/docs-builder.html) for the pages the kit styles.
+
+### What the kit carries[#](https://squire.apps.wayne.edu/docs/guides/agent-ready-kit.html#what-the-kit-carries)
+
+Every stack repo carries the same bytes: a Markdown twin beside every page in the site folder, plus `llms.txt`, `llms-full.txt`, `robots.txt` and `sitemap.xml`, styled by the kit's `agent-ready.css` and `agent-ready.js` in the site's `assets/` folder. Squire owns the kit.
+
+### Taking a new version of the kit[#](https://squire.apps.wayne.edu/docs/guides/agent-ready-kit.html#taking-a-new-version-of-the-kit)
+
+A site takes a new version from a Squire checkout with `php bin/agent-ready.php --sync-to=<repo>`, which copies the kit and the tool itself. The site then regenerates its files with `php bin/agent-ready.php` and commits them, and runs `--check` in CI to stay honest.
+
+```bash
+php bin/agent-ready.php --sync-to=<repo>   # copy the kit and the tool into the repo
+php bin/agent-ready.php                    # regenerate the files
+php bin/agent-ready.php --check            # verify in CI; fail on drift
+```
+
+### Keeping the kit out of library packages[#](https://squire.apps.wayne.edu/docs/guides/agent-ready-kit.html#keeping-the-kit-out-of-library-packages)
+
+A library package that carries the kit should keep it out of Composer downloads: add to its `.gitattributes`
+
+```
+/bin/agent-ready.php export-ignore
+/site export-ignore
+```
+
+so a `composer require` of the package never ships the kit. A squire packs what the knight will carry, and only that.
+
+---
+
+Source: https://squire.apps.wayne.edu/docs/guides/citadel-setup.html
+
+## Citadel setup[#](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html#citadel-setup)
+
+This page lists the numbered steps that connect a new app to the scripts Squire wrote: what to set in the dashboard, what to commit, and where the configuration lives. Finish the steps below, then read [The release script](https://squire.apps.wayne.edu/docs/guides/release-script.html) to see what runs on every deploy, or try [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html) first.
+
+### The steps[#](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html#the-steps)
+
+1. In the dashboard set the build script to `build.sh`, the health check to `["php","health.php"]`, and the Quick Update post-script to `./scripts/release.sh` (user `citadel`).
+2. Commit `composer.lock`, and `package-lock.json` or `pnpm-lock.yaml` if you have a frontend.
+3. Mark the scripts executable in git. On Windows: `git update-index --chmod=+x build.sh scripts/*.sh deployments/*.sh`.
+4. Set `SQUIRE_*` values in the app's `./.env` configuration file (below), not in a file in the repository. The dashboard has no environment field; its configuration-files step, after the wizard, writes `./.env` into the source tree. A Laravel app reads `./.env` already; a raw PHP app loads it with `vlucas/phpdotenv` (`Dotenv\Dotenv::createUnsafeImmutable($root)->safeLoad()`), so `getenv()` sees the values and a real environment variable wins.
+
+### Executable bits[#](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html#executable-bits)
+
+Citadel runs the scripts as files, so git must record them as executable. Step 3 above does that with `git update-index --chmod=+x`; the release script itself starts with `set -euo pipefail` and expects to run as the `citadel` user from the Quick Update post-script.
+
+### ./.env[#](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html#env)
+
+`./.env` is the app's own configuration, written into the source tree by the dashboard's configuration-files step (after the wizard; the wizard has no environment field). A Laravel app reads it already; a raw PHP app loads it with `vlucas/phpdotenv` (`Dotenv\Dotenv::createUnsafeImmutable($root)->safeLoad()`), so `getenv()` sees the values and a real environment variable wins.
+
+### ./.env.squire[#](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html#env-squire)
+
+`./.env.squire` is Squire's file: the release options for `scripts/release.sh`, and locally the parity settings. All of its values are optional. On Citadel, add `./.env.squire` as a configuration file (the configuration-files step after the wizard; the wizard has no environment field) and keep it out of git. `release.sh` reads the release options from it, and a variable already in the environment wins. Locally, the same file holds the parity settings. See `.env.squire.example` in the app; it holds placeholders only.
+
+Note
+
+Two files, two owners. `./.env` is yours and the app reads it; `./.env.squire` is Squire's and the release script and the parity kit read it. Neither belongs in git.
+
+### Next[#](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html#next)
+
+Read [The release script](https://squire.apps.wayne.edu/docs/guides/release-script.html) for what `scripts/release.sh` does step by step, or [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html) to run the same setup on your machine.
+
+---
+
+Source: https://squire.apps.wayne.edu/docs/guides/docs-builder.html
+
+## The docs builder[#](https://squire.apps.wayne.edu/docs/guides/docs-builder.html#the-docs-builder)
+
+For maintainers of other stack repos: this page explains how Squire's docs builder turns Markdown into committed, accessible pages, and how to adopt it. Next, see [The agent-ready kit](https://squire.apps.wayne.edu/docs/guides/agent-ready-kit.html) for the files that style the result.
+
+### How the build works[#](https://squire.apps.wayne.edu/docs/guides/docs-builder.html#how-the-build-works)
+
+`bin/docs-site.php` turns the Markdown under `docs/` into committed, accessible HTML pages under `site/docs/`: one page per file, in the order of `docs/nav.json`, with a sidebar, an "On this page" list, prev and next links, and the version stamped from the top of `CHANGELOG.md`. The optional `source` and `mirrors` keys in `docs/nav.json` render a Source link in the header and footer, with the mirrors beside it, so the canonical repo home is one config value, never a hard-coded URL. Pages are styled by WayneUI plus the kit's `docs.css` and `docs.js` in the site's `assets/` folder, so every stack repo reads the same way.
+
+Squire owns the kit, and a repo takes a new version from a Squire checkout with `php bin/docs-site.php --sync-to=<repo>`, which copies the kit and the tool itself. The repo then builds with `php bin/docs-site.php` (or `composer docs`) and commits `site/docs/`, and runs `--check` (or `composer docs:check`) in CI to fail when a page is stale or a finding is present. A squire keeps the map current, so the knight never asks for directions twice.
+
+```bash
+php bin/docs-site.php --sync-to=<repo>   # copy the kit and the tool into the repo
+php bin/docs-site.php                    # build (or: composer docs)
+php bin/docs-site.php --check            # verify in CI (or: composer docs:check)
+```
+
+### Generated blocks[#](https://squire.apps.wayne.edu/docs/guides/docs-builder.html#generated-blocks)
+
+A page may hold a region the builder owns, marked in the Markdown source:
+
+```text
+<!-- generated:commands -->
+| Command | What it does |
+| --- | --- |
+| `squire doctor` | Check an app's Citadel release setup against the SQUIRE rules (S1 to S78). |
+| `squire init` | Write the standard Citadel scripts into an app, or report drift with --check. |
+| `squire update` | Take new template versions for files SQUIRE wrote that were never edited; show a diff for the edited ones. |
+
+### `squire doctor`
+
+Check an app's Citadel release setup against the SQUIRE rules (S1 to S78).
+
+Usage: `squire doctor [--path PATH] [--format FORMAT] [--] [<topic>]`
+
+| Argument | Required | Meaning |
+| --- | --- | --- |
+| `topic` | no | Optional topic. Use `oracle` to check the Oracle connection settings. |
+
+| Option | Meaning | Default |
+| --- | --- | --- |
+| `--path=VALUE` | Path to the application. | `.` |
+| `--format=VALUE` | Output format: text or json. | `text` |
+| `--silent` | Do not output any message |  |
+
+### `squire init`
+
+Write the standard Citadel scripts into an app, or report drift with --check.
+
+Usage: `squire init [--path PATH] [--target TARGET] [--only ONLY] [--check] [--force]`
+
+| Option | Meaning | Default |
+| --- | --- | --- |
+| `--path=VALUE` | Path to the application. | `.` |
+| `--target=VALUE` | raw, laravel or static (default: the target recorded in .squire.json, else laravel when an artisan file exists; static must be asked for). |  |
+| `--only=VALUE` | Comma-separated groups to write: release, parity. | `release,parity` |
+| `--check` | Write nothing; report files that are missing, outdated or edited. Exit 1 on drift. |  |
+| `--force` | Overwrite files that were edited or that SQUIRE did not write. |  |
+| `--silent` | Do not output any message |  |
+
+### `squire update`
+
+Take new template versions for files SQUIRE wrote that were never edited; show a diff for the edited ones.
+
+Usage: `squire update [--path PATH] [--target TARGET] [--only ONLY] [--dry-run]`
+
+| Option | Meaning | Default |
+| --- | --- | --- |
+| `--path=VALUE` | Path to the application. | `.` |
+| `--target=VALUE` | raw, laravel or static (default: the target recorded in .squire.json). |  |
+| `--only=VALUE` | Comma-separated groups to update: release, parity. (default: the groups recorded in .squire.json) |  |
+| `--dry-run` | Print the plan; write nothing. |  |
+| `--silent` | Do not output any message |  |
+
+### Options every command accepts
+
+| Option | Meaning | Default |
+| --- | --- | --- |
+| `-h`, `--help` | Display help for the given command. When no command is given display help for the list command |  |
+| `-q`, `--quiet` | Only errors are displayed. All other output is suppressed |  |
+| `-v|-vv|-vvv`, `--verbose` | Increase the verbosity of messages: 1 for normal output, 2 for more verbose output and 3 for debug |  |
+| `-V`, `--version` | Display this application version |  |
+| `--ansi` | Force (or disable --no-ansi) ANSI output |  |
+| `--no-ansi` | Negate the "--ansi" option |  |
+| `-n`, `--no-interaction` | Do not ask any interactive question |  |
+<!-- /generated -->
+```
+
+`docs/docs.json` defines the blocks by name. Each block rewrites its region from the repo's own state: `json-table` and `symfony-commands` run a command from the repo root (a leading `php ` means the PHP binary, so the same file works on Windows, macOS and Linux) and render the command's JSON output, and `env` scans the source files for the environment variables the code reads.
+
+#### The json-table type[#](https://squire.apps.wayne.edu/docs/guides/docs-builder.html#the-json-table-type)
+
+The `json-table` type runs its `run` command, takes the list at its `path` key from the JSON output, and renders a Markdown table: each column is `[heading, key]` or `[heading, key, "code"]` for a code span, a missing key gives an empty cell, booleans print `yes` or `no`, lists print comma separated, Symfony console style tags are stripped so a help cell reads plain, and pipes in a cell are escaped.
+
+```json
+{
+    "blocks": {
+        "hops": {
+            "type": "json-table",
+            "run": "php bin/booster hops --format=json",
+            "path": "hops",
+            "columns": [["Hop", "id", "code"], ["What it does", "summary"]]
+        }
+    }
+}
+```
+
+#### The symfony-commands type[#](https://squire.apps.wayne.edu/docs/guides/docs-builder.html#the-symfony-commands-type)
+
+The `symfony-commands` type runs `<run> list --format=json` and renders the command reference: an overview table of command and description, then per command a heading at `level` (default 3), its description, one `Usage:` line per usage string, an Arguments table when it has arguments, and an Options table when it has options. An option prints its shortcut first (`-p`, `--path=VALUE`) and gets `=VALUE` only when it takes a value; its default prints in a code span, or stays empty when it is false. The built-in commands (`help`, `list`, `completion`, `_complete`) and hidden commands are skipped, and the application-level options (`--help`, `--quiet`, `--verbose`, `--version`, `--ansi`, `--no-ansi`, `--no-interaction`) are listed once, under "Options every command accepts".
+
+```json
+{
+    "blocks": {
+        "commands": {
+            "type": "symfony-commands",
+            "run": "php bin/console",
+            "cli": "bin/console",
+            "level": 3
+        }
+    }
+}
+```
+
+#### The env type[#](https://squire.apps.wayne.edu/docs/guides/docs-builder.html#the-env-type)
+
+The `env` type walks the `scan` folders for quoted environment variable names that start with `prefix`, skips the names in `ignore` (an exact name, or a trailing `*` for a prefix), and renders one row per variable, sorted by name: its meaning and default from `describe` (a `[meaning, default]` pair) and the first file that reads it. A variable the code reads that `describe` does not list, and a variable `describe` lists that no scanned file reads, are findings.
+
+```json
+{
+    "blocks": {
+        "environment": {
+            "type": "env",
+            "scan": ["src", "config"],
+            "prefix": "APP_",
+            "ignore": ["APP_KEY"],
+            "describe": {
+                "APP_NAME": ["The app name", "Demo"],
+                "APP_ENV": ["The environment", "production"]
+            }
+        }
+    }
+}
+```
+
+A plain run rewrites stale regions in the sources and then builds; `--check` reports a stale region instead of writing. A region whose name is not in `docs.json`, a block no page places, a block placed twice, and an opening marker with no closing marker are findings.
+
+### Changelog page[#](https://squire.apps.wayne.edu/docs/guides/docs-builder.html#changelog-page)
+
+When `docs/nav.json` lists a page whose path is `changelog`, the builder owns `docs/changelog.md`: a plain run writes it from the repo's `CHANGELOG.md` before building, and `--check` never writes. The page takes the usual front matter (`title: "Changelog"` and a description), a marker comment naming its source, and the changelog's body with its top-level heading dropped, so every version heading stays as written: `## Unreleased`, `## [Unreleased]`, `## 0.5.0 (2026-11-03)` and `## [0.1.9] - 2026-11-03` all keep their shape and get the page's usual anchors. Links follow the site's rules: an `http(s)` link stays, a relative link becomes a blob link under the nav.json `source` (`https://repo.example.com/acme/app/-/blob/main/README.md`) when there is one, and loses its link, keeping its label, when there is not. A nav entry without a `CHANGELOG.md` is a finding, and a changed `CHANGELOG.md` or a missing `docs/changelog.md` is drift.
+
+### Callouts[#](https://squire.apps.wayne.edu/docs/guides/docs-builder.html#callouts)
+
+A blockquote whose first line is a marker alone becomes a callout instead of a quotation:
+
+```text
+> [!NOTE]
+> The body keeps the note.
+```
+
+The marker is case-insensitive and one of `[!NOTE]`, `[!TIP]`, `[!WARNING]` or `[!DANGER]`. The builder renders an `<aside>` with the classes `docs-callout` and `docs-callout--note` (one per kind), `role="note"`, a visible label, and the body below it, and drops the marker line from the body. A blockquote without a marker, or with a marker that is not one of the four, stays a plain blockquote. The kit's `docs.css` styles all four kinds from WayneUI tokens, in light and dark themes.
+
+### What the check proves[#](https://squire.apps.wayne.edu/docs/guides/docs-builder.html#what-the-check-proves)
+
+- For a `symfony-commands` block, a code span or fenced line that starts with the CLI name must name a real command (`help` and `list` always pass), and every `--option` on it must be an option of that command or an application option; an unknown command or option is a finding.
+- Every command and every option the CLI keeps must appear in the docs at least once (the generated block counts); a command or option nobody documented is a finding.
+- A fenced block whose info string contains `docs-test: skip` is not scanned, and plain prose is never scanned.
+- Every link a person wrote in the docs reaches something the site serves: a built page, a file under `site/`, or an external address; a relative link to a file the site does not serve (for example `../README.md`) is a finding.
+- A fragment in a link must name a real heading on the page it points at, whether that is the page itself (`#setup`) or another built page (`guides/start.html#setup`); a missing id is a finding.
+- Every image a page references (a Markdown image or an HTML `<img>`) must name a file under `docs/`, resolved against the source page's folder, and the build copies it byte for byte to the same relative path under `site/docs/` so the built page's relative src still resolves; a missing image is a finding, and unreferenced files are never copied.
+- Every page carries the version stamp as a `docs-version` meta tag and in the footer, so a reader sees which release the docs describe.
+- A `composer.json` with a `version` field must agree with the stamp; a different version is a finding.
+- `--require-release` fails when `CHANGELOG.md` has no released heading yet, because the stamp would be `unreleased`.
+- `--require-tag` fails when the repo's latest version tag does not match the stamp (a tag such as `v1.6.0` counts as `1.6.0`); the flag is off by default, so an untagged repo builds clean.
+- When the nav lists a `changelog` page, `docs/changelog.md` mirrors `CHANGELOG.md` (front matter, marker comment, no top-level heading); a changed `CHANGELOG.md` or a missing page is drift, and a nav entry without a `CHANGELOG.md` is a finding.
+
+### Tested examples[#](https://squire.apps.wayne.edu/docs/guides/docs-builder.html#tested-examples)
+
+`php bin/docs-site.php --examples` runs the tagged command examples in the docs and fails when reality drifts from what they promise. A fenced block whose info string is `bash run`, `sh run`, `console run` or `shell run` (optionally `exit=N`, default 0) is a command block: each non-empty line is a command (a leading `$ ` is stripped), run in order in a fresh temp copy of the `examples.cwd` folder; the next fenced block, when its info string is exactly `output`, is the expected output (stdout then stderr). Both sides are normalized before the comparison: CRLF to LF, trailing spaces trimmed per line, trailing blank lines removed, the example working directory and the repo root rewritten to the placeholders below, plus every regex rule in `examples.normalize`:
+
+```text
+<cwd>
+<root>
+```
+
+Every shell block (bash, sh, shell, console, powershell or pwsh) must be tagged `run` or carry an HTML comment line reading `docs-test: skip REASON` directly before it; a block with neither, and a marker without a reason, are findings naming the file and line. Skips are counted and grouped by the words before the first comma, case-folded, in the one-line summary (`Examples: 7 run, 12 skipped (reasons: needs network 5, needs Docker 4)`), and `examples.maxSkips` in `docs/docs.json` caps them. The other keys of `examples` are optional: `cwd` names the repo folder copied into each example working directory, `alias` replaces a matching first word with another command (a leading `php ` means the PHP binary, a relative script path resolves against the repo root), `env` adds environment variables, and `timeout` caps each command in seconds (default 60). Generated-block regions are ignored, and a plain build and `--check` never run examples.
+
+### JavaScript tests[#](https://squire.apps.wayne.edu/docs/guides/docs-builder.html#javascript-tests)
+
+The kit's `docs.js` carries its own tests in `tests/js/` (node:test with jsdom, pinned exactly in `package.json` and `package-lock.json`), and they run the same way locally and in CI. With Node 22 on the PATH:
+
+```bash
+npm ci && npm test
+```
+
+or, with only Docker:
+
+```bash
+docker run --rm -v "$PWD:/app" -w /app node:22-alpine sh -c "npm ci && npm test"
+```
+
+The `js-tests` job runs the same two commands on GitLab and GitHub. It stays out of `composer ci` because the PHP image has no Node.
+
+---
+
+Source: https://squire.apps.wayne.edu/docs/guides/doctor.html
+
+## Doctor[#](https://squire.apps.wayne.edu/docs/guides/doctor.html#doctor)
+
+This page explains what `squire doctor` checks (the S-rules), how it hands off to PROCTOR, and how to read its output and exit codes. Next, read [Update and drift](https://squire.apps.wayne.edu/docs/guides/update-and-drift.html) to fix the template drift doctor reports.
+
+### What it checks[#](https://squire.apps.wayne.edu/docs/guides/doctor.html#what-it-checks)
+
+`squire doctor` checks an app against the best practices a machine can decide. It decides the rules below by reading the files in your repository. It never runs your app and never touches a server. A **fail** makes `doctor` exit 1; a **warn** or **info** does not. The numbers (S1 and so on) are the rule numbers from the WELD Citadel best-practices list; the list has more rules than a machine can decide, and those are not here.
+
+Note
+
+`squire doctor` checks deploy setup only; standards checks are PROCTOR's.
+
+### The S-rules[#](https://squire.apps.wayne.edu/docs/guides/doctor.html#the-s-rules)
+
+| Rule | Level | What it checks | Why |
+| --- | --- | --- | --- |
+| S1 | fail | `build.sh` runs no `composer` or `npm` commands. | Citadel runs `build.sh` as root with only that file copied in; the source is not there. |
+| S3 | warn | Every shell script has `set -e`; bash scripts also have `pipefail`. | A failing step must stop the script. |
+| S4 | fail | No download is piped into a shell. | Pin a version and verify a checksum instead. |
+| S8 | fail / warn | No CRLF in shell scripts (fail); `.gitattributes` forces LF for `*.sh` (warn). | CRLF breaks a script on Linux; Git on Windows adds it. |
+| S9 | fail / warn | `scripts/release.sh` exists (fail); `build.sh` and a `deployments/` hook exist (warn); files match the template version (warn). | Build tooling, the one-time hook and the release script are three jobs. |
+| S12 | fail | The release runs `composer install --no-dev`, never `composer update`, and uses `npm ci` or a frozen-lockfile install. | The lock file is the release contract. |
+| S14 | warn | The release runs `proctor check`. | PROCTOR runs `composer audit` and the other app checks, so known-vulnerable dependencies show up in the deploy log. |
+| S15 | fail / warn | `auth.json` is git-ignored (fail); Composer runs non-interactively (warn). | Credentials stay out of git; Citadel has no terminal to prompt on. |
+| S16 | warn | Laravel: `php artisan optimize` runs in the release. | Config, route and view caches. |
+| S17 | info | Laravel: `migrate --force` runs, or something else runs migrations. | Keep migrations compatible with the old code (parallel change). |
+| S19 | warn | The release refuses to run as root; no `sudo` in scripts. | Files created as root cannot be written by the web process. |
+| S20 | fail / warn | PROCTOR runs as a report (the command is followed by an OR branch that records the status), never as a bare command. | After a Quick Update the new commit is already live; a failing post-script cannot undo it. |
+| S21 | warn | The release requests `/up` at the end. | A release that cannot answer a request did not ship. |
+| S22 | warn | The release prints a marker per step. | The dashboard log shows where it stopped. |
+| S35 | warn | The compose file uses a `citadel/php-apache` image. | Same PHP and extensions as production. |
+| S36 | warn | A proxy that adds `X-Forwarded-For` and `X-Forwarded-Proto` is in front of the app. | Trusted-proxy and HTTPS detection bugs only show behind one. |
+| S37 | warn | The local database is MySQL 5.6. | Its limits then show up locally. |
+| S41 | fail | The Docker socket is not mounted. | It is root on the host. |
+| S42 | warn | `.env` and `.env.squire` are git-ignored. | Secrets stay out of git. |
+| S50 | info | Hand-off: points at `proctor check` for the lock file, composer audit and MySQL 5.6 checks. | Each check has one owner; PROCTOR owns those, and `doctor` may run where PROCTOR is not installed. |
+| S55 | fail / warn | A health check that does not run `artisan` or boot the framework exists. | Citadel runs it every 5 minutes as root. |
+| S57 | warn | JavaScript packages install with `--ignore-scripts`; `.npmrc` sets `min-release-age`. | A compromised package cannot run at install time, and a version published an hour ago is not installed. |
+| S67 | warn | Every image in the compose file is pinned by digest. | The same bytes tomorrow as today. |
+| S70 | warn | Local containers drop capabilities and set `no-new-privileges`. | Least privilege, also locally. |
+| S71 | warn | The local health check uses Citadel's timing (5 minutes, 15 seconds). | A slow `/up` shows up before it ships. |
+| S78 | warn | A Vue app does not track `node_modules/` in git. | Dependencies are rebuilt from the lock file; the tree is not source. |
+
+### Handoff to PROCTOR (S50)[#](https://squire.apps.wayne.edu/docs/guides/doctor.html#handoff-to-proctor-s50)
+
+The lock file (S13), composer audit and MySQL 5.6 safety (S18) are owned by PROCTOR; `doctor` no longer repeats them and hands off instead (S50). Each check has one owner; PROCTOR owns those, and `doctor` may run where PROCTOR is not installed.
+
+Drift from the Squire templates is reported as a warning under S9, never as a failure: you may edit your copies.
+
+`doctor` is a lint, not a gate. Wire it into CI if you want it to block; Squire does not decide that for you.
+
+### Output[#](https://squire.apps.wayne.edu/docs/guides/doctor.html#output)
+
+`doctor` prints a text report by default, or a machine-readable one with `--format=json`.
+
+```
+vendor/bin/squire doctor [--path=.] [--format=text|json]
+```
+
+### Exit codes[#](https://squire.apps.wayne.edu/docs/guides/doctor.html#exit-codes)
+
+Exit codes: `0` pass, `1` findings (`init --check`: drift; `update`: an edited file still differs from the template; `doctor`: a failed rule), `2` the tool itself could not run.
+
+---
+
+Source: https://squire.apps.wayne.edu/docs/guides/local-parity.html
+
+## Local parity[#](https://squire.apps.wayne.edu/docs/guides/local-parity.html#local-parity)
+
+This page sets up the local kit: your app on the Citadel image, behind an HA-Proxy that adds the same forwarding headers, with MySQL 5.6.51 beside it. Finish [Citadel setup](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html) first if you have not run `squire init` yet.
+
+### Requirements[#](https://squire.apps.wayne.edu/docs/guides/local-parity.html#requirements)
+
+Needs Docker with Compose v2. Windows needs Docker Desktop with the WSL 2 backend; no shell other than PowerShell is required.
+
+**On Windows, keep the source in the WSL 2 filesystem.** Advice, not a requirement: keep the app's source tree inside the WSL 2 Linux filesystem (for example under `~/src` in your WSL distribution) and run `scripts/parity.sh` from there, not from a Windows folder such as `C:\Users\you\...` reached through `/mnt/c`. Bind mounts from the Windows side are much slower (Composer and npm installs feel it most), and file ownership and permissions do not map cleanly; that is the cause of the `Permission denied` failure described under the bind-mount question (OPEN_QUESTIONS 15). The PowerShell `scripts\parity.ps1` still works from a Windows folder, only slower.
+
+### Engines and licenses[#](https://squire.apps.wayne.edu/docs/guides/local-parity.html#engines-and-licenses)
+
+Squire needs any engine that runs Docker Compose v2 compatible files. The ones named here:
+
+- **Docker Engine on Linux**: open source, Apache 2.0.
+- **Docker Desktop on Windows** with the WSL 2 backend: a commercial product, free for small business, personal and educational use, and paid for larger organizations, so check your own license.
+- **Podman** with a Compose v2 compatible provider, and **Colima** on macOS: expected to work, not tested here.
+
+Only Docker Desktop and Docker Engine have been run.
+
+### Starting parity[#](https://squire.apps.wayne.edu/docs/guides/local-parity.html#starting-parity)
+
+```sh
+# Linux and macOS
+cp .env.squire.example .env.squire     # then set the passwords
+scripts/parity.sh up                   # or: scripts/parity.sh up --fallback
+
+# Windows (PowerShell 5.1 or 7)
+Copy-Item .env.squire.example .env.squire
+scripts\parity.ps1 up                  # or: scripts\parity.ps1 up -Fallback
+```
+
+Commands: `up`, `down`, `reset` (also removes volumes), `logs [service]`, `shell [service]`, `status`, `pin` (prints the digests of the images you have pulled, so you can pin them).
+
+### What it starts[#](https://squire.apps.wayne.edu/docs/guides/local-parity.html#what-it-starts)
+
+It starts the app container from the Citadel image (built by Citadel's `build_images` command, or pulled from wherever you keep it) with your source mounted at `/citadel/src`, runs your `deployments/` as the `citadel` user the way Citadel does, and puts an HA-Proxy in front that adds the same forwarding headers. MySQL 5.6.51 is reachable from the app as host `mysql` and from your machine on `127.0.0.1:3307`. Containers drop capabilities, set `no-new-privileges`, and carry memory and process limits. The database port is bound to loopback only. The Vue layer's compose file adds a Node 22 service, pinned to the same major as the Citadel image, for frontend tooling.
+
+### No access to the real image?[#](https://squire.apps.wayne.edu/docs/guides/local-parity.html#no-access-to-the-real-image)
+
+`--fallback` builds an approximation from the official `php` image plus Citadel's extensions. It is good for trying Squire out and not for proving parity. If the build step fails with a permission error writing `vendor/`, the source folder is not writable by the container's `citadel` user (uid 1000 by default); on Linux set `SQUIRE_SOURCE_UID` and `SQUIRE_SOURCE_GID` to yours.
+
+Note
+
+The compose file refuses to start without the two passwords. Set them in `.env.squire` after copying `.env.squire.example`; the example holds placeholders only.
+
+### Next[#](https://squire.apps.wayne.edu/docs/guides/local-parity.html#next)
+
+Read [The release script](https://squire.apps.wayne.edu/docs/guides/release-script.html) for what runs inside the app container, or [Citadel setup](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html) for the dashboard side of the same pipeline.
+
+---
+
+Source: https://squire.apps.wayne.edu/docs/guides/oracle.html
+
+## Oracle[#](https://squire.apps.wayne.edu/docs/guides/oracle.html#oracle)
+
+This page covers the plain-language Oracle connection check that `release.sh` runs on Citadel and that `squire doctor oracle` runs from your terminal, and the two opt-in Oracle-ready Docker images Squire ships for local work. Next, read [Citadel setup](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html) to wire the release script into the dashboard, or [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html) to run the app on the real images.
+
+### The connection check[#](https://squire.apps.wayne.edu/docs/guides/oracle.html#the-connection-check)
+
+The release runs an Oracle connection check (`oracle-check.php`) after PROCTOR and before the smoke test. It is a report, never a gate: a finding prints in the deployment log and the release goes on. When the app does not use Oracle (no `ORACLE_*` settings) it prints nothing.
+
+It checks, in order:
+
+1. the settings are present,
+2. the host resolves,
+3. the port answers within 3 seconds,
+4. the `oci8` driver is loaded,
+5. the login works.
+
+The check stops at the first failure, so a bad port never costs a login attempt. Only setting names are ever printed, never values.
+
+Settings: `ORACLE_USERNAME`, `ORACLE_PASSWORD`, and either `ORACLE_TNS` (Easy Connect `host:port/service`, or a full `(DESCRIPTION=...)` descriptor) or `ORACLE_HOST`, `ORACLE_PORT` and `ORACLE_SERVICE_NAME`.
+
+### `squire doctor oracle` [#](https://squire.apps.wayne.edu/docs/guides/oracle.html#squire-doctor-oracle)
+
+`vendor/bin/squire doctor oracle` runs the same plain-language Oracle connection check that `release.sh` runs on Citadel, from your terminal or `sail php vendor/bin/squire doctor oracle`. It reads the `ORACLE_*` settings from the environment and the app's `.env`, prints setting names and never values, and stays silent when the app has no Oracle settings. Add `-v` for the client version.
+
+### Oracle-ready images (local)[#](https://squire.apps.wayne.edu/docs/guides/oracle.html#oracle-ready-images-local)
+
+Apps that talk to Oracle need the Instant Client and the `oci8` extension. Squire ships two opt-in Docker recipes that carry both, so nobody compiles them by hand:
+
+- `squire/oracle-sail:<php>`: Laravel Sail's own runtime plus the Oracle install. In your `docker-compose.yml`, swap the service's `build:` block for `image: squire/oracle-sail:8.4` and keep the rest of the service as Sail wrote it; the image keeps Sail's entrypoint contract, including the `WWWUSER` UID remap.
+- `squire/oracle-parity:<php>`: the official `php:<php>-cli-bookworm` image with the extensions Citadel apps use (intl, ldap, soap, zip, gd, pdo_mysql, mysqli, bcmath, pcntl, exif, redis, imagick), Composer and git, plus the Oracle install. This is the flavor WELD's `compose.oracle.yaml` points its services at. It runs as a non-root `app` user whose UID is a build argument (`APP_UID`) and can still be overridden at run time.
+
+The names above are the local names of `scripts/oracle-image-build.sh`. The published images live in your GitLab container registry, at `$CI_REGISTRY_IMAGE/oracle-parity:8.4` and `$CI_REGISTRY_IMAGE/oracle-sail:8.4` (in GitLab CI, `$CI_REGISTRY_IMAGE` is set for you; elsewhere it is the registry address of the Squire project shown on its Container Registry page), plus `:8.4-<squire version>` for a fixed one. CI publishes them when a Squire version is tagged, multi-arch (linux/amd64 and linux/arm64); a Sail app swaps `build:` for `image:` with that path.
+
+Both flavors download Oracle's Instant Client Basic Light at build time under Oracle's license and never commit it: the install script pins the exact SHA-256 of each zip. Oracle does not publish a 21.x client for arm64, so the line differs per architecture: linux/amd64 gets 21.7.0.0.0 and linux/arm64 gets 19.32.0.0.0.
+
+```
+scripts/oracle-image-build.sh --flavour sail --php 8.4        # or: --flavour parity
+scripts/oracle-image-test.sh --flavour all --platform linux/amd64
+```
+
+---
+
+Source: https://squire.apps.wayne.edu/docs/guides/quick-start.html
+
+## Quick start[#](https://squire.apps.wayne.edu/docs/guides/quick-start.html#quick-start)
+
+A squire carries the kit and readies the armor before the knight charges, and this page is that ride. Four numbered steps take a new app from `composer require` to a checked, deploy-ready setup; do them in order, then follow a next link.
+
+### 1. Install Squire[#](https://squire.apps.wayne.edu/docs/guides/quick-start.html#1-install-squire)
+
+Squire is a dev dependency. It runs on your machine or in CI, not on Citadel; what lands on Citadel is the scripts it writes. PHP `^8.3`, tested on 8.3, 8.4 and 8.5.
+
+```bash
+composer require waynestate/squire --dev
+```
+
+### 2. Run squire init[#](https://squire.apps.wayne.edu/docs/guides/quick-start.html#2-run-squire-init)
+
+`init` picks the target from your app: `laravel` when there is an `artisan` file, `raw` without one, or set it yourself with `--target`. It detects a Vue/Inertia layer from `package.json` and adds the layer's release script and Node 22 parity service.
+
+```bash
+vendor/bin/squire init
+```
+
+The full option set:
+
+```text
+vendor/bin/squire init   [--path=.] [--target=auto|raw|laravel|static] [--only=release|parity] [--check] [--force]
+```
+
+`init` never overwrites a file you edited, or a file it did not write, unless you pass `--force`. It records a SHA-256 of each file in `.squire.json`. `--only=release` writes just the Citadel scripts, `--only=parity` just the local setup.
+
+### 3. Run squire doctor[#](https://squire.apps.wayne.edu/docs/guides/quick-start.html#3-run-squire-doctor)
+
+```bash
+vendor/bin/squire doctor
+```
+
+`doctor` checks an app against the best practices a machine can decide. The lock file, composer audit and MySQL 5.6 checks are owned by PROCTOR; `doctor` hands off to it (S50) instead of repeating them.
+
+Exit codes: `0` pass, `1` findings (`init --check`: drift; `update`: an edited file still differs from the template; `doctor`: a failed rule), `2` the tool itself could not run.
+
+### 4. Commit .squire.json[#](https://squire.apps.wayne.edu/docs/guides/quick-start.html#4-commit-squire-json)
+
+Commit the `.squire.json` record file. `update` reads it to know which files Squire wrote, and `init --check` reports when your copies have drifted from the templates (depend, do not copy).
+
+### What you built[#](https://squire.apps.wayne.edu/docs/guides/quick-start.html#what-you-built)
+
+| File | What it is |
+| --- | --- |
+| `build.sh` | Citadel's build hook: system packages only, POSIX sh, runs as root with no app source. No Composer, no npm. |
+| `deployments/001-first-release.sh` | Runs once per app: calls the release script with the smoke test off (Apache is not up yet). |
+| `scripts/release.sh` | The idempotent release: preconditions, `composer install --no-dev` from the lock file, audit, Laravel `migrate --force` and `optimize`, PROCTOR (a report by default, a gate with `SQUIRE_PROCTOR=enforce`), an Oracle connection check (a report, never a gate), `/up` smoke test. Use it as the Quick Update post-script as well. |
+| `health.php` | Citadel's health check (`["php","health.php"]`): one HTTP request to `/up`, never boots the framework. |
+| `oracle-check.php` | The plain-language Oracle connection check the release runs: settings, host, port, driver, login. A report, never a gate; silent when the app has no `ORACLE_*` settings. |
+| `public/up.php` | Raw PHP and static: the endpoint that answers `ok`. Laravel has `/up` built in. |
+| `public/index.php` | Raw: the front controller that serves `public/` files safely and hands the rest to the app's entry. Static: the one that serves the committed site with HELMET's headers. Never written over an app's own. |
+| `public/.htaccess` | Raw: sends every request but `index.php` and `up.php` to the front controller. Static: routes every request that is not a real file to it. |
+| `.npmrc` | Vue layer only: sets `min-release-age=1` for the frontend install. |
+| Vue `docker-compose.squire.yml` | Vue layer only: the common parity compose plus a Node 22 service for frontend tooling. |
+| `docker-compose.squire.yml`, `.squire/`, `.env.squire.example`, `scripts/parity.sh`, `scripts/parity.ps1` | Local parity. |
+
+Every shell script uses `set -euo pipefail` (`build.sh` uses `set -eu`, because Citadel runs it with `/bin/sh`), prints a `[squire] ==> step N: ...` marker for each step, and can be run twice with the same result.
+
+### Next steps[#](https://squire.apps.wayne.edu/docs/guides/quick-start.html#next-steps)
+
+- [Raw PHP app](https://squire.apps.wayne.edu/docs/guides/raw-php-app.html)
+- [Static site](https://squire.apps.wayne.edu/docs/guides/static-site.html)
+- [Citadel setup](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html)
+- [Release script](https://squire.apps.wayne.edu/docs/guides/release-script.html)
+- [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html)
+- [Doctor](https://squire.apps.wayne.edu/docs/guides/doctor.html)
+- [Update and drift](https://squire.apps.wayne.edu/docs/guides/update-and-drift.html)
+- [Commands](https://squire.apps.wayne.edu/docs/reference/commands.html) and [Files](https://squire.apps.wayne.edu/docs/reference/files.html)
+
+---
+
+Source: https://squire.apps.wayne.edu/docs/guides/raw-php-app.html
+
+## Raw PHP app[#](https://squire.apps.wayne.edu/docs/guides/raw-php-app.html#raw-php-app)
+
+This page is for apps without a framework: what `squire init --target=raw` writes, and how the front controller decides what to serve, what to refuse, and what to hand to your entry. If you have not run `init` yet, start with the [quick start](https://squire.apps.wayne.edu/docs/guides/quick-start.html).
+
+### What the raw target writes[#](https://squire.apps.wayne.edu/docs/guides/raw-php-app.html#what-the-raw-target-writes)
+
+A raw PHP app (`--target=raw`, the default without an `artisan` file) gets a front controller, `public/index.php`, and an `.htaccess` that sends every request to it.
+
+### The front controller's three answers[#](https://squire.apps.wayne.edu/docs/guides/raw-php-app.html#the-front-controller-s-three-answers)
+
+- a real file in `public/` (CSS, images, fonts, an HTML page) is served with its type, an ETag and an hour of cache, with HELMET's headers when HELMET is installed, and HELMET's CSP nonce on every `<script>` of an HTML page;
+- a 404 for a dot file (`.htaccess`, `.git`), a NUL byte, a path that climbs out of `public/`, any `.php` or `.phar` other than the front controller, and any file that is not a site asset (a `.sql` dump, a `.bak`, a `.md` with no `.html` beside it);
+- everything else goes to the app's entry: `app.php` beside `public/`, or the file `SQUIRE_APP_ENTRY` names (relative to the app directory, for example `src/bootstrap.php`). A `POST`, `PUT` or `DELETE` always goes to the entry.
+
+### SQUIRE_APP_ENTRY[#](https://squire.apps.wayne.edu/docs/guides/raw-php-app.html#squire-app-entry)
+
+The entry is the only PHP file the front controller runs, and it must sit inside the app directory and end in `.php`; anything else is a plain 500 that names `SQUIRE_APP_ENTRY` and no path. The entry boots its own HELMET with its own settings: the front controller boots HELMET (citadel preset) only for the answers it gives itself, never before the entry, so HELMET is never booted twice.
+
+### App-owned files[#](https://squire.apps.wayne.edu/docs/guides/raw-php-app.html#app-owned-files)
+
+An app that already has its own `public/index.php` or `public/.htaccess` keeps it: `init` reports the file as `app-owned`, never records or overwrites it (not even with `--force`), and `init --check` does not count it as drift. Delete your copy and run `init` to take Squire's. A front controller Squire wrote is tracked like any other file.
+
+### public/up.php[#](https://squire.apps.wayne.edu/docs/guides/raw-php-app.html#public-up-php)
+
+`public/up.php` answers on its own, because the `.htaccess` lets Apache run it directly. The path checks and the MIME map are the static target's, and the tests keep the two in step; see [Static site](https://squire.apps.wayne.edu/docs/guides/static-site.html) for that side.
+
+---
+
+Source: https://squire.apps.wayne.edu/docs/guides/release-script.html
+
+## The release script[#](https://squire.apps.wayne.edu/docs/guides/release-script.html#the-release-script)
+
+This page walks through `scripts/release.sh`, the one common script every app gets, in the order its steps run. It is the artifact that lands on Citadel; read [Citadel setup](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html) first if you have not wired the dashboard yet.
+
+### What it is[#](https://squire.apps.wayne.edu/docs/guides/release-script.html#what-it-is)
+
+`scripts/release.sh` is the idempotent release: preconditions, `composer install --no-dev` from the lock file, audit, Laravel `migrate --force` and `optimize`, PROCTOR (a report by default, a gate with `SQUIRE_PROCTOR=enforce`), an Oracle connection check (a report, never a gate), and a `/up` smoke test. It runs from the first-release hook and from the Quick Update post-script (user `citadel`, script `./scripts/release.sh`).
+
+Its neighbors in the kit:
+
+| File | What it is |
+| --- | --- |
+| `build.sh` | Citadel's build hook: system packages only, POSIX sh, runs as root with no app source. No Composer, no npm. |
+| `deployments/001-first-release.sh` | Runs once per app: calls the release script with the smoke test off (Apache is not up yet). |
+| `health.php` | Citadel's health check (`["php","health.php"]`): one HTTP request to `/up`, never boots the framework. |
+| `oracle-check.php` | The plain-language Oracle connection check the release runs: settings, host, port, driver, login. A report, never a gate; silent when the app has no `ORACLE_*` settings. |
+
+Every shell script uses `set -euo pipefail` (`build.sh` uses `set -eu`, because Citadel runs it with `/bin/sh`), prints a `[squire] ==> step N: ...` marker for each step, and can be run twice with the same result.
+
+### Idempotence and step markers[#](https://squire.apps.wayne.edu/docs/guides/release-script.html#idempotence-and-step-markers)
+
+Safe to run twice: every step repeats with the same result (S10). Each step prints a marker such as `[squire] ==> step 3: composer install from the lock file, without dev packages`, and a failure names the step: `[squire] FAILED at step N (name): reason` with the exit code and line number. A release script that is not idempotent is just a rehearsal that happens to ship.
+
+### Step by step[#](https://squire.apps.wayne.edu/docs/guides/release-script.html#step-by-step)
+
+1. **check preconditions**: refuses to run as root unless `SQUIRE_ALLOW_ROOT=1` (files it creates could not be written by the web process); requires `composer.json` and `composer.lock` in the app root (the lock file is the release, S13); requires `php` and `composer` on PATH; resolves the framework (`auto` detects Laravel from `artisan`, otherwise `raw`); requires `.env` when `SQUIRE_REQUIRE_ENV` resolves to `1` (Laravel always does); picks the smoke URL (`http://127.0.0.1:80/up` for Laravel, `http://127.0.0.1:80/up.php` for raw PHP).
+2. **create writable directories**: creates the `SQUIRE_WRITABLE_DIRS` entries, or `storage bootstrap/cache` for Laravel by default.
+3. **composer install from the lock file, without dev packages**: logs the Composer version (it moves at every container start, S58), then `composer install --no-dev --optimize-autoloader --no-interaction --no-progress --prefer-dist`.
+4. **composer audit**: `composer audit --locked --no-interaction`. By default (`SQUIRE_COMPOSER_AUDIT=report`) a non-zero exit prints a warning and the release goes on; `fail` stops it, `skip` skips it.
+5. **frontend install and build**: skipped without a `package.json` or with `SQUIRE_NPM=skip`. With `package-lock.json` it runs `npm ci` (with `--ignore-scripts` when `SQUIRE_NPM_IGNORE_SCRIPTS=1`); with `pnpm-lock.yaml` it runs `corepack pnpm install --frozen-lockfile`; with neither lock file it fails, telling you to commit one or set `SQUIRE_NPM=skip` if the built assets are committed. It then runs the `build` script (or `SQUIRE_NPM_BUILD_SCRIPT`) when `package.json` defines it.
+6. **laravel migrate** (Laravel only): `php artisan migrate --force` when `SQUIRE_MIGRATE=1`.
+7. **laravel optimize** (Laravel only): `php artisan optimize` when `SQUIRE_ARTISAN_OPTIMIZE=1`. After this the config is cached and `.env` is no longer read, so `env()` works only inside `config/` (S16).
+8. **PROCTOR**: see below.
+9. **check Oracle (never fails the release)**: runs `php oracle-check.php` when the file exists, and notes a skip when it does not (the app does not use Oracle).
+10. **smoke test the health endpoint**: skipped when `SQUIRE_SMOKE=0` (Apache is not running inside the first-release hook). Otherwise it requests `SQUIRE_SMOKE_URL` up to `SQUIRE_SMOKE_RETRIES` attempts (default 5), sleeping `SQUIRE_SMOKE_DELAY` seconds (default 2) between them, and fails unless the answer is HTTP 200.
+
+### PROCTOR: report versus enforce[#](https://squire.apps.wayne.edu/docs/guides/release-script.html#proctor-report-versus-enforce)
+
+By default PROCTOR is a report here, never a gate: a failing post-script cannot undo a Quick Update, because the new commit is already live (S20). With `SQUIRE_PROCTOR=enforce` a failed check stops the release: the first release never comes up healthy, and a Quick Update keeps the new commit checked out, so fix the findings and re-run.
+
+- The binary is `vendor/bin/proctor`, then `proctor` on PATH, or `SQUIRE_PROCTOR_BIN`. It is a dev dependency, so `--no-dev` removes it: point `SQUIRE_PROCTOR_BIN` at a copy.
+- The policy is `SQUIRE_PROCTOR_POLICY` when set; otherwise the policy the CREED package ships (`vendor/waynestate/creed/policy/policy.json`, when installed); otherwise PROCTOR runs on its own default policy with a notice. An explicit value always wins.
+
+### The Oracle check[#](https://squire.apps.wayne.edu/docs/guides/release-script.html#the-oracle-check)
+
+The release also runs an Oracle connection check (`oracle-check.php`) after PROCTOR and before the smoke test. It is a report, never a gate: a finding prints in the deployment log and the release goes on. When the app does not use Oracle (no `ORACLE_*` settings) it prints nothing. It checks, in order, that the settings are present, that the host resolves, that the port answers within 3 seconds, that the `oci8` driver is loaded, and that the login works, stopping at the first failure so a bad port never costs a login attempt. Settings: `ORACLE_USERNAME`, `ORACLE_PASSWORD`, and either `ORACLE_TNS` (Easy Connect `host:port/service`, or a full `(DESCRIPTION=...)` descriptor) or `ORACLE_HOST`, `ORACLE_PORT` and `ORACLE_SERVICE_NAME`. Only setting names are ever printed, never values.
+
+### Configuration[#](https://squire.apps.wayne.edu/docs/guides/release-script.html#configuration)
+
+Configuration is environment variables, all optional, or the same names in `./.env.squire` in the app root. On Citadel add that file as a configuration file (the configuration-files step after the wizard; the wizard has no environment field) and keep it out of git. A variable already in the environment wins over the file. See `.env.squire.example`.
+
+Warning
+
+PROCTOR is a dev dependency and the release installs with `--no-dev`, so `vendor/bin/proctor` is gone by the time the PROCTOR step runs. Set `SQUIRE_PROCTOR_BIN` to a copy that survives, or the step reports itself missing.
+
+### Next[#](https://squire.apps.wayne.edu/docs/guides/release-script.html#next)
+
+Read [Citadel setup](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html) for the dashboard steps that make this script run, or [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html) to watch the same pipeline on your machine.
+
+---
+
+Source: https://squire.apps.wayne.edu/docs/guides/static-site.html
+
+## Static site[#](https://squire.apps.wayne.edu/docs/guides/static-site.html#static-site)
+
+For a site with no backend, the squire does double duty: it writes the serving layer and leaves the site itself to you. This page covers `squire init --target=static`, the `SQUIRE_STATIC_ROOT` setting, and the Vue/Inertia layer that sits on top of the target.
+
+### What the static target writes[#](https://squire.apps.wayne.edu/docs/guides/static-site.html#what-the-static-target-writes)
+
+A static site is a target of its own: `--target=static` writes everything the `raw` target writes, with its own front controller, `public/index.php`, and an `.htaccess` that routes every request that is not a real file to it. The site itself is plain files you commit; the front controller serves them with HELMET's headers, injects the CSP nonce into the HTML, and caches the assets.
+
+### SQUIRE_STATIC_ROOT[#](https://squire.apps.wayne.edu/docs/guides/static-site.html#squire-static-root)
+
+The site folder is `../../site` by default (the app lives in `deploy/` beside it); point `SQUIRE_STATIC_ROOT` at a different folder. `public/up.php` still answers the health check, because a real file is served straight by Apache and never reaches the front controller.
+
+### The Vue/Inertia layer[#](https://squire.apps.wayne.edu/docs/guides/static-site.html#the-vue-inertia-layer)
+
+A Vue/Inertia app is a layer on `raw`, `laravel` or `static`, not a fourth target: `init` detects `vue` in `package.json` (dependencies or devDependencies) and writes the layer's `.npmrc` and its `docker-compose.squire.yml` (with a Node 22 service) beside the target's files.
+
+- `.npmrc` sets `min-release-age=1` for the frontend install.
+- The Vue `docker-compose.squire.yml` is the common parity compose plus a Node 22 service for frontend tooling, pinned to the same major as the Citadel image.
+
+Every app, Vue or not, gets the one common `scripts/release.sh`, which installs the frontend from the lock file and runs the `build` script whenever there is a `package.json`.
+
+---
+
+Source: https://squire.apps.wayne.edu/docs/guides/theming.html
+
+## Theming your docs[#](https://squire.apps.wayne.edu/docs/guides/theming.html#theming-your-docs)
+
+A squire swaps the livery without touching the armor: this page shows how to point the docs builder at your own CSS and header. Read [Building the docs](https://squire.apps.wayne.edu/docs/guides/docs-builder.html) first if you have not met the builder, then add the two files below.
+
+Note
+
+The `theme` key is on a branch and not in a release yet. It is coming in the next release.
+
+### The theme key[#](https://squire.apps.wayne.edu/docs/guides/theming.html#the-theme-key)
+
+Add a `theme` key to `docs/docs.json` with two paths, `css` and `header`. Both paths are relative to the folder that holds `docs.json`.
+
+```json
+{
+    "theme": {
+        "css": "theme/docs.css",
+        "header": "theme/header.html"
+    }
+}
+```
+
+### What the builder does[#](https://squire.apps.wayne.edu/docs/guides/theming.html#what-the-builder-does)
+
+The builder copies your CSS file to `site/docs/theme/`. Dark mode, fonts and colors live in that theme CSS, and the kit's `docs.css` is never edited.
+
+### Placeholders and links[#](https://squire.apps.wayne.edu/docs/guides/theming.html#placeholders-and-links)
+
+The header file takes exactly two placeholders, `{{project}}` and `{{version}}`. Any other placeholder fails the build with exit 2. Write header links relative to `site/`, not relative to `docs/`.
+
+### Checklist[#](https://squire.apps.wayne.edu/docs/guides/theming.html#checklist)
+
+- `docs/docs.json` has a `theme` key with `css` and `header`.
+- Both paths are relative to the folder that holds `docs.json`.
+- Your CSS carries dark mode, fonts and colors, and the kit's `docs.css` stays untouched.
+- The header uses only `{{project}}` and `{{version}}`.
+- Header links are relative to `site/`.
+
+The rest of the builder is in [Building the docs](https://squire.apps.wayne.edu/docs/guides/docs-builder.html).
+
+---
+
+Source: https://squire.apps.wayne.edu/docs/guides/update-and-drift.html
+
+## Update and drift[#](https://squire.apps.wayne.edu/docs/guides/update-and-drift.html#update-and-drift)
+
+This page explains how Squire tracks the files it writes (the `.squire.json` SHA-256 record), how `init --check` reports drift, how `squire update` moves your copies forward, and how Sourdough keeps its copy of the templates in step. Next, read [Commands](https://squire.apps.wayne.edu/docs/reference/commands.html) for the full flag reference.
+
+### The `.squire.json` record[#](https://squire.apps.wayne.edu/docs/guides/update-and-drift.html#the-squire-json-record)
+
+`init` records a SHA-256 of each file it writes in `.squire.json`; commit that file. The record is what lets Squire tell the files you never edited from the ones you did.
+
+### Drift: `init --check` [#](https://squire.apps.wayne.edu/docs/guides/update-and-drift.html#drift-init-check)
+
+`squire init --check` reports when your copies have drifted from the templates (depend, do not copy). Drift from the Squire templates is reported as a warning under S9, never as a failure: you may edit your copies. See [Doctor](https://squire.apps.wayne.edu/docs/guides/doctor.html) for the rule.
+
+### `squire update` [#](https://squire.apps.wayne.edu/docs/guides/update-and-drift.html#squire-update)
+
+`squire update` takes the new template versions for the files you never edited, and shows a diff for the ones you did. It never overwrites your edits, and it runs the same in CI and on a laptop.
+
+`update` reads the record: a file you never edited takes the new template, a file you edited is left alone and shown as a diff, and a file Squire did not write is never touched. A squire polishes the armor; the knight keeps the sword. `--dry-run` prints the plan and writes nothing.
+
+```
+vendor/bin/squire init   [--path=.] [--target=auto|raw|laravel|static] [--only=release|parity] [--check] [--force]
+vendor/bin/squire update [--path=.] [--target=raw|laravel|static] [--only=release|parity] [--dry-run]
+```
+
+### App-owned files and `--force` [#](https://squire.apps.wayne.edu/docs/guides/update-and-drift.html#app-owned-files-and-force)
+
+`init` never overwrites a file you edited, or a file it did not write, unless you pass `--force`. An app that already has its own `public/index.php` or `public/.htaccess` keeps it: `init` reports the file as `app-owned`, never records or overwrites it (not even with `--force`), and `init --check` does not count it as drift. Delete your copy and run `init` to take Squire's. A front controller Squire wrote is tracked like any other file.
+
+### Sourdough's copy of the templates[#](https://squire.apps.wayne.edu/docs/guides/update-and-drift.html#sourdough-s-copy-of-the-templates)
+
+Sourdough carries a generated copy of Squire's deploy templates instead of writing its own. The copy began when its apps could not `composer require` Squire from an internal repository (no internal URLs may be committed). Squire is on Packagist now, and Sourdough requires it as a dev dependency and regenerates its copy from the package. Squire owns the templates; the copy is checked in and verified, never hand-edited.
+
+```
+php bin/export-templates.php --to=templates/squire            # write the copy
+php bin/export-templates.php --to=templates/squire --check    # verify it; exit 1 on drift
+```
+
+The copy holds, for each kind (`raw`, `laravel`, `static`) and for the Vue layer (`vue`), the files a new app gets from `squire init`, at their target paths, with each file's mode recorded so executables stay executable. `catalog.json` lists which files each kind and layer installs and where; `manifest.json` records the Squire version and a SHA-256 per file. Refresh the copy when Squire's templates move on, and run `--check` in CI to keep it honest. A squire keeps the armor polished; the copy stays in step.
+
+---
+
+Source: https://squire.apps.wayne.edu/docs/
+
+## Squire | Squire docs
+
+Squire is the Citadel kit: the standard `build.sh`, the release script, the health check, and a local setup that runs your app on the real Citadel images, behind a proxy like Citadel's. The next step is [installing it](https://squire.apps.wayne.edu/docs/install.html), which takes a minute and ends with a doctor check.
+
+### What it does[#](https://squire.apps.wayne.edu/docs/#what-it-does)
+
+- `squire init` writes the scripts a Citadel app needs from templates, for raw PHP, Laravel or a static site, and detects a Vue/Inertia layer from `package.json`, adding the layer's release script and Node 22 parity service. `squire init --check` reports when your copies have drifted from the templates (depend, do not copy). In a directory below the repository root (a `deploy/` layer, say), `init` also keeps the `.gitignore` honest: it appends `/vendor/`, `.env` and `.env.squire` when they are missing, never touches a line the app added, and leaves the repository root's `.gitignore` to the app.
+- `squire update` takes the new template versions for the files you never edited, and shows a diff for the ones you did. It never overwrites your edits, and it runs the same in CI and on a laptop.
+- `squire doctor` checks an app against the best practices a machine can decide. The lock file, composer audit and MySQL 5.6 checks are owned by PROCTOR; `doctor` hands off to it (S50) instead of repeating them.
+- A local setup that runs your app on the Citadel PHP image, behind a proxy like Citadel's, with the same MySQL 5.6.
+- Squire's maintainers send platform improvement proposals to the platform team privately. Squire never touches a server.
+
+### Where the code lives[#](https://squire.apps.wayne.edu/docs/#where-the-code-lives)
+
+The canonical repository is on nougat: [enterprise-apps/squire](https://nougat.snu.gs/enterprise-apps/squire). git.wayne.edu and GitHub ([waynestate/squire](https://github.com/waynestate/squire)) are read-only mirrors of it. Open issues and merge requests on nougat, not on the mirrors. This moves to git.wayne.edu once it has CI runners. Your squire serves one banner, and it flies over nougat.
+
+### Its place in the stack[#](https://squire.apps.wayne.edu/docs/#its-place-in-the-stack)
+
+Squire is part of WELD, the Wayne State application stack, beside WayneUI (project 0, the interface layer every other project builds on), CREED, PROCTOR, Preflight, SESAME, HELMET, Pinstripe, Sourdough, Booster, Rollcall, Drawbridge and ADVISOR.
+
+> A knight never suits up alone. Your app shouldn't deploy alone either.
+
+---
+
+Source: https://squire.apps.wayne.edu/docs/install.html
+
+## Install | Squire docs
+
+### Requirements[#](https://squire.apps.wayne.edu/docs/install.html#requirements)
+
+PHP `^8.3`, tested on 8.3, 8.4 and 8.5. The package runs on your machine or in CI, not on Citadel; what lands on Citadel is the scripts it wrote.
+
+### Install[#](https://squire.apps.wayne.edu/docs/install.html#install)
+
+```
+composer require waynestate/squire --dev
+vendor/bin/squire init
+vendor/bin/squire doctor
+```
+
+### Verify[#](https://squire.apps.wayne.edu/docs/install.html#verify)
+
+`vendor/bin/squire doctor` checks the app against the best practices a machine can decide. Exit codes: `0` pass, `1` findings (`init --check`: drift; `update`: an edited file still differs from the template; `doctor`: a failed rule), `2` the tool itself could not run.
+
+Next: the [command reference](https://squire.apps.wayne.edu/docs/reference/commands.html).
+
+---
+
+Source: https://squire.apps.wayne.edu/docs/reference/commands.html
+
+## Commands | Squire docs
+
+The block below is owned by the docs builder: it lists every command the CLI keeps, with its usage, arguments and options, and is rewritten from the repository on every build.
+
+| Command | What it does |
+| --- | --- |
+| `squire doctor` | Check an app's Citadel release setup against the SQUIRE rules (S1 to S78). |
+| `squire init` | Write the standard Citadel scripts into an app, or report drift with --check. |
+| `squire update` | Take new template versions for files SQUIRE wrote that were never edited; show a diff for the edited ones. |
+
+#### `squire doctor` [#](https://squire.apps.wayne.edu/docs/reference/commands.html#squire-doctor)
+
+Check an app's Citadel release setup against the SQUIRE rules (S1 to S78).
+
+Usage: `squire doctor [--path PATH] [--format FORMAT] [--] [<topic>]`
+
+| Argument | Required | Meaning |
+| --- | --- | --- |
+| `topic` | no | Optional topic. Use `oracle` to check the Oracle connection settings. |
+
+| Option | Meaning | Default |
+| --- | --- | --- |
+| `--path=VALUE` | Path to the application. | `.` |
+| `--format=VALUE` | Output format: text or json. | `text` |
+| `--silent` | Do not output any message |  |
+
+#### `squire init` [#](https://squire.apps.wayne.edu/docs/reference/commands.html#squire-init)
+
+Write the standard Citadel scripts into an app, or report drift with --check.
+
+Usage: `squire init [--path PATH] [--target TARGET] [--only ONLY] [--check] [--force]`
+
+| Option | Meaning | Default |
+| --- | --- | --- |
+| `--path=VALUE` | Path to the application. | `.` |
+| `--target=VALUE` | raw, laravel or static (default: the target recorded in .squire.json, else laravel when an artisan file exists; static must be asked for). |  |
+| `--only=VALUE` | Comma-separated groups to write: release, parity. | `release,parity` |
+| `--check` | Write nothing; report files that are missing, outdated or edited. Exit 1 on drift. |  |
+| `--force` | Overwrite files that were edited or that SQUIRE did not write. |  |
+| `--silent` | Do not output any message |  |
+
+#### `squire update` [#](https://squire.apps.wayne.edu/docs/reference/commands.html#squire-update)
+
+Take new template versions for files SQUIRE wrote that were never edited; show a diff for the edited ones.
+
+Usage: `squire update [--path PATH] [--target TARGET] [--only ONLY] [--dry-run]`
+
+| Option | Meaning | Default |
+| --- | --- | --- |
+| `--path=VALUE` | Path to the application. | `.` |
+| `--target=VALUE` | raw, laravel or static (default: the target recorded in .squire.json). |  |
+| `--only=VALUE` | Comma-separated groups to update: release, parity. (default: the groups recorded in .squire.json) |  |
+| `--dry-run` | Print the plan; write nothing. |  |
+| `--silent` | Do not output any message |  |
+
+#### Options every command accepts[#](https://squire.apps.wayne.edu/docs/reference/commands.html#options-every-command-accepts)
+
+| Option | Meaning | Default |
+| --- | --- | --- |
+| `-h`, `--help` | Display help for the given command. When no command is given display help for the list command |  |
+| `-q`, `--quiet` | Only errors are displayed. All other output is suppressed |  |
+| \`-v | -vv | -vvv`, `--verbose\` |
+| `-V`, `--version` | Display this application version |  |
+| `--ansi` | Force (or disable --no-ansi) ANSI output |  |
+| `--no-ansi` | Negate the "--ansi" option |  |
+| `-n`, `--no-interaction` | Do not ask any interactive question |  |
+
+### Exit codes[#](https://squire.apps.wayne.edu/docs/reference/commands.html#exit-codes)
+
+`0` pass, `1` findings (`init --check`: drift; `update`: an edited file still differs from the template; `doctor`: a failed rule), `2` the tool itself could not run.
+
+### doctor oracle[#](https://squire.apps.wayne.edu/docs/reference/commands.html#doctor-oracle)
+
+`vendor/bin/squire doctor oracle` runs the same plain-language Oracle connection check that `release.sh` runs on Citadel, from your terminal or `sail php vendor/bin/squire doctor oracle`. It reads the `ORACLE_*` settings from the environment and the app's `.env`, prints setting names and never values, and stays silent when the app has no Oracle settings. Add `-v` for the client version.
+
+---
+
+Source: https://squire.apps.wayne.edu/docs/reference/configuration.html
+
+## Configuration reference[#](https://squire.apps.wayne.edu/docs/reference/configuration.html#configuration-reference)
+
+Every `SQUIRE_*` setting Squire reads, grouped by the script that reads it, with the file each group lives in and its default. All settings are optional. Next, see [Commands](https://squire.apps.wayne.edu/docs/reference/commands.html) for the CLI flags and [Files](https://squire.apps.wayne.edu/docs/reference/files.html) for what Squire writes.
+
+Warning
+
+A real environment variable wins. `release.sh` reads the release options from the file, but a variable already in the environment wins. Locally, the same file holds the parity settings.
+
+### Where the settings live[#](https://squire.apps.wayne.edu/docs/reference/configuration.html#where-the-settings-live)
+
+All optional. On Citadel, add `./.env.squire` as a configuration file (the configuration-files step after the wizard; the wizard has no environment field) and keep it out of git. `release.sh` reads the release options from it, and a variable already in the environment wins. Locally, the same file holds the parity settings.
+
+| Group | Reader | File |
+| --- | --- | --- |
+| Release script | `scripts/release.sh` | `./.env.squire` (on Citadel, added as a configuration file and kept out of git) |
+| Front controller | raw `public/index.php`, static `public/index.php` | the app's environment |
+| Health check | `health.php` | the app's environment |
+| Local parity | the parity compose file | `.env.squire` (see `.env.squire.example`; it holds placeholders only) |
+
+### Release script (`scripts/release.sh`)[#](https://squire.apps.wayne.edu/docs/reference/configuration.html#release-script-scripts-release-sh)
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `SQUIRE_APP_DIR` | parent of `scripts/` | App root. |
+| `SQUIRE_FRAMEWORK` | `auto` | `auto`, `laravel` or `raw`. Laravel is detected from `artisan`. |
+| `SQUIRE_ALLOW_ROOT` | `0` | `1` allows running as root. |
+| `SQUIRE_REQUIRE_ENV` | `auto` | `1` requires a `.env` file; `auto` means Laravel does. |
+| `SQUIRE_WRITABLE_DIRS` | Laravel: `storage`, `bootstrap/cache` | Directories to create. |
+| `SQUIRE_COMPOSER_AUDIT` | `report` | `report`, `fail` or `skip`. |
+| `SQUIRE_NPM` | `auto` | `auto` or `skip` (for committed built assets). |
+| `SQUIRE_NPM_IGNORE_SCRIPTS` | `1` | Install with `--ignore-scripts`. |
+| `SQUIRE_NPM_BUILD_SCRIPT` | `build` | The `package.json` script to run. |
+| `SQUIRE_MIGRATE` | `1` | Laravel: `migrate --force`. |
+| `SQUIRE_ARTISAN_OPTIMIZE` | `1` | Laravel: `optimize`. |
+| `SQUIRE_PROCTOR` | `auto` | `auto`, `skip` or `enforce`. By default PROCTOR is a report and never stops the release; `enforce` makes a failed check stop it. |
+| `SQUIRE_PROCTOR_BIN` | `vendor/bin/proctor`, then `PATH` | Where PROCTOR is. It is a dev dependency, so `--no-dev` removes it: point this at a copy. |
+| `SQUIRE_PROCTOR_POLICY` | `vendor/waynestate/creed/policy/policy.json`, when installed | Path to the policy file. When unset, the script falls back to the policy the CREED package ships (the deploy wizard has no environment field); when CREED is not installed, PROCTOR runs on its own default policy with a notice. An explicit value always wins. |
+| `SQUIRE_SMOKE` | `1` | Request the health URL at the end and fail unless it answers 200. |
+| `SQUIRE_SMOKE_URL` | `http://127.0.0.1:80/up` (Laravel), `/up.php` (raw and static) | Full URL. |
+| `SQUIRE_SMOKE_RETRIES` | `5` | Attempts. |
+| `SQUIRE_SMOKE_DELAY` | `2` | Seconds between attempts. |
+
+### Front controller[#](https://squire.apps.wayne.edu/docs/reference/configuration.html#front-controller)
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `SQUIRE_APP_ENTRY` | `app.php` | Front controller (raw `public/index.php`): the app's entry, relative to the app directory. |
+| `SQUIRE_STATIC_ROOT` | `../../site` | Static `public/index.php`: the site folder. |
+
+### Health check (`health.php`)[#](https://squire.apps.wayne.edu/docs/reference/configuration.html#health-check-health-php)
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `SQUIRE_HEALTH_PATH` | not stated | The path the health check requests. |
+| `SQUIRE_HEALTH_PORT` | `80` | The port the health check requests. |
+| `SQUIRE_HEALTH_TIMEOUT` | `5`, at most `14`, inside Citadel's `15` | Seconds the health check waits. |
+| `SQUIRE_HEALTH_VENDOR` | `1` also requires `vendor/autoload.php` | Whether the health check also requires the autoloader. |
+
+### Local parity (`.env.squire`)[#](https://squire.apps.wayne.edu/docs/reference/configuration.html#local-parity-env-squire)
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `SQUIRE_PROJECT` | not stated | Local parity: the project name. |
+| `SQUIRE_BASE_IMAGE` | not stated | Local parity: the app image. |
+| `SQUIRE_PROXY_IMAGE` | not stated | Local parity: the proxy image. |
+| `SQUIRE_MYSQL_IMAGE` | not stated | Local parity: the MySQL image. |
+| `SQUIRE_PUBLIC_DIR` | not stated | Local parity: the public directory. |
+| `SQUIRE_SERVER_NAME` | not stated | Local parity: the server name. |
+| `SQUIRE_TZ` | not stated | Local parity: the timezone. |
+| `SQUIRE_ENVIRONMENT` | not stated | Local parity: the environment. |
+| `SQUIRE_DEPLOYMENTS` | not stated | Local parity: the deployments path. |
+| `SQUIRE_HTTP_PORT` | not stated | Local parity: the HTTP port. |
+| `SQUIRE_APP_MEMORY` | not stated | Local parity: the app memory limit. |
+| `SQUIRE_SOURCE_UID` | not stated | Local parity: the uid that owns the mounted source. |
+| `SQUIRE_SOURCE_GID` | not stated | Local parity: the gid that owns the mounted source. |
+| `SQUIRE_DB_NAME` | not stated | Local parity: the database name. |
+| `SQUIRE_DB_USER` | not stated | Local parity: the database user. |
+| `SQUIRE_DB_PASSWORD` | not stated | Local parity: the database password. |
+| `SQUIRE_DB_ROOT_PASSWORD` | not stated | Local parity: the database root password. |
+| `SQUIRE_DB_PORT` | not stated | Local parity: the database port. |
+| `SQUIRE_DB_MEMORY` | not stated | Local parity: the database memory limit. |
+
+The Vue layer's compose file also reads `SQUIRE_NODE_IMAGE` (default `node:22-bookworm-slim`), `SQUIRE_NODE_ENV` (default `production`) and `SQUIRE_NODE_MEMORY` (default `512m`). The compose file refuses to start without the two passwords. See `.env.squire.example`; it holds placeholders only.
+
+---
+
+Source: https://squire.apps.wayne.edu/docs/reference/files.html
+
+## Files Squire writes[#](https://squire.apps.wayne.edu/docs/reference/files.html#files-squire-writes)
+
+What `squire init` writes into your app, which target or layer each file belongs to, and the `.gitignore` lines `init` keeps honest. Next, see [Quick start](https://squire.apps.wayne.edu/docs/guides/quick-start.html) to write your first set of files and [Configuration](https://squire.apps.wayne.edu/docs/reference/configuration.html) for the settings they read.
+
+### What lands in your app[#](https://squire.apps.wayne.edu/docs/reference/files.html#what-lands-in-your-app)
+
+| File | What it is | Target or layer |
+| --- | --- | --- |
+| `build.sh` | Citadel's build hook: system packages only, POSIX sh, runs as root with no app source. No Composer, no npm. | All targets |
+| `deployments/001-first-release.sh` | Runs once per app: calls the release script with the smoke test off (Apache is not up yet). | All targets |
+| `scripts/release.sh` | The idempotent release: preconditions, `composer install --no-dev` from the lock file, audit, Laravel `migrate --force` and `optimize`, PROCTOR (a report by default, a gate with `SQUIRE_PROCTOR=enforce`), an Oracle connection check (a report, never a gate), `/up` smoke test. Use it as the Quick Update post-script as well. | All targets |
+| `health.php` | Citadel's health check (`["php","health.php"]`): one HTTP request to `/up`, never boots the framework. | All targets |
+| `oracle-check.php` | The plain-language Oracle connection check the release runs: settings, host, port, driver, login. A report, never a gate; silent when the app has no `ORACLE_*` settings. | All targets |
+| `public/up.php` | The endpoint that answers `ok`. Laravel has `/up` built in. | Raw PHP and static |
+| `public/index.php` | Raw: the front controller that serves `public/` files safely and hands the rest to the app's entry. Static: the one that serves the committed site with HELMET's headers. Never written over an app's own. | Raw and static |
+| `public/.htaccess` | Raw: sends every request but `index.php` and `up.php` to the front controller. Static: routes every request that is not a real file to it. | Raw and static |
+| `.npmrc` | Sets `min-release-age=1` for the frontend install. | Vue layer only |
+| `docker-compose.squire.yml` | The common parity compose plus a Node 22 service for frontend tooling. | Vue layer only |
+| `docker-compose.squire.yml`, `.squire/`, `.env.squire.example`, `scripts/parity.sh`, `scripts/parity.ps1` | Local parity. | Local parity kit |
+
+### The .gitignore lines init keeps[#](https://squire.apps.wayne.edu/docs/reference/files.html#the-gitignore-lines-init-keeps)
+
+In a directory below the repository root (a `deploy/` layer, say), `init` also keeps the `.gitignore` honest: it appends `/vendor/`, `.env` and `.env.squire` when they are missing, never touches a line the app added, and leaves the repository root's `.gitignore` to the app.
+
+### Conventions[#](https://squire.apps.wayne.edu/docs/reference/files.html#conventions)
+
+Every shell script uses `set -euo pipefail` (`build.sh` uses `set -eu`, because Citadel runs it with `/bin/sh`), prints a `[squire] ==> step N: ...` marker for each step, and can be run twice with the same result.
+
+Note
+
+`init` records a SHA-256 of each file in `.squire.json`; commit that file. `init --check` reports when your copies have drifted from the templates (depend, do not copy), and `update` takes the new template versions for the files you never edited.
+
+---
+
+Source: https://squire.apps.wayne.edu/docs/troubleshooting.html
+
+## Troubleshooting[#](https://squire.apps.wayne.edu/docs/troubleshooting.html#troubleshooting)
+
+Symptoms you may meet setting up a Squire app, each with its cause, a fix and a check command. Only what the README and the open questions ground is listed here. Next, see [Doctor](https://squire.apps.wayne.edu/docs/guides/doctor.html) for the full rule list and [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html) for the parity setup.
+
+### Symptoms[#](https://squire.apps.wayne.edu/docs/troubleshooting.html#symptoms)
+
+#### Permission error writing vendor/[#](https://squire.apps.wayne.edu/docs/troubleshooting.html#permission-error-writing-vendor)
+
+Cause: on the first end-to-end run, the release hook failed with `Permission denied` writing `vendor/composer/installed.json` because the source folder (created on the host by another tool, owned by root) was not writable by the container's `citadel` user (OPEN_QUESTIONS 15). If the build step fails with a permission error writing `vendor/`, the source folder is not writable by the container's `citadel` user (uid 1000 by default).
+
+Fix: on Linux set `SQUIRE_SOURCE_UID` and `SQUIRE_SOURCE_GID` to yours. After making it writable the hook ran, the app became healthy and the proxy answered. Not solved for Docker Desktop folders that are root-owned.
+
+Check:
+
+```sh
+ls -ld <your-source-folder>
+scripts/parity.sh status
+```
+
+#### uid or gid mismatch between host and container[#](https://squire.apps.wayne.edu/docs/troubleshooting.html#uid-or-gid-mismatch-between-host-and-container)
+
+Cause: the parity container runs as the `citadel` user, uid 1000 by default. When your host user does not match, the mounted source is not writable and the release hook fails with `Permission denied` (OPEN_QUESTIONS 15).
+
+Fix: set `SQUIRE_SOURCE_UID` and `SQUIRE_SOURCE_GID` in `.env.squire` to your host uid and gid, then bring the stack back up.
+
+Check:
+
+```sh
+id -u
+id -g
+scripts/parity.sh status
+```
+
+#### init refuses to overwrite a file[#](https://squire.apps.wayne.edu/docs/troubleshooting.html#init-refuses-to-overwrite-a-file)
+
+Cause: `init` never overwrites a file you edited, or a file it did not write, unless you pass `--force`. An app-owned `public/index.php` or `public/.htaccess` is reported as `app-owned`, never recorded or overwritten (not even with `--force`).
+
+Fix: delete your copy and run `init` to take Squire's, or pass `--force` for a file Squire wrote.
+
+Check:
+
+```sh
+vendor/bin/squire init --check
+```
+
+#### doctor exit codes[#](https://squire.apps.wayne.edu/docs/troubleshooting.html#doctor-exit-codes)
+
+Cause: `doctor` ends with `0` pass, `1` findings (a failed rule), `2` the tool itself could not run.
+
+Fix: for `1`, read the findings and fix the failed rules. For `2`, the tool could not run at all, so check your PHP setup before anything else.
+
+Check:
+
+```sh
+vendor/bin/squire doctor --format=json
+echo $?
+```
+
+#### Bind mounts on Windows[#](https://squire.apps.wayne.edu/docs/troubleshooting.html#bind-mounts-on-windows)
+
+Cause: bind mounts from the Windows side are much slower (Composer and npm installs feel it most), and file ownership and permissions do not map cleanly; that is the cause of the `Permission denied` failure described under the bind-mount question (OPEN_QUESTIONS 15).
+
+Fix: keep the app's source tree inside the WSL 2 Linux filesystem (for example under `~/src` in your WSL distribution) and run `scripts/parity.sh` from there, not from a Windows folder such as `C:\Users\you\...` reached through `/mnt/c`. Advice, not a requirement. The PowerShell `scripts\parity.ps1` still works from a Windows folder, only slower.
+
+Check:
+
+```sh
+scripts/parity.sh status
+```
+
+#### No access to the real image[#](https://squire.apps.wayne.edu/docs/troubleshooting.html#no-access-to-the-real-image)
+
+Cause: the real Citadel image is internal and has no pullable digest to pin (OPEN_QUESTIONS 19 and the missing configuration list).
+
+Fix: `--fallback` builds an approximation from the official `php` image plus Citadel's extensions. It is good for trying Squire out and not for proving parity.
+
+Check:
+
+```sh
+scripts/parity.sh up --fallback
+```
+
+#### Scripts lose their executable bit on Windows[#](https://squire.apps.wayne.edu/docs/troubleshooting.html#scripts-lose-their-executable-bit-on-windows)
+
+Cause: Git on Windows does not keep the executable bit (OPEN_QUESTIONS 11).
+
+Fix: mark the scripts executable in git.
+
+```sh
+git update-index --chmod=+x build.sh scripts/*.sh deployments/*.sh
+```
+
+Check:
+
+```sh
+git ls-files -s build.sh scripts/*.sh deployments/*.sh
+```
+
+#### Parity compose refuses to start[#](https://squire.apps.wayne.edu/docs/troubleshooting.html#parity-compose-refuses-to-start)
+
+Cause: `.env.squire.example` holds `change-me-local-only` placeholders, and the compose file refuses to start without the two passwords.
+
+Fix: copy the example to `.env.squire` and set the passwords.
+
+```sh
+cp .env.squire.example .env.squire
+```
+
+Check:
+
+```sh
+scripts/parity.sh status
+```
+
+#### A full Update does not refresh vendor/[#](https://squire.apps.wayne.edu/docs/troubleshooting.html#a-full-update-does-not-refresh-vendor)
+
+Cause: deployment hooks run once per app lifetime, so a changed `composer.lock` on a full Update has no install step (OPEN_QUESTIONS 2).
+
+Fix: tell teams to also use `scripts/release.sh` as the Quick Update post-script. Needs a Citadel maintainer's answer.
+
+Check:
+
+```sh
+vendor/bin/squire doctor
+```
+
+---
+
+Source: https://squire.apps.wayne.edu/docs/upgrading.html
+
+## Upgrading[#](https://squire.apps.wayne.edu/docs/upgrading.html#upgrading)
+
+A squire keeps the armor a season ahead: this page walks each released minor of Squire, newest first, with what changed, the steps to take, and how to verify the upgrade held. It states only what the CHANGELOG states (the full record is in [Changelog](https://squire.apps.wayne.edu/docs/changelog.html)); after you move a version, run the two checks below and read [Update and drift](https://squire.apps.wayne.edu/docs/guides/update-and-drift.html) for what they report.
+
+### The two checks[#](https://squire.apps.wayne.edu/docs/upgrading.html#the-two-checks)
+
+The same two checks verify every upgrade on this page, from the app root:
+
+vendor/bin/squire init --check vendor/bin/squire update --dry-run
+
+`squire init --check` reports when your copies have drifted from the templates; it exits `0` when they match and `1` when they have. `squire update --dry-run` prints the plan and writes nothing; it exits `1` when an edited file still differs from the template. Exit `2` means the tool itself could not run. For the full command reference, see [Commands](https://squire.apps.wayne.edu/docs/reference/commands.html).
+
+### 0.5.0 (2026-11-03)[#](https://squire.apps.wayne.edu/docs/upgrading.html#0-5-0-2026-11-03)
+
+#### Breaking[#](https://squire.apps.wayne.edu/docs/upgrading.html#breaking)
+
+None: the CHANGELOG records no breaking change for 0.5.0.
+
+#### What changed[#](https://squire.apps.wayne.edu/docs/upgrading.html#what-changed)
+
+**New.** An ADVISOR module (`waynestate/advisor`) with `squire_doctor` and `squire_drift`, so a coding agent that runs ADVISOR can run Squire's checks without leaving its sandbox (see [ADVISOR](https://squire.apps.wayne.edu/docs/guides/advisor.html)). `squire doctor oracle` runs the Oracle connection check on demand, reading `ORACLE_*` settings from the environment and `.env`. CI publishes the multi-arch Oracle images to the project's container registry when a version is tagged. `scripts/contract-image.sh` runs `release.sh` inside the fallback image and asserts the smoke URL, `health.php` and the first-release log. `bin/docs-site.php`, the shared docs builder, with the kit's `docs.css` and `docs.js`; it turns `docs/` into a committed, WayneUI-styled `site/docs/` and fails CI when the pages are stale or a finding is present (see [The docs builder](https://squire.apps.wayne.edu/docs/guides/docs-builder.html)). The docs builder renders a Source link in the header and footer, with a Mirrors list beside it, from the optional `source` and `mirrors` keys in `docs/nav.json`; a source or mirror URL that is not https is a finding. The docs builder's generated blocks: `docs/docs.json` defines blocks that own marked regions in `docs/**/*.md`; the `json-table` type renders a Markdown table from a command's JSON output, the `symfony-commands` type runs `<run> list --format=json` and renders the command reference, and the `env` type scans the scan folders for prefixed environment variable names and renders them with describe meanings and defaults; `--check` reports a stale block instead of writing.
+
+**CI.** GitHub CI now pins the Preflight reusable workflow to the 0.1.3 tag instead of a commit SHA. CI pulls its Docker Hub images through the GitLab Dependency Proxy (the group's `CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX`), so pipelines no longer hit Docker Hub's anonymous pull limit. A `contract-image` job on GitHub runs `scripts/contract-image.sh` on amd64 and arm64. `contract-parity-sh` and `contract-parity-pwsh` jobs on GitHub bring the local parity stack up on the fallback image and check the proxy answers. A front page accessibility gate (`tools/a11y`: axe-core in Playwright, WCAG 2.2 AA) with `scripts/a11y.sh` and `scripts/a11y.ps1` that run it in Docker; GitHub gets an `a11y` job, continue-on-error until it has been seen green once. The PROCTOR deploy job is blocking now.
+
+**Changed.** The deploy layer's Squire kit is refreshed to 0.4.0 (the Oracle check script and the updated build and release scripts). The Oracle image recipes use fully qualified `COPY --from` names so buildah can resolve them; the CI dry run shows amd64 builds need qemu binfmt on the runner (see OPEN_QUESTIONS). The docs and package metadata name nougat as the canonical repository, with git.wayne.edu and GitHub as read-only mirrors, until git.wayne.edu has CI runners.
+
+**Fixed.** The fallback base image builds when the host's uid or gid already exists in the image (GitHub runners use 1001). The PowerShell parity script passes the host's uid and gid to the fallback base image build (1000 on Windows, the current user's ids on Linux and macOS) instead of hard-coded 1000, so the app container starts when the bind-mounted source is owned by another user. The contract-image CI job installs PHP and the Composer dependencies before running `scripts/contract-image.sh`, so it no longer stops on the missing `vendor/autoload.php`. The contract-image job builds with the docker buildx driver so the app image finds the freshly built fallback base. `scripts/a11y.sh` and `scripts/a11y.ps1` create `tools/a11y/node_modules` on the host before `docker run`, so the named volume's mount point exists when the repo is mounted read-only. The front page shows the current version.
+
+**Docs.** WSL 2 file-location advice and an engines and licenses note for local parity. The contract suite gap on GitLab and the real image is recorded as an open question. The docs name the real image path instead of placeholders.
+
+#### Steps[#](https://squire.apps.wayne.edu/docs/upgrading.html#steps)
+
+1. Update the `waynestate/squire` dev dependency to 0.5.0 (it is on Packagist).
+2. Run `vendor/bin/squire update` to take the new template versions for the files you never edited; it shows a diff for the ones you did and never overwrites your edits.
+3. Stack repos: regenerate the `deploy/` folder with `squire init` and check it with `squire init --check`. Sourdough: refresh its generated copy with `php bin/export-templates.php --to=templates/squire` and verify it with `--check`.
+
+#### How to verify[#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify)
+
+Run `squire init --check` and `squire update --dry-run` (the two checks at the top of this page); both exit `0` once the kit is at 0.5.0. New in this version: `squire doctor oracle` answers from your terminal, and a coding agent that runs ADVISOR sees the `squire_doctor` and `squire_drift` tools.
+
+### 0.4.0 (2026-11-01)[#](https://squire.apps.wayne.edu/docs/upgrading.html#0-4-0-2026-11-01)
+
+#### Breaking[#](https://squire.apps.wayne.edu/docs/upgrading.html#breaking-1)
+
+None: the CHANGELOG records no breaking change for 0.4.0.
+
+#### What changed[#](https://squire.apps.wayne.edu/docs/upgrading.html#what-changed-1)
+
+- `oracle-check.php`, a plain-language Oracle connection check (settings, host, port, driver, login), shipped in the kit's deploy scripts. `release.sh` runs it after PROCTOR and before the smoke test; it is a report, never a gate, and stays silent when the app has no `ORACLE_*` settings (see [Oracle](https://squire.apps.wayne.edu/docs/guides/oracle.html)).
+- Opt-in Oracle-ready Docker images, a Laravel Sail flavor (`squire/oracle-sail`) and a parity flavor (`squire/oracle-parity`), with `scripts/oracle-image-build.sh` and `scripts/oracle-image-test.sh`. Oracle Instant Client 21.7 on amd64 and 19.32 on arm64 is downloaded at build time and checksum-pinned; nothing from Oracle is committed.
+- The site's agent-ready files cover the Oracle check.
+- The readme art check allows the word Citadel.
+- The deploy layer's Squire kit is refreshed to 0.3.4 (the local `.env.squire` file is now git-ignored).
+
+#### Steps[#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-1)
+
+1. Update the `waynestate/squire` dev dependency to 0.4.0.
+2. Run `vendor/bin/squire update` to take the new templates, including `oracle-check.php` and the updated build and release scripts.
+3. Apps that talk to Oracle: optionally build the Oracle-ready images with `scripts/oracle-image-build.sh` (flavors `sail` and `parity`).
+
+#### How to verify[#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-1)
+
+Run `squire init --check` and `squire update --dry-run`. Once the kit is at 0.4.0, the app has `oracle-check.php`, and a release log shows the Oracle check after PROCTOR and before the smoke test, printing nothing when the app has no `ORACLE_*` settings.
+
+### 0.3.x (0.3.0 to 0.3.4)[#](https://squire.apps.wayne.edu/docs/upgrading.html#0-3-x-0-3-0-to-0-3-4)
+
+#### Breaking[#](https://squire.apps.wayne.edu/docs/upgrading.html#breaking-2)
+
+None: the CHANGELOG records no breaking change in the 0.3.x line.
+
+#### What changed[#](https://squire.apps.wayne.edu/docs/upgrading.html#what-changed-2)
+
+- **0.3.4 (2026-10-29).** `squire init` now adds `.env` and `.env.squire` to the target `.gitignore`, so the local deploy secrets file is never committed. The deploy layer's Squire kit is refreshed to 0.3.3 (release options can now live in `./.env.squire`).
+- **0.3.3 (2026-10-29).** `release.sh` reads release options from `./.env.squire` (parsed, never sourced; allow-listed keys; the environment wins), so they can be set on Citadel. The docs say app settings go in a `./.env` configuration file, and the `.env.squire` template says to add it as a Citadel configuration file; Citadel has no dashboard environment field.
+- **0.3.2 (2026-10-29).** Collapsed prompt blocks show a "Show the whole prompt" button, and the fade stays inside the panel. A long command in the "Run it in" panel folds the same way, behind a "Show the whole command" button, instead of a scroll box with no cue.
+- **0.3.1 (2026-10-29).** README, site and open questions match 0.3.0 (Sourdough requires Squire, the policy default, the Preflight pin, the static target). The agent-ready tool's messages write Squire as a word, and the static template's `SQUIRE_STATIC_ROOT` comment matches the code. `bin/agent-ready.php` is clean under Pint's laravel preset (CI checks it), and the README says how consumers keep the kit out of Composer downloads.
+- **0.3.0 (2026-10-29).** The raw target ships a front controller.
+
+#### Steps[#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-2)
+
+1. Update the `waynestate/squire` dev dependency to 0.3.4, the latest of the line.
+2. Run `vendor/bin/squire update` to take the new template versions for the files you never edited.
+3. If your app predates the line, run `vendor/bin/squire init` so the new template files land (for example the raw target's front controller from 0.3.0); `init` never overwrites a file you edited.
+4. On Citadel, set the release options in the app's `./.env.squire` configuration file, which `release.sh` reads from 0.3.3 on.
+
+#### How to verify[#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-2)
+
+Run `squire init --check` and `squire update --dry-run`. Check the version-specific results: 0.3.4 appends `.env` and `.env.squire` to the target `.gitignore` when they are missing; 0.3.3 reads release options from `./.env.squire`; 0.3.0 gives a raw PHP app the front controller `public/index.php`.
+
+Releases before 0.3.0 (0.2.x and 0.1.0) predate this page; their entries are in [Changelog](https://squire.apps.wayne.edu/docs/changelog.html).

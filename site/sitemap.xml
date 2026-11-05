@@ -2,4 +2,27 @@
 <!-- Written by Squire's agent-ready kit from the pages in the site folder; do not edit. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://squire.apps.wayne.edu/</loc></url>
+  <url><loc>https://squire.apps.wayne.edu/docs/0.1-plan.html</loc></url>
+  <url><loc>https://squire.apps.wayne.edu/docs/changelog.html</loc></url>
+  <url><loc>https://squire.apps.wayne.edu/docs/contributing.html</loc></url>
+  <url><loc>https://squire.apps.wayne.edu/docs/guides/advisor.html</loc></url>
+  <url><loc>https://squire.apps.wayne.edu/docs/guides/agent-ready-kit.html</loc></url>
+  <url><loc>https://squire.apps.wayne.edu/docs/guides/citadel-setup.html</loc></url>
+  <url><loc>https://squire.apps.wayne.edu/docs/guides/docs-builder.html</loc></url>
+  <url><loc>https://squire.apps.wayne.edu/docs/guides/doctor.html</loc></url>
+  <url><loc>https://squire.apps.wayne.edu/docs/guides/local-parity.html</loc></url>
+  <url><loc>https://squire.apps.wayne.edu/docs/guides/oracle.html</loc></url>
+  <url><loc>https://squire.apps.wayne.edu/docs/guides/quick-start.html</loc></url>
+  <url><loc>https://squire.apps.wayne.edu/docs/guides/raw-php-app.html</loc></url>
+  <url><loc>https://squire.apps.wayne.edu/docs/guides/release-script.html</loc></url>
+  <url><loc>https://squire.apps.wayne.edu/docs/guides/static-site.html</loc></url>
+  <url><loc>https://squire.apps.wayne.edu/docs/guides/theming.html</loc></url>
+  <url><loc>https://squire.apps.wayne.edu/docs/guides/update-and-drift.html</loc></url>
+  <url><loc>https://squire.apps.wayne.edu/docs/</loc></url>
+  <url><loc>https://squire.apps.wayne.edu/docs/install.html</loc></url>
+  <url><loc>https://squire.apps.wayne.edu/docs/reference/commands.html</loc></url>
+  <url><loc>https://squire.apps.wayne.edu/docs/reference/configuration.html</loc></url>
+  <url><loc>https://squire.apps.wayne.edu/docs/reference/files.html</loc></url>
+  <url><loc>https://squire.apps.wayne.edu/docs/troubleshooting.html</loc></url>
+  <url><loc>https://squire.apps.wayne.edu/docs/upgrading.html</loc></url>
 </urlset>
