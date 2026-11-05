@@ -188,7 +188,7 @@ final class DocsTabsTest extends SquireTestCase
         $class = new \ReflectionClass(\DocsSite::class);
         $site = $class->newInstanceWithoutConstructor();
         $method = $class->getMethod('tabInfo');
-        $tabInfo = static fn (string $info): array => $method->invoke($site, $info);
+        $tabInfo = static fn(string $info): array => $method->invoke($site, $info);
         $forty = str_repeat('a', 40);
         $cases = [
             ['bash tab="Linux / macOS"', ['bash', 'Linux / macOS', 'bash']],

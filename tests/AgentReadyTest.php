@@ -153,11 +153,11 @@ final class AgentReadyTest extends SquireTestCase
     {
         $dir = $this->site();
         $this->put($dir, 'site/checklist.html', '<!doctype html><title>Checklist</title>'
-            .'<link rel="alternate" type="text/markdown" href="checklist.md">'
-            .'<main><h1>Checklist</h1>'
-            .'<ul><li><label><input type="checkbox" disabled> First item</label></li>'
-            .'<li><label><input type="checkbox" disabled checked> Second item</label></li></ul>'
-            .'</main>');
+            . '<link rel="alternate" type="text/markdown" href="checklist.md">'
+            . '<main><h1>Checklist</h1>'
+            . '<ul><li><label><input type="checkbox" disabled> First item</label></li>'
+            . '<li><label><input type="checkbox" disabled checked> Second item</label></li></ul>'
+            . '</main>');
         self::assertSame(0, $this->generate('--root=' . $dir)['code']);
         $twin = (string) file_get_contents($dir . '/site/checklist.md');
         self::assertStringContainsString('- [ ] First item', $twin);
@@ -168,16 +168,16 @@ final class AgentReadyTest extends SquireTestCase
     {
         $dir = $this->site();
         $this->put($dir, 'site/tasks.html', '<!doctype html><title>Tasks</title>'
-            .'<link rel="alternate" type="text/markdown" href="tasks.md">'
-            .'<main><h1>Tasks</h1>'
-            .'<ul><li><input type="checkbox"> Direct item</li></ul>'
-            .'<ul><li><p><input type="checkbox" checked> Wrapped item</p></li></ul>'
-            .'<ol><li><label><input type="checkbox" disabled> First step</label></li>'
-            .'<li><label><input type="checkbox" disabled checked> Second step</label></li></ol>'
-            .'<ul><li><label><input type="checkbox" disabled> Parent item</label><ul><li>Nested child</li></ul></li></ul>'
-            .'<p><label>Pick a size:</label> <input type="text"> <button>Clickme</button> <form><span>Form text</span></form></p>'
-            .'<ul><li>Starts with text <label><input type="checkbox"> late box</label></li></ul>'
-            .'</main>');
+            . '<link rel="alternate" type="text/markdown" href="tasks.md">'
+            . '<main><h1>Tasks</h1>'
+            . '<ul><li><input type="checkbox"> Direct item</li></ul>'
+            . '<ul><li><p><input type="checkbox" checked> Wrapped item</p></li></ul>'
+            . '<ol><li><label><input type="checkbox" disabled> First step</label></li>'
+            . '<li><label><input type="checkbox" disabled checked> Second step</label></li></ol>'
+            . '<ul><li><label><input type="checkbox" disabled> Parent item</label><ul><li>Nested child</li></ul></li></ul>'
+            . '<p><label>Pick a size:</label> <input type="text"> <button>Clickme</button> <form><span>Form text</span></form></p>'
+            . '<ul><li>Starts with text <label><input type="checkbox"> late box</label></li></ul>'
+            . '</main>');
         self::assertSame(0, $this->generate('--root=' . $dir)['code']);
         $twin = (string) file_get_contents($dir . '/site/tasks.md');
         self::assertStringContainsString('- [ ] Direct item', $twin);
