@@ -42,7 +42,7 @@ The front page has its own accessibility gate: `scripts/a11y.sh` on Linux and ma
 
 ### The docs builder[#](https://squire.apps.wayne.edu/docs/contributing.html#the-docs-builder)
 
-The pages under `docs/` build into the committed site at `site/docs/`: rebuild with `composer docs`, check with `composer docs:check`. The builder is `bin/docs-site.php`; see [The docs builder](https://squire.apps.wayne.edu/docs/guides/docs-builder.html) for generated blocks, callouts and what the check proves. Other stack repos take the kit from a Squire checkout with `php bin/docs-site.php --sync-to=<repo>`, then build and commit their own `site/docs/`.
+The pages under `docs/` build into the committed site at `site/docs/`: rebuild with `composer docs`, check with `composer docs:check`. The builder is `bin/docs-site.php`; see [The docs builder](https://squire.apps.wayne.edu/docs/guides/docs-builder.html) for generated blocks, callouts and what the check proves. Other stack repos take the kit from a Squire checkout with `php bin/docs-site.php --sync-to=<repo>`, then build and commit their own `site/docs/`. Squire's docs wear the front page's look through the theme key in `docs/docs.json`: the masthead is `docs/_header.html` and the styles are `docs/theme/squire.css`. Change those two files, not the kit's `docs.css` or `docs.js`, then rebuild.
 
 The docs kit's JavaScript tests run with Node 22 on the PATH (`npm ci && npm test`) or, with only Docker:
 

@@ -1,0 +1,1304 @@
+/* ============================================================================
+   SQUIRE docs theme (2026-11-05).
+
+   The docs pages are packed in the same bag as the front page
+   (site/assets/squire.css): woven canvas, waxed-leather straps, stitched
+   seams, luggage tags with gold eyelets, Arvo for anything stamped, oiled
+   leather terminals for the commands you type. Nothing new was invented
+   here; every color, font and shape below comes from the front page.
+
+   How it gets onto the pages: docs/docs.json "theme" names this file and
+   docs/_header.html. The docs builder copies this file to
+   site/docs/theme/squire.css and links it after the kit's docs.css, so the
+   --dk-* tokens and the rules below win without !important. The kit's
+   docs.css and docs.js stay byte for byte the builder's: Squire owns the
+   kit, and this theme only wears it.
+
+   The front page is light only, so the dark set is derived: the bag after
+   dark, oiled leather for the ground, canvas-colored thread for the text,
+   gold for the links, the same buckles.
+
+   Luggage tags that hold a link (current page, pager) draw their tag shape
+   on a pseudo-element behind the text, so the clip-path never clips the
+   focus ring.
+
+   File map: 1. fonts and tokens  2. frame  3. masthead  4. sidebar and menu
+             5. article  6. code and tabs  7. tables, callouts, quotes
+             8. toc, pager, footer  9. dark  10. responsive
+             11. motion (no-preference only)  12. print
+   ========================================================================== */
+
+/* ---------------------------------------------------- 1. fonts and tokens */
+
+@font-face {
+  font-family: "Arvo";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../../assets/fonts/arvo-latin-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Arvo";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../../assets/fonts/arvo-latin-700-normal.woff2") format("woff2");
+}
+
+:root {
+  /* The front page's palette, under the same names. */
+  --sq-green: #0c5449;
+  --sq-green-deep: #073a32;
+  --sq-gold: #ffcc33;
+  --sq-gold-hi: #ffd95c;
+  --sq-gold-deep: #d9a514;
+  --sq-cream: #f4f1ea;
+  --sq-canvas: #efe6d4;
+  --sq-canvas-deep: #e4d6bc;
+  --sq-paper: #fbf7ee;
+  --sq-leather: #8b5a2b;
+  --sq-leather-dark: #5a3a22;
+  --sq-leather-ink: #3b2614;
+  --sq-ink: #2a2118;
+  --sq-ink-muted: #5a4a3a;
+  --sq-stitch: rgba(139, 90, 43, 0.5);
+  --sq-stitch-light: rgba(251, 236, 200, 0.55);
+  --sq-term: #1d1813;
+  --sq-term-text: #efe6d4;
+  --sq-term-dim: #b3a48e;
+  --sq-term-ok: #9fe0b4;
+  --sq-display: "Arvo", "Rockwell", "Roboto Slab", Georgia, serif;
+  --sq-body: var(--wsu-font-family-body, Lato, Calibri, "Helvetica Neue", Arial, sans-serif);
+  --sq-mono: var(--wsu-font-family-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+  --sq-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --sq-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --sq-weave:
+    repeating-linear-gradient(0deg, rgba(90, 58, 34, 0.045) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(90deg, rgba(90, 58, 34, 0.04) 0 1px, transparent 1px 4px);
+
+  /* Roles the dark set re-points. */
+  --sq-ground: var(--sq-canvas);
+  --sq-ground-deep: var(--sq-canvas-deep);
+  --sq-sheet: var(--sq-paper);
+  --sq-head: var(--sq-green);
+  --sq-link: var(--sq-green);
+  --sq-tag-ink: var(--sq-leather-ink);
+  --sq-code-ink: var(--sq-leather-ink);
+  --sq-code-bg: rgba(139, 90, 43, 0.11);
+  --sq-term-edge: transparent;
+  --sq-eyelet: var(--sq-canvas-deep);
+  --sq-masthead-h: 68px;
+
+  /* The kit's tokens, set from the palette above. */
+  --dk-bg: var(--sq-ground);
+  --dk-ink: var(--sq-ink);
+  --dk-muted: var(--sq-ink-muted);
+  --dk-rule: var(--sq-stitch);
+  --dk-accent: var(--sq-green);
+  --dk-on-accent: var(--sq-paper);
+  --dk-note: var(--sq-leather-dark);
+  --dk-tip: var(--sq-green);
+  --dk-warning: var(--sq-leather-ink);
+  --dk-danger: var(--sq-leather-ink);
+  --dk-code-bg: var(--sq-code-bg);
+  --dk-display: var(--sq-display);
+  --dk-mono: var(--sq-mono);
+  --dk-radius: 12px;
+  --dk-focus: var(--sq-green);
+  --dk-focus-w: 3px;
+  --dk-focus-o: 2px;
+  --dk-sidebar: 15.5rem;
+  --dk-prose-max: 46rem;
+  --dk-gap: 1.75rem;
+
+  color-scheme: light;
+}
+
+/* ------------------------------------------------------------- 2. frame */
+
+html {
+  background-color: var(--sq-ground);
+  scroll-padding-top: calc(var(--sq-masthead-h) + 1rem);
+}
+
+body {
+  margin: 0;
+  font-family: var(--sq-body);
+  color: var(--dk-ink);
+  background-color: var(--sq-ground);
+  background-image: var(--sq-weave);
+}
+
+:where(a, button, summary, [tabindex]):focus-visible {
+  outline: var(--dk-focus-w) solid var(--dk-focus);
+  outline-offset: var(--dk-focus-o);
+}
+
+/* ---------------------------------------------------------- 3. masthead */
+
+/* The front page's header, sewn on with the same dashed seam, and kept in
+   reach while the page scrolls. */
+.site-header {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 20;
+  background-color: var(--sq-ground);
+  background-image: var(--sq-weave);
+  border-block-end: 2px dashed var(--sq-stitch);
+}
+
+.site-header__row {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  box-sizing: border-box;
+  max-inline-size: 100rem;
+  min-block-size: var(--sq-masthead-h);
+  margin-inline: auto;
+  padding-inline: var(--dk-gap);
+}
+
+.brand {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.7rem;
+  margin-inline-end: auto;
+  text-decoration: none;
+}
+
+.brand img {
+  border-radius: 8px;
+}
+
+.brand__name {
+  font-family: var(--sq-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--sq-head);
+}
+
+.site-nav {
+  display: flex;
+  gap: 1.25rem;
+}
+
+.site-nav a {
+  position: relative;
+  padding-block: 0.3rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--dk-ink);
+  text-decoration: none;
+}
+
+/* The stitch line under a link: sewn in on hover and focus, and sewn for
+   good under the page you are on. */
+.site-nav a::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: -1px;
+  block-size: 2px;
+  background: repeating-linear-gradient(90deg, var(--sq-leather) 0 6px, transparent 6px 10px);
+  clip-path: inset(0 100% 0 0);
+}
+
+.site-nav a:hover::after,
+.site-nav a:focus-visible::after,
+.site-nav a[aria-current="page"]::after {
+  clip-path: inset(0 0 0 0);
+}
+
+.site-nav a[aria-current="page"] {
+  color: var(--sq-head);
+}
+
+.site-nav a[aria-current="page"]::after {
+  block-size: 3px;
+  background: repeating-linear-gradient(90deg, var(--sq-gold-deep) 0 6px, transparent 6px 10px);
+}
+
+/* The version is a little luggage tag, as on the front page. */
+.brand__version,
+.docs-nav__label,
+.docs-toc__title,
+.docs-tabs__label {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  inline-size: max-content;
+  padding: 0.22rem 0.75rem 0.22rem 1.5rem;
+  font-family: var(--sq-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: var(--sq-tag-ink);
+  background: var(--sq-sheet);
+  clip-path: polygon(0.75rem 0, 100% 0, 100% 100%, 0.75rem 100%, 0 50%);
+  filter: drop-shadow(0 1px 0 rgba(90, 58, 34, 0.35));
+}
+
+.brand__version::before,
+.docs-nav__label::before,
+.docs-toc__title::before,
+.docs-tabs__label::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0.62rem;
+  inset-block-start: 50%;
+  inline-size: 0.42rem;
+  block-size: 0.42rem;
+  border-radius: 50%;
+  background: var(--sq-eyelet);
+  box-shadow: 0 0 0 2px var(--sq-gold);
+  transform: translateY(-50%);
+}
+
+.brand__version {
+  flex-shrink: 0;
+}
+
+/* --------------------------------------------------- 4. sidebar and menu */
+
+.docs-layout {
+  gap: 1.5rem clamp(1.75rem, 1rem + 2.5vw, 3.5rem);
+  padding-block: 2.5rem 3.5rem;
+  padding-inline: var(--dk-gap);
+}
+
+.docs-nav__label {
+  margin: 1.5rem 0 0.5rem;
+}
+
+/* Group lists are plain <ul> inside the kit's list: no bullets, no indent. */
+.docs-nav ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* A group's pages hang off a stitched seam, the way the packing list hangs
+   off its strap. */
+.docs-nav__group > ul {
+  margin-inline-start: 0.35rem;
+  padding-inline-start: 0.6rem;
+  border-inline-start: 2px dashed var(--sq-stitch);
+}
+
+.docs-nav__group + li {
+  margin-top: 1rem;
+}
+
+.docs-nav a {
+  position: relative;
+  isolation: isolate;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.97rem;
+  line-height: 1.35;
+  color: var(--dk-ink);
+  border-radius: 6px;
+}
+
+.docs-nav a:hover {
+  color: var(--sq-head);
+  background: var(--sq-ground-deep);
+}
+
+/* You are here: the page wears a luggage tag, tied on with a gold eyelet. */
+.docs-nav a[aria-current="page"] {
+  padding-inline-start: 1.6rem;
+  font-weight: 700;
+  color: var(--sq-head);
+  background: none;
+}
+
+.docs-nav a[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--sq-sheet);
+  clip-path: polygon(0.8rem 0, 100% 0, 100% 100%, 0.8rem 100%, 0 50%);
+  filter: drop-shadow(0 1px 0 rgba(90, 58, 34, 0.35));
+}
+
+.docs-nav a[aria-current="page"]::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0.62rem;
+  inset-block-start: 50%;
+  inline-size: 0.45rem;
+  block-size: 0.45rem;
+  border-radius: 50%;
+  background: var(--sq-eyelet);
+  box-shadow: 0 0 0 2px var(--sq-gold), 0 0 0 3px var(--sq-leather-dark);
+  transform: translateY(-50%);
+}
+
+/* The phone menu is the front page's waxed-leather button: stitched edge,
+   gold buckle. */
+.docs-menu summary {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-block-size: 48px;
+  box-sizing: border-box;
+  padding: 0.6rem 1.1rem;
+  font-weight: 700;
+  color: var(--sq-paper);
+  background: linear-gradient(180deg, var(--sq-leather), #7a4e25);
+  border-radius: 10px;
+  outline: 1.5px dashed var(--sq-stitch-light);
+  outline-offset: -5px;
+  box-shadow: 0 3px 0 var(--sq-leather-dark);
+  list-style: none;
+}
+
+.docs-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.docs-menu summary::before {
+  content: "";
+  flex: none;
+  inline-size: 0.9rem;
+  block-size: 0.9rem;
+  border-radius: 3px;
+  background: var(--sq-gold);
+  box-shadow: inset 0 0 0 2px var(--sq-gold), inset 0 0 0 4px var(--sq-leather-dark);
+}
+
+.docs-menu summary::after {
+  content: "";
+  margin-inline-start: auto;
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  border-inline-end: 2px solid currentColor;
+  border-block-end: 2px solid currentColor;
+  rotate: 45deg;
+  translate: 0 -2px;
+}
+
+.docs-menu[open] summary::after {
+  rotate: 225deg;
+  translate: 0 2px;
+}
+
+.docs-menu summary:focus-visible {
+  outline: 3px solid var(--dk-focus);
+  outline-offset: 3px;
+}
+
+.docs-menu[open] > .docs-nav {
+  padding: 0.75rem 0.25rem 0.5rem;
+}
+
+/* ------------------------------------------------------------- 5. article */
+
+.docs-article {
+  font-family: var(--sq-body);
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  color: var(--dk-ink);
+}
+
+.docs-article h1,
+.docs-article h2,
+.docs-article h3 {
+  font-family: var(--sq-display);
+  font-weight: 700;
+  color: var(--sq-head);
+  scroll-margin-top: calc(var(--sq-masthead-h) + 1rem);
+  text-wrap: balance;
+}
+
+/* The page title wears the hero's strap: a stitched leather band, fastened
+   by a gold buckle. */
+.docs-article h1 {
+  position: relative;
+  margin: 0 0 2rem;
+  padding-block-end: 1.15rem;
+  font-size: clamp(2.3rem, 1.7rem + 2.4vw, 3.5rem);
+  line-height: 1.02;
+  letter-spacing: 0.01em;
+}
+
+.docs-article h1::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block-end: 0;
+  inline-size: 7.5rem;
+  block-size: 0.5rem;
+  border-radius: 2px;
+  background-color: var(--sq-leather);
+  background-image: repeating-linear-gradient(90deg, var(--sq-stitch-light) 0 6px, transparent 6px 10px);
+  background-size: 100% 1.5px;
+  background-position: 0 50%;
+  background-repeat: no-repeat;
+  transform-origin: left center;
+}
+
+.docs-article h1::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: calc(7.5rem - 0.35rem);
+  inset-block-end: -0.3rem;
+  inline-size: 0.8rem;
+  block-size: 0.8rem;
+  box-sizing: border-box;
+  border: 0.2rem solid var(--sq-gold);
+  border-radius: 0.2rem;
+  box-shadow: 0 0 0 1.5px var(--sq-leather-dark), inset 0 0 0 1.5px var(--sq-leather-dark);
+}
+
+/* Each section is a panel of the bag, sewn on with a seam at the top. */
+.docs-article h2 {
+  margin: 3rem 0 0.9rem;
+  padding-block: 1.5rem 0;
+  font-size: clamp(1.55rem, 1.3rem + 0.9vw, 2rem);
+  line-height: 1.12;
+  border-block-start: 2px dashed var(--sq-stitch);
+  border-block-end: 0;
+}
+
+/* A page that opens on a section (no title) needs no seam above it. */
+.docs-article > h2:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-block-start: 0;
+}
+
+.docs-article h3 {
+  margin: 2rem 0 0.5rem;
+  font-size: 1.2rem;
+  line-height: 1.25;
+}
+
+.docs-article :is(h1, h2, h3) code {
+  font-size: 0.8em;
+}
+
+.docs-heading-link {
+  color: var(--dk-muted);
+  font-family: var(--sq-mono);
+  font-weight: 400;
+}
+
+/* Prose links: the front page's stitched underline, pulled tight on hover. */
+.docs-article a {
+  color: var(--sq-link);
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.22em;
+}
+
+.docs-article a:hover {
+  text-decoration-style: solid;
+  text-decoration-thickness: 2px;
+}
+
+.docs-article strong {
+  color: var(--sq-tag-ink);
+}
+
+.docs-article :is(ul, ol) {
+  padding-inline-start: 1.4rem;
+}
+
+.docs-article li {
+  margin-block: 0.3rem;
+}
+
+.docs-article li::marker {
+  color: var(--sq-leather);
+}
+
+.docs-article img {
+  max-inline-size: 100%;
+  block-size: auto;
+}
+
+.docs-article hr {
+  margin-block: 2.5rem;
+  border: 0;
+  border-block-start: 2px dashed var(--sq-stitch);
+}
+
+/* Task lists: the packing list's check box, green when packed, in place of
+   the bullet. The box is disabled (read only), so WayneUI's 44px tap floor
+   is let go for it. */
+.docs-article ul:has(> li > .docs-task) {
+  padding-inline-start: 0.2rem;
+}
+
+.docs-article li:has(> .docs-task) {
+  list-style: none;
+}
+
+.docs-task input[type="checkbox"] {
+  inline-size: 1.05rem;
+  block-size: 1.05rem;
+  min-inline-size: 0;
+  min-block-size: 0;
+  margin-inline-end: 0.45rem;
+  vertical-align: -0.12em;
+  accent-color: var(--sq-green);
+}
+
+/* ------------------------------------------------------- 6. code and tabs */
+
+.docs-article code {
+  padding: 0.1em 0.35em;
+  font-size: 0.88em;
+  color: var(--sq-code-ink);
+  background: var(--sq-code-bg);
+  border-radius: 4px;
+  overflow-wrap: anywhere;
+}
+
+/* What you type: the front page's terminal, warm-dark like oiled leather.
+   Lines keep their shape, so a long one scrolls instead of wrapping. */
+.docs-article pre {
+  margin: 1.1rem 0 1.5rem;
+  padding: 1rem 1.15rem 1.1rem;
+  font-size: 0.84rem;
+  line-height: 1.7;
+  color: var(--sq-term-text);
+  background: var(--sq-term);
+  border: 1px solid var(--sq-term-edge);
+  border-radius: var(--dk-radius);
+  box-shadow: 0 24px 40px -28px rgba(0, 0, 0, 0.8);
+  tab-size: 4;
+  scrollbar-color: #5a4a3a transparent;
+}
+
+.docs-article pre code {
+  padding: 0;
+  font-size: inherit;
+  color: inherit;
+  background: none;
+  border-radius: 0;
+  overflow-wrap: normal;
+}
+
+/* With docs.js the block sits in .docs-copy: the terminal moves to the
+   wrapper and the pre stops short of a gutter, so the copy button never
+   covers a command. */
+.docs-copy {
+  margin: 1.1rem 0 1.5rem;
+  background: var(--sq-term);
+  border: 1px solid var(--sq-term-edge);
+  border-radius: var(--dk-radius);
+  box-shadow: 0 24px 40px -28px rgba(0, 0, 0, 0.8);
+}
+
+.docs-copy > pre {
+  margin: 0;
+  margin-inline-end: 5.5rem;
+  padding-inline-end: 0.75rem;
+  background: transparent;
+  border: 0;
+  border-radius: var(--dk-radius) 0 0 var(--dk-radius);
+  box-shadow: none;
+}
+
+/* The quick start's gold Copy, hung in the terminal's corner. */
+.docs-copy__button {
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  min-inline-size: 5.25rem;
+  min-block-size: 2.5rem;
+  padding: 0 1rem;
+  font-family: var(--sq-body);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--sq-leather-ink);
+  background: var(--sq-gold);
+  border: 0;
+  border-radius: 0 var(--dk-radius) 0 10px;
+}
+
+.docs-copy__button:hover {
+  color: var(--sq-leather-ink);
+  border-color: transparent;
+  background: var(--sq-gold-hi);
+}
+
+.docs-copy__button:focus-visible {
+  outline: 3px solid var(--sq-leather-ink);
+  outline-offset: -5px;
+}
+
+/* A block that scrolls sideways takes focus (docs.js): a gold ring inside
+   the terminal, as on the front page's dark panels. */
+.docs-article pre:focus-visible {
+  outline: 3px solid var(--sq-gold);
+  outline-offset: -4px;
+}
+
+/* Code tabs: the front page's OS switcher. The tabs sit on the terminal's
+   own bar and the chosen one is underlined in gold. */
+.docs-tabs {
+  margin: 1.1rem 0 1.5rem;
+}
+
+.docs-tabs__label {
+  margin: 0 0 0.6rem;
+}
+
+.docs-tabs__tablist {
+  gap: 0;
+  margin: 0;
+  background: var(--sq-term);
+  border: 1px solid var(--sq-term-edge);
+  border-block-end: 1px dashed rgba(239, 230, 212, 0.2);
+  border-radius: var(--dk-radius) var(--dk-radius) 0 0;
+  overflow: hidden;
+}
+
+.docs-tabs__tab {
+  flex: 1 1 auto;
+  min-block-size: 48px;
+  padding: 0.6rem 1rem;
+  font-family: var(--sq-body);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--sq-term-dim);
+  background: none;
+  border: 0;
+  border-block-end: 3px solid transparent;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.docs-tabs__tab:hover {
+  color: var(--sq-paper);
+  border-color: transparent;
+  border-block-end-color: rgba(255, 204, 51, 0.45);
+}
+
+.docs-tabs__tab[aria-selected="true"] {
+  color: var(--sq-paper);
+  background: none;
+  border-color: transparent;
+  border-block-end-color: var(--sq-gold);
+  box-shadow: none;
+}
+
+.docs-tabs__tab:focus-visible {
+  outline: 3px solid var(--sq-gold);
+  outline-offset: -4px;
+}
+
+.docs-tabs__tablist ~ .docs-tabs__panel {
+  margin: 0;
+}
+
+.docs-tabs__tablist ~ .docs-tabs__panel :is(.docs-copy, pre) {
+  margin: 0;
+  border-block-start: 0;
+  border-start-start-radius: 0;
+  border-start-end-radius: 0;
+}
+
+.docs-tabs__tablist ~ .docs-tabs__panel .docs-copy__button {
+  border-start-end-radius: 0;
+}
+
+.docs-tabs__tablist ~ .docs-tabs__panel .docs-copy > pre {
+  border-start-start-radius: 0;
+}
+
+/* The panel takes focus too (the tab pattern): gold on the terminal. */
+.docs-tabs__panel:focus-visible {
+  outline: 3px solid var(--sq-gold);
+  outline-offset: -3px;
+  border-radius: 0 0 var(--dk-radius) var(--dk-radius);
+}
+
+/* ------------------------------------------------ 7. tables, callouts, quotes */
+
+.docs-table {
+  margin: 1.25rem 0 1.6rem;
+  background: var(--sq-sheet);
+  border: 1px solid var(--sq-stitch);
+  border-radius: var(--dk-radius);
+  box-shadow: 0 3px 0 rgba(90, 58, 34, 0.18);
+}
+
+.docs-article table {
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.docs-article th {
+  font-family: var(--sq-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  color: var(--sq-tag-ink);
+  background: var(--sq-ground-deep);
+}
+
+.docs-article th,
+.docs-article td {
+  padding: 0.6rem 0.9rem;
+  vertical-align: top;
+  border-bottom: 1px dashed var(--sq-stitch);
+}
+
+/* A file name or command keeps its shape in a cell: the column sizes to it,
+   and it only breaks if it would spill out of the table. */
+.docs-article td code {
+  overflow-wrap: break-word;
+}
+
+.docs-article tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* Callouts: the front page's "no access to the real image?" note. Paper,
+   a leather margin, and a label stamped in the corner. */
+.docs-callout {
+  margin: 1.4rem 0;
+  padding: 0.9rem 1.1rem 1rem;
+  color: var(--dk-ink);
+  background: var(--sq-sheet);
+  border-inline-start: 4px solid var(--sq-leather);
+  border-radius: 0 8px 8px 0;
+  box-shadow: 0 2px 0 rgba(90, 58, 34, 0.15);
+}
+
+.docs-callout__label {
+  display: inline-block;
+  margin: 0 0 0.45rem;
+  font-family: var(--sq-display);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.docs-callout--note {
+  border-inline-start-color: var(--sq-leather);
+}
+
+.docs-callout--tip {
+  border-inline-start-color: var(--sq-green);
+}
+
+/* A warning wears the doctor's gold "warn" patch. */
+.docs-callout--warning {
+  border-inline-start-color: var(--sq-gold-deep);
+}
+
+.docs-callout--warning .docs-callout__label {
+  padding: 0.05rem 0.6rem;
+  color: var(--sq-leather-ink);
+  background: var(--sq-gold);
+  border-radius: 999px;
+}
+
+/* Danger is stamped, like PACKED, so nobody skims past it. */
+.docs-callout--danger {
+  border-inline-start: 6px double var(--sq-leather-ink);
+}
+
+.docs-callout--danger .docs-callout__label {
+  padding: 0.1rem 0.45rem;
+  color: var(--dk-danger);
+  border: 3px double currentColor;
+  border-radius: 6px;
+  transform: rotate(-3deg);
+}
+
+/* A plain quote is the footer's line: stamped in Arvo on a luggage label. */
+.docs-article blockquote {
+  position: relative;
+  margin: 1.75rem 0;
+  padding: 0.9rem 1.2rem 0.9rem 2.4rem;
+  font-family: var(--sq-display);
+  font-size: 1.02rem;
+  line-height: 1.55;
+  color: var(--sq-tag-ink);
+  background: var(--sq-sheet);
+  clip-path: polygon(1.2rem 0, 100% 0, 100% 100%, 1.2rem 100%, 0 50%);
+  outline: 1.5px dashed var(--sq-stitch);
+  outline-offset: -5px;
+}
+
+.docs-article blockquote::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0.7rem;
+  inset-block-start: 50%;
+  inline-size: 0.6rem;
+  block-size: 0.6rem;
+  border-radius: 50%;
+  background: var(--sq-eyelet);
+  box-shadow: 0 0 0 2px var(--sq-gold), 0 0 0 3px var(--sq-leather-dark);
+  transform: translateY(-50%);
+}
+
+.docs-article blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+/* ------------------------------------------------ 8. toc, pager, footer */
+
+.docs-toc__title {
+  margin: 0 0 0.75rem;
+}
+
+.docs-toc__list {
+  border-left: 2px dashed var(--sq-stitch);
+}
+
+.docs-toc__item a {
+  margin-inline-start: -2px;
+  font-size: 0.93rem;
+  line-height: 1.4;
+  border-inline-start: 2px solid transparent;
+}
+
+.docs-toc__item a:hover {
+  color: var(--sq-head);
+  border-inline-start-color: var(--sq-leather);
+}
+
+.docs-toc__item--sub a {
+  padding-inline-start: 1.5rem;
+  font-size: 0.88rem;
+}
+
+/* Previous and next are luggage tags pointing the way you would walk. */
+.docs-pager {
+  gap: 1rem;
+  margin-top: 3.5rem;
+  padding-top: 1.75rem;
+  border-top: 2px dashed var(--sq-stitch);
+}
+
+.docs-pager__link {
+  position: relative;
+  isolation: isolate;
+  box-sizing: border-box;
+  flex: 1 1 0;
+  max-width: 22rem;
+  padding: 0.8rem 1.2rem 0.9rem 2.2rem;
+  filter: drop-shadow(0 6px 6px rgba(59, 38, 20, 0.18));
+}
+
+.docs-pager__link::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--sq-sheet);
+  clip-path: polygon(1.1rem 0, 100% 0, 100% 100%, 1.1rem 100%, 0 50%);
+  outline: 1.5px dashed var(--sq-stitch);
+  outline-offset: -5px;
+}
+
+.docs-pager__link::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0.6rem;
+  inset-block-start: 50%;
+  inline-size: 0.55rem;
+  block-size: 0.55rem;
+  border-radius: 50%;
+  background: var(--sq-eyelet);
+  box-shadow: 0 0 0 2px var(--sq-gold), 0 0 0 3px var(--sq-leather-dark);
+  transform: translateY(-50%);
+}
+
+.docs-pager__link--next {
+  margin-inline-start: auto;
+  padding: 0.8rem 2.2rem 0.9rem 1.2rem;
+}
+
+.docs-pager__link--next::before {
+  clip-path: polygon(0 0, calc(100% - 1.1rem) 0, 100% 50%, calc(100% - 1.1rem) 100%, 0 100%);
+}
+
+.docs-pager__link--next::after {
+  inset-inline-start: auto;
+  inset-inline-end: 0.6rem;
+}
+
+.docs-pager__dir {
+  font-family: var(--sq-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--dk-muted);
+}
+
+.docs-pager__title {
+  display: block;
+  margin-top: 0.15rem;
+  font-family: var(--sq-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--sq-head);
+  text-decoration: none;
+}
+
+.docs-pager__link:hover .docs-pager__title {
+  text-decoration: underline dashed 1px;
+  text-underline-offset: 0.22em;
+}
+
+/* The front page's footer: deep green, a leather band on top, the squire's
+   line in gold. Full bleed, with the row lined up under the layout. */
+.docs-footer {
+  flex-wrap: wrap;
+  max-width: none;
+  margin-top: 1rem;
+  padding: 2.25rem max(var(--dk-gap), calc((100% - 100rem) / 2 + var(--dk-gap)));
+  color: rgba(244, 241, 234, 0.88);
+  background: var(--sq-green-deep);
+  border-top: 6px solid var(--sq-leather);
+  --dk-focus: var(--sq-gold);
+}
+
+.docs-footer::before {
+  content: "A squire carries the armor; the knight still has to show up.";
+  flex-basis: 100%;
+  font-family: var(--sq-display);
+  font-size: 1rem;
+  color: var(--sq-gold);
+}
+
+.docs-footer a {
+  color: var(--sq-gold);
+  text-decoration-style: dashed;
+}
+
+.docs-footer a:hover {
+  text-decoration-style: solid;
+}
+
+/* ---------------------------------------------------------------- 9. dark */
+
+/* Derived: the front page is light only. The bag after dark: oiled leather
+   for the ground, canvas thread for the text, gold for links and focus.
+   Tags and notes are a lighter hide; the terminals sit a shade deeper. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --sq-ground: #221a13;
+    --sq-ground-deep: #2e241b;
+    --sq-sheet: #34291f;
+    --sq-head: var(--sq-paper);
+    --sq-link: var(--sq-gold);
+    --sq-tag-ink: var(--sq-canvas);
+    --sq-code-ink: var(--sq-canvas);
+    --sq-code-bg: rgba(239, 230, 212, 0.1);
+    --sq-stitch: rgba(251, 236, 200, 0.3);
+    --sq-term: #15110d;
+    --sq-term-edge: rgba(239, 230, 212, 0.14);
+    --sq-eyelet: #221a13;
+    --sq-weave:
+      repeating-linear-gradient(0deg, rgba(251, 236, 200, 0.022) 0 1px, transparent 1px 4px),
+      repeating-linear-gradient(90deg, rgba(251, 236, 200, 0.018) 0 1px, transparent 1px 4px);
+
+    --dk-bg: var(--sq-ground);
+    --dk-ink: var(--sq-canvas);
+    --dk-muted: #c9b99f;
+    --dk-rule: var(--sq-stitch);
+    --dk-accent: var(--sq-gold);
+    --dk-on-accent: var(--sq-leather-ink);
+    --dk-note: var(--sq-canvas-deep);
+    --dk-tip: var(--sq-term-ok);
+    --dk-warning: var(--sq-leather-ink);
+    --dk-danger: var(--sq-canvas);
+    --dk-focus: var(--sq-gold);
+
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --sq-ground: #221a13;
+  --sq-ground-deep: #2e241b;
+  --sq-sheet: #34291f;
+  --sq-head: var(--sq-paper);
+  --sq-link: var(--sq-gold);
+  --sq-tag-ink: var(--sq-canvas);
+  --sq-code-ink: var(--sq-canvas);
+  --sq-code-bg: rgba(239, 230, 212, 0.1);
+  --sq-stitch: rgba(251, 236, 200, 0.3);
+  --sq-term: #15110d;
+  --sq-term-edge: rgba(239, 230, 212, 0.14);
+  --sq-eyelet: #221a13;
+  --sq-weave:
+    repeating-linear-gradient(0deg, rgba(251, 236, 200, 0.022) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(90deg, rgba(251, 236, 200, 0.018) 0 1px, transparent 1px 4px);
+
+  --dk-bg: var(--sq-ground);
+  --dk-ink: var(--sq-canvas);
+  --dk-muted: #c9b99f;
+  --dk-rule: var(--sq-stitch);
+  --dk-accent: var(--sq-gold);
+  --dk-on-accent: var(--sq-leather-ink);
+  --dk-note: var(--sq-canvas-deep);
+  --dk-tip: var(--sq-term-ok);
+  --dk-warning: var(--sq-leather-ink);
+  --dk-danger: var(--sq-canvas);
+  --dk-focus: var(--sq-gold);
+
+  color-scheme: dark;
+}
+
+/* Dark details that name a color rather than a role: the stitches turn to
+   canvas thread (gold under the current page), and the callout margins
+   lighten so they still read on the dark hide. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .site-nav a[aria-current="page"]::after {
+    background: repeating-linear-gradient(90deg, var(--sq-gold) 0 6px, transparent 6px 10px);
+  }
+
+  :root:not([data-theme="light"]) .site-nav a::after {
+    background: repeating-linear-gradient(90deg, var(--sq-canvas-deep) 0 6px, transparent 6px 10px);
+  }
+
+  :root:not([data-theme="light"]) .docs-callout--note {
+    border-inline-start-color: #b07a45;
+  }
+
+  :root:not([data-theme="light"]) .docs-callout--tip {
+    border-inline-start-color: var(--sq-term-ok);
+  }
+
+  :root:not([data-theme="light"]) .docs-callout--danger {
+    border-inline-start-color: var(--sq-canvas);
+  }
+}
+
+:root[data-theme="dark"] .site-nav a[aria-current="page"]::after {
+  background: repeating-linear-gradient(90deg, var(--sq-gold) 0 6px, transparent 6px 10px);
+}
+
+:root[data-theme="dark"] .site-nav a::after {
+  background: repeating-linear-gradient(90deg, var(--sq-canvas-deep) 0 6px, transparent 6px 10px);
+}
+
+:root[data-theme="dark"] .docs-callout--note {
+  border-inline-start-color: #b07a45;
+}
+
+:root[data-theme="dark"] .docs-callout--tip {
+  border-inline-start-color: var(--sq-term-ok);
+}
+
+:root[data-theme="dark"] .docs-callout--danger {
+  border-inline-start-color: var(--sq-canvas);
+}
+
+/* --------------------------------------------------------- 10. responsive */
+
+@media (min-width: 760px) {
+  /* The sidebar rides under the masthead while the page scrolls. */
+  .docs-nav--sidebar {
+    position: sticky;
+    top: calc(var(--sq-masthead-h) + 1.25rem);
+    max-block-size: calc(100vh - var(--sq-masthead-h) - 2.5rem);
+    overflow-y: auto;
+    padding-inline-end: 0.25rem;
+  }
+
+  .docs-nav--sidebar > .docs-nav__list > li:first-child > a {
+    margin-top: 0;
+  }
+}
+
+@media (min-width: 1200px) {
+  .docs-layout--toc .docs-toc {
+    top: calc(var(--sq-masthead-h) + 1.25rem);
+  }
+}
+
+/* Tablet: the front page's section links give way to the docs' own menu. */
+@media (max-width: 1024px) {
+  .site-nav a[href*="index.html#"] {
+    display: none;
+  }
+}
+
+/* Phone: brand and version tag, as on the front page; the leather Menu
+   button below the masthead carries the rest. */
+@media (max-width: 720px) {
+  :root {
+    --dk-gap: 1rem;
+    --sq-masthead-h: 60px;
+  }
+
+  .site-nav {
+    display: none;
+  }
+
+  .docs-layout {
+    padding-block-start: 1.25rem;
+  }
+
+  .docs-article pre {
+    font-size: 0.8rem;
+  }
+
+  /* No room for a gutter: Copy takes a band above the code instead. */
+  .docs-copy > pre {
+    margin-inline-end: 0;
+    padding-block-start: 3rem;
+    padding-inline-end: 1rem;
+    border-radius: var(--dk-radius);
+  }
+
+  .docs-tabs__tablist ~ .docs-tabs__panel .docs-copy > pre {
+    border-radius: 0 0 var(--dk-radius) var(--dk-radius);
+  }
+
+  .docs-pager {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .docs-pager__link {
+    max-width: none;
+  }
+
+  .docs-footer {
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .brand__name {
+    font-size: 1.1rem;
+  }
+}
+
+/* ------------------------------------------- 11. motion (no-preference) */
+
+/* Same rule as the front page: the squire only bustles about for people who
+   are happy with motion. Everyone else gets the bag already buckled. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  .brand img {
+    transition: transform 0.45s var(--sq-ease-spring);
+  }
+
+  .brand:hover img {
+    transform: rotate(-10deg) translateY(-2px);
+  }
+
+  .site-nav a::after {
+    transition: clip-path 0.35s var(--sq-ease-out);
+  }
+
+  /* The title's strap is pulled through, then the buckle fastens. */
+  .docs-article h1::after {
+    animation: sq-strap 0.7s var(--sq-ease-out) 0.15s both;
+  }
+
+  .docs-article h1::before {
+    animation: sq-fasten 0.6s var(--sq-ease-spring) 0.7s both;
+  }
+
+  /* The current page's tag settles on its string once, as the page lands. */
+  .docs-nav--sidebar a[aria-current="page"] {
+    transform-origin: 0.4rem 50%;
+    animation: sq-settle 1.2s var(--sq-ease-out) 0.2s both;
+  }
+
+  .docs-pager__link {
+    transition: transform 0.45s var(--sq-ease-spring);
+  }
+
+  .docs-pager__link:hover {
+    transform: rotate(-1.4deg);
+  }
+
+  .docs-pager__link--next:hover {
+    transform: rotate(1.4deg);
+  }
+
+  .docs-nav a,
+  .docs-copy__button,
+  .docs-tabs__tab {
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+  }
+}
+
+@keyframes sq-strap {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes sq-fasten {
+  0% { transform: translateX(-0.6rem) scale(0.4); opacity: 0; }
+  60% { transform: translateX(0) scale(1.3); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes sq-settle {
+  0% { transform: rotate(4deg); }
+  35% { transform: rotate(-2.5deg); }
+  65% { transform: rotate(1deg); }
+  100% { transform: rotate(0); }
+}
+
+/* -------------------------------------------------------------- 12. print */
+
+@media print {
+  body {
+    background: #ffffff;
+  }
+
+  .site-header {
+    position: static;
+    background: #ffffff;
+  }
+
+  .site-nav {
+    display: none;
+  }
+
+  .docs-article pre,
+  .docs-copy {
+    color: #2a2118;
+    background: #ffffff;
+    border: 1px solid #8b5a2b;
+    box-shadow: none;
+  }
+
+  .docs-copy > pre {
+    margin-inline-end: 0;
+    white-space: pre-wrap;
+  }
+
+  .docs-copy__button {
+    display: none;
+  }
+
+  .docs-footer {
+    color: #2a2118;
+    background: #ffffff;
+  }
+
+  .docs-footer::before {
+    color: #2a2118;
+  }
+}

@@ -380,6 +380,12 @@ A small, realistic partial:
   </nav>
 </header>
 ```
+
+Squire's own docs wear this hook: `docs/_header.html` is the front page's masthead (the satchel, SQUIRE, the same
+links and the version tag) and `docs/theme/squire.css` carries the front page's canvas, leather, Arvo titles, luggage
+tags and terminals, with a derived dark set. To change how Squire's docs look, edit those two files and rebuild; never
+edit the kit.
+
 #### Dark mode
 
 The kit's `docs.css` holds every color behind a `--dk-*` alias as `var(--wsu-token, fallback)`, and the fallbacks follow
@@ -971,6 +977,8 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ### Unreleased[#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+- Changed: Squire's own docs pages wear the front page's look through the theme key: docs/\_header.html is the front page masthead (satchel, SQUIRE, the same links, the version tag, Documentation marked current) and docs/theme/squire.css maps the front page's canvas, leather, gold and Arvo onto the kit's --dk-\* tokens, with luggage tags for labels, the current page and the pager, stitched seams above sections, the hero's strap and buckle under each title, terminals with the gold Copy in the corner, code tabs styled like the front page's OS switcher, a derived dark set (prefers-color-scheme and data-theme), and motion only without a reduced-motion request. The kit's docs.css and docs.js are unchanged.
+- Fixed: the front page footer's Documentation link was green on the deep green footer (contrast 1.43, axe color-contrast); it is gold now, like the footer's line.
 - Added: dark mode in the docs kit: docs.css redefines its twelve --dk-\* color aliases with dark fallbacks in :root\[data-theme="dark"\] and in a prefers-color-scheme: dark query scoped to :root:not(\[data-theme="light"\]), in WayneUI's own resolution order (an explicit choice first, then the reader's system setting, else light), declares color-scheme in each theme so form controls and scrollbars follow, and keeps every text pair at WCAG AA contrast in both themes; the hex fallbacks only apply when WayneUI is absent.
 - Added: code tabs in the docs builder: consecutive fenced code blocks whose info string carries tab="LABEL" (double quotes, label up to 40 characters) render as one labeled tab set (a docs-tabs element keyed by the lowercased labels joined by |, each panel a docs-tabs\_\_panel with a visible label and the code escaped exactly like a plain fenced block), so every example reads without JavaScript; a lone tab="..." fence stays a plain code block with the tab="..." word dropped from its language class, a run broken by anything else becomes separate sets, and the kit's docs.js turns each set into an accessible tablist (click, arrow keys, Home and End), remembers the chosen label per key in localStorage, and keeps every set sharing a key in step, while docs.css styles the tabs from WayneUI tokens and print shows every panel.
 - Added: Squire's own docs site (docs/ built to site/docs/ by its docs builder) and the composer scripts site:agent-ready, site:agent-ready-check; ci now runs both checks.
@@ -1142,7 +1150,7 @@ The front page has its own accessibility gate: `scripts/a11y.sh` on Linux and ma
 
 #### The docs builder[#](https://squire.apps.wayne.edu/docs/contributing.html#the-docs-builder)
 
-The pages under `docs/` build into the committed site at `site/docs/`: rebuild with `composer docs`, check with `composer docs:check`. The builder is `bin/docs-site.php`; see [The docs builder](https://squire.apps.wayne.edu/docs/guides/docs-builder.html) for generated blocks, callouts and what the check proves. Other stack repos take the kit from a Squire checkout with `php bin/docs-site.php --sync-to=<repo>`, then build and commit their own `site/docs/`.
+The pages under `docs/` build into the committed site at `site/docs/`: rebuild with `composer docs`, check with `composer docs:check`. The builder is `bin/docs-site.php`; see [The docs builder](https://squire.apps.wayne.edu/docs/guides/docs-builder.html) for generated blocks, callouts and what the check proves. Other stack repos take the kit from a Squire checkout with `php bin/docs-site.php --sync-to=<repo>`, then build and commit their own `site/docs/`. Squire's docs wear the front page's look through the theme key in `docs/docs.json`: the masthead is `docs/_header.html` and the styles are `docs/theme/squire.css`. Change those two files, not the kit's `docs.css` or `docs.js`, then rebuild.
 
 The docs kit's JavaScript tests run with Node 22 on the PATH (`npm ci && npm test`) or, with only Docker:
 
@@ -1826,6 +1834,10 @@ The builder copies your CSS file to `site/docs/theme/`. Dark mode, fonts and col
 The header file takes exactly two placeholders, `{{project}}` and `{{version}}`. Any other placeholder fails the build with exit 2. Write header links relative to `site/`, not relative to `docs/`.
 
 ### Checklist[#](https://squire.apps.wayne.edu/docs/guides/theming.html#checklist)
+
+### A worked example[#](https://squire.apps.wayne.edu/docs/guides/theming.html#a-worked-example)
+
+These pages are one. Squire's `docs/docs.json` names `theme/squire.css` and `_header.html`: the header is the front page's masthead, and the CSS maps the front page's canvas, leather and gold onto the kit's `--dk-*` tokens, then adds the luggage tags, the stitched seams and a derived dark set. Read those two files in the repository for a theme that passes the accessibility gate in light and dark.
 
 The rest of the builder is in [Building the docs](https://squire.apps.wayne.edu/docs/guides/docs-builder.html).
 
