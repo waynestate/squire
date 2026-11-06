@@ -88,11 +88,11 @@ final class DocsTabsTest extends SquireTestCase
         $page = $this->builtPage($dir, 'guides/tabs');
         self::assertStringContainsString('<div class="docs-tabs" data-tabs="composer|sail">', $page);
         self::assertStringContainsString(
-            "<div class=\"docs-tabs__panel\" data-tab-label=\"composer\"><p class=\"docs-tabs__label\">composer</p><pre><code class=\"language-bash\">composer install\n</code></pre></div>",
+            "<div class=\"docs-tabs__panel\" data-tab-label=\"composer\"><p class=\"docs-tabs__label\">composer</p><pre tabindex=\"0\"><code class=\"language-bash\">composer install\n</code></pre></div>",
             $page,
         );
         self::assertStringContainsString(
-            "<div class=\"docs-tabs__panel\" data-tab-label=\"sail\"><p class=\"docs-tabs__label\">sail</p><pre><code class=\"language-bash\">./vendor/bin/sail up\n</code></pre></div>",
+            "<div class=\"docs-tabs__panel\" data-tab-label=\"sail\"><p class=\"docs-tabs__label\">sail</p><pre tabindex=\"0\"><code class=\"language-bash\">./vendor/bin/sail up\n</code></pre></div>",
             $page,
         );
         // One set holds both panels: between the set opening and the second panel only the first panel appears.
@@ -102,7 +102,7 @@ final class DocsTabsTest extends SquireTestCase
         self::assertIsInt($second);
         $between = substr($page, $start, $second - $start);
         self::assertSame(1, substr_count($between, 'docs-tabs__panel'));
-        self::assertSame(1, substr_count($between, '<pre>'));
+        self::assertSame(1, substr_count($between, '<pre tabindex="0">'));
     }
 
     public function testKeyIsLowercasedLabelsJoinedByPipe(): void
@@ -133,7 +133,7 @@ final class DocsTabsTest extends SquireTestCase
         $this->guidePage($dir, 'guides/tabs', 'Tabs', "# Tabs\n\nA lone tab fence is a plain block.\n\n```bash tab=\"composer\"\ncomposer install\n```\n\nAfter the block.\n");
         $page = $this->builtPage($dir, 'guides/tabs');
         self::assertStringNotContainsString('docs-tabs', $page);
-        self::assertStringContainsString("<pre><code class=\"language-bash\">composer install\n</code></pre>", $page);
+        self::assertStringContainsString("<pre tabindex=\"0\"><code class=\"language-bash\">composer install\n</code></pre>", $page);
         self::assertStringNotContainsString('tab=', $page);
     }
 
@@ -169,11 +169,11 @@ final class DocsTabsTest extends SquireTestCase
         // One set keyed by the lowercased labels, and both tab buttons read their full labels.
         self::assertStringContainsString('<div class="docs-tabs" data-tabs="linux / macos|windows">', $page);
         self::assertStringContainsString(
-            "<div class=\"docs-tabs__panel\" data-tab-label=\"Linux / macOS\"><p class=\"docs-tabs__label\">Linux / macOS</p><pre><code class=\"language-bash\">echo hello\n</code></pre></div>",
+            "<div class=\"docs-tabs__panel\" data-tab-label=\"Linux / macOS\"><p class=\"docs-tabs__label\">Linux / macOS</p><pre tabindex=\"0\"><code class=\"language-bash\">echo hello\n</code></pre></div>",
             $page,
         );
         self::assertStringContainsString(
-            "<div class=\"docs-tabs__panel\" data-tab-label=\"Windows\"><p class=\"docs-tabs__label\">Windows</p><pre><code class=\"language-powershell\">Write-Output hello\n</code></pre></div>",
+            "<div class=\"docs-tabs__panel\" data-tab-label=\"Windows\"><p class=\"docs-tabs__label\">Windows</p><pre tabindex=\"0\"><code class=\"language-powershell\">Write-Output hello\n</code></pre></div>",
             $page,
         );
         // The ids the builder derives from these labels stay valid: the slug of a spaced label has no space,
