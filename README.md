@@ -101,6 +101,7 @@ settings. Add `-v` for the client version.
 `init` never overwrites a file you edited, or a file it did not write, unless you pass `--force`. It records a SHA-256 of
 each file in `.squire.json`; commit that file. `--only=release` writes just the Citadel scripts, `--only=parity` just the
 local setup.
+The release installs from the lock file, so when the app has no `composer.json` or no `composer.lock`, `init` ends with a "Heads up" line: commit both before the first deploy (`composer init`, then `composer update`), or the release stops at step 1.
 
 A Vue/Inertia app is a layer on `raw`, `laravel` or `static`, not a fourth target: `init` detects `vue` in `package.json`
 (dependencies or devDependencies) and writes the layer's `.npmrc` and its `docker-compose.squire.yml` (with a Node 22 service) beside the target's files.

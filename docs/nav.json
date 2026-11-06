@@ -81,6 +81,10 @@
                 {
                     "title": "Files",
                     "path": "reference/files"
+                },
+                {
+                    "title": "Proof",
+                    "path": "reference/proof"
                 }
             ]
         },

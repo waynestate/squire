@@ -93,6 +93,17 @@ final class InitCommand extends Command
         $output->writeln('Next: git update-index --chmod=+x ' . implode(' ', $executables));
         $output->writeln('      (Git on Windows does not record the executable bit; Citadel also marks deployments/ and Quick Update scripts executable.)');
 
+        // The release script stops at step 1 without these two files, so the first deploy would fail. Say so now,
+        // not in the deployment log. Found by the 2026-11-05 proof run: 31 of 82 Wayne State apps had no lock file.
+        $missing = array_values(array_filter(['composer.json', 'composer.lock'], static fn(string $f): bool => !is_file($path . '/' . $f)));
+        if (in_array('release', $groups, true) && $missing !== []) {
+            $output->writeln(sprintf(
+                'Heads up: scripts/release.sh needs composer.json and composer.lock in the app root, and this app has no %s. Commit %s before the first deploy, or the release stops at step 1. An app with no dependencies: `composer init`, then `composer update`.',
+                implode(' and no ', $missing),
+                count($missing) === 1 ? 'it' : 'both',
+            ));
+        }
+
         return 0;
     }
 

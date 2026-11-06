@@ -20,6 +20,31 @@ final class ConsoleTest extends SquireTestCase
         self::assertFileExists($app . '/' . Squire::MANIFEST);
     }
 
+    public function testInitSaysWhenTheReleaseWouldStopAtStepOne(): void
+    {
+        $app = $this->app();
+        unlink($app . '/composer.lock');
+        $result = $this->runSquire(['init', '--path=' . $app]);
+
+        self::assertSame(0, $result['exit'], $result['stderr']);
+        self::assertStringContainsString('this app has no composer.lock. Commit it before the first deploy', $result['stdout']);
+
+        unlink($app . '/composer.json');
+        $result = $this->runSquire(['init', '--path=' . $app]);
+        self::assertStringContainsString('this app has no composer.json and no composer.lock. Commit both', $result['stdout']);
+    }
+
+    public function testInitStaysQuietAboutComposerWhenBothFilesAreThere(): void
+    {
+        $result = $this->runSquire(['init', '--path=' . $this->app()]);
+        self::assertStringNotContainsString('Heads up', $result['stdout']);
+
+        $app = $this->app();
+        unlink($app . '/composer.lock');
+        $result = $this->runSquire(['init', '--path=' . $app, '--only=parity']);
+        self::assertStringNotContainsString('Heads up', $result['stdout']);
+    }
+
     public function testInitDetectsLaravelFromArtisan(): void
     {
         $result = $this->runSquire(['init', '--path=' . $this->app([], true)]);

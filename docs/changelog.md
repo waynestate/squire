@@ -12,6 +12,8 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+- Added: a Proof page in the docs (Reference, Proof): Squire run against 82 Wayne State applications and 13 more repositories on 2026-11-05 (doctor, init, init --check, a second init, doctor again, update --dry-run, and a lint of every file init wrote), plus four of them booted on local parity; what it caught in Squire itself, what it does not prove, and how to run the same on your own app.
+- Changed: `squire init` says so when the release it just wrote cannot pass its own first step: an app with no `composer.json` or no `composer.lock` gets a "Heads up" line naming the missing file and how to make it, instead of finding out from a failed first deploy. Found by the proof run (31 of the 82 apps have no lock file). New tests in ConsoleTest.
 - Changed: Squire's docs theme tidies two rough edges the front page never shows: the phone Menu button keeps a clear line of canvas between itself and the page title, and the sidebar and terminal scrollbars are thin stitches in the theme's colors instead of the browser's grey rail.
 - Fixed: a docs code block that overflows only once the web fonts load joins the tab order: the kit's docs.js re-measures every code block once document.fonts.ready settles (when the browser exposes the Font Loading API), so a block whose width grows with the final font gets tabindex="0" like one measured after a resize; browsers and pages without the API behave exactly as before.
 - Fixed: the docs builder's changelog page writes its own `# Changelog` heading after the marker comment, so the built page has an h1 like every other docs page; the source's first heading is still dropped, whatever it said.

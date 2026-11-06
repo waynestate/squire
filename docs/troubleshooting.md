@@ -9,6 +9,20 @@ Symptoms you may meet setting up a Squire app, each with its cause, a fix and a 
 
 ## Symptoms
 
+### The first release stops at step 1: composer.json not found
+
+Cause: `scripts/release.sh` installs from the lock file, so it requires `composer.json` and `composer.lock` in the app root and stops at step 1 (check preconditions) without them. A raw PHP app that never used Composer has neither. `squire init` prints a "Heads up" line when it writes the release into such an app.
+
+Fix: give the app the two files, even with no dependencies, and commit both: `composer init` writes `composer.json`, then `composer update` writes `composer.lock`.
+
+Check:
+
+<!-- docs-test: skip needs a real project -->
+```sh
+ls composer.json composer.lock
+vendor/bin/squire init --check
+```
+
 ### Permission error writing vendor/
 
 Cause: on the first end-to-end run, the release hook failed with `Permission denied` writing `vendor/composer/installed.json` because the source folder (created on the host by another tool, owned by root) was not writable by the container's `citadel` user (OPEN_QUESTIONS 15). If the build step fails with a permission error writing `vendor/`, the source folder is not writable by the container's `citadel` user (uid 1000 by default).
