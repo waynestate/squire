@@ -12,6 +12,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ## Unreleased[#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+- Security: the front-page deploy layer moves to Symfony 7.4.23 (symfony/http-foundation and symfony/yaml advisories, including CVE-2026-118514).
 - Added: a Proof page in the docs (Reference, Proof): Squire run against 82 Wayne State applications and 13 more repositories on 2026-11-05 (doctor, init, init --check, a second init, doctor again, update --dry-run, and a lint of every file init wrote), plus four of them booted on local parity; what it caught in Squire itself, what it does not prove, and how to run the same on your own app.
 - Changed: `squire init` says so when the release it just wrote cannot pass its own first step: an app with no `composer.json` or no `composer.lock` gets a "Heads up" line naming the missing file and how to make it, instead of finding out from a failed first deploy. Found by the proof run (31 of the 82 apps have no lock file). New tests in ConsoleTest.
 - Changed: Squire's docs theme tidies two rough edges the front page never shows: the phone Menu button keeps a clear line of canvas between itself and the page title, and the sidebar and terminal scrollbars are thin stitches in the theme's colors instead of the browser's grey rail.
