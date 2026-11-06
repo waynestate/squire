@@ -6,7 +6,7 @@ llms: https://squire.apps.wayne.edu/llms.txt
 generator: Squire agent-ready
 ---
 
-# Commands | Squire docs
+# Commands[#](https://squire.apps.wayne.edu/docs/reference/commands.html#commands)
 
 The block below is owned by the docs builder: it lists every command the CLI keeps, with its usage, arguments and options, and is rewritten from the repository on every build.
 

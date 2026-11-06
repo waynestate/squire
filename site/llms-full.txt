@@ -1897,7 +1897,7 @@ The copy holds, for each kind (`raw`, `laravel`, `static`) and for the Vue layer
 
 Source: https://squire.apps.wayne.edu/docs/
 
-## Squire | Squire docs
+## Overview[#](https://squire.apps.wayne.edu/docs/#overview)
 
 Squire is the Citadel kit: the standard `build.sh`, the release script, the health check, and a local setup that runs your app on the real Citadel images, behind a proxy like Citadel's. The next step is [installing it](https://squire.apps.wayne.edu/docs/install.html), which takes a minute and ends with a doctor check.
 
@@ -1923,13 +1923,13 @@ Squire is part of WELD, the Wayne State application stack, beside WayneUI (proje
 
 Source: https://squire.apps.wayne.edu/docs/install.html
 
-## Install | Squire docs
+## Install[#](https://squire.apps.wayne.edu/docs/install.html#install)
 
 ### Requirements[#](https://squire.apps.wayne.edu/docs/install.html#requirements)
 
 PHP `^8.3`, tested on 8.3, 8.4 and 8.5. The package runs on your machine or in CI, not on Citadel; what lands on Citadel is the scripts it wrote.
 
-### Install[#](https://squire.apps.wayne.edu/docs/install.html#install)
+### Install[#](https://squire.apps.wayne.edu/docs/install.html#install-1)
 
 ```
 composer require waynestate/squire --dev
@@ -1947,7 +1947,7 @@ Next: the [command reference](https://squire.apps.wayne.edu/docs/reference/comma
 
 Source: https://squire.apps.wayne.edu/docs/reference/commands.html
 
-## Commands | Squire docs
+## Commands[#](https://squire.apps.wayne.edu/docs/reference/commands.html#commands)
 
 The block below is owned by the docs builder: it lists every command the CLI keeps, with its usage, arguments and options, and is rewritten from the repository on every build.
 

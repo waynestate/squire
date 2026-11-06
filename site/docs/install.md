@@ -6,13 +6,13 @@ llms: https://squire.apps.wayne.edu/llms.txt
 generator: Squire agent-ready
 ---
 
-# Install | Squire docs
+# Install[#](https://squire.apps.wayne.edu/docs/install.html#install)
 
 ## Requirements[#](https://squire.apps.wayne.edu/docs/install.html#requirements)
 
 PHP `^8.3`, tested on 8.3, 8.4 and 8.5. The package runs on your machine or in CI, not on Citadel; what lands on Citadel is the scripts it wrote.
 
-## Install[#](https://squire.apps.wayne.edu/docs/install.html#install)
+## Install[#](https://squire.apps.wayne.edu/docs/install.html#install-1)
 
 ```
 composer require waynestate/squire --dev

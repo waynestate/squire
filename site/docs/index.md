@@ -6,7 +6,7 @@ llms: https://squire.apps.wayne.edu/llms.txt
 generator: Squire agent-ready
 ---
 
-# Squire | Squire docs
+# Overview[#](https://squire.apps.wayne.edu/docs/#overview)
 
 Squire is the Citadel kit: the standard `build.sh`, the release script, the health check, and a local setup that runs your app on the real Citadel images, behind a proxy like Citadel's. The next step is [installing it](https://squire.apps.wayne.edu/docs/install.html), which takes a minute and ends with a doctor check.
 
