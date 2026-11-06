@@ -32,6 +32,10 @@ jobs:
     runs-on: ubuntu-latest
     container: node:22-alpine@sha256:fe4f6d74e20370acb04ad889077d14d0f64a9c8ea6a42bc60cddf1e844699914
     steps:
+      # The node image has no git; without it checkout downloads an archive that drops
+      # the export-ignored package files. With git it clones, and npm ci finds the lock.
+      - name: Install git so checkout clones
+        run: apk add --no-cache git
       - uses: actions/checkout@v4
       - name: Install the pinned dependencies
         run: npm ci
