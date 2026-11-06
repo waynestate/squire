@@ -312,6 +312,7 @@ final class AgentReadyTest extends SquireTestCase
         $dir = $this->site();
         self::assertSame(0, $this->generate('--root=' . $dir)['code']);
         $this->put($dir, 'site/README.md', "# private\n");
+        $this->put($dir, 'site/docs/index.html', "<!doctype html><title>Docs</title><main><h1>Docs</h1></main>\n");
         $this->put($dir, 'deploy/public/index.php', (string) file_get_contents(Squire::templatesDir() . '/static/public/index.php'));
         $this->put($dir, 'deploy/vendor/autoload.php', "<?php\nnamespace Waynestate\\Helmet;\n\nfunction helmet_boot(array \$options): array\n{\n    return ['nonce' => 'n0nce'];\n}\n");
 
@@ -389,5 +390,22 @@ final class AgentReadyTest extends SquireTestCase
         $sitemap = $this->get($port, '/sitemap.xml');
         self::assertSame(200, $sitemap['status']);
         self::assertStringContainsString('Content-Type: application/xml', $sitemap['headers']);
+    }
+
+    public function testADirectoryWithoutItsSlashRedirects(): void
+    {
+        $port = $this->serveStatic();
+
+        $docs = $this->get($port, '/docs');
+        self::assertSame(301, $docs['status']);
+        self::assertStringContainsString('Location: /docs/', $docs['headers']);
+        self::assertStringContainsString('Cache-Control: no-cache', $docs['headers']);
+
+        $queried = $this->get($port, '/docs?x=1');
+        self::assertSame(301, $queried['status']);
+        self::assertStringContainsString('Location: /docs/?x=1', $queried['headers']);
+
+        self::assertSame(200, $this->get($port, '/docs/')['status']);
+        self::assertSame(200, $this->get($port, '/')['status']);
     }
 }

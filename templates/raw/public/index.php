@@ -65,8 +65,9 @@ $notFound = static function () use ($squireHelmet): never {
     exit;
 };
 
-$path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
-$path = rawurldecode($path);
+$rawUri = $_SERVER['REQUEST_URI'] ?? '/';
+$rawPath = parse_url($rawUri, PHP_URL_PATH) ?: '/';
+$path = rawurldecode($rawPath);
 
 // This file's own name is the front door, the same as /.
 if ($path === '/' . basename(__FILE__)) {
@@ -122,6 +123,20 @@ if ($publicRoot !== false && $path !== '/' && ($method === 'GET' || $method === 
     // Resolve inside public/. A directory maps to its index.html, when it has one.
     $resolved = realpath($publicRoot . $path);
     if ($resolved !== false && is_dir($resolved)) {
+        // A directory asked for without its trailing slash redirects to the
+        // slashed form, so the page's relative images and links resolve against
+        // it. The raw path keeps the encoding the client sent.
+        if (!str_ends_with($rawPath, '/')) {
+            $location = '/' . ltrim($rawPath, '/') . '/';
+            $query = parse_url($rawUri, PHP_URL_QUERY);
+            if ($query !== null && $query !== '') {
+                $location .= '?' . $query;
+            }
+            http_response_code(301);
+            header('Location: ' . $location);
+            header('Cache-Control: no-cache');
+            exit;
+        }
         $resolved = realpath($resolved . '/index.html') ?: false;
     }
 
@@ -217,6 +232,6 @@ if ($squireEntry === false
 }
 
 // Leave the entry a clean scope: only $squireEntry survives, and the entry may ignore it.
-unset($squireAppRoot, $squireHelmet, $notFound, $path, $segment, $extension, $mime, $method, $publicRoot, $resolved, $squireEntryName);
+unset($squireAppRoot, $squireHelmet, $notFound, $rawUri, $rawPath, $path, $segment, $extension, $mime, $method, $publicRoot, $resolved, $squireEntryName);
 
 require $squireEntry;

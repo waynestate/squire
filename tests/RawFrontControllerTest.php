@@ -237,6 +237,24 @@ final class RawFrontControllerTest extends SquireTestCase
         }
     }
 
+    public function testADirectoryWithoutItsSlashRedirects(): void
+    {
+        $app = $this->rawApp(['public/docs/index.html' => "<!doctype html><title>Docs</title><main><h1>Docs</h1></main>\n"]);
+        $port = $this->serve($app);
+
+        $docs = $this->request($port, '/docs');
+        self::assertSame(301, $docs['status']);
+        self::assertStringContainsString('Location: /docs/', $docs['headers']);
+        self::assertStringContainsString('Cache-Control: no-cache', $docs['headers']);
+
+        $queried = $this->request($port, '/docs?x=1');
+        self::assertSame(301, $queried['status']);
+        self::assertStringContainsString('Location: /docs/?x=1', $queried['headers']);
+
+        self::assertSame(200, $this->request($port, '/docs/')['status']);
+        self::assertSame(200, $this->request($port, '/')['status']);
+    }
+
     public function testTheSharedChecksAndMimeMapMatchTheStaticTarget(): void
     {
         $raw = (string) file_get_contents(Squire::templatesDir() . '/raw/public/index.php');
