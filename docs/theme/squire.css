@@ -397,6 +397,11 @@ body {
   padding: 0.75rem 0.25rem 0.5rem;
 }
 
+/* The button sits on its own line of the page, not on the title's head. */
+.docs-menu {
+  margin-block-end: 1.75rem;
+}
+
 /* ------------------------------------------------------------- 5. article */
 
 .docs-article {
@@ -575,7 +580,8 @@ body {
   border-radius: var(--dk-radius);
   box-shadow: 0 24px 40px -28px rgba(0, 0, 0, 0.8);
   tab-size: 4;
-  scrollbar-color: #5a4a3a transparent;
+  scrollbar-width: thin;
+  scrollbar-color: #7a6650 transparent;
 }
 
 .docs-article pre code {
@@ -1114,6 +1120,9 @@ body {
     max-block-size: calc(100vh - var(--sq-masthead-h) - 2.5rem);
     overflow-y: auto;
     padding-inline-end: 0.25rem;
+    /* A thread, not a grey rail: the scrollbar is a stitch on the canvas. */
+    scrollbar-width: thin;
+    scrollbar-color: var(--sq-stitch) transparent;
   }
 
   .docs-nav--sidebar > .docs-nav__list > li:first-child > a {

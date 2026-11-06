@@ -5,6 +5,7 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+- Changed: Squire's docs theme tidies two rough edges the front page never shows: the phone Menu button keeps a clear line of canvas between itself and the page title, and the sidebar and terminal scrollbars are thin stitches in the theme's colors instead of the browser's grey rail.
 - Fixed: a docs code block that overflows only once the web fonts load joins the tab order: the kit's docs.js re-measures every code block once document.fonts.ready settles (when the browser exposes the Font Loading API), so a block whose width grows with the final font gets tabindex="0" like one measured after a resize; browsers and pages without the API behave exactly as before.
 - Fixed: the docs builder's changelog page writes its own `# Changelog` heading after the marker comment, so the built page has an h1 like every other docs page; the source's first heading is still dropped, whatever it said.
 - Fixed: the agent-ready Markdown twin keeps the text of a label, which the docs builder wraps around every task-list checkbox and its item text: a list item that opens with a checkbox input (directly in the li, or in a label or paragraph that starts the item) renders as `- [ ] Item text`, or `- [x] Item text` when the input carries a checked attribute, ordered lists keep their number, and a label outside a list keeps its text inline.
