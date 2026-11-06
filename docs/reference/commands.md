@@ -3,6 +3,8 @@ title: Commands
 description: Every squire command with its usage, arguments and options, plus the exit codes to expect.
 ---
 
+# Commands
+
 The block below is owned by the docs builder: it lists every command the CLI keeps, with its usage, arguments and options, and is rewritten from the repository on every build.
 
 <!-- generated:commands -->

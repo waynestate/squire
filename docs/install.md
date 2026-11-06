@@ -3,6 +3,8 @@ title: Install
 description: Install Squire as a dev dependency, write your app's deploy scripts, and verify them with squire doctor.
 ---
 
+# Install
+
 ## Requirements
 
 PHP `^8.3`, tested on 8.3, 8.4 and 8.5. The package runs on your machine or in CI, not on Citadel; what lands on Citadel is the scripts it wrote.

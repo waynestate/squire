@@ -3,6 +3,8 @@ title: Squire
 description: Squire is the Citadel kit: the standard build.sh, release script and health check, and local parity on the real Citadel images.
 ---
 
+# Overview
+
 Squire is the Citadel kit: the standard `build.sh`, the release script, the health check, and a local setup that runs your app on the real Citadel images, behind a proxy like Citadel's. The next step is [installing it](install.md), which takes a minute and ends with a doctor check.
 
 ## What it does
