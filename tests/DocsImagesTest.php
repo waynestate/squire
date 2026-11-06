@@ -155,4 +155,28 @@ final class DocsImagesTest extends SquireTestCase
         self::assertSame(0, $result['code'], $result['stderr']);
         self::assertFileDoesNotExist($dir . '/site/docs/assets/logo.png');
     }
+
+    public function testExternalImagesBecomeTextLinks(): void
+    {
+        $dir = $this->repo();
+        $svg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"8\" height=\"8\"></svg>\n";
+        $this->put($dir, 'docs/readme/x.svg', $svg);
+        $this->guidePage($dir, 'guides/pics', 'Pics', "# Pics\n"
+            . "\n![The map](../readme/x.svg)\n"
+            . "\n[![GitHub CI](https://github.com/waynestate/squire/actions/workflows/ci.yml/badge.svg)](https://github.com/waynestate/squire/actions/workflows/ci.yml)\n"
+            . "\n<a href=\"https://shields.io\"><img src=\"https://img.shields.io/badge/CI-passing-green.svg\" alt=\"GitHub CI\"></a>\n"
+            . "\n![Laughing](https://media.tenor.com/dances-with-outcasts/outcast.gif)\n"
+            . "\n![](https://example.com/path/demo.gif)\n"
+            . "\n<img src=\"//cdn.example.com/x.png\" alt=\"Protocol relative\">\n");
+        $result = $this->invoke(['--root=' . $dir]);
+        self::assertSame(0, $result['code'], $result['stderr']);
+        $page = (string) file_get_contents($dir . '/site/docs/guides/pics.html');
+        self::assertStringContainsString('<img src="../readme/x.svg" alt="The map" />', $page);
+        self::assertStringContainsString('<a rel="noopener" href="https://github.com/waynestate/squire/actions/workflows/ci.yml">GitHub CI</a>', $page);
+        self::assertStringContainsString('<a href="https://shields.io">GitHub CI</a>', $page);
+        self::assertStringContainsString('<a href="https://media.tenor.com/dances-with-outcasts/outcast.gif" rel="noopener">Laughing</a>', $page);
+        self::assertStringContainsString('<a href="https://example.com/path/demo.gif" rel="noopener">demo.gif</a>', $page);
+        self::assertStringContainsString('<a href="//cdn.example.com/x.png" rel="noopener">Protocol relative</a>', $page);
+        self::assertDoesNotMatchRegularExpression('#<img\b[^>]*?\bsrc="(https?:)?//#i', $page);
+    }
 }
