@@ -14,6 +14,7 @@ Versioning once 1.0 is out.
 
 - Fixed: the kit's docs.css and docs-site.php answer three findings the new axe-core gates raised on SESAME, HELMET and Booster: inline code in a table header cell now inherits the cell's own colors (color: inherit, background: none) so it keeps the header text's contrast in light and dark themes; every code block gets tabindex="0" from the builder, like the table wrappers, so a block that scrolls sideways on a narrow screen is keyboard reachable; and the level-3 "On this page" entries carry the docs-toc__item base class as well as docs-toc__item--sub so the kit's target-size rules reach them.
 - Security: the front-page deploy layer moves to Symfony 7.4.23 (symfony/http-foundation and symfony/yaml advisories, including CVE-2026-118514).
+- Fixed: GitHub CI's js-tests job installs git first, so checkout keeps package-lock.json.
 - Added: a Proof page in the docs (Reference, Proof): Squire run against 82 Wayne State applications and 13 more repositories on 2026-11-05 (doctor, init, init --check, a second init, doctor again, update --dry-run, and a lint of every file init wrote), plus four of them booted on local parity; what it caught in Squire itself, what it does not prove, and how to run the same on your own app.
 - Changed: `squire init` says so when the release it just wrote cannot pass its own first step: an app with no `composer.json` or no `composer.lock` gets a "Heads up" line naming the missing file and how to make it, instead of finding out from a failed first deploy. Found by the proof run (31 of the 82 apps have no lock file). New tests in ConsoleTest.
 - Changed: Squire's docs theme tidies two rough edges the front page never shows: the phone Menu button keeps a clear line of canvas between itself and the page title, and the sidebar and terminal scrollbars are thin stitches in the theme's colors instead of the browser's grey rail.
@@ -50,6 +51,7 @@ Versioning once 1.0 is out.
 - Added: the docs builder's --require-tag flag fails when the repo's latest version tag does not match the docs stamp (a tag such as v1.6.0 counts as 1.6.0); the flag is off by default.
 - Added: a JavaScript test harness for the docs kit (tests/js, node:test with jsdom pinned exactly in package.json and package-lock.json) and a js-tests CI job on GitLab and GitHub that runs npm ci and npm test in a pinned multi-arch Node 22 image; composer js runs the same two commands locally and stays out of composer ci because the PHP image has no Node.
 - Fixed: the oracle image jobs pin the Buildah image to the v1.43.5-immutable tag and its manifest list digest, because the previous digest was removed upstream.
+- Fixed: a directory asked for without its trailing slash (for example `/docs`) now redirects to `/docs/`, so the page's relative images and links resolve.
 
 ## 0.5.0 (2026-11-03)
 
