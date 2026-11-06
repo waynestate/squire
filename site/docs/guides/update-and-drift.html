@@ -48,7 +48,7 @@
 <p><code>squire update</code> takes the new template versions for the files you never edited, and shows a diff for the ones you did. It never overwrites your edits, and it runs the same in CI and on a laptop.</p>
 <p><code>update</code> reads the record: a file you never edited takes the new template, a file you edited is left alone and shown as a diff, and a file Squire did not write is never touched. A squire polishes the armor; the knight keeps the sword. <code>--dry-run</code> prints the plan and writes nothing.</p>
 <!-- docs-test: skip needs a real project -->
-<pre><code>vendor/bin/squire init   [--path=.] [--target=auto|raw|laravel|static] [--only=release|parity] [--check] [--force]
+<pre tabindex="0"><code>vendor/bin/squire init   [--path=.] [--target=auto|raw|laravel|static] [--only=release|parity] [--check] [--force]
 vendor/bin/squire update [--path=.] [--target=raw|laravel|static] [--only=release|parity] [--dry-run]
 </code></pre>
 <h2 id="app-owned-files-and-force">App-owned files and <code>--force</code><a class="docs-heading-link" aria-label="Link to this section" href="#app-owned-files-and-force">#</a></h2>
@@ -56,7 +56,7 @@ vendor/bin/squire update [--path=.] [--target=raw|laravel|static] [--only=releas
 <h2 id="sourdough-s-copy-of-the-templates">Sourdough's copy of the templates<a class="docs-heading-link" aria-label="Link to this section" href="#sourdough-s-copy-of-the-templates">#</a></h2>
 <p>Sourdough carries a generated copy of Squire's deploy templates instead of writing its own. The copy began when its apps could not <code>composer require</code> Squire from an internal repository (no internal URLs may be committed). Squire is on Packagist now, and Sourdough requires it as a dev dependency and regenerates its copy from the package. Squire owns the templates; the copy is checked in and verified, never hand-edited.</p>
 <!-- docs-test: skip needs a real project -->
-<pre><code>php bin/export-templates.php --to=templates/squire            # write the copy
+<pre tabindex="0"><code>php bin/export-templates.php --to=templates/squire            # write the copy
 php bin/export-templates.php --to=templates/squire --check    # verify it; exit 1 on drift
 </code></pre>
 <p>The copy holds, for each kind (<code>raw</code>, <code>laravel</code>, <code>static</code>) and for the Vue layer (<code>vue</code>), the files a new app gets from <code>squire init</code>, at their target paths, with each file's mode recorded so executables stay executable. <code>catalog.json</code> lists which files each kind and layer installs and where; <code>manifest.json</code> records the Squire version and a SHA-256 per file. Refresh the copy when Squire's templates move on, and run <code>--check</code> in CI to keep it honest. A squire keeps the armor polished; the copy stays in step.</p>

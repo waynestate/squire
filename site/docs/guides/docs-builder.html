@@ -44,20 +44,20 @@
 <p><code>bin/docs-site.php</code> turns the Markdown under <code>docs/</code> into committed, accessible HTML pages under <code>site/docs/</code>: one page per file, in the order of <code>docs/nav.json</code>, with a sidebar, an &quot;On this page&quot; list, prev and next links, and the version stamped from the top of <code>CHANGELOG.md</code>. The optional <code>source</code> and <code>mirrors</code> keys in <code>docs/nav.json</code> render a Source link in the header and footer, with the mirrors beside it, so the canonical repo home is one config value, never a hard-coded URL. Pages are styled by WayneUI plus the kit's <code>docs.css</code> and <code>docs.js</code> in the site's <code>assets/</code> folder, so every stack repo reads the same way.</p>
 <p>Squire owns the kit, and a repo takes a new version from a Squire checkout with <code>php bin/docs-site.php --sync-to=&lt;repo&gt;</code>, which copies the kit and the tool itself. The repo then builds with <code>php bin/docs-site.php</code> (or <code>composer docs</code>) and commits <code>site/docs/</code>, and runs <code>--check</code> (or <code>composer docs:check</code>) in CI to fail when a page is stale or a finding is present. A squire keeps the map current, so the knight never asks for directions twice.</p>
 <!-- docs-test: skip needs a real project -->
-<pre><code class="language-bash">php bin/docs-site.php --sync-to=&lt;repo&gt;   # copy the kit and the tool into the repo
+<pre tabindex="0"><code class="language-bash">php bin/docs-site.php --sync-to=&lt;repo&gt;   # copy the kit and the tool into the repo
 php bin/docs-site.php                    # build (or: composer docs)
 php bin/docs-site.php --check            # verify in CI (or: composer docs:check)
 </code></pre>
 <h2 id="generated-blocks">Generated blocks<a class="docs-heading-link" aria-label="Link to this section" href="#generated-blocks">#</a></h2>
 <p>A page may hold a region the builder owns, marked in the Markdown source:</p>
-<pre><code class="language-text">&lt;!-- generated:commands --&gt;
+<pre tabindex="0"><code class="language-text">&lt;!-- generated:commands --&gt;
 ...whatever the builder wrote last time...
 &lt;!-- /generated --&gt;
 </code></pre>
 <p><code>docs/docs.json</code> defines the blocks by name. Each block rewrites its region from the repo's own state: <code>json-table</code> and <code>symfony-commands</code> run a command from the repo root (a leading <code>php </code> means the PHP binary, so the same file works on Windows, macOS and Linux) and render the command's JSON output, and <code>env</code> scans the source files for the environment variables the code reads.</p>
 <h3 id="the-json-table-type">The json-table type<a class="docs-heading-link" aria-label="Link to this section" href="#the-json-table-type">#</a></h3>
 <p>The <code>json-table</code> type runs its <code>run</code> command, takes the list at its <code>path</code> key from the JSON output, and renders a Markdown table: each column is <code>[heading, key]</code> or <code>[heading, key, &quot;code&quot;]</code> for a code span, a missing key gives an empty cell, booleans print <code>yes</code> or <code>no</code>, lists print comma separated, Symfony console style tags are stripped so a help cell reads plain, and pipes in a cell are escaped.</p>
-<pre><code class="language-json">{
+<pre tabindex="0"><code class="language-json">{
     &quot;blocks&quot;: {
         &quot;hops&quot;: {
             &quot;type&quot;: &quot;json-table&quot;,
@@ -70,7 +70,7 @@ php bin/docs-site.php --check            # verify in CI (or: composer docs:check
 </code></pre>
 <h3 id="the-symfony-commands-type">The symfony-commands type<a class="docs-heading-link" aria-label="Link to this section" href="#the-symfony-commands-type">#</a></h3>
 <p>The <code>symfony-commands</code> type runs <code>&lt;run&gt; list --format=json</code> and renders the command reference: an overview table of command and description, then per command a heading at <code>level</code> (default 3), its description, one <code>Usage:</code> line per usage string, an Arguments table when it has arguments, and an Options table when it has options. An option prints its shortcut first (<code>-p</code>, <code>--path=VALUE</code>) and gets <code>=VALUE</code> only when it takes a value; its default prints in a code span, or stays empty when it is false. The built-in commands (<code>help</code>, <code>list</code>, <code>completion</code>, <code>_complete</code>) and hidden commands are skipped, and the application-level options (<code>--help</code>, <code>--quiet</code>, <code>--verbose</code>, <code>--version</code>, <code>--ansi</code>, <code>--no-ansi</code>, <code>--no-interaction</code>) are listed once, under &quot;Options every command accepts&quot;.</p>
-<pre><code class="language-json">{
+<pre tabindex="0"><code class="language-json">{
     &quot;blocks&quot;: {
         &quot;commands&quot;: {
             &quot;type&quot;: &quot;symfony-commands&quot;,
@@ -83,7 +83,7 @@ php bin/docs-site.php --check            # verify in CI (or: composer docs:check
 </code></pre>
 <h3 id="the-env-type">The env type<a class="docs-heading-link" aria-label="Link to this section" href="#the-env-type">#</a></h3>
 <p>The <code>env</code> type walks the <code>scan</code> folders for quoted environment variable names that start with <code>prefix</code>, skips the names in <code>ignore</code> (an exact name, or a trailing <code>*</code> for a prefix), and renders one row per variable, sorted by name: its meaning and default from <code>describe</code> (a <code>[meaning, default]</code> pair) and the first file that reads it. A variable the code reads that <code>describe</code> does not list, and a variable <code>describe</code> lists that no scanned file reads, are findings.</p>
-<pre><code class="language-json">{
+<pre tabindex="0"><code class="language-json">{
     &quot;blocks&quot;: {
         &quot;environment&quot;: {
             &quot;type&quot;: &quot;env&quot;,
@@ -103,7 +103,7 @@ php bin/docs-site.php --check            # verify in CI (or: composer docs:check
 <p>When <code>docs/nav.json</code> lists a page whose path is <code>changelog</code>, the builder owns <code>docs/changelog.md</code>: a plain run writes it from the repo's <code>CHANGELOG.md</code> before building, and <code>--check</code> never writes. The page takes the usual front matter (<code>title: &quot;Changelog&quot;</code> and a description), a marker comment naming its source, and the changelog's body with its top-level heading dropped, so every version heading stays as written: <code>## Unreleased</code>, <code>## [Unreleased]</code>, <code>## 0.5.0 (2026-11-03)</code> and <code>## [0.1.9] - 2026-11-03</code> all keep their shape and get the page's usual anchors. Links follow the site's rules: an <code>http(s)</code> link stays, a relative link becomes a blob link under the nav.json <code>source</code> (<code>https://repo.example.com/acme/app/-/blob/main/README.md</code>) when there is one, and loses its link, keeping its label, when there is not. A nav entry without a <code>CHANGELOG.md</code> is a finding, and a changed <code>CHANGELOG.md</code> or a missing <code>docs/changelog.md</code> is drift.</p>
 <h2 id="callouts">Callouts<a class="docs-heading-link" aria-label="Link to this section" href="#callouts">#</a></h2>
 <p>A blockquote whose first line is a marker alone becomes a callout instead of a quotation:</p>
-<pre><code class="language-text">&gt; [!NOTE]
+<pre tabindex="0"><code class="language-text">&gt; [!NOTE]
 &gt; The body keeps the note.
 </code></pre>
 <p>The marker is case-insensitive and one of <code>[!NOTE]</code>, <code>[!TIP]</code>, <code>[!WARNING]</code> or <code>[!DANGER]</code>. The builder renders an <code>&lt;aside&gt;</code> with the classes <code>docs-callout</code> and <code>docs-callout--note</code> (one per kind), <code>role=&quot;note&quot;</code>, a visible label, and the body below it, and drops the marker line from the body. A blockquote without a marker, or with a marker that is not one of the four, stays a plain blockquote. The kit's <code>docs.css</code> styles all four kinds from WayneUI tokens, in light and dark themes.</p>
@@ -125,18 +125,18 @@ php bin/docs-site.php --check            # verify in CI (or: composer docs:check
 </ul>
 <h2 id="tested-examples">Tested examples<a class="docs-heading-link" aria-label="Link to this section" href="#tested-examples">#</a></h2>
 <p><code>php bin/docs-site.php --examples</code> runs the tagged command examples in the docs and fails when reality drifts from what they promise. A fenced block whose info string is <code>bash run</code>, <code>sh run</code>, <code>console run</code> or <code>shell run</code> (optionally <code>exit=N</code>, default 0) is a command block: each non-empty line is a command (a leading <code>$ </code> is stripped), run in order in a fresh temp copy of the <code>examples.cwd</code> folder; the next fenced block, when its info string is exactly <code>output</code>, is the expected output (stdout then stderr). Both sides are normalized before the comparison: CRLF to LF, trailing spaces trimmed per line, trailing blank lines removed, the example working directory and the repo root rewritten to the placeholders below, plus every regex rule in <code>examples.normalize</code>:</p>
-<pre><code class="language-text">&lt;cwd&gt;
+<pre tabindex="0"><code class="language-text">&lt;cwd&gt;
 &lt;root&gt;
 </code></pre>
 <p>Every shell block (bash, sh, shell, console, powershell or pwsh) must be tagged <code>run</code> or carry an HTML comment line reading <code>docs-test: skip REASON</code> directly before it; a block with neither, and a marker without a reason, are findings naming the file and line. Skips are counted and grouped by the words before the first comma, case-folded, in the one-line summary (<code>Examples: 7 run, 12 skipped (reasons: needs network 5, needs Docker 4)</code>), and <code>examples.maxSkips</code> in <code>docs/docs.json</code> caps them. The other keys of <code>examples</code> are optional: <code>cwd</code> names the repo folder copied into each example working directory, <code>alias</code> replaces a matching first word with another command (a leading <code>php </code> means the PHP binary, a relative script path resolves against the repo root), <code>env</code> adds environment variables, and <code>timeout</code> caps each command in seconds (default 60). Generated-block regions are ignored, and a plain build and <code>--check</code> never run examples.</p>
 <h2 id="javascript-tests">JavaScript tests<a class="docs-heading-link" aria-label="Link to this section" href="#javascript-tests">#</a></h2>
 <p>The kit's <code>docs.js</code> carries its own tests in <code>tests/js/</code> (node:test with jsdom, pinned exactly in <code>package.json</code> and <code>package-lock.json</code>), and they run the same way locally and in CI. With Node 22 on the PATH:</p>
 <!-- docs-test: skip needs a real project -->
-<pre><code class="language-bash">npm ci &amp;&amp; npm test
+<pre tabindex="0"><code class="language-bash">npm ci &amp;&amp; npm test
 </code></pre>
 <p>or, with only Docker:</p>
 <!-- docs-test: skip needs a real project -->
-<pre><code class="language-bash">docker run --rm -v &quot;$PWD:/app&quot; -w /app node:22-alpine sh -c &quot;npm ci &amp;&amp; npm test&quot;
+<pre tabindex="0"><code class="language-bash">docker run --rm -v &quot;$PWD:/app&quot; -w /app node:22-alpine sh -c &quot;npm ci &amp;&amp; npm test&quot;
 </code></pre>
 <p>The <code>js-tests</code> job runs the same two commands on GitLab and GitHub. It stays out of <code>composer ci</code> because the PHP image has no Node.</p>
 </article>

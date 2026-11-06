@@ -63,7 +63,7 @@
 <p>The names above are the local names of <code>scripts/oracle-image-build.sh</code>. The published images live in your GitLab container registry, at <code>$CI_REGISTRY_IMAGE/oracle-parity:8.4</code> and <code>$CI_REGISTRY_IMAGE/oracle-sail:8.4</code> (in GitLab CI, <code>$CI_REGISTRY_IMAGE</code> is set for you; elsewhere it is the registry address of the Squire project shown on its Container Registry page), plus <code>:8.4-&lt;squire version&gt;</code> for a fixed one. CI publishes them when a Squire version is tagged, multi-arch (linux/amd64 and linux/arm64); a Sail app swaps <code>build:</code> for <code>image:</code> with that path.</p>
 <p>Both flavors download Oracle's Instant Client Basic Light at build time under Oracle's license and never commit it: the install script pins the exact SHA-256 of each zip. Oracle does not publish a 21.x client for arm64, so the line differs per architecture: linux/amd64 gets 21.7.0.0.0 and linux/arm64 gets 19.32.0.0.0.</p>
 <!-- docs-test: skip needs a real project -->
-<pre><code>scripts/oracle-image-build.sh --flavour sail --php 8.4        # or: --flavour parity
+<pre tabindex="0"><code>scripts/oracle-image-build.sh --flavour sail --php 8.4        # or: --flavour parity
 scripts/oracle-image-test.sh --flavour all --platform linux/amd64
 </code></pre>
 </article>

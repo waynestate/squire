@@ -43,20 +43,20 @@
 <h2 id="1-install-squire">1. Install Squire<a class="docs-heading-link" aria-label="Link to this section" href="#1-install-squire">#</a></h2>
 <p>Squire is a dev dependency. It runs on your machine or in CI, not on Citadel; what lands on Citadel is the scripts it writes. PHP <code>^8.3</code>, tested on 8.3, 8.4 and 8.5.</p>
 <!-- docs-test: skip needs a real project -->
-<pre><code class="language-bash">composer require waynestate/squire --dev
+<pre tabindex="0"><code class="language-bash">composer require waynestate/squire --dev
 </code></pre>
 <h2 id="2-run-squire-init">2. Run squire init<a class="docs-heading-link" aria-label="Link to this section" href="#2-run-squire-init">#</a></h2>
 <p><code>init</code> picks the target from your app: <code>laravel</code> when there is an <code>artisan</code> file, <code>raw</code> without one, or set it yourself with <code>--target</code>. It detects a Vue/Inertia layer from <code>package.json</code> and adds the layer's release script and Node 22 parity service.</p>
 <!-- docs-test: skip needs a real project -->
-<pre><code class="language-bash">vendor/bin/squire init
+<pre tabindex="0"><code class="language-bash">vendor/bin/squire init
 </code></pre>
 <p>The full option set:</p>
-<pre><code class="language-text">vendor/bin/squire init   [--path=.] [--target=auto|raw|laravel|static] [--only=release|parity] [--check] [--force]
+<pre tabindex="0"><code class="language-text">vendor/bin/squire init   [--path=.] [--target=auto|raw|laravel|static] [--only=release|parity] [--check] [--force]
 </code></pre>
 <p><code>init</code> never overwrites a file you edited, or a file it did not write, unless you pass <code>--force</code>. It records a SHA-256 of each file in <code>.squire.json</code>. <code>--only=release</code> writes just the Citadel scripts, <code>--only=parity</code> just the local setup. The release installs from the lock file, so when the app has no <code>composer.json</code> or no <code>composer.lock</code>, <code>init</code> ends with a &quot;Heads up&quot; line: commit both before the first deploy (<code>composer init</code>, then <code>composer update</code>), or the release stops at step 1.</p>
 <h2 id="3-run-squire-doctor">3. Run squire doctor<a class="docs-heading-link" aria-label="Link to this section" href="#3-run-squire-doctor">#</a></h2>
 <!-- docs-test: skip needs a real project -->
-<pre><code class="language-bash">vendor/bin/squire doctor
+<pre tabindex="0"><code class="language-bash">vendor/bin/squire doctor
 </code></pre>
 <p><code>doctor</code> checks an app against the best practices a machine can decide. The lock file, composer audit and MySQL 5.6 checks are owned by PROCTOR; <code>doctor</code> hands off to it (S50) instead of repeating them.</p>
 <p>Exit codes: <code>0</code> pass, <code>1</code> findings (<code>init --check</code>: drift; <code>update</code>: an edited file still differs from the template; <code>doctor</code>: a failed rule), <code>2</code> the tool itself could not run.</p>

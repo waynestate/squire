@@ -45,13 +45,13 @@
 <h2 id="taking-a-new-version-of-the-kit">Taking a new version of the kit<a class="docs-heading-link" aria-label="Link to this section" href="#taking-a-new-version-of-the-kit">#</a></h2>
 <p>A site takes a new version from a Squire checkout with <code>php bin/agent-ready.php --sync-to=&lt;repo&gt;</code>, which copies the kit and the tool itself. The site then regenerates its files with <code>php bin/agent-ready.php</code> and commits them, and runs <code>--check</code> in CI to stay honest.</p>
 <!-- docs-test: skip needs a real project -->
-<pre><code class="language-bash">php bin/agent-ready.php --sync-to=&lt;repo&gt;   # copy the kit and the tool into the repo
+<pre tabindex="0"><code class="language-bash">php bin/agent-ready.php --sync-to=&lt;repo&gt;   # copy the kit and the tool into the repo
 php bin/agent-ready.php                    # regenerate the files
 php bin/agent-ready.php --check            # verify in CI; fail on drift
 </code></pre>
 <h2 id="keeping-the-kit-out-of-library-packages">Keeping the kit out of library packages<a class="docs-heading-link" aria-label="Link to this section" href="#keeping-the-kit-out-of-library-packages">#</a></h2>
 <p>A library package that carries the kit should keep it out of Composer downloads: add to its <code>.gitattributes</code></p>
-<pre><code>/bin/agent-ready.php export-ignore
+<pre tabindex="0"><code>/bin/agent-ready.php export-ignore
 /site export-ignore
 </code></pre>
 <p>so a <code>composer require</code> of the package never ships the kit. A squire packs what the knight will carry, and only that.</p>
