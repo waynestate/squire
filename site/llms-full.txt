@@ -47,7 +47,8 @@ The pages under `docs/` build into the committed site at `site/docs/`: rebuild w
   repository root (a `deploy/` layer, say), `init` also keeps the `.gitignore` honest: it appends `/vendor/`, `.env` and
   `.env.squire` when they are missing, never touches a line the app added, and leaves the repository root's `.gitignore`
   to the app.
-- `squire update` takes the new template versions for the files you never edited, and shows a diff for the ones you did.
+- `squire update` takes the new template versions for the files you never edited, writes the template files a newer
+  release added to a group the kit records (recording them in `.squire.json`), and shows a diff for the ones you did.
   It never overwrites your edits, and it runs the same in CI and on a laptop.
 - `squire doctor` checks an app against the best practices a machine can decide ([BEST_PRACTICES.md](https://nougat.snu.gs/enterprise-apps/squire/blob/HEAD/BEST_PRACTICES.md)).
   The lock file, composer audit and MySQL 5.6 checks are owned by PROCTOR; `doctor` hands off to it (S50) instead of repeating them.
@@ -120,7 +121,8 @@ HTML, and caches the assets. The site folder is `../../site` by default (the app
 straight by Apache and never reaches the front controller.
 
 `update` reads that record: a file you never edited takes the new template, a file you edited is left alone and shown as a
-diff, and a file Squire did not write is never touched. A squire polishes the armor; the knight keeps the sword.
+diff, a file a newer release added to a recorded group is written and recorded, and a file Squire did not write is never
+touched. A squire polishes the armor; the knight keeps the sword.
 `--dry-run` prints the plan and writes nothing.
 
 ### What lands in your app
@@ -978,6 +980,8 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ### Unreleased[#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+- Fixed: `squire update` writes the template files a newer release added to a group the kit records: a file the target release has that `.squire.json` does not list is written from the template, recorded, and printed as added, so one `update` converges the kit (a kit made before 0.4.0 gains `oracle-check.php` when it moves past it) instead of leaving the new files to `squire init`; a file the app already has is still left alone, and an edited file is still refused and shown as a diff.
+- Fixed: `squire init` without `--only` defaults to the groups the `.squire.json` records instead of `release,parity`, so a bare `init` completes an existing kit without dropping its groups; with no manifest it still writes `release,parity`, and `--only` still wins.
 - Added: the Proof page records its last run: a dated table of the checks run against Squire itself (`composer ci` and the local parity rig) with their results and durations, so a reader can see when the page was last verified and how to refresh it.
 - Fixed: the docs builder turns an article image whose src leaves the site (an http:, https: or // address) into a text link, because the stack's CSPs block external images: inside an anchor the tag becomes its alt text (the last path segment of the src when the alt is empty) and the link stays, so a README badge reads as a link to its page, and a bare tag becomes a link to the image itself with rel="noopener"; relative, /-absolute and data: srcs are the site's own and stay put, for Markdown images and raw HTML `<img>` alike.
 - Fixed: images in a docs page sit in rows again instead of stacking one per line (WayneUI's reset makes every image a block): the kit's docs.css puts article images back in the line, centered on the text, while an image alone in its paragraph (or followed only by a `<sub>` credit) stays a block; a paragraph or block of only images or linked images (badge rows, a README cast row) wraps in balanced lines with even spacing and keeps align="center"; a list whose every item is one image or linked image becomes a wrapping row of 4rem tiles with no bullets; and linked tiles show an accent hairline on hover, the kit's focus ring on keyboard focus, and a 2px lift only without a reduced-motion request.
@@ -1880,9 +1884,9 @@ This page explains how Squire tracks the files it writes (the `.squire.json` SHA
 
 ### `squire update` [#](https://squire.apps.wayne.edu/docs/guides/update-and-drift.html#squire-update)
 
-`squire update` takes the new template versions for the files you never edited, and shows a diff for the ones you did. It never overwrites your edits, and it runs the same in CI and on a laptop.
+`squire update` takes the new template versions for the files you never edited, writes the template files a newer release added to a group the kit records (recording them in `.squire.json`), and shows a diff for the ones you did. It never overwrites your edits, and it runs the same in CI and on a laptop.
 
-`update` reads the record: a file you never edited takes the new template, a file you edited is left alone and shown as a diff, and a file Squire did not write is never touched. A squire polishes the armor; the knight keeps the sword. `--dry-run` prints the plan and writes nothing.
+`update` reads the record: a file you never edited takes the new template, a file you edited is left alone and shown as a diff, a file a newer release added to a recorded group is written and recorded, and a file Squire did not write is never touched. A squire polishes the armor; the knight keeps the sword. `--dry-run` prints the plan and writes nothing.
 
 ```
 vendor/bin/squire init   [--path=.] [--target=auto|raw|laravel|static] [--only=release|parity] [--check] [--force]
@@ -1915,7 +1919,7 @@ Squire is the Citadel kit: the standard `build.sh`, the release script, the heal
 ### What it does[#](https://squire.apps.wayne.edu/docs/#what-it-does)
 
 - `squire init` writes the scripts a Citadel app needs from templates, for raw PHP, Laravel or a static site, and detects a Vue/Inertia layer from `package.json`, adding the layer's release script and Node 22 parity service. `squire init --check` reports when your copies have drifted from the templates (depend, do not copy). In a directory below the repository root (a `deploy/` layer, say), `init` also keeps the `.gitignore` honest: it appends `/vendor/`, `.env` and `.env.squire` when they are missing, never touches a line the app added, and leaves the repository root's `.gitignore` to the app.
-- `squire update` takes the new template versions for the files you never edited, and shows a diff for the ones you did. It never overwrites your edits, and it runs the same in CI and on a laptop.
+- `squire update` takes the new template versions for the files you never edited, writes the template files a newer release added to a group the kit records (recording them in `.squire.json`), and shows a diff for the ones you did. It never overwrites your edits, and it runs the same in CI and on a laptop.
 - `squire doctor` checks an app against the best practices a machine can decide. The lock file, composer audit and MySQL 5.6 checks are owned by PROCTOR; `doctor` hands off to it (S50) instead of repeating them.
 - A local setup that runs your app on the Citadel PHP image, behind a proxy like Citadel's, with the same MySQL 5.6.
 - Squire's maintainers send platform improvement proposals to the platform team privately. Squire never touches a server.
@@ -1966,7 +1970,7 @@ The block below is owned by the docs builder: it lists every command the CLI kee
 | --- | --- |
 | `squire doctor` | Check an app's Citadel release setup against the SQUIRE rules (S1 to S78). |
 | `squire init` | Write the standard Citadel scripts into an app, or report drift with --check. |
-| `squire update` | Take new template versions for files SQUIRE wrote that were never edited; show a diff for the edited ones. |
+| `squire update` | Take new template versions for files SQUIRE wrote that were never edited, add the files a newer release wrote, and show a diff for the edited ones. |
 
 #### `squire doctor` [#](https://squire.apps.wayne.edu/docs/reference/commands.html#squire-doctor)
 
@@ -1994,14 +1998,14 @@ Usage: `squire init [--path PATH] [--target TARGET] [--only ONLY] [--check] [--f
 | --- | --- | --- |
 | `--path=VALUE` | Path to the application. | `.` |
 | `--target=VALUE` | raw, laravel or static (default: the target recorded in .squire.json, else laravel when an artisan file exists; static must be asked for). |  |
-| `--only=VALUE` | Comma-separated groups to write: release, parity. | `release,parity` |
+| `--only=VALUE` | Comma-separated groups to write: release, parity. (default: the groups recorded in .squire.json, else release, parity) |  |
 | `--check` | Write nothing; report files that are missing, outdated or edited. Exit 1 on drift. |  |
 | `--force` | Overwrite files that were edited or that SQUIRE did not write. |  |
 | `--silent` | Do not output any message |  |
 
 #### `squire update` [#](https://squire.apps.wayne.edu/docs/reference/commands.html#squire-update)
 
-Take new template versions for files SQUIRE wrote that were never edited; show a diff for the edited ones.
+Take new template versions for files SQUIRE wrote that were never edited, add the files a newer release wrote, and show a diff for the edited ones.
 
 Usage: `squire update [--path PATH] [--target TARGET] [--only ONLY] [--dry-run]`
 
@@ -2432,13 +2436,33 @@ vendor/bin/squire init --check vendor/bin/squire update --dry-run
 
 `squire init --check` reports when your copies have drifted from the templates; it exits `0` when they match and `1` when they have. `squire update --dry-run` prints the plan and writes nothing; it exits `1` when an edited file still differs from the template. Exit `2` means the tool itself could not run. For the full command reference, see [Commands](https://squire.apps.wayne.edu/docs/reference/commands.html).
 
-### 0.5.0 (2026-11-03)[#](https://squire.apps.wayne.edu/docs/upgrading.html#0-5-0-2026-11-03)
+### Unreleased[#](https://squire.apps.wayne.edu/docs/upgrading.html#unreleased)
 
 #### Breaking[#](https://squire.apps.wayne.edu/docs/upgrading.html#breaking)
 
-None: the CHANGELOG records no breaking change for 0.5.0.
+None: the CHANGELOG records no breaking change for the unreleased fixes.
 
 #### What changed[#](https://squire.apps.wayne.edu/docs/upgrading.html#what-changed)
+
+**Fixed.** `squire update` writes the template files a newer release added to a group the kit records: a file the target release has that `.squire.json` does not list is written from the template, recorded, and printed as added, so one `update` converges the kit instead of leaving the new files to `squire init`. A file the app already has is still left alone, and an edited file is still refused and shown as a diff. `squire init` without `--only` defaults to the groups the `.squire.json` records instead of `release,parity`, so a bare `init` completes an existing kit without dropping its groups; with no manifest it still writes `release,parity`, and `--only` still wins.
+
+#### Steps[#](https://squire.apps.wayne.edu/docs/upgrading.html#steps)
+
+1. Update the `waynestate/squire` dev dependency to the next release.
+2. Run `vendor/bin/squire update`: it takes the new template versions for the files you never edited, writes the files the release added, and shows a diff for the ones you did.
+3. Stack repos: regenerate the `deploy/` folder with `squire init` and check it with `squire init --check`. Sourdough: refresh its generated copy with `php bin/export-templates.php --to=templates/squire` and verify it with `--check`.
+
+#### How to verify[#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify)
+
+Run `squire init --check` and `squire update --dry-run` (the two checks at the top of this page); both exit `0` once the kit is at the new release.
+
+### 0.5.0 (2026-11-03)[#](https://squire.apps.wayne.edu/docs/upgrading.html#0-5-0-2026-11-03)
+
+#### Breaking[#](https://squire.apps.wayne.edu/docs/upgrading.html#breaking-1)
+
+None: the CHANGELOG records no breaking change for 0.5.0.
+
+#### What changed[#](https://squire.apps.wayne.edu/docs/upgrading.html#what-changed-1)
 
 **New.** An ADVISOR module (`waynestate/advisor`) with `squire_doctor` and `squire_drift`, so a coding agent that runs ADVISOR can run Squire's checks without leaving its sandbox (see [ADVISOR](https://squire.apps.wayne.edu/docs/guides/advisor.html)). `squire doctor oracle` runs the Oracle connection check on demand, reading `ORACLE_*` settings from the environment and `.env`. CI publishes the multi-arch Oracle images to the project's container registry when a version is tagged. `scripts/contract-image.sh` runs `release.sh` inside the fallback image and asserts the smoke URL, `health.php` and the first-release log. `bin/docs-site.php`, the shared docs builder, with the kit's `docs.css` and `docs.js`; it turns `docs/` into a committed, WayneUI-styled `site/docs/` and fails CI when the pages are stale or a finding is present (see [The docs builder](https://squire.apps.wayne.edu/docs/guides/docs-builder.html)). The docs builder renders a Source link in the header and footer, with a Mirrors list beside it, from the optional `source` and `mirrors` keys in `docs/nav.json`; a source or mirror URL that is not https is a finding. The docs builder's generated blocks: `docs/docs.json` defines blocks that own marked regions in `docs/**/*.md`; the `json-table` type renders a Markdown table from a command's JSON output, the `symfony-commands` type runs `<run> list --format=json` and renders the command reference, and the `env` type scans the scan folders for prefixed environment variable names and renders them with describe meanings and defaults; `--check` reports a stale block instead of writing.
 
@@ -2450,23 +2474,23 @@ None: the CHANGELOG records no breaking change for 0.5.0.
 
 **Docs.** WSL 2 file-location advice and an engines and licenses note for local parity. The contract suite gap on GitLab and the real image is recorded as an open question. The docs name the real image path instead of placeholders.
 
-#### Steps[#](https://squire.apps.wayne.edu/docs/upgrading.html#steps)
+#### Steps[#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-1)
 
 1. Update the `waynestate/squire` dev dependency to 0.5.0 (it is on Packagist).
 2. Run `vendor/bin/squire update` to take the new template versions for the files you never edited; it shows a diff for the ones you did and never overwrites your edits.
 3. Stack repos: regenerate the `deploy/` folder with `squire init` and check it with `squire init --check`. Sourdough: refresh its generated copy with `php bin/export-templates.php --to=templates/squire` and verify it with `--check`.
 
-#### How to verify[#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify)
+#### How to verify[#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-1)
 
 Run `squire init --check` and `squire update --dry-run` (the two checks at the top of this page); both exit `0` once the kit is at 0.5.0. New in this version: `squire doctor oracle` answers from your terminal, and a coding agent that runs ADVISOR sees the `squire_doctor` and `squire_drift` tools.
 
 ### 0.4.0 (2026-11-01)[#](https://squire.apps.wayne.edu/docs/upgrading.html#0-4-0-2026-11-01)
 
-#### Breaking[#](https://squire.apps.wayne.edu/docs/upgrading.html#breaking-1)
+#### Breaking[#](https://squire.apps.wayne.edu/docs/upgrading.html#breaking-2)
 
 None: the CHANGELOG records no breaking change for 0.4.0.
 
-#### What changed[#](https://squire.apps.wayne.edu/docs/upgrading.html#what-changed-1)
+#### What changed[#](https://squire.apps.wayne.edu/docs/upgrading.html#what-changed-2)
 
 - `oracle-check.php`, a plain-language Oracle connection check (settings, host, port, driver, login), shipped in the kit's deploy scripts. `release.sh` runs it after PROCTOR and before the smoke test; it is a report, never a gate, and stays silent when the app has no `ORACLE_*` settings (see [Oracle](https://squire.apps.wayne.edu/docs/guides/oracle.html)).
 - Opt-in Oracle-ready Docker images, a Laravel Sail flavor (`squire/oracle-sail`) and a parity flavor (`squire/oracle-parity`), with `scripts/oracle-image-build.sh` and `scripts/oracle-image-test.sh`. Oracle Instant Client 21.7 on amd64 and 19.32 on arm64 is downloaded at build time and checksum-pinned; nothing from Oracle is committed.
@@ -2474,23 +2498,23 @@ None: the CHANGELOG records no breaking change for 0.4.0.
 - The readme art check allows the word Citadel.
 - The deploy layer's Squire kit is refreshed to 0.3.4 (the local `.env.squire` file is now git-ignored).
 
-#### Steps[#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-1)
+#### Steps[#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-2)
 
 1. Update the `waynestate/squire` dev dependency to 0.4.0.
-2. Run `vendor/bin/squire update` to take the new templates, including `oracle-check.php` and the updated build and release scripts.
+2. Run `vendor/bin/squire update` to take the updated build and release scripts, then `vendor/bin/squire init` to write `oracle-check.php` (this release's `update` refreshed only the files the kit already recorded; `update` writes new files from the next release on).
 3. Apps that talk to Oracle: optionally build the Oracle-ready images with `scripts/oracle-image-build.sh` (flavors `sail` and `parity`).
 
-#### How to verify[#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-1)
+#### How to verify[#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-2)
 
 Run `squire init --check` and `squire update --dry-run`. Once the kit is at 0.4.0, the app has `oracle-check.php`, and a release log shows the Oracle check after PROCTOR and before the smoke test, printing nothing when the app has no `ORACLE_*` settings.
 
 ### 0.3.x (0.3.0 to 0.3.4)[#](https://squire.apps.wayne.edu/docs/upgrading.html#0-3-x-0-3-0-to-0-3-4)
 
-#### Breaking[#](https://squire.apps.wayne.edu/docs/upgrading.html#breaking-2)
+#### Breaking[#](https://squire.apps.wayne.edu/docs/upgrading.html#breaking-3)
 
 None: the CHANGELOG records no breaking change in the 0.3.x line.
 
-#### What changed[#](https://squire.apps.wayne.edu/docs/upgrading.html#what-changed-2)
+#### What changed[#](https://squire.apps.wayne.edu/docs/upgrading.html#what-changed-3)
 
 - **0.3.4 (2026-10-29).** `squire init` now adds `.env` and `.env.squire` to the target `.gitignore`, so the local deploy secrets file is never committed. The deploy layer's Squire kit is refreshed to 0.3.3 (release options can now live in `./.env.squire`).
 - **0.3.3 (2026-10-29).** `release.sh` reads release options from `./.env.squire` (parsed, never sourced; allow-listed keys; the environment wins), so they can be set on Citadel. The docs say app settings go in a `./.env` configuration file, and the `.env.squire` template says to add it as a Citadel configuration file; Citadel has no dashboard environment field.
@@ -2498,14 +2522,14 @@ None: the CHANGELOG records no breaking change in the 0.3.x line.
 - **0.3.1 (2026-10-29).** README, site and open questions match 0.3.0 (Sourdough requires Squire, the policy default, the Preflight pin, the static target). The agent-ready tool's messages write Squire as a word, and the static template's `SQUIRE_STATIC_ROOT` comment matches the code. `bin/agent-ready.php` is clean under Pint's laravel preset (CI checks it), and the README says how consumers keep the kit out of Composer downloads.
 - **0.3.0 (2026-10-29).** The raw target ships a front controller.
 
-#### Steps[#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-2)
+#### Steps[#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-3)
 
 1. Update the `waynestate/squire` dev dependency to 0.3.4, the latest of the line.
 2. Run `vendor/bin/squire update` to take the new template versions for the files you never edited.
 3. If your app predates the line, run `vendor/bin/squire init` so the new template files land (for example the raw target's front controller from 0.3.0); `init` never overwrites a file you edited.
 4. On Citadel, set the release options in the app's `./.env.squire` configuration file, which `release.sh` reads from 0.3.3 on.
 
-#### How to verify[#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-2)
+#### How to verify[#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-3)
 
 Run `squire init --check` and `squire update --dry-run`. Check the version-specific results: 0.3.4 appends `.env` and `.env.squire` to the target `.gitignore` when they are missing; 0.3.3 reads release options from `./.env.squire`; 0.3.0 gives a raw PHP app the front controller `public/index.php`.
 
