@@ -19,15 +19,38 @@ include:
       proctor_command: vendor/bin/proctor check --policy=vendor/waynestate/creed/policy/policy.json --format=codequality
       image: "${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/php:8.4-cli-trixie@sha256:9cf851bc2c1b37c3e59dfd677a3c3e56d485af5a47c93f629424bb039eafcb69"
 
+# Dependency caching: images already come through the Dependency Proxy, and
+# every job that installs packages extends a cache keyed on its lock files,
+# so a pipeline downloads only what changed instead of everything, every run.
+variables:
+  COMPOSER_CACHE_DIR: "$CI_PROJECT_DIR/.cache/composer"
+  npm_config_cache: "$CI_PROJECT_DIR/.cache/npm"
+
+.composer-cache:
+  cache:
+    key:
+      files: [composer.lock, deploy/composer.lock]
+      prefix: composer
+    paths: [.cache/composer/]
+
+.npm-cache:
+  cache:
+    key:
+      files: [package-lock.json]
+      prefix: npm
+    paths: [.cache/npm/]
+
 # WayneUI strict copies: PROCTOR runs on the project root so it sees site/assets/wayne-ui/.
 # The setting extra.proctor."wayneui.copies" = "fail" in composer.json makes a stale copy fail.
 wayneui-copies:
+  extends: .composer-cache
   image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/composer:2.10.3
   script:
     - composer install --working-dir=deploy --no-interaction --no-progress --prefer-dist
     - deploy/vendor/bin/proctor check --path=. --policy=deploy/vendor/waynestate/creed/policy/policy.json
 
 composer-ci:
+  extends: .composer-cache
   image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/composer:2.10.3
   script:
     - composer install --no-interaction --no-progress --prefer-dist
@@ -56,6 +79,7 @@ psscriptanalyzer:
 # and package-lock.json. The lockfile is export-ignored like the tests, so the published package stays PHP-only.
 # Pinned to the manifest list digest: the image is multi-arch (linux/amd64, linux/arm/v7, linux/arm64).
 js-tests:
+  extends: .npm-cache
   image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/node:22-alpine@sha256:fe4f6d74e20370acb04ad889077d14d0f64a9c8ea6a42bc60cddf1e844699914
   script:
     - npm ci

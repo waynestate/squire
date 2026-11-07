@@ -43,6 +43,9 @@
 <p>All notable changes to Squire are recorded here. The format follows Keep a Changelog; the project follows Semantic
 Versioning once 1.0 is out.</p>
 <h2 id="unreleased">Unreleased<a class="docs-heading-link" aria-label="Link to this section" href="#unreleased">#</a></h2>
+<ul>
+<li>Changed: CI caches Composer and npm downloads per lock file (<code>.composer-cache</code>, keyed on <code>composer.lock</code> and <code>deploy/composer.lock</code>, and <code>.npm-cache</code>), so a pipeline stops fetching every package from Packagist and npm on every run. Images already come through the Dependency Proxy.</li>
+</ul>
 <h2 id="0-6-0-2026-11-07">0.6.0 (2026-11-07)<a class="docs-heading-link" aria-label="Link to this section" href="#0-6-0-2026-11-07">#</a></h2>
 <ul>
 <li>
