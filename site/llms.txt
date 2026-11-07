@@ -47,7 +47,7 @@ Every page below is Markdown. The HTML pages send the same Markdown to a client 
 - [Files Squire writes | Squire docs](https://squire.apps.wayne.edu/docs/reference/files.md): The table of files Squire writes into an app, which target or layer each belongs to, and the .gitignore lines init keeps.
 - [Proof | Squire docs](https://squire.apps.wayne.edu/docs/reference/proof.md): Squire run against 82 Wayne State applications on 2026-11-05: what ran, what held, what it caught in Squire itself, what it does not prove, and how to run the same on your app.
 - [Troubleshooting | Squire docs](https://squire.apps.wayne.edu/docs/troubleshooting.md): Symptoms, causes and fixes for the Squire setup, from permission errors to doctor exit codes.
-- [Upgrading | Squire docs](https://squire.apps.wayne.edu/docs/upgrading.md): What changed in each released minor of Squire (0.5.0, 0.4.0 and the 0.3.x line), the steps to move an app to it, and how to verify the upgrade held.
+- [Upgrading | Squire docs](https://squire.apps.wayne.edu/docs/upgrading.md): What changed in the unreleased fixes and each released minor of Squire (0.5.0, 0.4.0 and the 0.3.x line), the steps to move an app to them, and how to verify the upgrade held.
 
 ## Prompts
 

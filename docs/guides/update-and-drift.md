@@ -17,9 +17,9 @@ This page explains how Squire tracks the files it writes (the `.squire.json` SHA
 
 ## `squire update`
 
-`squire update` takes the new template versions for the files you never edited, and shows a diff for the ones you did. It never overwrites your edits, and it runs the same in CI and on a laptop.
+`squire update` takes the new template versions for the files you never edited, writes the template files a newer release added to a group the kit records (recording them in `.squire.json`), and shows a diff for the ones you did. It never overwrites your edits, and it runs the same in CI and on a laptop.
 
-`update` reads the record: a file you never edited takes the new template, a file you edited is left alone and shown as a diff, and a file Squire did not write is never touched. A squire polishes the armor; the knight keeps the sword. `--dry-run` prints the plan and writes nothing.
+`update` reads the record: a file you never edited takes the new template, a file you edited is left alone and shown as a diff, a file a newer release added to a recorded group is written and recorded, and a file Squire did not write is never touched. A squire polishes the armor; the knight keeps the sword. `--dry-run` prints the plan and writes nothing.
 
 <!-- docs-test: skip needs a real project -->
 ```

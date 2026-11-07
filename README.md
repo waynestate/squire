@@ -64,7 +64,8 @@ The pages under `docs/` build into the committed site at `site/docs/`: rebuild w
   repository root (a `deploy/` layer, say), `init` also keeps the `.gitignore` honest: it appends `/vendor/`, `.env` and
   `.env.squire` when they are missing, never touches a line the app added, and leaves the repository root's `.gitignore`
   to the app.
-- `squire update` takes the new template versions for the files you never edited, and shows a diff for the ones you did.
+- `squire update` takes the new template versions for the files you never edited, writes the template files a newer
+  release added to a group the kit records (recording them in `.squire.json`), and shows a diff for the ones you did.
   It never overwrites your edits, and it runs the same in CI and on a laptop.
 - `squire doctor` checks an app against the best practices a machine can decide ([BEST_PRACTICES.md](BEST_PRACTICES.md)).
   The lock file, composer audit and MySQL 5.6 checks are owned by PROCTOR; `doctor` hands off to it (S50) instead of repeating them.
@@ -137,7 +138,8 @@ HTML, and caches the assets. The site folder is `../../site` by default (the app
 straight by Apache and never reaches the front controller.
 
 `update` reads that record: a file you never edited takes the new template, a file you edited is left alone and shown as a
-diff, and a file Squire did not write is never touched. A squire polishes the armor; the knight keeps the sword.
+diff, a file a newer release added to a recorded group is written and recorded, and a file Squire did not write is never
+touched. A squire polishes the armor; the knight keeps the sword.
 `--dry-run` prints the plan and writes nothing.
 
 ## What lands in your app
