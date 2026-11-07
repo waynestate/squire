@@ -59,11 +59,12 @@ final class ReleaseScriptCheck implements Check
                 : Finding::warn('S57', 'Set min-release-age (days) in .npmrc so a version published an hour ago is not installed.', '.npmrc');
         }
 
-        // S14: composer audit is owned by PROCTOR, so the release runs `proctor check` (vendor/bin/proctor check,
-        // proctor check, proctor.phar check, or the template's "$proctor_bin" check) instead of auditing itself.
-        $findings[] = preg_match('/proctor(\.phar|_bin)?["\']?\s+check\b/', $code) === 1
-            ? Finding::pass('S14', 'The release script runs `proctor check`, which runs composer audit and the other app checks.', $release)
-            : Finding::warn('S14', 'The release script does not run `proctor check`. PROCTOR runs `composer audit` and the other app checks; add it to the release.', $release);
+        // S14: composer audit is owned by PROCTOR, so the release runs `proctor gate` or `proctor check`
+        // (vendor/bin/proctor gate, proctor check, proctor.phar check, or the template's "$proctor_bin" check)
+        // instead of auditing itself.
+        $findings[] = preg_match('/proctor(\.phar|_bin)?["\']?\s+(check|gate)\b/', $code) === 1
+            ? Finding::pass('S14', 'The release script runs PROCTOR (`proctor gate` or `proctor check`), which runs composer audit and the other app checks.', $release)
+            : Finding::warn('S14', 'The release script does not run `proctor gate` or `proctor check`. PROCTOR runs `composer audit` and the other app checks; add it to the release.', $release);
 
         // S16 and S17 are Laravel rules.
         if ($project->isLaravel()) {

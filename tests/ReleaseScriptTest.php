@@ -50,9 +50,19 @@ final class ReleaseScriptTest extends SquireTestCase
             if [ "$1" = "pnpm" ] && [ "$2" = "run" ] && [ "$3" = "build" ]; then exit "${STUB_COREPACK_BUILD_EXIT:-0}"; fi
             exit 0
             SH);
+        // A PROCTOR with `gate` by default; STUB_PROCTOR_GATE=0 plays an older one that only has `check`. The gate
+        // writes its --record file the way the real one does, with the exit code inside so a test can tell runs apart.
         $this->stub('proctor', <<<'SH'
             #!/bin/sh
             echo "proctor $*" >> "$STUB_LOG"
+            if [ "$1" = "--version" ]; then echo "proctor 0.6.0"; exit 0; fi
+            if [ "$1" = "gate" ]; then
+            if [ "${STUB_PROCTOR_GATE:-1}" = "0" ]; then echo 'Command "gate" is not defined.' >&2; exit 2; fi
+            if [ "$2" = "--help" ]; then exit 0; fi
+            prev=""; record=""
+            for a in "$@"; do if [ "$prev" = "--record" ]; then record="$a"; fi; prev="$a"; done
+            if [ -n "$record" ]; then printf '{"tool":"proctor","command":"gate","exit":%s}\n' "${STUB_PROCTOR_EXIT:-0}" > "$record"; fi
+            fi
             exit "${STUB_PROCTOR_EXIT:-0}"
             SH);
     }
@@ -237,7 +247,7 @@ final class ReleaseScriptTest extends SquireTestCase
         self::assertSame(1, $strict['exit']);
     }
 
-    public function testProctorIsAReportAndNeverAGate(): void
+    public function testProctorGateIsAReportAndNeverStopsTheReleaseByDefault(): void
     {
         $app = $this->initializedApp();
         $result = $this->exec($app, 'scripts/release.sh', [
@@ -247,8 +257,10 @@ final class ReleaseScriptTest extends SquireTestCase
         ]);
 
         self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
-        self::assertStringContainsString('proctor reported failures (exit 1)', $result['stderr']);
-        self::assertContains('proctor check --path . --policy /policy.json', $this->calls());
+        self::assertStringContainsString('PROCTOR gate (report only, never stops the release)', $result['stdout']);
+        self::assertStringContainsString('proctor gate: no-go (exit 1); the release goes on', $result['stderr']);
+        self::assertContains('proctor gate --path . --policy /policy.json --record storage/squire/proctor-gate.json', $this->calls());
+        self::assertNotContains('proctor check --path . --policy /policy.json', $this->calls(), 'a PROCTOR with the gate is never asked for check');
 
         $broken = $this->exec($app, 'scripts/release.sh', [
             'SQUIRE_PROCTOR_BIN' => $this->stubs . '/proctor',
@@ -256,7 +268,92 @@ final class ReleaseScriptTest extends SquireTestCase
             'STUB_PROCTOR_EXIT' => '2',
         ]);
         self::assertSame(0, $broken['exit']);
-        self::assertStringContainsString('proctor itself failed (exit 2)', $broken['stderr']);
+        self::assertStringContainsString('proctor gate could not decide (exit 2); the release goes on', $broken['stderr']);
+    }
+
+    public function testTheVerdictIsRecordedAndTheNextReleaseUsesItAsTheBaseline(): void
+    {
+        $app = $this->initializedApp();
+        $env = ['SQUIRE_PROCTOR_BIN' => $this->stubs . '/proctor', 'SQUIRE_PROCTOR_POLICY' => '/policy.json'];
+
+        $first = $this->exec($app, 'scripts/release.sh', $env);
+        self::assertSame(0, $first['exit'], $first['stdout'] . $first['stderr']);
+        self::assertStringContainsString('no baseline yet: this is the first gated release, so every failure blocks', $first['stdout']);
+        self::assertStringContainsString('verdict recorded in storage/squire/proctor-gate.json', $first['stdout']);
+        self::assertStringContainsString('proctor gate: go', $first['stdout']);
+        self::assertFileExists($app . '/storage/squire/proctor-gate-baseline.json');
+        self::assertSame("*\n", file_get_contents($app . '/storage/squire/.gitignore'), 'the record folder never reaches git');
+
+        $second = $this->exec($app, 'scripts/release.sh', $env);
+        self::assertSame(0, $second['exit'], $second['stdout'] . $second['stderr']);
+        self::assertStringContainsString('baseline: storage/squire/proctor-gate-baseline.json', $second['stdout']);
+        self::assertContains(
+            'proctor gate --path . --policy /policy.json --record storage/squire/proctor-gate.json --baseline storage/squire/proctor-gate-baseline.json',
+            $this->calls(),
+        );
+    }
+
+    public function testOnlyAReleaseThatGoesOnMovesTheBaseline(): void
+    {
+        $app = $this->initializedApp();
+        $env = ['SQUIRE_PROCTOR_BIN' => $this->stubs . '/proctor', 'SQUIRE_PROCTOR_POLICY' => '/policy.json'];
+        $baseline = $app . '/storage/squire/proctor-gate-baseline.json';
+
+        self::assertSame(0, $this->exec($app, 'scripts/release.sh', $env)['exit']);
+        self::assertStringContainsString('"exit":0', (string) file_get_contents($baseline));
+
+        $stopped = $this->exec($app, 'scripts/release.sh', [...$env, 'SQUIRE_PROCTOR' => 'enforce', 'STUB_PROCTOR_EXIT' => '1']);
+        self::assertSame(1, $stopped['exit']);
+        self::assertStringContainsString('"exit":1', (string) file_get_contents($app . '/storage/squire/proctor-gate.json'), 'the no-go is recorded');
+        self::assertStringContainsString('"exit":0', (string) file_get_contents($baseline), 'a stopped release leaves the baseline alone');
+
+        $reported = $this->exec($app, 'scripts/release.sh', [...$env, 'STUB_PROCTOR_EXIT' => '1']);
+        self::assertSame(0, $reported['exit']);
+        self::assertStringContainsString('"exit":1', (string) file_get_contents($baseline), 'a reported no-go went live, so it is the new baseline');
+
+        $undecided = $this->exec($app, 'scripts/release.sh', [...$env, 'STUB_PROCTOR_EXIT' => '2']);
+        self::assertSame(0, $undecided['exit']);
+        self::assertStringContainsString('"exit":1', (string) file_get_contents($baseline), 'a gate that could not decide leaves the baseline alone');
+    }
+
+    public function testTheRecordFolderIsASetting(): void
+    {
+        $app = $this->initializedApp();
+        $result = $this->exec($app, 'scripts/release.sh', [
+            'SQUIRE_PROCTOR_BIN' => $this->stubs . '/proctor',
+            'SQUIRE_PROCTOR_RECORD_DIR' => 'var/gate',
+        ]);
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertFileExists($app . '/var/gate/proctor-gate.json');
+        self::assertFileExists($app . '/var/gate/proctor-gate-baseline.json');
+    }
+
+    public function testAnOlderProctorWithoutTheGateFallsBackToCheckWithAClearMessage(): void
+    {
+        $app = $this->initializedApp();
+        $result = $this->exec($app, 'scripts/release.sh', [
+            'SQUIRE_PROCTOR_BIN' => $this->stubs . '/proctor',
+            'SQUIRE_PROCTOR_POLICY' => '/policy.json',
+            'STUB_PROCTOR_GATE' => '0',
+            'STUB_PROCTOR_EXIT' => '1',
+        ]);
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertStringContainsString('this PROCTOR (proctor 0.6.0) has no `proctor gate`, so the release runs `proctor check` instead', $result['stderr']);
+        self::assertStringContainsString('Update waynestate/proctor to a release that has the gate', $result['stderr']);
+        self::assertContains('proctor check --path . --policy /policy.json', $this->calls());
+        self::assertStringContainsString('proctor reported failures (exit 1); the release goes on', $result['stderr']);
+        self::assertFileDoesNotExist($app . '/storage/squire/proctor-gate.json', 'check writes no gate verdict');
+
+        $enforced = $this->exec($app, 'scripts/release.sh', [
+            'SQUIRE_PROCTOR' => 'enforce',
+            'SQUIRE_PROCTOR_BIN' => $this->stubs . '/proctor',
+            'STUB_PROCTOR_GATE' => '0',
+            'STUB_PROCTOR_EXIT' => '1',
+        ]);
+        self::assertSame(1, $enforced['exit']);
+        self::assertStringContainsString('proctor reported failures (exit 1)', $enforced['stderr']);
     }
 
     public function testTheOracleCheckRunsAndNeverFailsTheRelease(): void
@@ -282,8 +379,8 @@ final class ReleaseScriptTest extends SquireTestCase
 
         self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
         self::assertSame(1, substr_count($result['stdout'], 'squire: CREED policy not installed; PROCTOR uses its own default policy'), 'the notice is printed exactly once');
-        self::assertContains('proctor check --path .', $this->calls());
-        self::assertNotContains('proctor check --path . --policy vendor/waynestate/creed/policy/policy.json', $this->calls());
+        self::assertContains('proctor gate --path . --record storage/squire/proctor-gate.json', $this->calls());
+        self::assertNotContains('proctor gate --path . --policy vendor/waynestate/creed/policy/policy.json --record storage/squire/proctor-gate.json', $this->calls());
     }
 
     public function testProctorPolicyDefaultsToThePolicyCreedShips(): void
@@ -293,7 +390,7 @@ final class ReleaseScriptTest extends SquireTestCase
         $result = $this->exec($app, 'scripts/release.sh', ['SQUIRE_PROCTOR_BIN' => $this->stubs . '/proctor']);
 
         self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
-        self::assertContains('proctor check --path . --policy vendor/waynestate/creed/policy/policy.json', $this->calls());
+        self::assertContains('proctor gate --path . --policy vendor/waynestate/creed/policy/policy.json --record storage/squire/proctor-gate.json', $this->calls());
     }
 
     public function testAnExplicitProctorPolicyBeatsTheDefault(): void
@@ -306,8 +403,8 @@ final class ReleaseScriptTest extends SquireTestCase
         ]);
 
         self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
-        self::assertContains('proctor check --path . --policy /explicit/policy.json', $this->calls());
-        self::assertNotContains('proctor check --path . --policy vendor/waynestate/creed/policy/policy.json', $this->calls());
+        self::assertContains('proctor gate --path . --policy /explicit/policy.json --record storage/squire/proctor-gate.json', $this->calls());
+        self::assertNotContains('proctor gate --path . --policy vendor/waynestate/creed/policy/policy.json --record storage/squire/proctor-gate.json', $this->calls());
     }
 
     public function testProctorEnforceStopsTheReleaseOnFailures(): void
@@ -321,10 +418,11 @@ final class ReleaseScriptTest extends SquireTestCase
         ]);
 
         self::assertSame(1, $result['exit']);
-        self::assertStringContainsString('PROCTOR check (enforced, stops the release)', $result['stdout']);
-        self::assertStringContainsString('proctor reported failures (exit 1)', $result['stderr']);
-        self::assertStringNotContainsString('smoke test the health endpoint', $result['stdout'], 'a failed enforced check stops before the smoke test');
-        self::assertContains('proctor check --path . --policy /policy.json', $this->calls());
+        self::assertStringContainsString('PROCTOR gate (enforced, a no-go stops the release)', $result['stdout']);
+        self::assertStringContainsString('proctor gate: no-go (exit 1). The release stops before the frontend build and the migrations', $result['stderr']);
+        self::assertStringNotContainsString('frontend install and build', $result['stdout'], 'an enforced no-go stops before the build');
+        self::assertStringNotContainsString('smoke test the health endpoint', $result['stdout'], 'an enforced no-go stops before the smoke test');
+        self::assertContains('proctor gate --path . --policy /policy.json --record storage/squire/proctor-gate.json', $this->calls());
     }
 
     public function testProctorEnforcePassesWhenTheCheckPasses(): void
@@ -337,7 +435,7 @@ final class ReleaseScriptTest extends SquireTestCase
         ]);
 
         self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
-        self::assertStringContainsString('proctor: pass', $result['stdout']);
+        self::assertStringContainsString('proctor gate: go', $result['stdout']);
     }
 
     public function testProctorEnforceStopsTheReleaseWhenProctorItselfFails(): void
@@ -350,7 +448,7 @@ final class ReleaseScriptTest extends SquireTestCase
         ]);
 
         self::assertSame(1, $result['exit']);
-        self::assertStringContainsString('proctor itself failed (exit 2)', $result['stderr']);
+        self::assertStringContainsString('proctor gate could not decide (exit 2)', $result['stderr']);
     }
 
     public function testProctorEnforceDoesNotFailWhenTheCreedPolicyIsMissing(): void
@@ -361,9 +459,9 @@ final class ReleaseScriptTest extends SquireTestCase
         ]);
 
         self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
-        self::assertStringContainsString('PROCTOR check (enforced, stops the release)', $result['stdout']);
+        self::assertStringContainsString('PROCTOR gate (enforced, a no-go stops the release)', $result['stdout']);
         self::assertSame(1, substr_count($result['stdout'], 'squire: CREED policy not installed; PROCTOR uses its own default policy'), 'the notice is printed exactly once');
-        self::assertContains('proctor check --path .', $this->calls());
+        self::assertContains('proctor gate --path . --record storage/squire/proctor-gate.json', $this->calls());
     }
 
     public function testProctorEnforceNeedsAnExecutableBin(): void
@@ -394,6 +492,9 @@ final class ReleaseScriptTest extends SquireTestCase
         self::assertIsInt($migrate);
         self::assertIsInt($optimize);
         self::assertLessThan($optimize, $migrate, 'migrate runs before the caches are built');
+        $gate = array_search('proctor gate --path . --record storage/squire/proctor-gate.json', $calls, true);
+        self::assertIsInt($gate, 'PROCTOR on PATH is found and asked for the gate');
+        self::assertLessThan($migrate, $gate, 'the gate decides before the migrations touch the database');
         $curl = array_values(array_filter($calls, static fn(string $c): bool => str_starts_with($c, 'curl ')));
         self::assertStringContainsString('http://127.0.0.1:80/up', $curl[0]);
         self::assertStringNotContainsString('up.php', $curl[0]);

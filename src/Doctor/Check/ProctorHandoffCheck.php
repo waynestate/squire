@@ -18,7 +18,7 @@ final class ProctorHandoffCheck implements Check
     public function run(Project $project): array
     {
         return $project->has('vendor/bin/proctor')
-            ? [Finding::info('S50', 'Run `vendor/bin/proctor check` for the lock file, composer audit and MySQL 5.6 checks.', 'vendor/bin/proctor')]
+            ? [Finding::info('S50', 'Run `vendor/bin/proctor check` for the lock file, composer audit and MySQL 5.6 checks; the release asks `proctor gate` for a go or no-go.', 'vendor/bin/proctor')]
             : [Finding::info('S50', 'PROCTOR is not installed. Get it with `composer require --dev waynestate/proctor` (or the PROCTOR phar), then run `proctor check` for the lock file, composer audit and MySQL 5.6 checks.')];
     }
 }

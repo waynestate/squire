@@ -150,6 +150,7 @@ final class DoctorTest extends SquireTestCase
             'vendor/bin/proctor check' => ["vendor/bin/proctor check || true\n"],
             'proctor check' => ["proctor check || true\n"],
             'proctor.phar check' => ["proctor.phar check || true\n"],
+            'vendor/bin/proctor gate' => ["vendor/bin/proctor gate --record storage/squire/proctor-gate.json || true\n"],
         ];
     }
 
@@ -171,7 +172,7 @@ final class DoctorTest extends SquireTestCase
         $s50 = array_values(array_filter($findings, static fn(Finding $f): bool => $f->rule === 'S50'));
         self::assertCount(1, $s50);
         self::assertSame(Finding::INFO, $s50[0]->status);
-        self::assertSame('Run `vendor/bin/proctor check` for the lock file, composer audit and MySQL 5.6 checks.', $s50[0]->message);
+        self::assertSame('Run `vendor/bin/proctor check` for the lock file, composer audit and MySQL 5.6 checks; the release asks `proctor gate` for a go or no-go.', $s50[0]->message);
     }
 
     public function testS50SaysHowToGetProctorWhenItIsMissing(): void
