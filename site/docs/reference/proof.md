@@ -12,6 +12,17 @@ This page says how Squire was proven on real Wayne State applications: what ran,
 
 A squire is judged on the field, not in the tent. So on 2026-11-05 Squire went out to every PHP application in the stack's shared proof corpus, the same set PROCTOR and Preflight are measured on.
 
+## Last run[#](https://squire.apps.wayne.edu/docs/reference/proof.html#last-run)
+
+The table below records the most recent time the checks on this page were run against Squire itself, so a reader can see when the page was last verified and what the run found.
+
+| Check | Date | Commit | Result | Duration |
+| --- | --- | --- | --- | --- |
+| `composer ci` | 2026-11-07 | 88fd2ec | pass: 404 tests, 2771 assertions, 0 phpstan errors, 0 advisories | 8m 14s |
+| Local parity rig (`parity.sh up --fallback`, shell twin under WSL 2 bash) | 2026-11-07 | 88fd2ec | pass: the release ran all eight steps in 6s and `/up.php` answered 200 with body `ok` through the proxy | 27s to healthy (images prebuilt on this machine) |
+
+To refresh this section, rerun `composer ci` and the local parity rig from [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html), then rewrite the table. The 82-app corpus run and the four real-app boots were not rerun: they need the shared proof corpus and the internal app repositories, which are not available on this machine, so the parity row uses the synthetic fixture that `squire init` writes, the same way CI does.
+
 ## What ran[#](https://squire.apps.wayne.edu/docs/reference/proof.html#what-ran)
 
 Squire 0.5.0 from `main`, plus the `init` notice described below, in `php:8.4-cli` with no network. The 82 applications are 64 raw PHP apps (33 with a `composer.json`, 31 without one), 17 Laravel apps from 5.8 to 13, and 1 Slim 2 app. Six libraries, one template and six test sites ran too and are counted on their own line.

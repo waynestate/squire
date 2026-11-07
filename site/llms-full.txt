@@ -978,6 +978,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ### Unreleased[#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+- Added: the Proof page records its last run: a dated table of the checks run against Squire itself (`composer ci` and the local parity rig) with their results and durations, so a reader can see when the page was last verified and how to refresh it.
 - Fixed: the docs builder turns an article image whose src leaves the site (an http:, https: or // address) into a text link, because the stack's CSPs block external images: inside an anchor the tag becomes its alt text (the last path segment of the src when the alt is empty) and the link stays, so a README badge reads as a link to its page, and a bare tag becomes a link to the image itself with rel="noopener"; relative, /-absolute and data: srcs are the site's own and stay put, for Markdown images and raw HTML `<img>` alike.
 - Fixed: images in a docs page sit in rows again instead of stacking one per line (WayneUI's reset makes every image a block): the kit's docs.css puts article images back in the line, centered on the text, while an image alone in its paragraph (or followed only by a `<sub>` credit) stays a block; a paragraph or block of only images or linked images (badge rows, a README cast row) wraps in balanced lines with even spacing and keeps align="center"; a list whose every item is one image or linked image becomes a wrapping row of 4rem tiles with no bullets; and linked tiles show an accent hairline on hover, the kit's focus ring on keyboard focus, and a 2px lift only without a reduced-motion request.
 - Fixed: the kit's docs.css and docs-site.php answer three findings the new axe-core gates raised on SESAME, HELMET and Booster: inline code in a table header cell now inherits the cell's own colors (color: inherit, background: none) so it keeps the header text's contrast in light and dark themes; every code block gets tabindex="0" from the builder, like the table wrappers, so a block that scrolls sideways on a narrow screen is keyboard reachable; and the level-3 "On this page" entries carry the docs-toc\_\_item base class as well as docs-toc\_\_item--sub so the kit's target-size rules reach them.
@@ -2165,6 +2166,17 @@ Source: https://squire.apps.wayne.edu/docs/reference/proof.html
 This page says how Squire was proven on real Wayne State applications: what ran, what held, what the run caught in Squire itself, and what it does not prove yet. Next, see [Doctor](https://squire.apps.wayne.edu/docs/guides/doctor.html) for the rules the run checked and [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html) for the setup the boots used.
 
 A squire is judged on the field, not in the tent. So on 2026-11-05 Squire went out to every PHP application in the stack's shared proof corpus, the same set PROCTOR and Preflight are measured on.
+
+### Last run[#](https://squire.apps.wayne.edu/docs/reference/proof.html#last-run)
+
+The table below records the most recent time the checks on this page were run against Squire itself, so a reader can see when the page was last verified and what the run found.
+
+| Check | Date | Commit | Result | Duration |
+| --- | --- | --- | --- | --- |
+| `composer ci` | 2026-11-07 | 88fd2ec | pass: 404 tests, 2771 assertions, 0 phpstan errors, 0 advisories | 8m 14s |
+| Local parity rig (`parity.sh up --fallback`, shell twin under WSL 2 bash) | 2026-11-07 | 88fd2ec | pass: the release ran all eight steps in 6s and `/up.php` answered 200 with body `ok` through the proxy | 27s to healthy (images prebuilt on this machine) |
+
+To refresh this section, rerun `composer ci` and the local parity rig from [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html), then rewrite the table. The 82-app corpus run and the four real-app boots were not rerun: they need the shared proof corpus and the internal app repositories, which are not available on this machine, so the parity row uses the synthetic fixture that `squire init` writes, the same way CI does.
 
 ### What ran[#](https://squire.apps.wayne.edu/docs/reference/proof.html#what-ran)
 
