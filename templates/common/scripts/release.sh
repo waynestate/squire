@@ -8,7 +8,7 @@
 #
 # Steps: preconditions, composer install from the lock file without dev packages, composer audit (report),
 # PROCTOR's deploy gate, frontend install and build, Laravel migrate and optimize, an Oracle connection check (report
-# only), and a smoke test of /up.
+# only), an opcache report, and a smoke test of /up.
 # PROCTOR runs `proctor gate` (or `proctor check` on a PROCTOR without the gate): a go or no-go for this commit,
 # ratcheted against the verdict of the last release that went on, so only a new failure blocks. The verdict is kept in
 # SQUIRE_PROCTOR_RECORD_DIR. By default a no-go is a report here, never a stop: a failing post-script cannot undo a
@@ -383,6 +383,24 @@ if [ -f oracle-check.php ]; then
 else
     note "skipped (no oracle-check.php in the app root; the app does not use Oracle)"
 fi
+
+step "check opcache (never fails the release)"
+# Apache keeps the PHP it compiled. With opcache.validate_timestamps=0 (the kit's production php.ini) it never looks at
+# the files again, so a release that changed them in place is not served until Apache restarts. Say so in the log.
+# shellcheck disable=SC2016  # the PHP program is single-quoted on purpose
+opcache_state="$(php -r 'if (!extension_loaded("Zend OPcache")) { echo "off"; } elseif (ini_get("opcache.validate_timestamps")) { echo "checks"; } else { echo "frozen"; }' 2>/dev/null || true)"
+case "$opcache_state" in
+    off) note "opcache is not loaded in this image" ;;
+    checks) note "opcache.validate_timestamps=1: the web server sees changed files by itself" ;;
+    frozen)
+        if [ "$SQUIRE_SMOKE" = "1" ]; then
+            warn "opcache.validate_timestamps=0: Apache keeps serving the PHP it compiled before this release until it restarts; restart it, or set SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS=1 where releases change files in place"
+        else
+            note "opcache.validate_timestamps=0: fine here, Apache starts after this hook and compiles this release"
+        fi
+        ;;
+    *) note "could not read the opcache settings" ;;
+esac
 
 step "smoke test the health endpoint"
 if [ "$SQUIRE_SMOKE" != "1" ]; then

@@ -85,6 +85,10 @@ RUN set -eux; \
     apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
     rm -rf /var/lib/apt/lists/*
 
+# opcache (SQUIRE-10): newer official images load it already and PHP 8.5 builds it in; enable it only when missing.
+# The settings are in .squire/php.ini, which the app image copies in.
+RUN php -m | grep -qx 'Zend OPcache' || docker-php-ext-enable opcache
+
 # Composer's runtime tooling, plus Composer itself (Citadel downloads it at first boot; locally it is copied from the
 # pinned Composer image so the container does not need the network to start).
 RUN apt-get update && apt-get install -y --no-install-recommends git openssh-client wget zip unzip curl \

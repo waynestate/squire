@@ -586,6 +586,9 @@ What the kit's images harden, and the switch for each, is on the docs page
 - **Apache** (the fallback base, `.squire/apache-hardening.conf`): `ServerTokens Prod`, `ServerSignature Off`,
   `TraceEnable Off`. It lives in the base, not the app image, so a run on the real Citadel image shows what that image
   really says.
+- **opcache** (`.squire/php.ini`): on for the web, `validate_timestamps` off, 128 MB, 20000 files. The parity compose
+  file turns `SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS` on for your bind mount, and the release script warns when a release
+  in place meets a frozen opcache.
 
 ## Oracle-ready images (local)
 
@@ -651,6 +654,9 @@ directory. Static `public/index.php`: `SQUIRE_STATIC_ROOT` (`../../site`).
 
 Health check (`health.php`): `SQUIRE_HEALTH_PATH`, `SQUIRE_HEALTH_PORT` (80), `SQUIRE_HEALTH_TIMEOUT` (5, at most 14, inside
 Citadel's 15), `SQUIRE_HEALTH_VENDOR` (`1` also requires `vendor/autoload.php`).
+
+PHP in the image (`.squire/php.ini`, read from the container's environment): `SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS` (`0`, and
+`1` in the parity compose file), `SQUIRE_OPCACHE_MEMORY` (`128`), `SQUIRE_OPCACHE_MAX_FILES` (`20000`).
 
 Local parity (`.env.squire`): `SQUIRE_PROJECT`, `SQUIRE_BASE_IMAGE`, `SQUIRE_PROXY_IMAGE`, `SQUIRE_MYSQL_IMAGE`,
 `SQUIRE_PUBLIC_DIR`, `SQUIRE_SERVER_NAME`, `SQUIRE_TZ`, `SQUIRE_ENVIRONMENT`, `SQUIRE_DEPLOYMENTS`, `SQUIRE_HTTP_PORT`,

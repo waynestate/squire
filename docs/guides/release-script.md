@@ -37,7 +37,8 @@ Safe to run twice: every step repeats with the same result (S10). Each step prin
 7. **laravel migrate** (Laravel only): `php artisan migrate --force` when `SQUIRE_MIGRATE=1`.
 8. **laravel optimize** (Laravel only): `php artisan optimize` when `SQUIRE_ARTISAN_OPTIMIZE=1`. After this the config is cached and `.env` is no longer read, so `env()` works only inside `config/` (S16).
 9. **check Oracle (never fails the release)**: runs `php oracle-check.php` when the file exists, and notes a skip when it does not (the app does not use Oracle).
-10. **smoke test the health endpoint**: skipped when `SQUIRE_SMOKE=0` (Apache is not running inside the first-release hook). Otherwise it requests `SQUIRE_SMOKE_URL` up to `SQUIRE_SMOKE_RETRIES` attempts (default 5), sleeping `SQUIRE_SMOKE_DELAY` seconds (default 2) between them, and fails unless the answer is HTTP 200.
+10. **check opcache (never fails the release)**: reports whether the web server sees changed files by itself. With `opcache.validate_timestamps=0` (the kit's production `php.ini`) Apache keeps serving the PHP it compiled before this release until it restarts, so after a release with Apache running this is a warning naming `SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS=1`; in the first-release hook, before Apache starts, it is a note. See [Image hardening](image-hardening.md).
+11. **smoke test the health endpoint**: skipped when `SQUIRE_SMOKE=0` (Apache is not running inside the first-release hook). Otherwise it requests `SQUIRE_SMOKE_URL` up to `SQUIRE_SMOKE_RETRIES` attempts (default 5), sleeping `SQUIRE_SMOKE_DELAY` seconds (default 2) between them, and fails unless the answer is HTTP 200.
 
 ## PROCTOR: the deploy gate
 

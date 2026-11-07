@@ -502,6 +502,45 @@ final class ReleaseScriptTest extends SquireTestCase
         self::assertDirectoryExists($app . '/bootstrap/cache');
     }
 
+    /** A php on PATH that answers the opcache probe with $state and hands everything else to the real PHP. */
+    private function stubOpcache(string $state): void
+    {
+        $this->stub('php', "#!/bin/sh\ncase \"\$*\" in *'Zend OPcache'*) printf '%s' '{$state}'; exit 0 ;; esac\nexec '" . PHP_BINARY . "' \"\$@\"");
+    }
+
+    public function testAFrozenOpcacheIsAWarningAfterAReleaseInPlaceAndNeverAFailure(): void
+    {
+        $this->stubOpcache('frozen');
+
+        $result = $this->exec($this->initializedApp(), 'scripts/release.sh');
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertStringContainsString('check opcache (never fails the release)', $result['stdout']);
+        self::assertStringContainsString('opcache.validate_timestamps=0: Apache keeps serving the PHP it compiled before this release', $result['stderr']);
+        self::assertStringContainsString('SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS=1', $result['stderr']);
+    }
+
+    public function testAFrozenOpcacheIsOnlyANoteInTheFirstReleaseHookBeforeApacheStarts(): void
+    {
+        $this->stubOpcache('frozen');
+
+        $result = $this->exec($this->initializedApp(), 'scripts/release.sh', ['SQUIRE_SMOKE' => '0']);
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertStringContainsString('fine here, Apache starts after this hook', $result['stdout']);
+        self::assertStringNotContainsString('opcache', $result['stderr']);
+    }
+
+    public function testAnOpcacheThatChecksFilesIsANote(): void
+    {
+        $this->stubOpcache('checks');
+
+        $result = $this->exec($this->initializedApp(), 'scripts/release.sh');
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertStringContainsString('opcache.validate_timestamps=1: the web server sees changed files by itself', $result['stdout']);
+    }
+
     public function testLaravelWithoutAnEnvFileStopsEarly(): void
     {
         $result = $this->exec($this->initializedApp(true), 'scripts/release.sh');

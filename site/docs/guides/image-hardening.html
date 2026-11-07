@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Image hardening | Squire docs</title>
-<meta name="description" content="What Squire&#039;s images and kit harden, and how to turn each piece down when an app needs it: Apache&#039;s banner and TRACE.">
+<meta name="description" content="What Squire&#039;s images and kit harden, and how to turn each piece down when an app needs it: Apache&#039;s banner and TRACE, and production opcache with a dev override.">
 <meta name="docs-version" content="0.5.0">
 <link rel="stylesheet" href="../../assets/wayne-ui/wayne-ui.css">
 <link rel="stylesheet" href="../../assets/docs.css">
@@ -66,11 +66,52 @@
 </tbody>
 </table></div>
 <p>These live in the base, never in the app image: locally the app image also runs on the real Citadel image, and hardening it there would show a parity the platform does not have.</p>
+<h2 id="opcache-production-settings-a-dev-override">opcache: production settings, a dev override<a class="docs-heading-link" aria-label="Link to this section" href="#opcache-production-settings-a-dev-override">#</a></h2>
+<p><code>.squire/php.ini</code> turns opcache on for the web (<code>opcache.enable = 1</code>, <code>opcache.enable_cli = 0</code>) with production values, and the fallback base loads the extension when its image does not already. A value written <code>${NAME:-default}</code> reads the container's environment (PHP 8.3 and later), so the same image serves production and a bind mount:</p>
+<div class="docs-table" role="region" aria-label="Table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Default</th>
+<th>Environment variable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>opcache.validate_timestamps</code></td>
+<td><code>0</code>: a compiled file is never checked again until Apache restarts</td>
+<td><code>SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS</code></td>
+</tr>
+<tr>
+<td><code>opcache.revalidate_freq</code></td>
+<td><code>0</code>: when checking is on, every request sees the newest file</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>opcache.memory_consumption</code></td>
+<td><code>128</code> (megabytes)</td>
+<td><code>SQUIRE_OPCACHE_MEMORY</code></td>
+</tr>
+<tr>
+<td><code>opcache.max_accelerated_files</code></td>
+<td><code>20000</code> (a Laravel app with its <code>vendor/</code> is 10000 to 15000 files)</td>
+<td><code>SQUIRE_OPCACHE_MAX_FILES</code></td>
+</tr>
+<tr>
+<td><code>opcache.interned_strings_buffer</code></td>
+<td><code>16</code></td>
+<td>none</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>The dev override.</strong> The parity compose file sets <code>SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS=1</code> for the app container, because your source is a bind mount you edit. Set it to <code>0</code> in <code>.env.squire</code> to see production behavior locally.</p>
+<p><strong>Releases in place.</strong> With <code>0</code>, Apache serves the PHP it compiled before a release until it restarts. That is right for an image that carries its code, or a platform that restarts Apache on a release. Where a release changes files in place (a Citadel Quick Update runs <code>scripts/release.sh</code> in the running container), either the platform restarts Apache or the container runs with <code>SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS=1</code>. The release script reports which it sees, in its &quot;check opcache&quot; step: a warning after a release with Apache running, a note in the first-release hook, never a failure.</p>
+<aside class="docs-callout docs-callout--note" role="note"><p class="docs-callout__label">Note</p><p>On Citadel the platform's own <code>php.ini</code> decides, not this file. Whether a Quick Update restarts Apache is the open Quick Update reset test; until it is answered, ask for <code>validate_timestamps</code> on, with <code>revalidate_freq</code> above 0, rather than off.</p></aside>
 </article>
     </main>
     <nav class="docs-pager" aria-label="Pages"><a class="docs-pager__link" href="../../docs/guides/local-parity.html"><span class="docs-pager__dir">Previous</span><span class="docs-pager__title">Local parity</span></a><a class="docs-pager__link docs-pager__link--next" href="../../docs/guides/oracle.html"><span class="docs-pager__dir">Next</span><span class="docs-pager__title">Oracle</span></a></nav>
   </div>
-  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item"><a href="#apache-a-quieter-banner-no-trace">Apache: a quieter banner, no TRACE</a></li></ul></nav>
+  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item"><a href="#apache-a-quieter-banner-no-trace">Apache: a quieter banner, no TRACE</a></li><li class="docs-toc__item"><a href="#opcache-production-settings-a-dev-override">opcache: production settings, a dev override</a></li></ul></nav>
 </div>
 <footer class="docs-footer">
   <span>Documents Squire <span data-docs-version>0.5.0</span></span>

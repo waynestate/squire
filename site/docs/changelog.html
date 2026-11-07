@@ -45,6 +45,9 @@ Versioning once 1.0 is out.</p>
 <h2 id="unreleased">Unreleased<a class="docs-heading-link" aria-label="Link to this section" href="#unreleased">#</a></h2>
 <ul>
 <li>
+<p>Added: production opcache in the kit's <code>php.ini</code> (SQUIRE-10): opcache on for the web and off for the CLI, <code>validate_timestamps</code> off, <code>revalidate_freq</code> 0, 128 MB, 20000 files and a 16 MB interned strings buffer, with <code>SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS</code>, <code>SQUIRE_OPCACHE_MEMORY</code> and <code>SQUIRE_OPCACHE_MAX_FILES</code> read from the container's environment. The parity compose files turn <code>SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS</code> on, because the source is a bind mount; the fallback base loads opcache when its image does not. The release script gains a &quot;check opcache&quot; step that never fails: after a release with Apache running, a frozen opcache is a warning (Apache serves the old PHP until it restarts), and in the first-release hook it is a note. Docs: Image hardening, The release script, Configuration reference.</p>
+</li>
+<li>
 <p>Added: the fallback base says less about itself (SQUIRE-9): the new parity file <code>.squire/apache-hardening.conf</code> sets <code>ServerTokens Prod</code>, <code>ServerSignature Off</code> and <code>TraceEnable Off</code>, and the base enables it as <code>zz-squire-hardening.conf</code>, after Debian's <code>security.conf</code> (which ships <code>ServerTokens OS</code> and <code>ServerSignature On</code>), so the <code>Server</code> header reads <code>Apache</code> and Apache's own error pages carry no version footer. The app image is unchanged, so a run on the real Citadel image still shows what that image says. New docs page: Guides, Image hardening.</p>
 </li>
 <li>

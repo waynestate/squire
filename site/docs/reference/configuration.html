@@ -235,6 +235,34 @@
 </tr>
 </tbody>
 </table></div>
+<h2 id="php-in-the-image-squire-php-ini">PHP in the image (<code>.squire/php.ini</code>)<a class="docs-heading-link" aria-label="Link to this section" href="#php-in-the-image-squire-php-ini">#</a></h2>
+<p>PHP reads these from the container's environment when it starts (PHP 8.3 and later). The parity compose file passes <code>SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS</code> from <code>.env.squire</code>; on Citadel the platform's own <code>php.ini</code> decides. See <a href="../guides/image-hardening.html">Image hardening</a>.</p>
+<div class="docs-table" role="region" aria-label="Table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS</code></td>
+<td><code>0</code> in the image, <code>1</code> in the parity compose file</td>
+<td><code>1</code> makes opcache notice changed files (a bind mount, a release in place); <code>0</code> never checks until Apache restarts.</td>
+</tr>
+<tr>
+<td><code>SQUIRE_OPCACHE_MEMORY</code></td>
+<td><code>128</code></td>
+<td>opcache memory, in megabytes.</td>
+</tr>
+<tr>
+<td><code>SQUIRE_OPCACHE_MAX_FILES</code></td>
+<td><code>20000</code></td>
+<td>How many scripts opcache keeps.</td>
+</tr>
+</tbody>
+</table></div>
 <h2 id="local-parity-env-squire">Local parity (<code>.env.squire</code>)<a class="docs-heading-link" aria-label="Link to this section" href="#local-parity-env-squire">#</a></h2>
 <div class="docs-table" role="region" aria-label="Table" tabindex="0"><table>
 <thead>
@@ -347,7 +375,7 @@
     </main>
     <nav class="docs-pager" aria-label="Pages"><a class="docs-pager__link" href="../../docs/reference/commands.html"><span class="docs-pager__dir">Previous</span><span class="docs-pager__title">Commands</span></a><a class="docs-pager__link docs-pager__link--next" href="../../docs/reference/files.html"><span class="docs-pager__dir">Next</span><span class="docs-pager__title">Files</span></a></nav>
   </div>
-  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item"><a href="#where-the-settings-live">Where the settings live</a></li><li class="docs-toc__item"><a href="#release-script-scripts-release-sh">Release script (scripts/release.sh)</a></li><li class="docs-toc__item"><a href="#front-controller">Front controller</a></li><li class="docs-toc__item"><a href="#health-check-health-php">Health check (health.php)</a></li><li class="docs-toc__item"><a href="#local-parity-env-squire">Local parity (.env.squire)</a></li></ul></nav>
+  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item"><a href="#where-the-settings-live">Where the settings live</a></li><li class="docs-toc__item"><a href="#release-script-scripts-release-sh">Release script (scripts/release.sh)</a></li><li class="docs-toc__item"><a href="#front-controller">Front controller</a></li><li class="docs-toc__item"><a href="#health-check-health-php">Health check (health.php)</a></li><li class="docs-toc__item"><a href="#php-in-the-image-squire-php-ini">PHP in the image (.squire/php.ini)</a></li><li class="docs-toc__item"><a href="#local-parity-env-squire">Local parity (.env.squire)</a></li></ul></nav>
 </div>
 <footer class="docs-footer">
   <span>Documents Squire <span data-docs-version>0.5.0</span></span>
