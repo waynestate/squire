@@ -27,6 +27,9 @@ Citadel runs the scripts as files, so git must record them as executable. Step 3
 `./.env.squire` is Squire's file: the release options for `scripts/release.sh`, and locally the parity settings. All of its values are optional. On Citadel, add `./.env.squire` as a configuration file (the configuration-files step after the wizard; the wizard has no environment field) and keep it out of git. `release.sh` reads the release options from it, and a variable already in the environment wins. Locally, the same file holds the parity settings. See `.env.squire.example` in the app; it holds placeholders only.
 
 > [!NOTE]
+> [!IMPORTANT]
+> Secrets (a database password, `APP_KEY`, an Oracle login) go in `./.env`, never in the repository, `build.sh` or a Dockerfile: the configuration-files step writes `./.env` into the source tree when the app deploys, so it never lands in an image layer. `build.sh` runs as root while the image builds, with no app source, so it must never fetch a secret either. See [Image hardening](image-hardening.md#secrets-files-at-run-time-never-in-a-layer).
+
 > Two files, two owners. `./.env` is yours and the app reads it; `./.env.squire` is Squire's and the release script and the parity kit read it. Neither belongs in git.
 
 ## Next

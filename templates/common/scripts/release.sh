@@ -38,6 +38,7 @@
 #   SQUIRE_SMOKE_URL=                full URL (default: http://127.0.0.1:80/up for Laravel, /up.php for raw PHP)
 #   SQUIRE_SMOKE_RETRIES=5           attempts
 #   SQUIRE_SMOKE_DELAY=2             seconds between attempts
+#   SQUIRE_SECRETS_DIR=/run/secrets  a folder of secret files; each file named like a variable becomes one (SQUIRE-18)
 #
 # A release script that is not idempotent is just a rehearsal that happens to ship.
 set -euo pipefail
@@ -72,6 +73,43 @@ on_error() {
 }
 trap 'on_error $? $LINENO' ERR
 
+# squire-secrets: begin
+# Secrets arrive as files at run time, never in an image layer (SQUIRE-18). Each regular file in SQUIRE_SECRETS_DIR
+# (default /run/secrets, where Docker, Compose and Kubernetes mount them) whose name is an environment variable name
+# becomes that variable, with one trailing line ending trimmed. A variable the environment already sets wins. Only names
+# are ever printed, never values. This block is the same in scripts/release.sh and the fallback entrypoint.
+squire_load_secrets() {
+    local dir="${SQUIRE_SECRETS_DIR:-/run/secrets}" file name value loaded=""
+    [ -d "$dir" ] || return 0
+    for file in "$dir"/*; do
+        [ -f "$file" ] || continue
+        name="${file##*/}"
+        case "$name" in
+            '' | [!A-Za-z_]* | *[!A-Za-z0-9_]*) continue ;;
+            PATH | HOME | IFS | ENV | BASH_ENV | SHELL | SHELLOPTS | PS4 | LD_* | SQUIRE_SECRETS_DIR) continue ;;
+        esac
+        # The name holds only letters, digits and underscores, so this eval only tests whether it is already set.
+        if eval "[ \"\${$name+set}\" = set ]"; then
+            continue
+        fi
+        if [ ! -r "$file" ]; then
+            printf '[squire] WARNING: secret %s in %s is not readable by this user; skipped\n' "$name" "$dir" >&2
+            continue
+        fi
+        value="$(cat "$file"; printf x)"
+        value="${value%x}"
+        value="${value%$'\n'}"
+        value="${value%$'\r'}"
+        export "$name=$value"
+        loaded="$loaded $name"
+    done
+    if [ -n "$loaded" ]; then
+        printf '[squire] secrets from %s:%s\n' "$dir" "$loaded" >&2
+    fi
+    return 0
+}
+# squire-secrets: end
+
 # --- settings file --------------------------------------------------------------------------------------------------
 
 # Citadel has no environment field, so release options reach this script as a configuration file it writes into the
@@ -91,7 +129,8 @@ squire_load_settings() {
             SQUIRE_FRAMEWORK | SQUIRE_ALLOW_ROOT | SQUIRE_REQUIRE_ENV | SQUIRE_WRITABLE_DIRS | \
                 SQUIRE_COMPOSER_AUDIT | SQUIRE_NPM | SQUIRE_NPM_IGNORE_SCRIPTS | SQUIRE_NPM_BUILD_SCRIPT | \
                 SQUIRE_MIGRATE | SQUIRE_ARTISAN_OPTIMIZE | SQUIRE_PROCTOR | SQUIRE_PROCTOR_BIN | \
-                SQUIRE_PROCTOR_POLICY | SQUIRE_PROCTOR_RECORD_DIR | SQUIRE_SMOKE | SQUIRE_SMOKE_URL | SQUIRE_SMOKE_RETRIES | SQUIRE_SMOKE_DELAY) ;;
+                SQUIRE_PROCTOR_POLICY | SQUIRE_PROCTOR_RECORD_DIR | SQUIRE_SMOKE | SQUIRE_SMOKE_URL | SQUIRE_SMOKE_RETRIES | SQUIRE_SMOKE_DELAY | \
+                SQUIRE_SECRETS_DIR) ;;
             *) continue ;;
         esac
         # The key is one of the names above, so this eval only tests whether that variable is already set.
@@ -112,6 +151,8 @@ if [ -z "$SQUIRE_APP_DIR" ]; then
 fi
 cd "$SQUIRE_APP_DIR"
 squire_load_settings ./.env.squire
+# su -l resets the environment the entrypoint built, so the release reads the mounted secrets itself (SQUIRE-18).
+squire_load_secrets
 
 : "${SQUIRE_FRAMEWORK:=auto}"
 : "${SQUIRE_ALLOW_ROOT:=0}"

@@ -1,6 +1,6 @@
 ---
 title: "Image hardening | Squire docs"
-description: "What Squire's images and kit harden, and how to turn each piece down when an app needs it: Apache's banner and TRACE, and production opcache with a dev override."
+description: "What Squire's images and kit harden, and how to turn each piece down when an app needs it: Apache's banner and TRACE, production opcache with a dev override, a web-only disable_functions list, and secrets as files at run time."
 url: https://squire.apps.wayne.edu/docs/guides/image-hardening.html
 llms: https://squire.apps.wayne.edu/llms.txt
 generator: Squire agent-ready
@@ -63,3 +63,35 @@ A web request should never shell out. `.squire/php-web.ini` holds the settings o
 Note
 
 Like opcache, this is the kit's request: on Citadel the platform's own `php.ini` decides. A local run is stricter than Citadel until the platform adopts the list, which is the safe direction: an app that works locally works there.
+
+## Secrets: files at run time, never in a layer[#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#secrets-files-at-run-time-never-in-a-layer)
+
+An image layer is readable by anyone who can pull the image, and `docker history` shows every build argument. So no secret is ever a build argument, an `ENV` line, a copied file, or something `build.sh` fetches. Tests hold the kit to it: the Dockerfiles carry no `ARG` or `ENV` named like a password, key, token or secret, the build context is `build.sh` and `.squire/` only (the `.dockerignore` starts with `*` and never lets an env file back in), and `build.sh` never reads `.env`.
+
+Secrets arrive when the container runs:
+
+| Where | How a secret arrives | Who reads it |
+| --- | --- | --- |
+| Citadel | the dashboard's configuration-files step writes `./.env` into the source tree at deploy time | the app (Laravel, or phpdotenv in a raw PHP app); see [Citadel setup](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html) |
+| Docker Compose | a `secrets:` entry, mounted as `/run/secrets/NAME` | the release script and the fallback entrypoint, below |
+| `docker run` | `-v "$PWD/secrets/DB_PASSWORD:/run/secrets/DB_PASSWORD:ro"` | the same |
+| OpenShift, Kubernetes | a Secret volume mounted at `/run/secrets` (each key is a file) | the same |
+
+**The secrets folder.** `scripts/release.sh` and the fallback base's entrypoint share one loader: each regular file in `SQUIRE_SECRETS_DIR` (default `/run/secrets`) whose name is a variable name becomes that variable, with one trailing line ending trimmed, unless the environment already sets it. Names that would change how the shell runs (`PATH`, `IFS`, `BASH_ENV`, `LD_*` and a few more) are skipped, and a file the user cannot read is a warning. The log names what it loaded and never prints a value. The entrypoint loads the folder before Apache starts, so the PHP it runs sees the variables through `getenv()`; the release loads it again, because `su -l citadel` starts it with a clean environment.
+
+Name the file after the variable the app reads. With Compose, set the file name with `target`:
+
+```yaml
+services:
+  app:
+    secrets:
+      - source: db_password
+        target: DB_PASSWORD
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
+```
+
+Note
+
+The real Citadel image's entrypoint does not read `/run/secrets`; on Citadel, `./.env` is the secret path. Keep `./.env` and any `secrets/` folder out of git.

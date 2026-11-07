@@ -592,6 +592,10 @@ What the kit's images harden, and the switch for each, is on the docs page
 - **disable_functions** (`.squire/php-web.ini`, the web only): `exec`, `passthru`, `shell_exec`, `system`, `pcntl_exec`,
   `phpinfo`, `show_source`, `highlight_file`. `proc_open` and `popen` stay for mail and Laravel's Process; the CLI
   (Composer scripts, artisan, the health check) keeps everything. `SQUIRE_PHP_DISABLE_FUNCTIONS=none` turns it off.
+- **Secrets** stay out of every image layer: on Citadel they are configuration files (`./.env`) written into the source
+  tree at deploy time; with Docker, Compose or OpenShift they are files mounted at `/run/secrets`, which the release
+  script and the fallback entrypoint turn into variables (`SQUIRE_SECRETS_DIR`). Tests keep secrets out of the
+  Dockerfiles, the build context and `build.sh`.
 
 ## Oracle-ready images (local)
 
@@ -651,6 +655,7 @@ Release script (`scripts/release.sh`):
 | `SQUIRE_SMOKE_URL` | `http://127.0.0.1:80/up` (Laravel), `/up.php` (raw and static) | Full URL. |
 | `SQUIRE_SMOKE_RETRIES` | `5` | Attempts. |
 | `SQUIRE_SMOKE_DELAY` | `2` | Seconds between attempts. |
+| `SQUIRE_SECRETS_DIR` | `/run/secrets` | A folder of secret files: each file named like a variable becomes that variable, unless the environment sets it. |
 
 Front controller (raw `public/index.php`): `SQUIRE_APP_ENTRY` (`app.php`), the app's entry, relative to the app
 directory. Static `public/index.php`: `SQUIRE_STATIC_ROOT` (`../../site`).

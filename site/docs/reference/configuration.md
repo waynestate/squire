@@ -48,6 +48,7 @@ All optional. On Citadel, add `./.env.squire` as a configuration file (the confi
 | `SQUIRE_SMOKE_URL` | `http://127.0.0.1:80/up` (Laravel), `/up.php` (raw and static) | Full URL. |
 | `SQUIRE_SMOKE_RETRIES` | `5` | Attempts. |
 | `SQUIRE_SMOKE_DELAY` | `2` | Seconds between attempts. |
+| `SQUIRE_SECRETS_DIR` | `/run/secrets` | A folder of secret files, read before the first step: each regular file named like a variable (`DB_PASSWORD`) becomes that variable, unless the environment already sets it. Only names are printed. The fallback entrypoint reads the same folder for Apache. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html). |
 
 ## Front controller[#](https://squire.apps.wayne.edu/docs/reference/configuration.html#front-controller)
 

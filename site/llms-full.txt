@@ -570,6 +570,10 @@ What the kit's images harden, and the switch for each, is on the docs page
 - **disable_functions** (`.squire/php-web.ini`, the web only): `exec`, `passthru`, `shell_exec`, `system`, `pcntl_exec`,
   `phpinfo`, `show_source`, `highlight_file`. `proc_open` and `popen` stay for mail and Laravel's Process; the CLI
   (Composer scripts, artisan, the health check) keeps everything. `SQUIRE_PHP_DISABLE_FUNCTIONS=none` turns it off.
+- **Secrets** stay out of every image layer: on Citadel they are configuration files (`./.env`) written into the source
+  tree at deploy time; with Docker, Compose or OpenShift they are files mounted at `/run/secrets`, which the release
+  script and the fallback entrypoint turn into variables (`SQUIRE_SECRETS_DIR`). Tests keep secrets out of the
+  Dockerfiles, the build context and `build.sh`.
 
 ### Oracle-ready images (local)
 
@@ -629,6 +633,7 @@ Release script (`scripts/release.sh`):
 | `SQUIRE_SMOKE_URL` | `http://127.0.0.1:80/up` (Laravel), `/up.php` (raw and static) | Full URL. |
 | `SQUIRE_SMOKE_RETRIES` | `5` | Attempts. |
 | `SQUIRE_SMOKE_DELAY` | `2` | Seconds between attempts. |
+| `SQUIRE_SECRETS_DIR` | `/run/secrets` | A folder of secret files: each file named like a variable becomes that variable, unless the environment sets it. |
 
 Front controller (raw `public/index.php`): `SQUIRE_APP_ENTRY` (`app.php`), the app's entry, relative to the app
 directory. Static `public/index.php`: `SQUIRE_STATIC_ROOT` (`../../site`).
@@ -1001,6 +1006,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ### Unreleased[#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+- Added: secrets as files at run time (SQUIRE-18): `scripts/release.sh` and the fallback entrypoint share one loader that turns each file in `SQUIRE_SECRETS_DIR` (default `/run/secrets`, where Docker, Compose and Kubernetes mount secrets) named like a variable into that variable, unless the environment already sets it; names that change how the shell runs are skipped, and only names are printed. The entrypoint loads them before Apache starts; the release loads them again after `su -l`. `SQUIRE_SECRETS_DIR` joins the settings-file allow list. Tests run the loader in bash, keep the two copies identical, and keep secrets out of the Dockerfiles, the build context and `build.sh`. Docs: Image hardening (Citadel, Compose, `docker run`, OpenShift), Citadel setup, The release script, Configuration reference.
 - Added: the web loses the shell (SQUIRE-29): the new parity file `.squire/php-web.ini` sets `disable_functions` to `exec`, `passthru`, `shell_exec`, `system`, `pcntl_exec`, `phpinfo`, `show_source` and `highlight_file`, and the app image appends it to `php.ini` as `php-apache2handler.ini`, the file mod_php reads, so the CLI (Composer scripts, artisan, the health check, the release script) keeps every function. `proc_open` and `popen` stay for Symfony Mailer, Laravel's Process and PHPMailer. `SQUIRE_PHP_DISABLE_FUNCTIONS` replaces the list and `none` disables nothing (an empty value means the default, because PHP's `${NAME:-default}` falls back for both); the parity compose files pass it through. `php.ini` no longer sets `disable_classes`, which PHP 8.5 removed. Tests run PHP on both files.
 - Added: production opcache in the kit's `php.ini` (SQUIRE-10): opcache on for the web and off for the CLI, `validate_timestamps` off, `revalidate_freq` 0, 128 MB, 20000 files and a 16 MB interned strings buffer, with `SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS`, `SQUIRE_OPCACHE_MEMORY` and `SQUIRE_OPCACHE_MAX_FILES` read from the container's environment. The parity compose files turn `SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS` on, because the source is a bind mount; the fallback base loads opcache when its image does not. The release script gains a "check opcache" step that never fails: after a release with Apache running, a frozen opcache is a warning (Apache serves the old PHP until it restarts), and in the first-release hook it is a note. Docs: Image hardening, The release script, Configuration reference.
 - Added: the fallback base says less about itself (SQUIRE-9): the new parity file `.squire/apache-hardening.conf` sets `ServerTokens Prod`, `ServerSignature Off` and `TraceEnable Off`, and the base enables it as `zz-squire-hardening.conf`, after Debian's `security.conf` (which ships `ServerTokens OS` and `ServerSignature On`), so the `Server` header reads `Apache` and Apache's own error pages carry no version footer. The app image is unchanged, so a run on the real Citadel image still shows what that image says. New docs page: Guides, Image hardening.
@@ -1335,7 +1341,9 @@ Citadel runs the scripts as files, so git must record them as executable. Step 3
 
 Note
 
-Two files, two owners. `./.env` is yours and the app reads it; `./.env.squire` is Squire's and the release script and the parity kit read it. Neither belongs in git.
+\[!IMPORTANT\] Secrets (a database password, `APP_KEY`, an Oracle login) go in `./.env`, never in the repository, `build.sh` or a Dockerfile: the configuration-files step writes `./.env` into the source tree when the app deploys, so it never lands in an image layer. `build.sh` runs as root while the image builds, with no app source, so it must never fetch a secret either. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#secrets-files-at-run-time-never-in-a-layer).
+
+> Two files, two owners. `./.env` is yours and the app reads it; `./.env.squire` is Squire's and the release script and the parity kit read it. Neither belongs in git.
 
 ### Next[#](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html#next)
 
@@ -1619,6 +1627,38 @@ Note
 
 Like opcache, this is the kit's request: on Citadel the platform's own `php.ini` decides. A local run is stricter than Citadel until the platform adopts the list, which is the safe direction: an app that works locally works there.
 
+### Secrets: files at run time, never in a layer[#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#secrets-files-at-run-time-never-in-a-layer)
+
+An image layer is readable by anyone who can pull the image, and `docker history` shows every build argument. So no secret is ever a build argument, an `ENV` line, a copied file, or something `build.sh` fetches. Tests hold the kit to it: the Dockerfiles carry no `ARG` or `ENV` named like a password, key, token or secret, the build context is `build.sh` and `.squire/` only (the `.dockerignore` starts with `*` and never lets an env file back in), and `build.sh` never reads `.env`.
+
+Secrets arrive when the container runs:
+
+| Where | How a secret arrives | Who reads it |
+| --- | --- | --- |
+| Citadel | the dashboard's configuration-files step writes `./.env` into the source tree at deploy time | the app (Laravel, or phpdotenv in a raw PHP app); see [Citadel setup](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html) |
+| Docker Compose | a `secrets:` entry, mounted as `/run/secrets/NAME` | the release script and the fallback entrypoint, below |
+| `docker run` | `-v "$PWD/secrets/DB_PASSWORD:/run/secrets/DB_PASSWORD:ro"` | the same |
+| OpenShift, Kubernetes | a Secret volume mounted at `/run/secrets` (each key is a file) | the same |
+
+**The secrets folder.** `scripts/release.sh` and the fallback base's entrypoint share one loader: each regular file in `SQUIRE_SECRETS_DIR` (default `/run/secrets`) whose name is a variable name becomes that variable, with one trailing line ending trimmed, unless the environment already sets it. Names that would change how the shell runs (`PATH`, `IFS`, `BASH_ENV`, `LD_*` and a few more) are skipped, and a file the user cannot read is a warning. The log names what it loaded and never prints a value. The entrypoint loads the folder before Apache starts, so the PHP it runs sees the variables through `getenv()`; the release loads it again, because `su -l citadel` starts it with a clean environment.
+
+Name the file after the variable the app reads. With Compose, set the file name with `target`:
+
+```yaml
+services:
+  app:
+    secrets:
+      - source: db_password
+        target: DB_PASSWORD
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
+```
+
+Note
+
+The real Citadel image's entrypoint does not read `/run/secrets`; on Citadel, `./.env` is the secret path. Keep `./.env` and any `secrets/` folder out of git.
+
 ---
 
 Source: https://squire.apps.wayne.edu/docs/guides/local-parity.html
@@ -1878,6 +1918,8 @@ The release asks PROCTOR's deploy gate, `proctor gate`, for a go or no-go on thi
 The release also runs an Oracle connection check (`oracle-check.php`) after the migrations and before the smoke test. It is a report, never a gate: a finding prints in the deployment log and the release goes on. When the app does not use Oracle (no `ORACLE_*` settings) it prints nothing. It checks, in order, that the settings are present, that the host resolves, that the port answers within 3 seconds, that the `oci8` driver is loaded, and that the login works, stopping at the first failure so a bad port never costs a login attempt. Settings: `ORACLE_USERNAME`, `ORACLE_PASSWORD`, and either `ORACLE_TNS` (Easy Connect `host:port/service`, or a full `(DESCRIPTION=...)` descriptor) or `ORACLE_HOST`, `ORACLE_PORT` and `ORACLE_SERVICE_NAME`. Only setting names are ever printed, never values.
 
 ### Configuration[#](https://squire.apps.wayne.edu/docs/guides/release-script.html#configuration)
+
+Before the first step the script reads two sources: `./.env.squire` (the release options) and the secrets folder, `SQUIRE_SECRETS_DIR` (default `/run/secrets`), where each file named like a variable becomes that variable unless the environment already sets it. Only names are printed. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#secrets-files-at-run-time-never-in-a-layer).
 
 Configuration is environment variables, all optional, or the same names in `./.env.squire` in the app root. On Citadel add that file as a configuration file (the configuration-files step after the wizard; the wizard has no environment field) and keep it out of git. A variable already in the environment wins over the file. See `.env.squire.example`.
 
@@ -2178,6 +2220,7 @@ All optional. On Citadel, add `./.env.squire` as a configuration file (the confi
 | `SQUIRE_SMOKE_URL` | `http://127.0.0.1:80/up` (Laravel), `/up.php` (raw and static) | Full URL. |
 | `SQUIRE_SMOKE_RETRIES` | `5` | Attempts. |
 | `SQUIRE_SMOKE_DELAY` | `2` | Seconds between attempts. |
+| `SQUIRE_SECRETS_DIR` | `/run/secrets` | A folder of secret files, read before the first step: each regular file named like a variable (`DB_PASSWORD`) becomes that variable, unless the environment already sets it. Only names are printed. The fallback entrypoint reads the same folder for Apache. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html). |
 
 ### Front controller[#](https://squire.apps.wayne.edu/docs/reference/configuration.html#front-controller)
 

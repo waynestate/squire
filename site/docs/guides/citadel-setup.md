@@ -31,7 +31,9 @@ Citadel runs the scripts as files, so git must record them as executable. Step 3
 
 Note
 
-Two files, two owners. `./.env` is yours and the app reads it; `./.env.squire` is Squire's and the release script and the parity kit read it. Neither belongs in git.
+\[!IMPORTANT\] Secrets (a database password, `APP_KEY`, an Oracle login) go in `./.env`, never in the repository, `build.sh` or a Dockerfile: the configuration-files step writes `./.env` into the source tree when the app deploys, so it never lands in an image layer. `build.sh` runs as root while the image builds, with no app source, so it must never fetch a secret either. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#secrets-files-at-run-time-never-in-a-layer).
+
+> Two files, two owners. `./.env` is yours and the app reads it; `./.env.squire` is Squire's and the release script and the parity kit read it. Neither belongs in git.
 
 ## Next[#](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html#next)
 

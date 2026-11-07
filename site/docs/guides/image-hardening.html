@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Image hardening | Squire docs</title>
-<meta name="description" content="What Squire&#039;s images and kit harden, and how to turn each piece down when an app needs it: Apache&#039;s banner and TRACE, and production opcache with a dev override.">
+<meta name="description" content="What Squire&#039;s images and kit harden, and how to turn each piece down when an app needs it: Apache&#039;s banner and TRACE, production opcache with a dev override, a web-only disable_functions list, and secrets as files at run time.">
 <meta name="docs-version" content="0.5.0">
 <link rel="stylesheet" href="../../assets/wayne-ui/wayne-ui.css">
 <link rel="stylesheet" href="../../assets/docs.css">
@@ -135,11 +135,57 @@
 <p><strong>The switch.</strong> <code>SQUIRE_PHP_DISABLE_FUNCTIONS</code> replaces the list, and <code>none</code> (a name no function has) disables nothing: the way out for an older app that calls <code>exec</code> from a page while you move that work to a queued job. An empty value is the same as unset, because PHP falls back to the default for both. Locally, put <code>SQUIRE_PHP_DISABLE_FUNCTIONS=none</code> in <code>.env.squire</code>.</p>
 <p><code>disable_classes</code> is not set. It never stopped a caller who could reach another class, and PHP 8.5 removed it.</p>
 <aside class="docs-callout docs-callout--note" role="note"><p class="docs-callout__label">Note</p><p>Like opcache, this is the kit's request: on Citadel the platform's own <code>php.ini</code> decides. A local run is stricter than Citadel until the platform adopts the list, which is the safe direction: an app that works locally works there.</p></aside>
+<h2 id="secrets-files-at-run-time-never-in-a-layer">Secrets: files at run time, never in a layer<a class="docs-heading-link" aria-label="Link to this section" href="#secrets-files-at-run-time-never-in-a-layer">#</a></h2>
+<p>An image layer is readable by anyone who can pull the image, and <code>docker history</code> shows every build argument. So no secret is ever a build argument, an <code>ENV</code> line, a copied file, or something <code>build.sh</code> fetches. Tests hold the kit to it: the Dockerfiles carry no <code>ARG</code> or <code>ENV</code> named like a password, key, token or secret, the build context is <code>build.sh</code> and <code>.squire/</code> only (the <code>.dockerignore</code> starts with <code>*</code> and never lets an env file back in), and <code>build.sh</code> never reads <code>.env</code>.</p>
+<p>Secrets arrive when the container runs:</p>
+<div class="docs-table" role="region" aria-label="Table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Where</th>
+<th>How a secret arrives</th>
+<th>Who reads it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Citadel</td>
+<td>the dashboard's configuration-files step writes <code>./.env</code> into the source tree at deploy time</td>
+<td>the app (Laravel, or phpdotenv in a raw PHP app); see <a href="citadel-setup.html">Citadel setup</a></td>
+</tr>
+<tr>
+<td>Docker Compose</td>
+<td>a <code>secrets:</code> entry, mounted as <code>/run/secrets/NAME</code></td>
+<td>the release script and the fallback entrypoint, below</td>
+</tr>
+<tr>
+<td><code>docker run</code></td>
+<td><code>-v &quot;$PWD/secrets/DB_PASSWORD:/run/secrets/DB_PASSWORD:ro&quot;</code></td>
+<td>the same</td>
+</tr>
+<tr>
+<td>OpenShift, Kubernetes</td>
+<td>a Secret volume mounted at <code>/run/secrets</code> (each key is a file)</td>
+<td>the same</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>The secrets folder.</strong> <code>scripts/release.sh</code> and the fallback base's entrypoint share one loader: each regular file in <code>SQUIRE_SECRETS_DIR</code> (default <code>/run/secrets</code>) whose name is a variable name becomes that variable, with one trailing line ending trimmed, unless the environment already sets it. Names that would change how the shell runs (<code>PATH</code>, <code>IFS</code>, <code>BASH_ENV</code>, <code>LD_*</code> and a few more) are skipped, and a file the user cannot read is a warning. The log names what it loaded and never prints a value. The entrypoint loads the folder before Apache starts, so the PHP it runs sees the variables through <code>getenv()</code>; the release loads it again, because <code>su -l citadel</code> starts it with a clean environment.</p>
+<p>Name the file after the variable the app reads. With Compose, set the file name with <code>target</code>:</p>
+<pre tabindex="0"><code class="language-yaml">services:
+  app:
+    secrets:
+      - source: db_password
+        target: DB_PASSWORD
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
+</code></pre>
+<aside class="docs-callout docs-callout--note" role="note"><p class="docs-callout__label">Note</p><p>The real Citadel image's entrypoint does not read <code>/run/secrets</code>; on Citadel, <code>./.env</code> is the secret path. Keep <code>./.env</code> and any <code>secrets/</code> folder out of git.</p></aside>
 </article>
     </main>
     <nav class="docs-pager" aria-label="Pages"><a class="docs-pager__link" href="../../docs/guides/local-parity.html"><span class="docs-pager__dir">Previous</span><span class="docs-pager__title">Local parity</span></a><a class="docs-pager__link docs-pager__link--next" href="../../docs/guides/oracle.html"><span class="docs-pager__dir">Next</span><span class="docs-pager__title">Oracle</span></a></nav>
   </div>
-  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item"><a href="#apache-a-quieter-banner-no-trace">Apache: a quieter banner, no TRACE</a></li><li class="docs-toc__item"><a href="#opcache-production-settings-a-dev-override">opcache: production settings, a dev override</a></li><li class="docs-toc__item"><a href="#disable-functions-the-web-loses-the-shell">disable_functions: the web loses the shell</a></li></ul></nav>
+  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item"><a href="#apache-a-quieter-banner-no-trace">Apache: a quieter banner, no TRACE</a></li><li class="docs-toc__item"><a href="#opcache-production-settings-a-dev-override">opcache: production settings, a dev override</a></li><li class="docs-toc__item"><a href="#disable-functions-the-web-loses-the-shell">disable_functions: the web loses the shell</a></li><li class="docs-toc__item"><a href="#secrets-files-at-run-time-never-in-a-layer">Secrets: files at run time, never in a layer</a></li></ul></nav>
 </div>
 <footer class="docs-footer">
   <span>Documents Squire <span data-docs-version>0.5.0</span></span>

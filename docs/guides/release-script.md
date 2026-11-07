@@ -57,6 +57,8 @@ The release also runs an Oracle connection check (`oracle-check.php`) after the 
 
 ## Configuration
 
+Before the first step the script reads two sources: `./.env.squire` (the release options) and the secrets folder, `SQUIRE_SECRETS_DIR` (default `/run/secrets`), where each file named like a variable becomes that variable unless the environment already sets it. Only names are printed. See [Image hardening](image-hardening.md#secrets-files-at-run-time-never-in-a-layer).
+
 Configuration is environment variables, all optional, or the same names in `./.env.squire` in the app root. On Citadel add that file as a configuration file (the configuration-files step after the wizard; the wizard has no environment field) and keep it out of git. A variable already in the environment wins over the file. See `.env.squire.example`.
 
 > [!WARNING]

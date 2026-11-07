@@ -179,6 +179,11 @@
 <td><code>2</code></td>
 <td>Seconds between attempts.</td>
 </tr>
+<tr>
+<td><code>SQUIRE_SECRETS_DIR</code></td>
+<td><code>/run/secrets</code></td>
+<td>A folder of secret files, read before the first step: each regular file named like a variable (<code>DB_PASSWORD</code>) becomes that variable, unless the environment already sets it. Only names are printed. The fallback entrypoint reads the same folder for Apache. See <a href="../guides/image-hardening.html">Image hardening</a>.</td>
+</tr>
 </tbody>
 </table></div>
 <h2 id="front-controller">Front controller<a class="docs-heading-link" aria-label="Link to this section" href="#front-controller">#</a></h2>
