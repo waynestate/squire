@@ -12,7 +12,8 @@ import assert from "node:assert/strict";
 import { FORBIDDEN } from "../forbidden.mjs";
 
 // The word Citadel, in the casings the site uses it, passes. Public WSU
-// addresses pass too: they are not internal hosts.
+// addresses pass too: they are not internal hosts. git.wayne.edu is the
+// canonical repository home since ADR-0021, so it passes as well.
 const PASSES = [
   "Citadel",
   "the Citadel",
@@ -23,6 +24,8 @@ const PASSES = [
   "https://squire.apps.wayne.edu/",
   "https://sourdough.apps.wayne.edu/",
   "https://weld.apps.wayne.edu/",
+  "https://git.wayne.edu/enterprise-apps/squire",
+  "git@git.wayne.edu:enterprise-apps/squire.git",
 ];
 
 // Internal tool names and hostname-shaped strings still fail.

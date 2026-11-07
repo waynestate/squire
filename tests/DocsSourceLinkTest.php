@@ -137,8 +137,10 @@ final class DocsSourceLinkTest extends SquireTestCase
 
     public function testNoRepoUrlIsHardCodedInTheBuilder(): void
     {
+        // git.wayne.edu is a public address since the canonical home moved there (ADR-0021), so the builder may
+        // be pointed at it through nav.json; what stays forbidden is a hard-coded host, whatever the instance.
         $source = (string) file_get_contents(self::generator());
-        foreach (['github.com', 'nougat', 'git.wayne.edu'] as $host) {
+        foreach (['github.com', 'nougat', 'snu.gs'] as $host) {
             self::assertStringNotContainsString($host, $source, "bin/docs-site.php must not name {$host}.");
         }
     }
