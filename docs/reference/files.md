@@ -22,6 +22,7 @@ What `squire init` writes into your app, which target or layer each file belongs
 | `.npmrc` | Sets `min-release-age=1` for the frontend install. | Vue layer only |
 | `docker-compose.squire.yml` | The common parity compose plus a Node 22 service for frontend tooling. | Vue layer only |
 | `docker-compose.squire.yml`, `.squire/`, `.env.squire.example`, `scripts/parity.sh`, `scripts/parity.ps1` | Local parity. | Local parity kit |
+| `.squire/apache-hardening.conf` | `ServerTokens Prod`, `ServerSignature Off` and `TraceEnable Off`, enabled by the fallback base. See [Image hardening](../guides/image-hardening.md). | Local parity kit |
 
 ## The .gitignore lines init keeps
 

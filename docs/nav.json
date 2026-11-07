@@ -38,6 +38,10 @@
                     "path": "guides/local-parity"
                 },
                 {
+                    "title": "Image hardening",
+                    "path": "guides/image-hardening"
+                },
+                {
                     "title": "Oracle",
                     "path": "guides/oracle"
                 },

@@ -55,6 +55,7 @@ final class Catalog
             new Template('.squire/Dockerfile', $parity),
             new Template('.squire/Dockerfile.dockerignore', $parity),
             new Template('.squire/base-fallback.Dockerfile', $parity),
+            new Template('.squire/apache-hardening.conf', $parity),
             new Template('.squire/fallback/citadel-apache-entrypoint', $parity, true),
             new Template('.squire/fallback/citadel-deploy', $parity, true),
             new Template('.squire/haproxy.cfg', $parity),

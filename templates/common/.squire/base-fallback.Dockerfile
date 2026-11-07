@@ -59,6 +59,11 @@ RUN { \
     } | tee "$APACHE_CONFDIR/conf-available/docker-php.conf" \
     && a2enconf docker-php
 
+# Apache says less about itself: ServerTokens Prod, ServerSignature Off, TraceEnable Off (SQUIRE-9). The zz- name loads
+# it after Debian's security.conf, so its values win.
+COPY apache-hardening.conf "$APACHE_CONFDIR/conf-available/zz-squire-hardening.conf"
+RUN a2enconf zz-squire-hardening
+
 # The extensions Citadel adds, minus oci8 and imagick.
 RUN set -eux; \
     savedAptMark="$(apt-mark showmanual)"; \

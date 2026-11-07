@@ -578,6 +578,15 @@ It is good for trying Squire out and not for proving parity. If the build step f
 `vendor/`, the source folder is not writable by the container's `citadel` user (uid 1000 by default); on Linux set
 `SQUIRE_SOURCE_UID` and `SQUIRE_SOURCE_GID` to yours.
 
+### Image hardening
+
+What the kit's images harden, and the switch for each, is on the docs page
+[Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html). In short:
+
+- **Apache** (the fallback base, `.squire/apache-hardening.conf`): `ServerTokens Prod`, `ServerSignature Off`,
+  `TraceEnable Off`. It lives in the base, not the app image, so a run on the real Citadel image shows what that image
+  really says.
+
 ## Oracle-ready images (local)
 
 Apps that talk to Oracle need the Instant Client and the `oci8` extension. Squire ships two opt-in Docker recipes
