@@ -77,6 +77,13 @@ host_path() {
 # Resolve the repository root from this script's location so the build works
 # no matter where it is invoked from.
 repo_root="$(cd "$(dirname "$0")/.." && pwd)"
+
+# The pinned base for this PHP line (SQUIRE-30): one row per line in images/oracle/php-images.txt.
+php_image="$(awk -v line="$php_line" '$1 == line { print $2 }' "$repo_root/images/oracle/php-images.txt")"
+if [ -z "$php_image" ]; then
+    echo "no pinned base for PHP ${php_line} in images/oracle/php-images.txt; add a row (see MAINTAINING.md)" >&2
+    exit 2
+fi
 platform_args=()
 if [ -n "$platform" ]; then
     platform_args=(--platform "$platform")
@@ -90,7 +97,7 @@ sail)
     trap 'rm -rf "$workdir"' EXIT
     echo "[squire] ==> step 1: fetch laravel/sail into a throwaway project"
     docker run --rm -v "$(host_path "$workdir"):/app" -w /app \
-        composer:2.10.3 require laravel/sail --no-interaction --quiet
+        composer:2.10.3@sha256:2cf275428757e5435a667bfc0d038b14520ca02be2b1b70d44a05c8c19e2de48 require laravel/sail --no-interaction --quiet
     echo "[squire] ==> step 2: build the Sail runtime (vendor/laravel/sail/runtimes/${php_line})"
     docker build "${platform_args[@]}" -t sail-base \
         "$(host_path "${workdir}/vendor/laravel/sail/runtimes/${php_line}")" \
@@ -104,7 +111,7 @@ parity)
     image="squire/oracle-parity:${php_line}"
     echo "[squire] ==> step 1: build ${image} from the official PHP image"
     docker build "${platform_args[@]}" -f images/oracle/parity.Dockerfile \
-        --build-arg PHP_LINE="${php_line}" -t "$image" "$(host_path "$repo_root")"
+        --build-arg PHP_IMAGE="${php_image}" -t "$image" "$(host_path "$repo_root")"
     ;;
 esac
 

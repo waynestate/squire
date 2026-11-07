@@ -102,4 +102,4 @@ PHP reads these from the container's environment when it starts (PHP 8.3 and lat
 | `SQUIRE_DB_PORT` | not stated | Local parity: the database port. |
 | `SQUIRE_DB_MEMORY` | not stated | Local parity: the database memory limit. |
 
-The Vue layer's compose file also reads `SQUIRE_NODE_IMAGE` (default `node:22-bookworm-slim`), `SQUIRE_NODE_ENV` (default `production`) and `SQUIRE_NODE_MEMORY` (default `512m`). The compose file refuses to start without the two passwords. See `.env.squire.example`; it holds placeholders only.
+The Vue layer's compose file also reads `SQUIRE_NODE_IMAGE` (default `node:22.23.4-bookworm-slim`, pinned by digest), `SQUIRE_NODE_ENV` (default `production`) and `SQUIRE_NODE_MEMORY` (default `512m`). The compose file refuses to start without the two passwords. See `.env.squire.example`; it holds placeholders only.

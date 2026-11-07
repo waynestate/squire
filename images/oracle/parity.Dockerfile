@@ -1,8 +1,8 @@
 # Squire's Oracle-ready parity image: a Citadel PHP app's extensions, plus
 # Oracle, for local work.
 #
-# Built from the official php:<line>-cli-bookworm base (the PHP line is a
-# build argument, 8.3 to 8.5), with the extensions Citadel apps use,
+# Built from the official php:<line>-cli-bookworm base (pinned per PHP line,
+# 8.3 to 8.5, in images/oracle/php-images.txt), with the extensions Citadel apps use,
 # Composer and git, then the shared Oracle Instant Client and oci8 install
 # (install-oracle.sh) on top. WELD's compose.oracle.yaml points its services
 # at this flavour; nothing here touches Citadel.
@@ -12,8 +12,10 @@
 # orchestrator can still override them at run time with --user or compose
 # `user:`. The image writes nothing outside /tmp and its bind mounts.
 
-ARG PHP_LINE=8.4
-FROM php:${PHP_LINE}-cli-bookworm
+# The base is pinned by its multi-arch list digest (SQUIRE-30). The build scripts pass the pin for the PHP line they
+# build from images/oracle/php-images.txt; the default here is that file's 8.4 row, so a plain docker build gets it.
+ARG PHP_IMAGE=php:8.4.27-cli-bookworm@sha256:b3e907a1108629c562c4bb313ce3449e34d49991f6bb2487913f6146f47200fe
+FROM ${PHP_IMAGE}
 
 # BuildKit's predefined argument: the architecture being built (amd64 or
 # arm64), which the install script uses to pick the client version.
@@ -34,7 +36,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends git \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=docker.io/library/composer:2.10.3 /usr/bin/composer /usr/local/bin/composer
+COPY --from=docker.io/library/composer:2.10.3@sha256:2cf275428757e5435a667bfc0d038b14520ca02be2b1b70d44a05c8c19e2de48 /usr/bin/composer /usr/local/bin/composer
 
 COPY images/oracle/install-oracle.sh /tmp/install-oracle.sh
 RUN sh /tmp/install-oracle.sh && rm -f /tmp/install-oracle.sh

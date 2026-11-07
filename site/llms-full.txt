@@ -650,7 +650,7 @@ Local parity (`.env.squire`): `SQUIRE_PROJECT`, `SQUIRE_BASE_IMAGE`, `SQUIRE_PRO
 `SQUIRE_PUBLIC_DIR`, `SQUIRE_SERVER_NAME`, `SQUIRE_TZ`, `SQUIRE_ENVIRONMENT`, `SQUIRE_DEPLOYMENTS`, `SQUIRE_HTTP_PORT`,
 `SQUIRE_APP_MEMORY`, `SQUIRE_SOURCE_UID`, `SQUIRE_SOURCE_GID`, `SQUIRE_DB_NAME`, `SQUIRE_DB_USER`, `SQUIRE_DB_PASSWORD`,
 `SQUIRE_DB_ROOT_PASSWORD`, `SQUIRE_DB_PORT`, `SQUIRE_DB_MEMORY`. The Vue layer's compose file also reads
-`SQUIRE_NODE_IMAGE` (default `node:22-bookworm-slim`), `SQUIRE_NODE_ENV` (default `production`) and `SQUIRE_NODE_MEMORY`
+`SQUIRE_NODE_IMAGE` (default `node:22.23.4-bookworm-slim`, pinned by digest), `SQUIRE_NODE_ENV` (default `production`) and `SQUIRE_NODE_MEMORY`
 (default `512m`). The compose file refuses to start without the two passwords. See `.env.squire.example`; it holds
 placeholders only.
 
@@ -1007,6 +1007,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ### Unreleased[#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+- Changed: every image the kit pulls is pinned by its multi-arch list digest (SQUIRE-30): the fallback base's `php:8.4.27-apache`, `node:22.23.4-trixie-slim` and `composer:2.10.3`, the Vue layer's Node service (`node:22.23.4-bookworm-slim`, was the moving `node:22-bookworm-slim`), the Oracle parity image's PHP base and Composer, and the Composer image the Oracle build scripts run. The parity bases move to `images/oracle/php-images.txt`, one pinned row per PHP line (8.3, 8.4, 8.5), which both Oracle build scripts read and pass as `PHP_IMAGE`; a line without a row is refused. A test fails on any unpinned reference. Bump procedure: Image hardening in the docs and MAINTAINING.md.
 - Added: an escape hatch for npm install scripts and a written release-age policy (SQUIRE-26): `SQUIRE_NPM_REBUILD` names the packages (space-separated, each checked against the shape of a package name) that run their own install scripts after `npm ci --ignore-scripts` (`npm rebuild --ignore-scripts=false`, or `pnpm rebuild`), so one native addon no longer means turning scripts back on for every package. The release logs the npm version and notes when that npm (older than 11.10) ignores `min-release-age`. The Vue layer's `.npmrc` keeps `min-release-age=1` and explains it, with the deliberate `--min-release-age=0` install for an urgent fix. Docs: Image hardening, The release script, Configuration reference.
 - Added: secrets as files at run time (SQUIRE-18): `scripts/release.sh` and the fallback entrypoint share one loader that turns each file in `SQUIRE_SECRETS_DIR` (default `/run/secrets`, where Docker, Compose and Kubernetes mount secrets) named like a variable into that variable, unless the environment already sets it; names that change how the shell runs are skipped, and only names are printed. The entrypoint loads them before Apache starts; the release loads them again after `su -l`. `SQUIRE_SECRETS_DIR` joins the settings-file allow list. Tests run the loader in bash, keep the two copies identical, and keep secrets out of the Dockerfiles, the build context and `build.sh`. Docs: Image hardening (Citadel, Compose, `docker run`, OpenShift), Citadel setup, The release script, Configuration reference.
 - Added: the web loses the shell (SQUIRE-29): the new parity file `.squire/php-web.ini` sets `disable_functions` to `exec`, `passthru`, `shell_exec`, `system`, `pcntl_exec`, `phpinfo`, `show_source` and `highlight_file`, and the app image appends it to `php.ini` as `php-apache2handler.ini`, the file mod_php reads, so the CLI (Composer scripts, artisan, the health check, the release script) keeps every function. `proc_open` and `popen` stay for Symfony Mailer, Laravel's Process and PHPMailer. `SQUIRE_PHP_DISABLE_FUNCTIONS` replaces the list and `none` disables nothing (an empty value means the default, because PHP's `${NAME:-default}` falls back for both); the parity compose files pass it through. `php.ini` no longer sets `disable_classes`, which PHP 8.5 removed. Tests run PHP on both files.
@@ -1674,6 +1675,18 @@ A package's install script runs with the release's rights, and a hijacked versio
 npm install --min-release-age=0 some-package@1.2.3
 ```
 
+### Base images: pinned by digest[#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#base-images-pinned-by-digest)
+
+A tag such as `php:8.4-apache` moves: two builds of the same commit a week apart can get different bytes. Every image the kit's files pull is pinned by the digest of its multi-arch list instead, `php:8.4.27-apache@sha256:...`, which names the same bytes on an arm64 laptop or CI runner and on an amd64 server: the fallback base's PHP, Node and Composer, the Vue layer's Node service, HA-Proxy and MySQL in the compose files, and the Oracle parity bases. A test fails on any reference without a digest.
+
+To bump one, read the new list's digest and check it lists both platforms, then replace the whole reference:
+
+```sh
+docker buildx imagetools inspect php:8.4.28-apache
+```
+
+Look for the `Digest:` line, and for `linux/amd64` and `linux/arm64/v8` under Manifests. Then run the tests and the image contract suite on both platforms. Maintainers have the full procedure in `MAINTAINING.md`. Two references are yours, not the kit's: the real Citadel image (`SQUIRE_BASE_IMAGE`, pin it once you have its digest) and any `SQUIRE_NODE_IMAGE`, `SQUIRE_PROXY_IMAGE` or `SQUIRE_MYSQL_IMAGE` override.
+
 ---
 
 Source: https://squire.apps.wayne.edu/docs/guides/local-parity.html
@@ -2289,7 +2302,7 @@ PHP reads these from the container's environment when it starts (PHP 8.3 and lat
 | `SQUIRE_DB_PORT` | not stated | Local parity: the database port. |
 | `SQUIRE_DB_MEMORY` | not stated | Local parity: the database memory limit. |
 
-The Vue layer's compose file also reads `SQUIRE_NODE_IMAGE` (default `node:22-bookworm-slim`), `SQUIRE_NODE_ENV` (default `production`) and `SQUIRE_NODE_MEMORY` (default `512m`). The compose file refuses to start without the two passwords. See `.env.squire.example`; it holds placeholders only.
+The Vue layer's compose file also reads `SQUIRE_NODE_IMAGE` (default `node:22.23.4-bookworm-slim`, pinned by digest), `SQUIRE_NODE_ENV` (default `production`) and `SQUIRE_NODE_MEMORY` (default `512m`). The compose file refuses to start without the two passwords. See `.env.squire.example`; it holds placeholders only.
 
 ---
 

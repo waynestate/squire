@@ -1,6 +1,6 @@
 ---
 title: "Image hardening | Squire docs"
-description: "What Squire's images and kit harden, and how to turn each piece down when an app needs it: Apache's banner and TRACE, production opcache with a dev override, a web-only disable_functions list, secrets as files at run time, and npm without install scripts."
+description: "What Squire's images and kit harden, and how to turn each piece down when an app needs it: Apache's banner and TRACE, production opcache with a dev override, a web-only disable_functions list, secrets as files at run time, npm without install scripts, and bases pinned by digest."
 url: https://squire.apps.wayne.edu/docs/guides/image-hardening.html
 llms: https://squire.apps.wayne.edu/llms.txt
 generator: Squire agent-ready
@@ -108,3 +108,15 @@ A package's install script runs with the release's rights, and a hijacked versio
 ```sh
 npm install --min-release-age=0 some-package@1.2.3
 ```
+
+## Base images: pinned by digest[#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#base-images-pinned-by-digest)
+
+A tag such as `php:8.4-apache` moves: two builds of the same commit a week apart can get different bytes. Every image the kit's files pull is pinned by the digest of its multi-arch list instead, `php:8.4.27-apache@sha256:...`, which names the same bytes on an arm64 laptop or CI runner and on an amd64 server: the fallback base's PHP, Node and Composer, the Vue layer's Node service, HA-Proxy and MySQL in the compose files, and the Oracle parity bases. A test fails on any reference without a digest.
+
+To bump one, read the new list's digest and check it lists both platforms, then replace the whole reference:
+
+```sh
+docker buildx imagetools inspect php:8.4.28-apache
+```
+
+Look for the `Digest:` line, and for `linux/amd64` and `linux/arm64/v8` under Manifests. Then run the tests and the image contract suite on both platforms. Maintainers have the full procedure in `MAINTAINING.md`. Two references are yours, not the kit's: the real Citadel image (`SQUIRE_BASE_IMAGE`, pin it once you have its digest) and any `SQUIRE_NODE_IMAGE`, `SQUIRE_PROXY_IMAGE` or `SQUIRE_MYSQL_IMAGE` override.

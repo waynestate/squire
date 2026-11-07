@@ -126,8 +126,8 @@ final class TemplateContentTest extends SquireTestCase
         $vue = $this->read('vue/docker-compose.squire.yml');
 
         self::assertStringNotContainsString('node:', $common);
-        self::assertStringContainsString('image: ${SQUIRE_NODE_IMAGE:-node:22-bookworm-slim}', $vue);
-        self::assertSame(1, substr_count($vue, 'node:22-bookworm-slim'), 'the Node image is pinned once, not repeated');
+        self::assertStringContainsString('image: ${SQUIRE_NODE_IMAGE:-node:22.23.4-bookworm-slim@sha256:5ec23b7c622b00547753bc6ffd78085dd868a68aeb41c8e0a1418f033e13d96d}', $vue);
+        self::assertSame(1, substr_count($vue, 'node:22.23.4-bookworm-slim'), 'the Node image is pinned once, not repeated');
     }
 
     public function testEnvExamplesHoldPlaceholdersOnly(): void

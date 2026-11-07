@@ -137,7 +137,7 @@ final class ExporterTest extends SquireTestCase
         self::assertStringContainsString('min-release-age=1', (string) file_get_contents($dir . '/vue/.npmrc'));
         self::assertFileDoesNotExist($dir . '/vue/scripts/release.sh');
         self::assertFileExists($dir . '/vue/docker-compose.squire.yml');
-        self::assertStringContainsString('image: ${SQUIRE_NODE_IMAGE:-node:22-bookworm-slim}', (string) file_get_contents($dir . '/vue/docker-compose.squire.yml'));
+        self::assertStringContainsString('image: ${SQUIRE_NODE_IMAGE:-node:22.23.4-bookworm-slim@sha256:5ec23b7c622b00547753bc6ffd78085dd868a68aeb41c8e0a1418f033e13d96d}', (string) file_get_contents($dir . '/vue/docker-compose.squire.yml'));
 
         $catalog = json_decode((string) file_get_contents($dir . '/catalog.json'), true);
         self::assertIsArray($catalog);
@@ -163,7 +163,7 @@ final class ExporterTest extends SquireTestCase
             $compose = (string) file_get_contents($dir . '/' . $kind . '/docker-compose.squire.yml');
 
             self::assertStringContainsString('step "frontend install and build"', $release, $kind);
-            self::assertStringNotContainsString('node:22-bookworm-slim', $compose, $kind);
+            self::assertStringNotContainsString('node:22.23.4-bookworm-slim', $compose, $kind);
         }
     }
 

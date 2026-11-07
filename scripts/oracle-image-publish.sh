@@ -96,6 +96,13 @@ command -v buildah >/dev/null 2>&1 || {
 }
 
 repo_root="$(cd "$(dirname "$0")/.." && pwd)"
+
+# The pinned base for this PHP line (SQUIRE-30): one row per line in images/oracle/php-images.txt.
+php_image="$(awk -v line="$php_line" '$1 == line { print $2 }' "$repo_root/images/oracle/php-images.txt")"
+if [ -z "$php_image" ]; then
+    echo "no pinned base for PHP ${php_line} in images/oracle/php-images.txt; add a row (see MAINTAINING.md)" >&2
+    exit 2
+fi
 workdir="$(mktemp -d)"
 
 cleanup() {
@@ -133,7 +140,7 @@ if [ "$flavour" = sail ]; then
     # the package into a throwaway working container the way
     # scripts/oracle-image-build.sh does with a throwaway Composer project.
     echo "[squire] ==> fetching laravel/sail into a throwaway container"
-    sail_ctr="$(buildah "${STORAGE[@]}" from docker://composer:2.10.3)"
+    sail_ctr="$(buildah "${STORAGE[@]}" from docker://composer:2.10.3@sha256:2cf275428757e5435a667bfc0d038b14520ca02be2b1b70d44a05c8c19e2de48)"
     buildah "${STORAGE[@]}" run --isolation=chroot --workingdir /app "$sail_ctr" \
         composer require laravel/sail --no-interaction --quiet
     sail_mp="$(buildah "${STORAGE[@]}" mount "$sail_ctr")"
@@ -166,7 +173,7 @@ for arch in amd64 arm64; do
     parity)
         run_bud "$workdir/oracle-parity-${arch}.log" \
             --platform "$platform" \
-            --build-arg "PHP_LINE=${php_line}" \
+            --build-arg "PHP_IMAGE=${php_image}" \
             -f "$repo_root/images/oracle/parity.Dockerfile" \
             -t "squire/oracle-parity:${php_line}-${arch}" \
             "$repo_root"

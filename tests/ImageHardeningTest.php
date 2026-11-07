@@ -236,4 +236,108 @@ final class ImageHardeningTest extends SquireTestCase
             self::assertStringContainsString('SQUIRE_PHP_DISABLE_FUNCTIONS: ${SQUIRE_PHP_DISABLE_FUNCTIONS:-}', $this->read($source), $source);
         }
     }
+
+    // --- SQUIRE-30: every base is pinned by its multi-arch list digest ----------------------------------------------
+
+    private const PINNED = '/@sha256:[0-9a-f]{64}$/';
+
+    /** Local build names, never pulled: the real Citadel image you build yourself, the app image, Sail's base. */
+    private const LOCAL = ['citadel/php-apache:8.4r5', 'sail-base'];
+
+    private function repoFile(string $path): string
+    {
+        return (string) file_get_contents(dirname(__DIR__) . '/' . $path);
+    }
+
+    /**
+     * Every image a file pulls: ARG *IMAGE defaults, FROM, COPY --from, compose image: and their ${VAR:-default}s,
+     * and the composer image the build scripts run. Stage names and ${ARG} references are not pulls.
+     *
+     * @return list<string>
+     */
+    private function pulledImages(string $text): array
+    {
+        $found = [];
+        preg_match_all('/^ARG\s+\w*IMAGE=(\S+)/m', $text, $m);
+        $found = [...$found, ...$m[1]];
+        preg_match_all('/^FROM\s+(\S+)/m', $text, $m);
+        $found = [...$found, ...$m[1]];
+        preg_match_all('/--from=(\S+)/', $text, $m);
+        $found = [...$found, ...array_filter($m[1], static fn(string $r): bool => str_contains($r, ':'))];
+        preg_match_all('/^\s*image:\s*(\S+)/m', $text, $m);
+        foreach ($m[1] as $ref) {
+            if (preg_match('/^\$\{\w+:-([^}]+)\}$/', $ref, $d) === 1) {
+                $found[] = $d[1];
+            } elseif (!str_starts_with($ref, '$') && !str_starts_with($ref, 'squire-local/')) {
+                $found[] = $ref;
+            }
+        }
+        preg_match_all('#(?:docker://|\s)(composer:[\w.]+\S*)#', $text, $m);
+        $found = [...$found, ...$m[1]];
+
+        return array_values(array_filter(
+            array_map(static fn(string $r): string => rtrim($r, ')"'), $found),
+            static fn(string $r): bool => !str_starts_with($r, '$') && !in_array($r, self::LOCAL, true),
+        ));
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function filesThatPullImages(): iterable
+    {
+        foreach ([
+            'templates/common/.squire/base-fallback.Dockerfile',
+            'templates/common/.squire/Dockerfile',
+            'templates/common/docker-compose.squire.yml',
+            'templates/vue/docker-compose.squire.yml',
+            'images/oracle/parity.Dockerfile',
+            'images/oracle/sail.Dockerfile',
+            'scripts/oracle-image-build.sh',
+            'scripts/oracle-image-publish.sh',
+        ] as $path) {
+            yield $path => [$path];
+        }
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('filesThatPullImages')]
+    public function testEveryImageAFilePullsIsPinnedByDigest(string $path): void
+    {
+        // A file that pulls only local names (the app image on ${BASE_IMAGE}, Sail on sail-base) has nothing to pin.
+        $this->addToAssertionCount(1);
+        foreach ($this->pulledImages($this->repoFile($path)) as $ref) {
+            self::assertMatchesRegularExpression(self::PINNED, $ref, $path . ': ' . $ref . ' moves under you without a digest');
+        }
+    }
+
+    public function testTheFallbackBasePinsPhpNodeAndComposer(): void
+    {
+        $images = $this->pulledImages($this->read('common/.squire/base-fallback.Dockerfile'));
+
+        foreach (['php:8.4.', 'node:22.', 'composer:2.'] as $prefix) {
+            self::assertNotEmpty(array_filter($images, static fn(string $r): bool => str_starts_with($r, $prefix)), $prefix . ' is pinned in the fallback base');
+        }
+    }
+
+    public function testTheOracleParityLinesArePinnedAndTheDefaultIsThe84Row(): void
+    {
+        $rows = [];
+        foreach (explode("\n", $this->repoFile('images/oracle/php-images.txt')) as $line) {
+            if (preg_match('/^(\d+\.\d+)\s+(\S+)$/', trim($line), $m) === 1) {
+                $rows[$m[1]] = $m[2];
+            }
+        }
+
+        self::assertSame(['8.3', '8.4', '8.5'], array_keys($rows));
+        foreach ($rows as $line => $image) {
+            self::assertStringStartsWith('php:' . $line . '.', $image);
+            self::assertStringContainsString('-cli-bookworm@', $image, 'the parity image is built on the CLI bookworm base');
+            self::assertMatchesRegularExpression(self::PINNED, $image);
+        }
+        self::assertStringContainsString('ARG PHP_IMAGE=' . $rows['8.4'] . "\n", $this->repoFile('images/oracle/parity.Dockerfile'));
+        foreach (['scripts/oracle-image-build.sh', 'scripts/oracle-image-publish.sh'] as $script) {
+            $text = $this->repoFile($script);
+            self::assertStringContainsString('images/oracle/php-images.txt', $text, $script . ' reads the pins');
+            self::assertStringContainsString('PHP_IMAGE=', $text, $script . ' passes the pin');
+            self::assertStringNotContainsString('PHP_LINE=', $text, $script . ' no longer builds from a moving tag');
+        }
+    }
 }
