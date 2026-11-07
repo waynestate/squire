@@ -5,16 +5,18 @@
 # with --storage-driver=vfs --isolation=chroot, builds both platforms
 # (linux/amd64 and linux/arm64) from the same Dockerfiles and build args that
 # scripts/oracle-image-build.sh uses, assembles a manifest list, and pushes it to
-# the project's container registry as <registry image>/oracle-<flavour>:<php>-<tag>
-# (immutable) and <registry image>/oracle-<flavour>:<php> (floating). Usage:
+# the group's images project as <registry image>-oracle-<flavour>:<php>-<tag>
+# (immutable) and <registry image>-oracle-<flavour>:<php> (floating). Usage:
 #
 #   scripts/oracle-image-publish.sh --flavour sail|parity --php 8.4 \
 #       --tag 0.4.1 --registry-image <path> [--dry-run]
 #
-# In CI, --registry-image is "$CI_REGISTRY_IMAGE"; when $CI_JOB_TOKEN and
-# $CI_REGISTRY_USER are set, the script logs in with them before pushing.
+# In CI, --registry-image is the images project path inside the destination
+# registry; before pushing, the script logs in to that registry's host with
+# $NOUGAT_REGISTRY_USER and $NOUGAT_REGISTRY_TOKEN (the token over stdin, never
+# on the command line).
 # --dry-run builds everything and prints what would be pushed, without logging
-# in or pushing anything.
+# in or pushing anything, so it needs no registry variables.
 
 set -euo pipefail
 
@@ -192,21 +194,22 @@ fi
 
 if [ "$dry_run" -eq 1 ]; then
     echo "[squire] dry run: built ${flavour} ${php_line} for linux/amd64 and linux/arm64 and assembled the list."
-    echo "Would push ${registry_image}/oracle-${flavour}:${php_line}-<tag> (and :${php_line}) digest: ${list_digest}"
+    echo "Would push ${registry_image}-oracle-${flavour}:${php_line}-<tag> (and :${php_line}) digest: ${list_digest}"
     exit 0
 fi
 
-push_args=()
-if [ -n "${CI_JOB_TOKEN:-}" ] && [ -n "${CI_REGISTRY_USER:-}" ]; then
-    registry_host="${registry_image%%/*}"
-    authfile="$workdir/auth.json"
-    echo "[squire] ==> logging in to ${registry_host} with the CI job token"
-    printf '%s\n%s\n' "$CI_REGISTRY_USER" "$CI_JOB_TOKEN" | buildah login --authfile "$authfile" "$registry_host"
-    push_args=(--authfile "$authfile")
+if [ -z "${NOUGAT_REGISTRY_USER:-}" ] || [ -z "${NOUGAT_REGISTRY_TOKEN:-}" ]; then
+    echo "oracle-image-publish: NOUGAT_REGISTRY_USER and NOUGAT_REGISTRY_TOKEN must be set to push" >&2
+    exit 1
 fi
+registry_host="${registry_image%%/*}"
+authfile="$workdir/auth.json"
+echo "[squire] ==> logging in to ${registry_host}"
+printf '%s\n' "$NOUGAT_REGISTRY_TOKEN" | buildah login --authfile "$authfile" -u "$NOUGAT_REGISTRY_USER" --password-stdin "$registry_host"
+push_args=(--authfile "$authfile")
 
 for reference_suffix in "${php_line}-${tag}" "${php_line}"; do
-    reference="${registry_image}/oracle-${flavour}:${reference_suffix}"
+    reference="${registry_image}-oracle-${flavour}:${reference_suffix}"
     echo "[squire] ==> pushing ${reference}"
     buildah "${STORAGE[@]}" manifest push --all "${push_args[@]}" "$list_name" "docker://${reference}"
     echo "Pushed ${reference} digest: ${list_digest}"

@@ -62,7 +62,13 @@ js-tests:
     - npm test
 
 # Publish the Oracle images on a tag: buildah builds both platforms without a Docker daemon and pushes a
-# manifest list to the project's container registry ($CI_REGISTRY_IMAGE/oracle-sail, $CI_REGISTRY_IMAGE/oracle-parity).
+# manifest list to the group's images project on the other GitLab's registry, at
+# $NOUGAT_REGISTRY/$CI_PROJECT_NAMESPACE/images/squire-oracle-sail and .../squire-oracle-parity. This GitLab has
+# no container registry (its disk is too small, by its admin's decision), so the destination host, user and token
+# come from protected CI variables (NOUGAT_REGISTRY, NOUGAT_REGISTRY_USER and NOUGAT_REGISTRY_TOKEN, a deploy
+# token with read and write on the images project) that only tag pipelines can read; the job fails plainly when
+# any of them is empty. Only safe variables appear here (the repository is mirrored publicly): the registry host
+# is never written down.
 # Pinned to the manifest list digest: the image is multi-arch (linux/amd64, linux/arm64). The runner must be able
 # to build linux/amd64 (qemu binfmt); the script says so plainly when it cannot. The -immutable tag is used
 # because the plain version tag is re-pushed upstream, which garbage-collects old digests.
@@ -76,10 +82,15 @@ oracle-images:
   rules:
     - if: $CI_COMMIT_TAG
   script:
-    - scripts/oracle-image-publish.sh --flavour "$FLAVOUR" --php "$PHP" --tag "$CI_COMMIT_TAG" --registry-image "$CI_REGISTRY_IMAGE"
+    - |
+      if [ -z "$NOUGAT_REGISTRY" ] || [ -z "$NOUGAT_REGISTRY_USER" ] || [ -z "$NOUGAT_REGISTRY_TOKEN" ]; then
+        echo "NOUGAT_REGISTRY, NOUGAT_REGISTRY_USER or NOUGAT_REGISTRY_TOKEN is unset (are the tags protected?): nowhere to publish."
+        exit 1
+      fi
+    - scripts/oracle-image-publish.sh --flavour "$FLAVOUR" --php "$PHP" --tag "$CI_COMMIT_TAG" --registry-image "$NOUGAT_REGISTRY/$CI_PROJECT_NAMESPACE/images/$CI_PROJECT_NAME"
 
 # Prove the runner can build both architectures without pushing: manual, on branches (never on tags), so a dry run
-# can pass before anyone tags.
+# can pass before anyone tags. It never logs in or pushes, so it needs no registry variables.
 oracle-images-dry-run:
   stage: deploy
   image: quay.io/buildah/stable:v1.43.5-immutable@sha256:7c2b605262748ace2c5c57c5550942d0adad57aec82ede3070927722306c0ffb
@@ -94,4 +105,4 @@ oracle-images-dry-run:
       when: manual
       allow_failure: true
   script:
-    - scripts/oracle-image-publish.sh --flavour "$FLAVOUR" --php "$PHP" --registry-image "$CI_REGISTRY_IMAGE" --dry-run
+    - scripts/oracle-image-publish.sh --flavour "$FLAVOUR" --php "$PHP" --registry-image "$CI_PROJECT_NAMESPACE/images/$CI_PROJECT_NAME" --dry-run
