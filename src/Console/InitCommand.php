@@ -28,7 +28,7 @@ final class InitCommand extends Command
             ->setDescription('Write the standard Citadel scripts into an app, or report drift with --check.')
             ->addOption('path', null, InputOption::VALUE_REQUIRED, 'Path to the application.', '.')
             ->addOption('target', null, InputOption::VALUE_REQUIRED, 'raw, laravel or static (default: the target recorded in .squire.json, else laravel when an artisan file exists; static must be asked for).')
-            ->addOption('only', null, InputOption::VALUE_REQUIRED, 'Comma-separated groups to write: release, parity.', 'release,parity')
+            ->addOption('only', null, InputOption::VALUE_REQUIRED, 'Comma-separated groups to write: release, parity. (default: the groups recorded in .squire.json, else release, parity)')
             ->addOption('check', null, InputOption::VALUE_NONE, 'Write nothing; report files that are missing, outdated or edited. Exit 1 on drift.')
             ->addOption('force', null, InputOption::VALUE_NONE, 'Overwrite files that were edited or that SQUIRE did not write.');
     }
@@ -47,19 +47,27 @@ final class InitCommand extends Command
             if (!is_dir($path)) {
                 throw new ToolError(sprintf('Not a directory: %s', $path));
             }
+            // An app SQUIRE already initialized keeps its recorded target and groups: detection cannot see a
+            // static app, so a plain folder would read as raw and the front controller would slip past --check,
+            // and a bare `init` should complete the kit with its recorded groups instead of rewriting it as
+            // release,parity.
+            $manifest = Manifest::load($path);
+
             $targetOption = $input->getOption('target');
             if (is_string($targetOption) && $targetOption !== '') {
                 $target = $targetOption;
             } else {
-                // Without --target, an app SQUIRE already initialized keeps its recorded target: detection
-                // cannot see a static app, so a plain folder would read as raw and the front controller
-                // would slip past --check.
-                $manifest = Manifest::load($path);
                 $target = $manifest !== null ? $manifest->target : Catalog::detectTarget($path);
             }
-            $groups = array_values(array_filter(array_map('trim', explode(',', (string) $input->getOption('only'))), static fn(string $g): bool => $g !== ''));
-            if ($groups === []) {
-                throw new ToolError('--only needs at least one group: release, parity.');
+
+            $onlyOption = $input->getOption('only');
+            if (is_string($onlyOption) && $onlyOption !== '') {
+                $groups = array_values(array_filter(array_map('trim', explode(',', $onlyOption)), static fn(string $g): bool => $g !== ''));
+                if ($groups === []) {
+                    throw new ToolError('--only needs at least one group: release, parity.');
+                }
+            } else {
+                $groups = $manifest !== null && $manifest->groups !== [] ? $manifest->groups : Catalog::GROUPS;
             }
 
             $layer = Catalog::detectLayer($path);

@@ -17,8 +17,8 @@ use Waynestate\Squire\Template\Updater;
 use Waynestate\Squire\ToolError;
 
 /**
- * `squire update`: take the new templates for the files the team never edited; show a diff for the ones they did.
- * Never interactive: it runs the same in CI and on a laptop.
+ * `squire update`: take the new templates for the files the team never edited, add the files a newer release
+ * wrote, and show a diff for the ones they did. Never interactive: it runs the same in CI and on a laptop.
  */
 final class UpdateCommand extends Command
 {
@@ -26,7 +26,7 @@ final class UpdateCommand extends Command
     {
         $this
             ->setName('update')
-            ->setDescription('Take new template versions for files SQUIRE wrote that were never edited; show a diff for the edited ones.')
+            ->setDescription('Take new template versions for files SQUIRE wrote that were never edited, add the files a newer release wrote, and show a diff for the edited ones.')
             ->addOption('path', null, InputOption::VALUE_REQUIRED, 'Path to the application.', '.')
             ->addOption('target', null, InputOption::VALUE_REQUIRED, 'raw, laravel or static (default: the target recorded in .squire.json).')
             ->addOption('only', null, InputOption::VALUE_REQUIRED, 'Comma-separated groups to update: release, parity. (default: the groups recorded in .squire.json)')

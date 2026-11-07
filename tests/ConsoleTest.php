@@ -153,6 +153,45 @@ final class ConsoleTest extends SquireTestCase
         self::assertFileDoesNotExist($app . '/docker-compose.squire.yml');
     }
 
+    public function testBareInitOnAnExistingKitDefaultsToTheRecordedGroups(): void
+    {
+        $app = $this->app();
+        $this->runSquire(['init', '--only=release', '--path=' . $app]);
+        self::assertFileDoesNotExist($app . '/docker-compose.squire.yml');
+
+        $result = $this->runSquire(['init', '--path=' . $app]);
+
+        self::assertSame(0, $result['exit'], $result['stderr']);
+        self::assertFileDoesNotExist($app . '/docker-compose.squire.yml', 'the recorded groups win over the release,parity default');
+        $manifest = json_decode((string) file_get_contents($app . '/' . Squire::MANIFEST), true);
+        self::assertSame(['release'], $manifest['groups']);
+    }
+
+    public function testBareInitWithoutAManifestDefaultsToReleaseAndParity(): void
+    {
+        $app = $this->app();
+        $result = $this->runSquire(['init', '--path=' . $app]);
+
+        self::assertSame(0, $result['exit'], $result['stderr']);
+        self::assertFileExists($app . '/build.sh');
+        self::assertFileExists($app . '/docker-compose.squire.yml');
+        $manifest = json_decode((string) file_get_contents($app . '/' . Squire::MANIFEST), true);
+        self::assertSame(['release', 'parity'], $manifest['groups']);
+    }
+
+    public function testOnlyStillWinsOverTheRecordedGroups(): void
+    {
+        $app = $this->app();
+        $this->runSquire(['init', '--only=release', '--path=' . $app]);
+
+        $result = $this->runSquire(['init', '--only=parity', '--path=' . $app]);
+
+        self::assertSame(0, $result['exit'], $result['stderr']);
+        self::assertFileExists($app . '/docker-compose.squire.yml');
+        $manifest = json_decode((string) file_get_contents($app . '/' . Squire::MANIFEST), true);
+        self::assertSame(['parity'], $manifest['groups']);
+    }
+
     public function testUpdateExitsTwoWithoutAManifest(): void
     {
         $app = $this->app();

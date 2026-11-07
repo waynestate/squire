@@ -8,11 +8,12 @@ use Waynestate\Squire\Squire;
 use Waynestate\Squire\ToolError;
 
 /**
- * Brings the files SQUIRE wrote up to the current templates.
+ * Brings the files SQUIRE wrote up to the current templates, and lands the files a newer release added.
  *
- * The manifest is the source of truth: `update` only looks at the files it lists. A file the team never touched
- * takes the new template; a file they edited is left alone and shown as a diff, because only they can merge it.
- * Files SQUIRE did not write are never touched.
+ * The manifest is the source of truth for the files SQUIRE wrote: a file the team never touched takes the new
+ * template; a file they edited is left alone and shown as a diff, because only they can merge it. A template file
+ * a newer release added to a recorded group is written, recorded in the manifest and printed as added. Files
+ * SQUIRE did not write are never touched.
  */
 final class Updater
 {
@@ -113,6 +114,32 @@ final class Updater
                 'edited since SQUIRE wrote it, and the template has changed',
                 Diff::unified($content, $disk, 'a/' . $destination . ' (template)', 'b/' . $destination . ' (on disk)'),
             );
+        }
+
+        // A newer release may have added a file to a group the kit records: write it, record it, and say so.
+        // A file that is on disk but not in the record is the app's own: never touched, never reported.
+        $added = [];
+        foreach ($selected as $template) {
+            if (isset($manifest->files[$template->destination])) {
+                continue;
+            }
+            if (is_file($appPath . '/' . $template->destination)) {
+                continue;
+            }
+            $content = $this->catalog->content($template);
+            if (!$dryRun) {
+                $this->writer->write($appPath . '/' . $template->destination, $content, $template->executable);
+                $written[$template->destination] = Manifest::hash($content);
+            }
+            $added[$template->destination] = new FileResult(
+                $template->destination,
+                FileResult::ADDED,
+                $dryRun ? 'not in the record; would be written from the template' : 'not in the record; written from the template',
+            );
+        }
+        ksort($added);
+        foreach ($added as $result) {
+            $results[] = $result;
         }
 
         // The .gitignore never sits in the record, so update cannot touch it: once the team edits it, it is theirs.

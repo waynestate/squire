@@ -41,6 +41,9 @@ final readonly class FileResult
 
     public const RESTORED = 'restored';
 
+    /** A template file a newer release added to a recorded group: update wrote it and recorded it. */
+    public const ADDED = 'added';
+
     public const EDITED = 'edited, not changed';
 
     public function __construct(
@@ -53,6 +56,6 @@ final readonly class FileResult
     /** True when the file matches the current template (or was just made to), or is the app's own to keep. */
     public function isCurrent(): bool
     {
-        return in_array($this->state, [self::CREATED, self::UPDATED, self::UNCHANGED, self::OVERWRITTEN, self::OK, self::CURRENT, self::RESTORED, self::APP_OWNED], true);
+        return in_array($this->state, [self::CREATED, self::UPDATED, self::UNCHANGED, self::OVERWRITTEN, self::OK, self::CURRENT, self::RESTORED, self::ADDED, self::APP_OWNED], true);
     }
 }

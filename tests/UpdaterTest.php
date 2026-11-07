@@ -129,6 +129,84 @@ final class UpdaterTest extends SquireTestCase
         self::assertSame(Manifest::hash((string) file_get_contents($templates . '/common/build.sh')), $manifest->files['build.sh']);
     }
 
+    /**
+     * Drop one file from the manifest's record, leaving whatever is on disk: a kit made before SQUIRE knew
+     * about the file.
+     */
+    private function forget(string $app, string $destination): void
+    {
+        $manifest = Manifest::load($app);
+        self::assertNotNull($manifest);
+        $files = $manifest->files;
+        unset($files[$destination]);
+        (new Manifest(Squire::version(), $manifest->target, $manifest->groups, $files, $manifest->layer))->save($app);
+    }
+
+    public function testAKitFromAnOlderReleaseGetsTheFilesANewerReleaseAdded(): void
+    {
+        [$app, $updater, $templates] = $this->movableApp();
+
+        // The kit predates oracle-check.php: drop the file and its record, like a kit made before 0.4.0.
+        unlink($app . '/oracle-check.php');
+        $this->forget($app, 'oracle-check.php');
+
+        $results = $updater->run($app, 'raw', ['release', 'parity'], false);
+        $states = $this->states($results);
+
+        self::assertSame(FileResult::ADDED, $states['oracle-check.php']);
+        self::assertFileExists($app . '/oracle-check.php');
+        self::assertSame((string) file_get_contents($templates . '/common/oracle-check.php'), (string) file_get_contents($app . '/oracle-check.php'));
+        self::assertSame(FileResult::CURRENT, $states['build.sh'], 'the other files stay current');
+        $manifest = Manifest::load($app);
+        self::assertNotNull($manifest);
+        self::assertSame(Manifest::hash((string) file_get_contents($templates . '/common/oracle-check.php')), $manifest->files['oracle-check.php']);
+        self::assertSame(0, Updater::exitCode($results), 'an added file is not drift');
+    }
+
+    public function testANewFileIsRecordedSoTheNextUpdateSeesItAsCurrent(): void
+    {
+        [$app, $updater] = $this->movableApp();
+        unlink($app . '/oracle-check.php');
+        $this->forget($app, 'oracle-check.php');
+
+        $first = $this->states($updater->run($app, 'raw', ['release', 'parity'], false));
+        $second = $this->states($updater->run($app, 'raw', ['release', 'parity'], false));
+
+        self::assertSame(FileResult::ADDED, $first['oracle-check.php']);
+        self::assertSame(FileResult::CURRENT, $second['oracle-check.php'], 'once recorded, the file is part of the kit');
+    }
+
+    public function testANewFileTheAppAlreadyHasIsLeftAlone(): void
+    {
+        [$app, $updater] = $this->movableApp();
+        file_put_contents($app . '/oracle-check.php', "<?php\n// the app's own\n");
+        $this->forget($app, 'oracle-check.php');
+
+        $results = $updater->run($app, 'raw', ['release', 'parity'], false);
+        $states = $this->states($results);
+
+        self::assertArrayNotHasKey('oracle-check.php', $states, 'a file SQUIRE did not write is not in the plan');
+        self::assertStringContainsString("the app's own", (string) file_get_contents($app . '/oracle-check.php'));
+        $manifest = Manifest::load($app);
+        self::assertNotNull($manifest);
+        self::assertArrayNotHasKey('oracle-check.php', $manifest->files, 'and it is not recorded');
+    }
+
+    public function testDryRunDoesNotWriteANewFile(): void
+    {
+        [$app, $updater] = $this->movableApp();
+        unlink($app . '/oracle-check.php');
+        $this->forget($app, 'oracle-check.php');
+        $manifestBefore = (string) file_get_contents($app . '/' . Squire::MANIFEST);
+
+        $results = $updater->run($app, 'raw', ['release', 'parity'], true);
+        $states = $this->states($results);
+
+        self::assertSame(FileResult::ADDED, $states['oracle-check.php']);
+        self::assertFileDoesNotExist($app . '/oracle-check.php');
+        self::assertSame($manifestBefore, (string) file_get_contents($app . '/' . Squire::MANIFEST), 'nothing written, no manifest churn');
+    }
+
     public function testDryRunWritesNothing(): void
     {
         [$app, $updater, $templates] = $this->movableApp();
