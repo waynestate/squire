@@ -591,11 +591,12 @@ that carry both, so nobody compiles them by hand:
   Oracle install. This is the flavour WELD's `compose.oracle.yaml` points its services at. It runs as a non-root
   `app` user whose UID is a build argument (`APP_UID`) and can still be overridden at run time.
 
-The names above are the local names of scripts/oracle-image-build.sh. The published images live in your GitLab
-container registry, at `$CI_REGISTRY_IMAGE/oracle-parity:8.4` and `$CI_REGISTRY_IMAGE/oracle-sail:8.4` (in GitLab
-CI, `$CI_REGISTRY_IMAGE` is set for you; elsewhere it is the registry address of the Squire project shown on its
-Container Registry page), plus `:8.4-<squire version>` for a fixed one. CI publishes them when a Squire version is
-tagged, multi-arch (linux/amd64 and linux/arm64); a Sail app swaps `build:` for `image:` with that path.
+The names above are the local names of scripts/oracle-image-build.sh. The published images live in the group's
+`images` project (the stack's shared image registry; Squire's own GitLab has no container registry), at
+`<registry>/enterprise-apps/images/squire-oracle-parity:8.4` and `<registry>/enterprise-apps/images/squire-oracle-sail:8.4`
+(`<registry>` is the registry address of the images project shown on its Container Registry page), plus
+`:8.4-<squire version>` for a fixed one. CI publishes them when a Squire version is tagged, multi-arch
+(linux/amd64 and linux/arm64); a Sail app swaps `build:` for `image:` with that path.
 
 Both flavours download Oracle's Instant Client Basic Light at build time under Oracle's license and never commit
 it: the install script pins the exact SHA-256 of each zip. Oracle does not publish a 21.x client for arm64, so the

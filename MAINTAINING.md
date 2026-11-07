@@ -91,10 +91,16 @@ GitLab runs lint and unit tests only; the contract suite runs on the GitHub mirr
 
 - The `oracle-images` job runs when a Squire version is tagged. It builds both flavours (`sail` and `parity`) for
   PHP 8.3, 8.4 and 8.5, each for linux/amd64 and linux/arm64, with buildah (the runner has no Docker daemon), and
-  pushes a manifest list to the project's container registry.
-- The published images are `$CI_REGISTRY_IMAGE/oracle-sail:<php>` and `$CI_REGISTRY_IMAGE/oracle-parity:<php>`, each
-  with a floating `<php>` tag and a fixed `<php>-<squire version>` tag. In CI, `$CI_REGISTRY_IMAGE` is set for you;
-  elsewhere it is the registry address of the Squire project shown on its Container Registry page.
+  pushes a manifest list to the group's `images` project (the stack's shared image registry; this GitLab has no
+  container registry of its own).
+- The destination host, user and token are the protected CI variables `NOUGAT_REGISTRY`, `NOUGAT_REGISTRY_USER`
+  and `NOUGAT_REGISTRY_TOKEN` (a deploy token with read and write on the images project), readable only in tag
+  pipelines; the job fails plainly when any of them is empty, and the host is never written down in the pipeline or
+  this file (the repository is mirrored publicly).
+- The published images are `<registry>/enterprise-apps/images/squire-oracle-sail:<php>` and
+  `<registry>/enterprise-apps/images/squire-oracle-parity:<php>`, each with a floating `<php>` tag and a fixed
+  `<php>-<squire version>` tag, where `<registry>` is `NOUGAT_REGISTRY` in CI and the registry address of the
+  images project shown on its Container Registry page elsewhere.
 - `oracle-images-dry-run` is manual and runs on branches (never on tags): it builds everything and prints what would
   be pushed, without logging in or pushing. Run it to prove the runner can build both architectures before you tag.
 - The runner must be able to build linux/amd64 (qemu binfmt emulation) and run buildah inside a container. If the
