@@ -12,6 +12,8 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+## 0.6.0 (2026-11-07)
+
 - Changed: the release script asks PROCTOR's deploy gate, `proctor gate`, for a go or no-go instead of running `proctor check`, and runs it right after `composer audit`, before the frontend build and the migrations, so an enforced no-go stops the release before it touches the database. The verdict is written to `storage/squire/proctor-gate.json` (new setting `SQUIRE_PROCTOR_RECORD_DIR`, in the settings-file allow list and the `.env.squire.example` files); when the release goes on, the verdict becomes the baseline the next release is ratcheted against, so a failure that is already live is held and only a new one blocks. `SQUIRE_PROCTOR=auto` still only reports a no-go, and `enforce` stops on it. With a PROCTOR that has no `gate` command the step warns, names the PROCTOR version, and runs `proctor check` as before. Needs a PROCTOR release with `proctor gate` to take effect.
 - Changed: `doctor` S14 passes when the release runs `proctor gate` as well as `proctor check`, and the S50 hand-off names `proctor gate`.
 - Changed: Squire's own deploy layer (`deploy/`) is updated to the current templates with `squire update`.

@@ -1,6 +1,6 @@
 ---
 title: "Upgrading | Squire docs"
-description: "What changed in the unreleased fixes and each released minor of Squire (0.5.0, 0.4.0 and the 0.3.x line), the steps to move an app to them, and how to verify the upgrade held."
+description: "What changed in each released minor of Squire (0.6.0, 0.5.0, 0.4.0 and the 0.3.x line), the steps to move an app to them, and how to verify the upgrade held."
 url: https://squire.apps.wayne.edu/docs/upgrading.html
 llms: https://squire.apps.wayne.edu/llms.txt
 generator: Squire agent-ready
@@ -18,11 +18,11 @@ vendor/bin/squire init --check vendor/bin/squire update --dry-run
 
 `squire init --check` reports when your copies have drifted from the templates; it exits `0` when they match and `1` when they have. `squire update --dry-run` prints the plan and writes nothing; it exits `1` when an edited file still differs from the template. Exit `2` means the tool itself could not run. For the full command reference, see [Commands](https://squire.apps.wayne.edu/docs/reference/commands.html).
 
-## Unreleased[#](https://squire.apps.wayne.edu/docs/upgrading.html#unreleased)
+## 0.6.0 (2026-11-07)[#](https://squire.apps.wayne.edu/docs/upgrading.html#0-6-0-2026-11-07)
 
 ### Breaking[#](https://squire.apps.wayne.edu/docs/upgrading.html#breaking)
 
-None: the CHANGELOG records no breaking change for the unreleased fixes.
+None: the CHANGELOG records no breaking change for 0.6.0.
 
 ### What changed[#](https://squire.apps.wayne.edu/docs/upgrading.html#what-changed)
 

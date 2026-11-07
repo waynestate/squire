@@ -1,6 +1,6 @@
 ---
 title: "Upgrading"
-description: "What changed in the unreleased fixes and each released minor of Squire (0.5.0, 0.4.0 and the 0.3.x line), the steps to move an app to them, and how to verify the upgrade held."
+description: "What changed in each released minor of Squire (0.6.0, 0.5.0, 0.4.0 and the 0.3.x line), the steps to move an app to them, and how to verify the upgrade held."
 ---
 
 # Upgrading
@@ -17,11 +17,11 @@ vendor/bin/squire update --dry-run
 
 `squire init --check` reports when your copies have drifted from the templates; it exits `0` when they match and `1` when they have. `squire update --dry-run` prints the plan and writes nothing; it exits `1` when an edited file still differs from the template. Exit `2` means the tool itself could not run. For the full command reference, see [Commands](reference/commands.md).
 
-## Unreleased
+## 0.6.0 (2026-11-07)
 
 ### Breaking
 
-None: the CHANGELOG records no breaking change for the unreleased fixes.
+None: the CHANGELOG records no breaking change for 0.6.0.
 
 ### What changed
 
