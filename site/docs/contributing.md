@@ -69,7 +69,7 @@ Every behavior change updates README, docs pages, CHANGELOG (Unreleased), site/l
 
 ## Known limits[#](https://squire.apps.wayne.edu/docs/contributing.html#known-limits)
 
-See OPEN_QUESTIONS.md in the repository. The big ones: the local `php.ini` holds safe defaults rather than the platform's file, the Citadel image has no digest to pin, and a full Update may not refresh `vendor/`. PROCTOR can now gate a release with `SQUIRE_PROCTOR=enforce`; what is still missing on its side is a phar and a dedicated `gate` command. The release script is contract-tested inside the fallback image on GitHub, not yet on the real image (OPEN_QUESTIONS 19, "Contract suite on the real image and on GitLab").
+See OPEN_QUESTIONS.md in the repository. The big ones: the local `php.ini` holds safe defaults rather than the platform's file, the Citadel image has no digest to pin, and a full Update may not refresh `vendor/`. The release asks PROCTOR's `proctor gate` for a go or no-go once the installed PROCTOR has it; what is still missing on PROCTOR's side is a published phar. The release script is contract-tested inside the fallback image on GitHub, not yet on the real image (OPEN_QUESTIONS 19, "Contract suite on the real image and on GitLab").
 
 ## Who maintains it[#](https://squire.apps.wayne.edu/docs/contributing.html#who-maintains-it)
 

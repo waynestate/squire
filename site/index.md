@@ -40,7 +40,7 @@ vendor/bin/squire init
 
 1. `build.sh` Citadel's build hook. System packages only, POSIX sh, no Composer or npm (S1).
 2. `deployments/001-first-release.sh` Runs once per app and calls the release with the smoke test off; Apache is not up yet.
-3. `scripts/release.sh` The idempotent release: install from the lock file, audit, build, migrate, PROCTOR as a report, smoke-test `/up`. Also your Quick Update post-script.
+3. `scripts/release.sh` The idempotent release: install from the lock file, audit, ask PROCTOR's gate for a go or no-go, build, migrate, smoke-test `/up`. Also your Quick Update post-script.
 4. `health.php` Citadel's health check: one request to `/up`, never boots the framework.
 5. `The parity kit 12 files` `docker-compose.squire.yml`, `.squire/`, `.env.squire.example`, `scripts/parity.sh` and `scripts/parity.ps1`: Citadel, on your machine.
 
@@ -106,7 +106,7 @@ fail exits 1 warn reported info noted
 - S8No CRLF in shell scripts.
 - S9Build, first release and release are three jobs.
 - S12Install from the lock file; never update.
-- S14The release runs `proctor check`.
+- S14The release runs `proctor gate` or `proctor check`.
 - S15`auth.json` stays out of git.
 - S16Laravel runs `optimize`.
 - S17Migrations run and stay old-code friendly.
@@ -136,7 +136,7 @@ PASS S1 build.sh runs no composer or npm commands. \[build.sh\]
 
 PASS S12 \`composer install --no-dev\` from the lock file.
 
-PASS S14 The release script runs proctor check.
+PASS S14 The release script runs PROCTOR (proctor gate or proctor check).
 
 PASS S20 PROCTOR runs as a report and cannot stop the release.
 
@@ -257,4 +257,4 @@ Squire 0.5.0 is tagged and on Packagist. Where we had to guess how Citadel behav
 - The local `php.ini` holds the safe defaults HELMET also enforces at runtime, not the platform's file.
 - The Citadel image has no registry digest to pin yet; doctor warns under S67 until you run `pin`.
 - A full Update may not refresh `vendor/`. Use `scripts/release.sh` as the Quick Update post-script too.
-- PROCTOR reports during a release by default; set `SQUIRE_PROCTOR=enforce` and a failed check stops it.
+- The release asks `proctor gate` for a go or no-go. A no-go is a report by default; set `SQUIRE_PROCTOR=enforce` and it stops the release before the build and the migrations.

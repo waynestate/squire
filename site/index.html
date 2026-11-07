@@ -148,7 +148,7 @@ Ask me before you guess.</code></pre>
               <span class="item__check" aria-hidden="true"></span>
               <span class="item__body">
                 <code class="item__name">scripts/release.sh</code>
-                <span class="item__what">The idempotent release: install from the lock file, audit, build, migrate, PROCTOR as a report, smoke-test <code>/up</code>. Also your Quick Update post-script.</span>
+                <span class="item__what">The idempotent release: install from the lock file, audit, ask PROCTOR's gate for a go or no-go, build, migrate, smoke-test <code>/up</code>. Also your Quick Update post-script.</span>
               </span>
               <span class="stamp" aria-hidden="true">Packed</span>
             </span>
@@ -251,7 +251,7 @@ Ask me before you guess.</code></pre>
             <li class="patch patch--fail" style="--i:3"><span class="patch__no">S8</span><span class="patch__txt">No CRLF in shell scripts.</span></li>
             <li class="patch patch--fail" style="--i:4"><span class="patch__no">S9</span><span class="patch__txt">Build, first release and release are three jobs.</span></li>
             <li class="patch patch--fail" style="--i:5"><span class="patch__no">S12</span><span class="patch__txt">Install from the lock file; never update.</span></li>
-            <li class="patch patch--warn" style="--i:7"><span class="patch__no">S14</span><span class="patch__txt">The release runs <code>proctor check</code>.</span></li>
+            <li class="patch patch--warn" style="--i:7"><span class="patch__no">S14</span><span class="patch__txt">The release runs <code>proctor gate</code> or <code>proctor check</code>.</span></li>
             <li class="patch patch--fail" style="--i:8"><span class="patch__no">S15</span><span class="patch__txt"><code>auth.json</code> stays out of git.</span></li>
             <li class="patch patch--warn" style="--i:9"><span class="patch__no">S16</span><span class="patch__txt">Laravel runs <code>optimize</code>.</span></li>
             <li class="patch patch--info" style="--i:10"><span class="patch__no">S17</span><span class="patch__txt">Migrations run and stay old-code friendly.</span></li>
@@ -280,7 +280,7 @@ Ask me before you guess.</code></pre>
 <p class="term__cmd"><span class="t-dim">$ </span>vendor/bin/squire doctor</p>
 <p><span class="t-ok">PASS</span> S1   build.sh runs no composer or npm commands. <span class="t-dim">[build.sh]</span></p>
 <p><span class="t-ok">PASS</span> S12  `composer install --no-dev` from the lock file.</p>
-            <p><span class="t-ok">PASS</span> S14  The release script runs proctor check.</p>
+            <p><span class="t-ok">PASS</span> S14  The release script runs PROCTOR (proctor gate or proctor check).</p>
 <p><span class="t-ok">PASS</span> S20  PROCTOR runs as a report and cannot stop the release.</p>
 <p><span class="t-ok">PASS</span> S55  health.php is an artisan-free health check. <span class="t-dim">[health.php]</span></p>
 <p><span class="t-gold">WARN</span> S8   .gitattributes does not force LF for shell scripts. Add `*.sh text eol=lf`.</p>
@@ -465,7 +465,7 @@ scripts\parity.ps1 up                  <span class="t-dim"># or: scripts\parity.
         <li>The local <code>php.ini</code> holds the safe defaults HELMET also enforces at runtime, not the platform's file.</li>
         <li>The Citadel image has no registry digest to pin yet; doctor warns under S67 until you run <code>pin</code>.</li>
         <li>A full Update may not refresh <code>vendor/</code>. Use <code>scripts/release.sh</code> as the Quick Update post-script too.</li>
-        <li>PROCTOR reports during a release by default; set <code>SQUIRE_PROCTOR=enforce</code> and a failed check stops it.</li>
+        <li>The release asks <code>proctor gate</code> for a go or no-go. A no-go is a report by default; set <code>SQUIRE_PROCTOR=enforce</code> and it stops the release before the build and the migrations.</li>
       </ul>
     </div>
   </section>

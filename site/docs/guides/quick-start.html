@@ -81,7 +81,7 @@
 </tr>
 <tr>
 <td><code>scripts/release.sh</code></td>
-<td>The idempotent release: preconditions, <code>composer install --no-dev</code> from the lock file, audit, Laravel <code>migrate --force</code> and <code>optimize</code>, PROCTOR (a report by default, a gate with <code>SQUIRE_PROCTOR=enforce</code>), an Oracle connection check (a report, never a gate), <code>/up</code> smoke test. Use it as the Quick Update post-script as well.</td>
+<td>The idempotent release: preconditions, <code>composer install --no-dev</code> from the lock file, audit, PROCTOR's deploy gate (<code>proctor gate</code>, a report by default, a stop with <code>SQUIRE_PROCTOR=enforce</code>), frontend build, Laravel <code>migrate --force</code> and <code>optimize</code>, an Oracle connection check (a report, never a gate), <code>/up</code> smoke test. Use it as the Quick Update post-script as well.</td>
 </tr>
 <tr>
 <td><code>health.php</code></td>

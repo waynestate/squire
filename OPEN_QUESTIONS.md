@@ -80,7 +80,7 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
   image locally from `build-images/*.dockerfile`; there is no registry digest to copy. `doctor` warns (S67) until one is
   set. After building: `scripts/parity.sh pin`.
 - **PROCTOR policy file.** `SQUIRE_PROCTOR_POLICY` defaults to the policy in `vendor/waynestate/creed`, when CREED is installed. Without CREED, PROCTOR runs on its own default policy with a notice.
-- **PROCTOR phar and `gate` command.** PROCTOR (0.2.6) still has only `check`, and its phar is built from source but not published; a deploy gate needs a `gate` command and a published phar.
+- **PROCTOR phar and `gate` command.** PROCTOR has `proctor gate` on its main branch (unreleased) and the release script uses it when the installed PROCTOR has it; a site gets the gate only once a PROCTOR release with `gate` is out. The phar is built from source but not yet published.
 - **Preflight tag pin.** The GitHub workflow pins Preflight to a commit; the GitLab file pins the components to `0.1.1`, the current Preflight tag.
   Pin the GitHub workflow to a tag when Preflight cuts a release tag on GitHub.
 - **Database passwords.** `.env.squire.example` holds `change-me-local-only` placeholders. The compose file refuses to start
@@ -89,7 +89,7 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
 
 ## Not built yet
 
-- A deploy gate that calls PROCTOR as a dedicated `gate` command (`SQUIRE_PROCTOR=enforce` already stops a release), and queue workers.
+- The Citadel side of the deploy gate (`proctor gate` in `runGitPull()`, before the commit is checked out), and queue workers.
 - Checks for rules that need a running app or a server (most of the list of S-rules beyond the 26 in `BEST_PRACTICES.md`).
 - A GitLab or GitHub release job; releases are tagged and published to Packagist by hand.
 - Templates for apps that are none of raw PHP, Laravel or a static site.

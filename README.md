@@ -148,7 +148,7 @@ touched. A squire polishes the armor; the knight keeps the sword.
 |---|---|
 | `build.sh` | Citadel's build hook: system packages only, POSIX sh, runs as root with no app source. No Composer, no npm. |
 | `deployments/001-first-release.sh` | Runs once per app: calls the release script with the smoke test off (Apache is not up yet). |
-| `scripts/release.sh` | The idempotent release: preconditions, `composer install --no-dev` from the lock file, audit, Laravel `migrate --force` and `optimize`, PROCTOR (a report by default, a gate with `SQUIRE_PROCTOR=enforce`), an Oracle connection check (a report, never a gate), `/up` smoke test. Use it as the Quick Update post-script as well. |
+| `scripts/release.sh` | The idempotent release: preconditions, `composer install --no-dev` from the lock file, audit, PROCTOR's deploy gate (`proctor gate`, a report by default, a stop with `SQUIRE_PROCTOR=enforce`), frontend build, Laravel `migrate --force` and `optimize`, an Oracle connection check (a report, never a gate), `/up` smoke test. Use it as the Quick Update post-script as well. |
 | `health.php` | Citadel's health check (`["php","health.php"]`): one HTTP request to `/up`, never boots the framework. |
 | `oracle-check.php` | The plain-language Oracle connection check the release runs: settings, host, port, driver, login. A report, never a gate; silent when the app has no `ORACLE_*` settings. |
 | `public/up.php` | Raw PHP and static: the endpoint that answers `ok`. Laravel has `/up` built in. |
@@ -166,7 +166,7 @@ touched. A squire polishes the armor; the knight keeps the sword.
 Every shell script uses `set -euo pipefail` (`build.sh` uses `set -eu`, because Citadel runs it with `/bin/sh`), prints a
 `[squire] ==> step N: ...` marker for each step, and can be run twice with the same result.
 
-The release also runs an Oracle connection check (`oracle-check.php`) after PROCTOR and before the smoke test. It is a
+The release also runs an Oracle connection check (`oracle-check.php`) after the migrations and before the smoke test. It is a
 report, never a gate: a finding prints in the deployment log and the release goes on. When the app does not use Oracle
 (no `ORACLE_*` settings) it prints nothing. It checks, in order, that the settings are present, that the host resolves,
 that the port answers within 3 seconds, that the `oci8` driver is loaded, and that the login works, stopping at the first
@@ -628,9 +628,10 @@ Release script (`scripts/release.sh`):
 | `SQUIRE_NPM_BUILD_SCRIPT` | `build` | The `package.json` script to run. |
 | `SQUIRE_MIGRATE` | `1` | Laravel: `migrate --force`. |
 | `SQUIRE_ARTISAN_OPTIMIZE` | `1` | Laravel: `optimize`. |
-| `SQUIRE_PROCTOR` | `auto` | `auto`, `skip` or `enforce`. By default PROCTOR is a report and never stops the release; `enforce` makes a failed check stop it. |
+| `SQUIRE_PROCTOR` | `auto` | `auto`, `skip` or `enforce`. The release asks `proctor gate` for a go or no-go (`proctor check` on a PROCTOR without the gate). By default a no-go is a report and never stops the release; `enforce` makes a no-go stop it, before the frontend build and the migrations. |
 | `SQUIRE_PROCTOR_BIN` | `vendor/bin/proctor`, then `PATH` | Where PROCTOR is. It is a dev dependency, so `--no-dev` removes it: point this at a copy. |
 | `SQUIRE_PROCTOR_POLICY` | `vendor/waynestate/creed/policy/policy.json`, when installed | Path to the policy file. When unset, the script falls back to the policy the CREED package ships (the deploy wizard has no environment field); when CREED is not installed, PROCTOR runs on its own default policy with a notice. An explicit value always wins. |
+| `SQUIRE_PROCTOR_RECORD_DIR` | `storage/squire` | Where the gate keeps its verdicts, relative to the app root: `proctor-gate.json` (the last verdict) and `proctor-gate-baseline.json` (the verdict of the last release that went on, the next run's baseline). The folder gets a `.gitignore` of `*`, so it never reaches git. |
 | `SQUIRE_SMOKE` | `1` | Request the health URL at the end and fail unless it answers 200. |
 | `SQUIRE_SMOKE_URL` | `http://127.0.0.1:80/up` (Laravel), `/up.php` (raw and static) | Full URL. |
 | `SQUIRE_SMOKE_RETRIES` | `5` | Attempts. |
@@ -682,8 +683,8 @@ axe-core against it with the WCAG 2.2 AA tag set, in light and dark mode at 360 
 ## Known limits
 
 See [OPEN_QUESTIONS.md](OPEN_QUESTIONS.md). The big ones: the local `php.ini` holds safe defaults rather than the
-platform's file, the Citadel image has no digest to pin, and a full Update may not refresh `vendor/`. PROCTOR can now
-gate a release with `SQUIRE_PROCTOR=enforce`; what is still missing on its side is a phar and a dedicated `gate` command.
+platform's file, the Citadel image has no digest to pin, and a full Update may not refresh `vendor/`. The release asks
+PROCTOR's `proctor gate` for a go or no-go once the installed PROCTOR has it; what is still missing on PROCTOR's side is a published phar.
 
 - The release script is contract-tested inside the fallback image on GitHub, not yet on the real image (OPEN_QUESTIONS
   19, "Contract suite on the real image and on GitLab").

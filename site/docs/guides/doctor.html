@@ -93,7 +93,7 @@
 <tr>
 <td>S14</td>
 <td>warn</td>
-<td>The release runs <code>proctor check</code>.</td>
+<td>The release runs <code>proctor gate</code> or <code>proctor check</code>.</td>
 <td>PROCTOR runs <code>composer audit</code> and the other app checks, so known-vulnerable dependencies show up in the deploy log.</td>
 </tr>
 <tr>
@@ -171,7 +171,7 @@
 <tr>
 <td>S50</td>
 <td>info</td>
-<td>Hand-off: points at <code>proctor check</code> for the lock file, composer audit and MySQL 5.6 checks.</td>
+<td>Hand-off: points at <code>proctor check</code> for the lock file, composer audit and MySQL 5.6 checks, and names <code>proctor gate</code>, which the release asks for a go or no-go.</td>
 <td>Each check has one owner; PROCTOR owns those, and <code>doctor</code> may run where PROCTOR is not installed.</td>
 </tr>
 <tr>

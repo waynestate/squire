@@ -28,7 +28,7 @@ Note
 | S8 | fail / warn | No CRLF in shell scripts (fail); `.gitattributes` forces LF for `*.sh` (warn). | CRLF breaks a script on Linux; Git on Windows adds it. |
 | S9 | fail / warn | `scripts/release.sh` exists (fail); `build.sh` and a `deployments/` hook exist (warn); files match the template version (warn). | Build tooling, the one-time hook and the release script are three jobs. |
 | S12 | fail | The release runs `composer install --no-dev`, never `composer update`, and uses `npm ci` or a frozen-lockfile install. | The lock file is the release contract. |
-| S14 | warn | The release runs `proctor check`. | PROCTOR runs `composer audit` and the other app checks, so known-vulnerable dependencies show up in the deploy log. |
+| S14 | warn | The release runs `proctor gate` or `proctor check`. | PROCTOR runs `composer audit` and the other app checks, so known-vulnerable dependencies show up in the deploy log. |
 | S15 | fail / warn | `auth.json` is git-ignored (fail); Composer runs non-interactively (warn). | Credentials stay out of git; Citadel has no terminal to prompt on. |
 | S16 | warn | Laravel: `php artisan optimize` runs in the release. | Config, route and view caches. |
 | S17 | info | Laravel: `migrate --force` runs, or something else runs migrations. | Keep migrations compatible with the old code (parallel change). |
@@ -41,7 +41,7 @@ Note
 | S37 | warn | The local database is MySQL 5.6. | Its limits then show up locally. |
 | S41 | fail | The Docker socket is not mounted. | It is root on the host. |
 | S42 | warn | `.env` and `.env.squire` are git-ignored. | Secrets stay out of git. |
-| S50 | info | Hand-off: points at `proctor check` for the lock file, composer audit and MySQL 5.6 checks. | Each check has one owner; PROCTOR owns those, and `doctor` may run where PROCTOR is not installed. |
+| S50 | info | Hand-off: points at `proctor check` for the lock file, composer audit and MySQL 5.6 checks, and names `proctor gate`, which the release asks for a go or no-go. | Each check has one owner; PROCTOR owns those, and `doctor` may run where PROCTOR is not installed. |
 | S55 | fail / warn | A health check that does not run `artisan` or boot the framework exists. | Citadel runs it every 5 minutes as root. |
 | S57 | warn | JavaScript packages install with `--ignore-scripts`; `.npmrc` sets `min-release-age`. | A compromised package cannot run at install time, and a version published an hour ago is not installed. |
 | S67 | warn | Every image in the compose file is pinned by digest. | The same bytes tomorrow as today. |

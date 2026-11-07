@@ -1,6 +1,6 @@
 ---
 title: "The release script | Squire docs"
-description: "What scripts/release.sh does step by step on Citadel: preconditions, composer install from the lock file, audit, frontend build, Laravel migrate and optimize, PROCTOR report versus enforce, the Oracle check, and the /up smoke test."
+description: "What scripts/release.sh does step by step on Citadel: preconditions, composer install from the lock file, audit, PROCTOR's deploy gate, frontend build, Laravel migrate and optimize, the Oracle check, and the /up smoke test."
 url: https://squire.apps.wayne.edu/docs/guides/release-script.html
 llms: https://squire.apps.wayne.edu/llms.txt
 generator: Squire agent-ready
@@ -12,7 +12,7 @@ This page walks through `scripts/release.sh`, the one common script every app ge
 
 ## What it is[#](https://squire.apps.wayne.edu/docs/guides/release-script.html#what-it-is)
 
-`scripts/release.sh` is the idempotent release: preconditions, `composer install --no-dev` from the lock file, audit, Laravel `migrate --force` and `optimize`, PROCTOR (a report by default, a gate with `SQUIRE_PROCTOR=enforce`), an Oracle connection check (a report, never a gate), and a `/up` smoke test. It runs from the first-release hook and from the Quick Update post-script (user `citadel`, script `./scripts/release.sh`).
+`scripts/release.sh` is the idempotent release: preconditions, `composer install --no-dev` from the lock file, audit, PROCTOR's deploy gate (a report by default, a stop with `SQUIRE_PROCTOR=enforce`), frontend build, Laravel `migrate --force` and `optimize`, an Oracle connection check (a report, never a gate), and a `/up` smoke test. It runs from the first-release hook and from the Quick Update post-script (user `citadel`, script `./scripts/release.sh`).
 
 Its neighbors in the kit:
 
@@ -35,23 +35,26 @@ Safe to run twice: every step repeats with the same result (S10). Each step prin
 2. **create writable directories**: creates the `SQUIRE_WRITABLE_DIRS` entries, or `storage bootstrap/cache` for Laravel by default.
 3. **composer install from the lock file, without dev packages**: logs the Composer version (it moves at every container start, S58), then `composer install --no-dev --optimize-autoloader --no-interaction --no-progress --prefer-dist`.
 4. **composer audit**: `composer audit --locked --no-interaction`. By default (`SQUIRE_COMPOSER_AUDIT=report`) a non-zero exit prints a warning and the release goes on; `fail` stops it, `skip` skips it.
-5. **frontend install and build**: skipped without a `package.json` or with `SQUIRE_NPM=skip`. With `package-lock.json` it runs `npm ci` (with `--ignore-scripts` when `SQUIRE_NPM_IGNORE_SCRIPTS=1`); with `pnpm-lock.yaml` it runs `corepack pnpm install --frozen-lockfile`; with neither lock file it fails, telling you to commit one or set `SQUIRE_NPM=skip` if the built assets are committed. It then runs the `build` script (or `SQUIRE_NPM_BUILD_SCRIPT`) when `package.json` defines it.
-6. **laravel migrate** (Laravel only): `php artisan migrate --force` when `SQUIRE_MIGRATE=1`.
-7. **laravel optimize** (Laravel only): `php artisan optimize` when `SQUIRE_ARTISAN_OPTIMIZE=1`. After this the config is cached and `.env` is no longer read, so `env()` works only inside `config/` (S16).
-8. **PROCTOR**: see below.
+5. **PROCTOR gate**: see below. It runs before the frontend build and the migrations, so an enforced no-go stops the release before it touches the database.
+6. **frontend install and build**: skipped without a `package.json` or with `SQUIRE_NPM=skip`. With `package-lock.json` it runs `npm ci` (with `--ignore-scripts` when `SQUIRE_NPM_IGNORE_SCRIPTS=1`); with `pnpm-lock.yaml` it runs `corepack pnpm install --frozen-lockfile`; with neither lock file it fails, telling you to commit one or set `SQUIRE_NPM=skip` if the built assets are committed. It then runs the `build` script (or `SQUIRE_NPM_BUILD_SCRIPT`) when `package.json` defines it.
+7. **laravel migrate** (Laravel only): `php artisan migrate --force` when `SQUIRE_MIGRATE=1`.
+8. **laravel optimize** (Laravel only): `php artisan optimize` when `SQUIRE_ARTISAN_OPTIMIZE=1`. After this the config is cached and `.env` is no longer read, so `env()` works only inside `config/` (S16).
 9. **check Oracle (never fails the release)**: runs `php oracle-check.php` when the file exists, and notes a skip when it does not (the app does not use Oracle).
 10. **smoke test the health endpoint**: skipped when `SQUIRE_SMOKE=0` (Apache is not running inside the first-release hook). Otherwise it requests `SQUIRE_SMOKE_URL` up to `SQUIRE_SMOKE_RETRIES` attempts (default 5), sleeping `SQUIRE_SMOKE_DELAY` seconds (default 2) between them, and fails unless the answer is HTTP 200.
 
-## PROCTOR: report versus enforce[#](https://squire.apps.wayne.edu/docs/guides/release-script.html#proctor-report-versus-enforce)
+## PROCTOR: the deploy gate[#](https://squire.apps.wayne.edu/docs/guides/release-script.html#proctor-the-deploy-gate)
 
-By default PROCTOR is a report here, never a gate: a failing post-script cannot undo a Quick Update, because the new commit is already live (S20). With `SQUIRE_PROCTOR=enforce` a failed check stops the release: the first release never comes up healthy, and a Quick Update keeps the new commit checked out, so fix the findings and re-run.
+The release asks PROCTOR's deploy gate, `proctor gate`, for a go or no-go on this commit. The gate runs the deploy-time checks (the PHP floor and runtime, the Laravel line and its PHP range, the lock file, known advisories and the overrides) and ratchets them against a baseline: a failure the running release already had is held, and only a new failure, a first release that fails, or an expired override blocks. The squire holds the gate; the proctor says who may pass.
 
+- **Report or stop.** By default (`SQUIRE_PROCTOR=auto`) a no-go is a warning and the release goes on: a failing post-script cannot undo a Quick Update, because the new commit is already live (S20). With `SQUIRE_PROCTOR=enforce` a no-go stops the release before the frontend build and the migrations: the first release never comes up healthy, and a Quick Update keeps the new commit checked out, so fix the BLOCK lines (or record a dated override in `policy-overrides.json`) and re-run. A gate that could not decide (exit 2) is a warning under `auto` and a stop under `enforce`. `SQUIRE_PROCTOR=skip` skips the step.
+- **The record.** Every gated release writes its verdict to `storage/squire/proctor-gate.json` (`SQUIRE_PROCTOR_RECORD_DIR`). When the release goes on (a go, or a reported no-go, which goes live anyway) that verdict is copied to `proctor-gate-baseline.json`, and the next release passes it to the gate as `--baseline`. A stopped release leaves the baseline alone, so re-running after a stop is judged against the release that is really live. The folder gets a `.gitignore` of `*`. The first gated release has no baseline, so every failure blocks it.
+- **An older PROCTOR.** When the installed PROCTOR has no `gate` command, the step prints a warning naming its version, runs `proctor check` as before (a failed check is a report, or a stop under `enforce`), and writes no record. Update `waynestate/proctor` to a release that has the gate.
 - The binary is `vendor/bin/proctor`, then `proctor` on PATH, or `SQUIRE_PROCTOR_BIN`. It is a dev dependency, so `--no-dev` removes it: point `SQUIRE_PROCTOR_BIN` at a copy.
 - The policy is `SQUIRE_PROCTOR_POLICY` when set; otherwise the policy the CREED package ships (`vendor/waynestate/creed/policy/policy.json`, when installed); otherwise PROCTOR runs on its own default policy with a notice. An explicit value always wins.
 
 ## The Oracle check[#](https://squire.apps.wayne.edu/docs/guides/release-script.html#the-oracle-check)
 
-The release also runs an Oracle connection check (`oracle-check.php`) after PROCTOR and before the smoke test. It is a report, never a gate: a finding prints in the deployment log and the release goes on. When the app does not use Oracle (no `ORACLE_*` settings) it prints nothing. It checks, in order, that the settings are present, that the host resolves, that the port answers within 3 seconds, that the `oci8` driver is loaded, and that the login works, stopping at the first failure so a bad port never costs a login attempt. Settings: `ORACLE_USERNAME`, `ORACLE_PASSWORD`, and either `ORACLE_TNS` (Easy Connect `host:port/service`, or a full `(DESCRIPTION=...)` descriptor) or `ORACLE_HOST`, `ORACLE_PORT` and `ORACLE_SERVICE_NAME`. Only setting names are ever printed, never values.
+The release also runs an Oracle connection check (`oracle-check.php`) after the migrations and before the smoke test. It is a report, never a gate: a finding prints in the deployment log and the release goes on. When the app does not use Oracle (no `ORACLE_*` settings) it prints nothing. It checks, in order, that the settings are present, that the host resolves, that the port answers within 3 seconds, that the `oci8` driver is loaded, and that the login works, stopping at the first failure so a bad port never costs a login attempt. Settings: `ORACLE_USERNAME`, `ORACLE_PASSWORD`, and either `ORACLE_TNS` (Easy Connect `host:port/service`, or a full `(DESCRIPTION=...)` descriptor) or `ORACLE_HOST`, `ORACLE_PORT` and `ORACLE_SERVICE_NAME`. Only setting names are ever printed, never values.
 
 ## Configuration[#](https://squire.apps.wayne.edu/docs/guides/release-script.html#configuration)
 

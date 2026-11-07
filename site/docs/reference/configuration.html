@@ -142,7 +142,7 @@
 <tr>
 <td><code>SQUIRE_PROCTOR</code></td>
 <td><code>auto</code></td>
-<td><code>auto</code>, <code>skip</code> or <code>enforce</code>. By default PROCTOR is a report and never stops the release; <code>enforce</code> makes a failed check stop it.</td>
+<td><code>auto</code>, <code>skip</code> or <code>enforce</code>. The release asks <code>proctor gate</code> for a go or no-go (<code>proctor check</code> on a PROCTOR without the gate). By default a no-go is a report and never stops the release; <code>enforce</code> makes a no-go stop it, before the frontend build and the migrations.</td>
 </tr>
 <tr>
 <td><code>SQUIRE_PROCTOR_BIN</code></td>
@@ -153,6 +153,11 @@
 <td><code>SQUIRE_PROCTOR_POLICY</code></td>
 <td><code>vendor/waynestate/creed/policy/policy.json</code>, when installed</td>
 <td>Path to the policy file. When unset, the script falls back to the policy the CREED package ships (the deploy wizard has no environment field); when CREED is not installed, PROCTOR runs on its own default policy with a notice. An explicit value always wins.</td>
+</tr>
+<tr>
+<td><code>SQUIRE_PROCTOR_RECORD_DIR</code></td>
+<td><code>storage/squire</code></td>
+<td>Where the gate keeps its verdicts, relative to the app root: <code>proctor-gate.json</code> (the last verdict) and <code>proctor-gate-baseline.json</code> (the verdict of the last release that went on, the next run's baseline). The folder gets a <code>.gitignore</code> of <code>*</code>, so it never reaches git.</td>
 </tr>
 <tr>
 <td><code>SQUIRE_SMOKE</code></td>

@@ -44,53 +44,156 @@
 Versioning once 1.0 is out.</p>
 <h2 id="unreleased">Unreleased<a class="docs-heading-link" aria-label="Link to this section" href="#unreleased">#</a></h2>
 <ul>
-<li>Changed: The canonical repository is git.wayne.edu (ADR-0021); docs, links and package metadata no longer point at the archived nougat copy.</li>
-<li>Changed: the Oracle images publish to the group's images project (<code>images/squire-oracle-sail</code>, <code>images/squire-oracle-parity</code>) because git.wayne.edu has no registry.</li>
-<li>Fixed: <code>squire update</code> writes the template files a newer release added to a group the kit records: a file the target release has that <code>.squire.json</code> does not list is written from the template, recorded, and printed as added, so one <code>update</code> converges the kit (a kit made before 0.4.0 gains <code>oracle-check.php</code> when it moves past it) instead of leaving the new files to <code>squire init</code>; a file the app already has is still left alone, and an edited file is still refused and shown as a diff.</li>
-<li>Fixed: <code>squire init</code> without <code>--only</code> defaults to the groups the <code>.squire.json</code> records instead of <code>release,parity</code>, so a bare <code>init</code> completes an existing kit without dropping its groups; with no manifest it still writes <code>release,parity</code>, and <code>--only</code> still wins.</li>
-<li>Added: the Proof page records its last run: a dated table of the checks run against Squire itself (<code>composer ci</code> and the local parity rig) with their results and durations, so a reader can see when the page was last verified and how to refresh it.</li>
-<li>Fixed: the docs builder turns an article image whose src leaves the site (an http:, https: or // address) into a text link, because the stack's CSPs block external images: inside an anchor the tag becomes its alt text (the last path segment of the src when the alt is empty) and the link stays, so a README badge reads as a link to its page, and a bare tag becomes a link to the image itself with rel=&quot;noopener&quot;; relative, /-absolute and data: srcs are the site's own and stay put, for Markdown images and raw HTML <code>&lt;img&gt;</code> alike.</li>
-<li>Fixed: images in a docs page sit in rows again instead of stacking one per line (WayneUI's reset makes every image a block): the kit's docs.css puts article images back in the line, centered on the text, while an image alone in its paragraph (or followed only by a <code>&lt;sub&gt;</code> credit) stays a block; a paragraph or block of only images or linked images (badge rows, a README cast row) wraps in balanced lines with even spacing and keeps align=&quot;center&quot;; a list whose every item is one image or linked image becomes a wrapping row of 4rem tiles with no bullets; and linked tiles show an accent hairline on hover, the kit's focus ring on keyboard focus, and a 2px lift only without a reduced-motion request.</li>
-<li>Fixed: the kit's docs.css and docs-site.php answer three findings the new axe-core gates raised on SESAME, HELMET and Booster: inline code in a table header cell now inherits the cell's own colors (color: inherit, background: none) so it keeps the header text's contrast in light and dark themes; every code block gets tabindex=&quot;0&quot; from the builder, like the table wrappers, so a block that scrolls sideways on a narrow screen is keyboard reachable; and the level-3 &quot;On this page&quot; entries carry the docs-toc__item base class as well as docs-toc__item--sub so the kit's target-size rules reach them.</li>
-<li>Security: the front-page deploy layer moves to Symfony 7.4.23 (symfony/http-foundation and symfony/yaml advisories, including CVE-2026-118514).</li>
-<li>Fixed: GitHub CI's js-tests job installs git first, so checkout keeps package-lock.json.</li>
-<li>Added: a Proof page in the docs (Reference, Proof): Squire run against 82 Wayne State applications and 13 more repositories on 2026-11-05 (doctor, init, init --check, a second init, doctor again, update --dry-run, and a lint of every file init wrote), plus four of them booted on local parity; what it caught in Squire itself, what it does not prove, and how to run the same on your own app.</li>
-<li>Changed: <code>squire init</code> says so when the release it just wrote cannot pass its own first step: an app with no <code>composer.json</code> or no <code>composer.lock</code> gets a &quot;Heads up&quot; line naming the missing file and how to make it, instead of finding out from a failed first deploy. Found by the proof run (31 of the 82 apps have no lock file). New tests in ConsoleTest.</li>
-<li>Changed: Squire's docs theme tidies two rough edges the front page never shows: the phone Menu button keeps a clear line of canvas between itself and the page title, and the sidebar and terminal scrollbars are thin stitches in the theme's colors instead of the browser's grey rail.</li>
-<li>Fixed: a docs code block that overflows only once the web fonts load joins the tab order: the kit's docs.js re-measures every code block once document.fonts.ready settles (when the browser exposes the Font Loading API), so a block whose width grows with the final font gets tabindex=&quot;0&quot; like one measured after a resize; browsers and pages without the API behave exactly as before.</li>
-<li>Fixed: the docs builder's changelog page writes its own <code># Changelog</code> heading after the marker comment, so the built page has an h1 like every other docs page; the source's first heading is still dropped, whatever it said.</li>
-<li>Fixed: the agent-ready Markdown twin keeps the text of a label, which the docs builder wraps around every task-list checkbox and its item text: a list item that opens with a checkbox input (directly in the li, or in a label or paragraph that starts the item) renders as <code>- [ ] Item text</code>, or <code>- [x] Item text</code> when the input carries a checked attribute, ordered lists keep their number, and a label outside a list keeps its text inline.</li>
-<li>Changed: Squire's own docs pages wear the front page's look through the theme key: docs/_header.html is the front page masthead (satchel, SQUIRE, the same links, the version tag, Documentation marked current) and docs/theme/squire.css maps the front page's canvas, leather, gold and Arvo onto the kit's --dk-* tokens, with luggage tags for labels, the current page and the pager, stitched seams above sections, the hero's strap and buckle under each title, terminals with the gold Copy in the corner, code tabs styled like the front page's OS switcher, a derived dark set (prefers-color-scheme and data-theme), and motion only without a reduced-motion request. The kit's docs.css and docs.js are unchanged.</li>
-<li>Fixed: the front page footer's Documentation link was green on the deep green footer (contrast 1.43, axe color-contrast); it is gold now, like the footer's line.</li>
-<li>Added: dark mode in the docs kit: docs.css redefines its twelve --dk-* color aliases with dark fallbacks in :root[data-theme=&quot;dark&quot;] and in a prefers-color-scheme: dark query scoped to :root:not([data-theme=&quot;light&quot;]), in WayneUI's own resolution order (an explicit choice first, then the reader's system setting, else light), declares color-scheme in each theme so form controls and scrollbars follow, and keeps every text pair at WCAG AA contrast in both themes; the hex fallbacks only apply when WayneUI is absent.</li>
-<li>Fixed: code tab labels may contain spaces: the docs builder now finds the first tab=&quot;...&quot; token anywhere in a fence's info string (the quoted label may hold spaces but no double quote, 1 to 40 characters after trimming) instead of only when it is its own whitespace-separated word, so a fence such as <code>bash tab=&quot;Linux / macOS&quot;</code> joins its tab set with the full label; the token is still dropped from the kept info (the language is the first remaining word), an empty or over-long label still leaves the fence as a plain block, and the ids the builder derives from spaced labels stay valid (no spaces).</li>
-<li>Added: code tabs in the docs builder: consecutive fenced code blocks whose info string carries tab=&quot;LABEL&quot; (double quotes, label up to 40 characters) render as one labeled tab set (a docs-tabs element keyed by the lowercased labels joined by |, each panel a docs-tabs__panel with a visible label and the code escaped exactly like a plain fenced block), so every example reads without JavaScript; a lone tab=&quot;...&quot; fence stays a plain code block with the tab=&quot;...&quot; word dropped from its language class, a run broken by anything else becomes separate sets, and the kit's docs.js turns each set into an accessible tablist (click, arrow keys, Home and End), remembers the chosen label per key in localStorage, and keeps every set sharing a key in step, while docs.css styles the tabs from WayneUI tokens and print shows every panel.</li>
-<li>Added: Squire's own docs site (docs/ built to site/docs/ by its docs builder) and the composer scripts site:agent-ready, site:agent-ready-check; ci now runs both checks.</li>
-<li>Added: GitHub alert callouts in the docs builder: a blockquote whose first line is a marker alone ([!NOTE], [!TIP], [!WARNING] or [!DANGER], case-insensitive) renders as an aside with the classes docs-callout and docs-callout--note (one per kind), role=&quot;note&quot;, a visible label, and the body below it, and the marker line leaves the body; a blockquote without a marker, or with a marker that is not one of the four, stays a plain blockquote, and the kit's docs.css styles all four kinds from WayneUI tokens in light and dark themes.</li>
-<li>Fixed: the kit's agent-ready.js drops two unused variables in enhancePrompt, so eslint no-unused-vars passes.</li>
-<li>Fixed: the kit's agent-ready.js and stack-env.js use bindingless catch blocks, so a linter with no-unused-vars passes on them.</li>
-<li>Fixed: a docs code block that scrolls sideways is keyboard reachable: the kit's docs.js gives a block wider than its box tabindex=&quot;0&quot; and takes it away again when a resize makes it fit, so axe's scrollable-region-focusable rule passes on pages with long commands.</li>
-<li>Fixed: a scrolling code block inside a code tab stays keyboard reachable: docs.js measures a block again when its tab shows, and a resize leaves a block in a hidden panel as it was (it has no box to measure), so axe's scrollable-region-focusable rule passes on whichever tab is open.</li>
-<li>Fixed: a GitHub task list checkbox in the docs has an accessible name: the builder wraps the checkbox and its item's own inline text in a label (class docs-task), stopping before a nested list or a second paragraph, so axe's label rule passes on pages with task lists.</li>
-<li>Fixed: sub-items in the docs &quot;On this page&quot; list carry docs-toc__item as well as docs-toc__item--sub, so the kit's item rules (muted color, padding, hover) and a theme's reach them; docs.css also matches a bare --sub item, so pages built before a resync still look right.</li>
-<li>Fixed: the docs builder ignores generated: markers inside fenced code blocks, so a page can show the marker syntax in an example without the builder filling or checking it.</li>
-<li>Fixed: the docs kit's copy button says Copied after a successful copy; clipboard.writeText resolves with undefined, which docs.js read as a failure, so every working copy said Copy failed, and a refused write now says Copy failed instead of staying silent.</li>
-<li>Added: the docs builder's theme hook: an optional theme key in docs/docs.json with css and header members (both optional and independent, both plain relative paths against docs/); css names a stylesheet copied byte for byte to site/docs/theme/<basename> and linked after docs.css on every page, builder-owned like a copied image (--check compares it, reports it stale when it differs, and flags a copy under site/docs/theme/ as a leftover once the key goes away), and header names an HTML fragment whose single <header> element replaces the generic docs header in place, its relative href, src and srcset URLs prefixed with the page depth (#, /, // and scheme URLs stay put), its first link to docs/index.html or docs/ marked aria-current=&quot;page&quot; unless it already carries one, and its {{project}} and {{version}} placeholders filled (any other {{...}} fails the build, naming it); a non-object theme, a non-string member, an unknown key, an empty string or a path that does not exist is a tool error naming the key, and with no theme key, or an empty one, every generated byte matches the unthemed build.</li>
-<li>Changed: the docs builder's table cells strip Symfony console style tags (<info>, <comment>, <error>, <question>, &lt;fg=...&gt; and &lt;/&gt;) before escaping, so a symfony-commands help cell shows list instead of <info>list</info>; other angle text stays.</li>
-<li>Added: the docs builder's changelog page: when docs/nav.json lists a page whose path is changelog, a plain run writes docs/changelog.md from CHANGELOG.md before building (the usual front matter, a marker comment naming its source, the body without its top-level heading, every version heading kept as written), a relative link becomes a blob link under the nav.json source or loses its link keeping its label when there is none, --check reports docs/changelog.md (missing) or (out of date) instead of writing, and a nav entry without a CHANGELOG.md is a finding.</li>
-<li>Added: the docs builder's --examples mode runs the tagged command examples in the docs and fails when reality drifts from what they promise: a fenced block tagged run (bash, sh, shell or console, optionally exit=N) runs its lines in order in a fresh temp copy of the examples.cwd folder and compares the output with the following output block, every shell block must be tagged run or carry a docs-test: skip REASON line directly before it, skips are counted and grouped by reason in the summary and capped by examples.maxSkips, and a plain build or --check never runs examples.</li>
-<li>Added: the docs builder's two-way command and option coverage gate for a symfony-commands block: a code span or fenced line that starts with the CLI name must name a real command (help and list always pass) and may only use options of that command or the application options, every kept command and option must appear in the docs at least once (the generated block counts), and a fenced block whose info string contains docs-test: skip is not scanned.</li>
-<li>Changed: the front-page deploy layer pins HELMET ^0.3, PROCTOR ^0.4 and CREED ^0.1 (lock: HELMET 0.3.0, PROCTOR 0.4.0, CREED 0.1.6).</li>
-<li>Changed: CI pins Preflight 0.1.4 (GitLab component includes and the GitHub reusable workflow at its tag commit); the deploy layer sets minimum-stability to stable.</li>
-<li>Added: the docs builder's link gate for the built pages: every content link must reach a built page, a file under site/, or an external address, a fragment must name a real heading on the page it points at, and a relative link to a file the site does not serve (for example ../README.md) is a finding.</li>
-<li>Added: a GitHub release workflow (<code>.github/workflows/release.yml</code>) creates the release when a version tag arrives through the push mirror, using the CHANGELOG section for the notes and only the built-in <code>GITHUB_TOKEN</code>.</li>
-<li>Added: the docs builder's image gate for the built pages: every image a page references (a Markdown image or an HTML img) must name a file under docs/, resolved against the source page's folder, and is copied byte for byte to the same relative path under site/docs/ so the built page's relative src still resolves; a missing image is a finding, unreferenced files are never copied, and --check fails when a copy is missing or out of date.</li>
-<li>Added: the docs builder compares composer.json's version field with the docs stamp; a different version is a finding.</li>
-<li>Added: the docs builder's --require-release flag fails when CHANGELOG.md has no released heading yet, so the stamp cannot be unreleased in a checked repo.</li>
-<li>Added: the docs builder's --require-tag flag fails when the repo's latest version tag does not match the docs stamp (a tag such as v1.6.0 counts as 1.6.0); the flag is off by default.</li>
-<li>Added: a JavaScript test harness for the docs kit (tests/js, node:test with jsdom pinned exactly in package.json and package-lock.json) and a js-tests CI job on GitLab and GitHub that runs npm ci and npm test in a pinned multi-arch Node 22 image; composer js runs the same two commands locally and stays out of composer ci because the PHP image has no Node.</li>
-<li>Fixed: the oracle image jobs pin the Buildah image to the v1.43.5-immutable tag and its manifest list digest, because the previous digest was removed upstream.</li>
-<li>Fixed: a directory asked for without its trailing slash (for example <code>/docs</code>) now redirects to <code>/docs/</code>, so the page's relative images and links resolve.</li>
+<li>
+<p>Changed: the release script asks PROCTOR's deploy gate, <code>proctor gate</code>, for a go or no-go instead of running <code>proctor check</code>, and runs it right after <code>composer audit</code>, before the frontend build and the migrations, so an enforced no-go stops the release before it touches the database. The verdict is written to <code>storage/squire/proctor-gate.json</code> (new setting <code>SQUIRE_PROCTOR_RECORD_DIR</code>, in the settings-file allow list and the <code>.env.squire.example</code> files); when the release goes on, the verdict becomes the baseline the next release is ratcheted against, so a failure that is already live is held and only a new one blocks. <code>SQUIRE_PROCTOR=auto</code> still only reports a no-go, and <code>enforce</code> stops on it. With a PROCTOR that has no <code>gate</code> command the step warns, names the PROCTOR version, and runs <code>proctor check</code> as before. Needs a PROCTOR release with <code>proctor gate</code> to take effect.</p>
+</li>
+<li>
+<p>Changed: <code>doctor</code> S14 passes when the release runs <code>proctor gate</code> as well as <code>proctor check</code>, and the S50 hand-off names <code>proctor gate</code>.</p>
+</li>
+<li>
+<p>Changed: Squire's own deploy layer (<code>deploy/</code>) is updated to the current templates with <code>squire update</code>.</p>
+</li>
+<li>
+<p>Changed: The canonical repository is git.wayne.edu (ADR-0021); docs, links and package metadata no longer point at the archived nougat copy.</p>
+</li>
+<li>
+<p>Changed: the Oracle images publish to the group's images project (<code>images/squire-oracle-sail</code>, <code>images/squire-oracle-parity</code>) because git.wayne.edu has no registry.</p>
+</li>
+<li>
+<p>Fixed: <code>squire update</code> writes the template files a newer release added to a group the kit records: a file the target release has that <code>.squire.json</code> does not list is written from the template, recorded, and printed as added, so one <code>update</code> converges the kit (a kit made before 0.4.0 gains <code>oracle-check.php</code> when it moves past it) instead of leaving the new files to <code>squire init</code>; a file the app already has is still left alone, and an edited file is still refused and shown as a diff.</p>
+</li>
+<li>
+<p>Fixed: <code>squire init</code> without <code>--only</code> defaults to the groups the <code>.squire.json</code> records instead of <code>release,parity</code>, so a bare <code>init</code> completes an existing kit without dropping its groups; with no manifest it still writes <code>release,parity</code>, and <code>--only</code> still wins.</p>
+</li>
+<li>
+<p>Added: the Proof page records its last run: a dated table of the checks run against Squire itself (<code>composer ci</code> and the local parity rig) with their results and durations, so a reader can see when the page was last verified and how to refresh it.</p>
+</li>
+<li>
+<p>Fixed: the docs builder turns an article image whose src leaves the site (an http:, https: or // address) into a text link, because the stack's CSPs block external images: inside an anchor the tag becomes its alt text (the last path segment of the src when the alt is empty) and the link stays, so a README badge reads as a link to its page, and a bare tag becomes a link to the image itself with rel=&quot;noopener&quot;; relative, /-absolute and data: srcs are the site's own and stay put, for Markdown images and raw HTML <code>&lt;img&gt;</code> alike.</p>
+</li>
+<li>
+<p>Fixed: images in a docs page sit in rows again instead of stacking one per line (WayneUI's reset makes every image a block): the kit's docs.css puts article images back in the line, centered on the text, while an image alone in its paragraph (or followed only by a <code>&lt;sub&gt;</code> credit) stays a block; a paragraph or block of only images or linked images (badge rows, a README cast row) wraps in balanced lines with even spacing and keeps align=&quot;center&quot;; a list whose every item is one image or linked image becomes a wrapping row of 4rem tiles with no bullets; and linked tiles show an accent hairline on hover, the kit's focus ring on keyboard focus, and a 2px lift only without a reduced-motion request.</p>
+</li>
+<li>
+<p>Fixed: the kit's docs.css and docs-site.php answer three findings the new axe-core gates raised on SESAME, HELMET and Booster: inline code in a table header cell now inherits the cell's own colors (color: inherit, background: none) so it keeps the header text's contrast in light and dark themes; every code block gets tabindex=&quot;0&quot; from the builder, like the table wrappers, so a block that scrolls sideways on a narrow screen is keyboard reachable; and the level-3 &quot;On this page&quot; entries carry the docs-toc__item base class as well as docs-toc__item--sub so the kit's target-size rules reach them.</p>
+</li>
+<li>
+<p>Security: the front-page deploy layer moves to Symfony 7.4.23 (symfony/http-foundation and symfony/yaml advisories, including CVE-2026-118514).</p>
+</li>
+<li>
+<p>Fixed: GitHub CI's js-tests job installs git first, so checkout keeps package-lock.json.</p>
+</li>
+<li>
+<p>Added: a Proof page in the docs (Reference, Proof): Squire run against 82 Wayne State applications and 13 more repositories on 2026-11-05 (doctor, init, init --check, a second init, doctor again, update --dry-run, and a lint of every file init wrote), plus four of them booted on local parity; what it caught in Squire itself, what it does not prove, and how to run the same on your own app.</p>
+</li>
+<li>
+<p>Changed: <code>squire init</code> says so when the release it just wrote cannot pass its own first step: an app with no <code>composer.json</code> or no <code>composer.lock</code> gets a &quot;Heads up&quot; line naming the missing file and how to make it, instead of finding out from a failed first deploy. Found by the proof run (31 of the 82 apps have no lock file). New tests in ConsoleTest.</p>
+</li>
+<li>
+<p>Changed: Squire's docs theme tidies two rough edges the front page never shows: the phone Menu button keeps a clear line of canvas between itself and the page title, and the sidebar and terminal scrollbars are thin stitches in the theme's colors instead of the browser's grey rail.</p>
+</li>
+<li>
+<p>Fixed: a docs code block that overflows only once the web fonts load joins the tab order: the kit's docs.js re-measures every code block once document.fonts.ready settles (when the browser exposes the Font Loading API), so a block whose width grows with the final font gets tabindex=&quot;0&quot; like one measured after a resize; browsers and pages without the API behave exactly as before.</p>
+</li>
+<li>
+<p>Fixed: the docs builder's changelog page writes its own <code># Changelog</code> heading after the marker comment, so the built page has an h1 like every other docs page; the source's first heading is still dropped, whatever it said.</p>
+</li>
+<li>
+<p>Fixed: the agent-ready Markdown twin keeps the text of a label, which the docs builder wraps around every task-list checkbox and its item text: a list item that opens with a checkbox input (directly in the li, or in a label or paragraph that starts the item) renders as <code>- [ ] Item text</code>, or <code>- [x] Item text</code> when the input carries a checked attribute, ordered lists keep their number, and a label outside a list keeps its text inline.</p>
+</li>
+<li>
+<p>Changed: Squire's own docs pages wear the front page's look through the theme key: docs/_header.html is the front page masthead (satchel, SQUIRE, the same links, the version tag, Documentation marked current) and docs/theme/squire.css maps the front page's canvas, leather, gold and Arvo onto the kit's --dk-* tokens, with luggage tags for labels, the current page and the pager, stitched seams above sections, the hero's strap and buckle under each title, terminals with the gold Copy in the corner, code tabs styled like the front page's OS switcher, a derived dark set (prefers-color-scheme and data-theme), and motion only without a reduced-motion request. The kit's docs.css and docs.js are unchanged.</p>
+</li>
+<li>
+<p>Fixed: the front page footer's Documentation link was green on the deep green footer (contrast 1.43, axe color-contrast); it is gold now, like the footer's line.</p>
+</li>
+<li>
+<p>Added: dark mode in the docs kit: docs.css redefines its twelve --dk-* color aliases with dark fallbacks in :root[data-theme=&quot;dark&quot;] and in a prefers-color-scheme: dark query scoped to :root:not([data-theme=&quot;light&quot;]), in WayneUI's own resolution order (an explicit choice first, then the reader's system setting, else light), declares color-scheme in each theme so form controls and scrollbars follow, and keeps every text pair at WCAG AA contrast in both themes; the hex fallbacks only apply when WayneUI is absent.</p>
+</li>
+<li>
+<p>Fixed: code tab labels may contain spaces: the docs builder now finds the first tab=&quot;...&quot; token anywhere in a fence's info string (the quoted label may hold spaces but no double quote, 1 to 40 characters after trimming) instead of only when it is its own whitespace-separated word, so a fence such as <code>bash tab=&quot;Linux / macOS&quot;</code> joins its tab set with the full label; the token is still dropped from the kept info (the language is the first remaining word), an empty or over-long label still leaves the fence as a plain block, and the ids the builder derives from spaced labels stay valid (no spaces).</p>
+</li>
+<li>
+<p>Added: code tabs in the docs builder: consecutive fenced code blocks whose info string carries tab=&quot;LABEL&quot; (double quotes, label up to 40 characters) render as one labeled tab set (a docs-tabs element keyed by the lowercased labels joined by |, each panel a docs-tabs__panel with a visible label and the code escaped exactly like a plain fenced block), so every example reads without JavaScript; a lone tab=&quot;...&quot; fence stays a plain code block with the tab=&quot;...&quot; word dropped from its language class, a run broken by anything else becomes separate sets, and the kit's docs.js turns each set into an accessible tablist (click, arrow keys, Home and End), remembers the chosen label per key in localStorage, and keeps every set sharing a key in step, while docs.css styles the tabs from WayneUI tokens and print shows every panel.</p>
+</li>
+<li>
+<p>Added: Squire's own docs site (docs/ built to site/docs/ by its docs builder) and the composer scripts site:agent-ready, site:agent-ready-check; ci now runs both checks.</p>
+</li>
+<li>
+<p>Added: GitHub alert callouts in the docs builder: a blockquote whose first line is a marker alone ([!NOTE], [!TIP], [!WARNING] or [!DANGER], case-insensitive) renders as an aside with the classes docs-callout and docs-callout--note (one per kind), role=&quot;note&quot;, a visible label, and the body below it, and the marker line leaves the body; a blockquote without a marker, or with a marker that is not one of the four, stays a plain blockquote, and the kit's docs.css styles all four kinds from WayneUI tokens in light and dark themes.</p>
+</li>
+<li>
+<p>Fixed: the kit's agent-ready.js drops two unused variables in enhancePrompt, so eslint no-unused-vars passes.</p>
+</li>
+<li>
+<p>Fixed: the kit's agent-ready.js and stack-env.js use bindingless catch blocks, so a linter with no-unused-vars passes on them.</p>
+</li>
+<li>
+<p>Fixed: a docs code block that scrolls sideways is keyboard reachable: the kit's docs.js gives a block wider than its box tabindex=&quot;0&quot; and takes it away again when a resize makes it fit, so axe's scrollable-region-focusable rule passes on pages with long commands.</p>
+</li>
+<li>
+<p>Fixed: a scrolling code block inside a code tab stays keyboard reachable: docs.js measures a block again when its tab shows, and a resize leaves a block in a hidden panel as it was (it has no box to measure), so axe's scrollable-region-focusable rule passes on whichever tab is open.</p>
+</li>
+<li>
+<p>Fixed: a GitHub task list checkbox in the docs has an accessible name: the builder wraps the checkbox and its item's own inline text in a label (class docs-task), stopping before a nested list or a second paragraph, so axe's label rule passes on pages with task lists.</p>
+</li>
+<li>
+<p>Fixed: sub-items in the docs &quot;On this page&quot; list carry docs-toc__item as well as docs-toc__item--sub, so the kit's item rules (muted color, padding, hover) and a theme's reach them; docs.css also matches a bare --sub item, so pages built before a resync still look right.</p>
+</li>
+<li>
+<p>Fixed: the docs builder ignores generated: markers inside fenced code blocks, so a page can show the marker syntax in an example without the builder filling or checking it.</p>
+</li>
+<li>
+<p>Fixed: the docs kit's copy button says Copied after a successful copy; clipboard.writeText resolves with undefined, which docs.js read as a failure, so every working copy said Copy failed, and a refused write now says Copy failed instead of staying silent.</p>
+</li>
+<li>
+<p>Added: the docs builder's theme hook: an optional theme key in docs/docs.json with css and header members (both optional and independent, both plain relative paths against docs/); css names a stylesheet copied byte for byte to site/docs/theme/<basename> and linked after docs.css on every page, builder-owned like a copied image (--check compares it, reports it stale when it differs, and flags a copy under site/docs/theme/ as a leftover once the key goes away), and header names an HTML fragment whose single <header> element replaces the generic docs header in place, its relative href, src and srcset URLs prefixed with the page depth (#, /, // and scheme URLs stay put), its first link to docs/index.html or docs/ marked aria-current=&quot;page&quot; unless it already carries one, and its {{project}} and {{version}} placeholders filled (any other {{...}} fails the build, naming it); a non-object theme, a non-string member, an unknown key, an empty string or a path that does not exist is a tool error naming the key, and with no theme key, or an empty one, every generated byte matches the unthemed build.</p>
+</li>
+<li>
+<p>Changed: the docs builder's table cells strip Symfony console style tags (<info>, <comment>, <error>, <question>, &lt;fg=...&gt; and &lt;/&gt;) before escaping, so a symfony-commands help cell shows list instead of <info>list</info>; other angle text stays.</p>
+</li>
+<li>
+<p>Added: the docs builder's changelog page: when docs/nav.json lists a page whose path is changelog, a plain run writes docs/changelog.md from CHANGELOG.md before building (the usual front matter, a marker comment naming its source, the body without its top-level heading, every version heading kept as written), a relative link becomes a blob link under the nav.json source or loses its link keeping its label when there is none, --check reports docs/changelog.md (missing) or (out of date) instead of writing, and a nav entry without a CHANGELOG.md is a finding.</p>
+</li>
+<li>
+<p>Added: the docs builder's --examples mode runs the tagged command examples in the docs and fails when reality drifts from what they promise: a fenced block tagged run (bash, sh, shell or console, optionally exit=N) runs its lines in order in a fresh temp copy of the examples.cwd folder and compares the output with the following output block, every shell block must be tagged run or carry a docs-test: skip REASON line directly before it, skips are counted and grouped by reason in the summary and capped by examples.maxSkips, and a plain build or --check never runs examples.</p>
+</li>
+<li>
+<p>Added: the docs builder's two-way command and option coverage gate for a symfony-commands block: a code span or fenced line that starts with the CLI name must name a real command (help and list always pass) and may only use options of that command or the application options, every kept command and option must appear in the docs at least once (the generated block counts), and a fenced block whose info string contains docs-test: skip is not scanned.</p>
+</li>
+<li>
+<p>Changed: the front-page deploy layer pins HELMET ^0.3, PROCTOR ^0.4 and CREED ^0.1 (lock: HELMET 0.3.0, PROCTOR 0.4.0, CREED 0.1.6).</p>
+</li>
+<li>
+<p>Changed: CI pins Preflight 0.1.4 (GitLab component includes and the GitHub reusable workflow at its tag commit); the deploy layer sets minimum-stability to stable.</p>
+</li>
+<li>
+<p>Added: the docs builder's link gate for the built pages: every content link must reach a built page, a file under site/, or an external address, a fragment must name a real heading on the page it points at, and a relative link to a file the site does not serve (for example ../README.md) is a finding.</p>
+</li>
+<li>
+<p>Added: a GitHub release workflow (<code>.github/workflows/release.yml</code>) creates the release when a version tag arrives through the push mirror, using the CHANGELOG section for the notes and only the built-in <code>GITHUB_TOKEN</code>.</p>
+</li>
+<li>
+<p>Added: the docs builder's image gate for the built pages: every image a page references (a Markdown image or an HTML img) must name a file under docs/, resolved against the source page's folder, and is copied byte for byte to the same relative path under site/docs/ so the built page's relative src still resolves; a missing image is a finding, unreferenced files are never copied, and --check fails when a copy is missing or out of date.</p>
+</li>
+<li>
+<p>Added: the docs builder compares composer.json's version field with the docs stamp; a different version is a finding.</p>
+</li>
+<li>
+<p>Added: the docs builder's --require-release flag fails when CHANGELOG.md has no released heading yet, so the stamp cannot be unreleased in a checked repo.</p>
+</li>
+<li>
+<p>Added: the docs builder's --require-tag flag fails when the repo's latest version tag does not match the docs stamp (a tag such as v1.6.0 counts as 1.6.0); the flag is off by default.</p>
+</li>
+<li>
+<p>Added: a JavaScript test harness for the docs kit (tests/js, node:test with jsdom pinned exactly in package.json and package-lock.json) and a js-tests CI job on GitLab and GitHub that runs npm ci and npm test in a pinned multi-arch Node 22 image; composer js runs the same two commands locally and stays out of composer ci because the PHP image has no Node.</p>
+</li>
+<li>
+<p>Fixed: the oracle image jobs pin the Buildah image to the v1.43.5-immutable tag and its manifest list digest, because the previous digest was removed upstream.</p>
+</li>
+<li>
+<p>Fixed: a directory asked for without its trailing slash (for example <code>/docs</code>) now redirects to <code>/docs/</code>, so the page's relative images and links resolve.</p>
+</li>
 </ul>
 <h2 id="0-5-0-2026-11-03">0.5.0 (2026-11-03)<a class="docs-heading-link" aria-label="Link to this section" href="#0-5-0-2026-11-03">#</a></h2>
 <ul>
