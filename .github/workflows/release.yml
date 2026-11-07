@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   release:
-    # The squire hands the knight his sword; he does not forge it. A maintainer cuts the tag on nougat, never CI
+    # The squire hands the knight his sword; he does not forge it. A maintainer cuts the tag on git.wayne.edu, never CI
     # (a version tag is a promise, and promises come from people, and CI neither makes nor retracts them), the
     # push mirror carries it here, and this job only polishes it and sets it on the table. It never deletes or
     # moves a tag.

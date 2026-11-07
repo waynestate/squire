@@ -17,9 +17,10 @@ so a knight never deploys without it. A squire who forgets a buckle hears about 
 
 ## Where it lives
 
-Development happens on nougat, the canonical repository (https://nougat.snu.gs/enterprise-apps/squire). This GitHub
-repository and git.wayne.edu are read-only mirrors of it: `main` and tags are copied automatically. Changes, issues
-and merge requests go to nougat. Nobody pushes to the mirrors.
+Development happens on git.wayne.edu, the canonical repository (https://git.wayne.edu/enterprise-apps/squire; clone
+over SSH as `git@git.wayne.edu:enterprise-apps/squire.git`, or over HTTPS). Changes, issues and merge requests go
+there; tags are cut there, by a maintainer, with an approver. This GitHub repository is a read-only push mirror of
+it: `main` and tags are copied automatically, Packagist reads from it, and nobody pushes to it.
 
 ## Build and test
 
@@ -137,7 +138,7 @@ amd64 image cannot be built there today. See OPEN_QUESTIONS.md, "Oracle images: 
    the two disagree.
 2. `composer ci` and both linters green locally, then both pipelines green for that commit.
 3. Run a secrets scan of the history and check that nothing internal (server names, people, IDs) is in the tree.
-4. Tag `X.Y.Z` (no `v`) on nougat. The mirror carries the tag to GitHub, and Packagist picks it up from there. On GitHub, `.github/workflows/release.yml` then creates the release from the matching `## X.Y.Z (` section of `CHANGELOG.md` (it fails loudly when the section is missing or empty, and uses only the built-in `GITHUB_TOKEN`).
+4. Tag `X.Y.Z` (no `v`) on git.wayne.edu, with an approver. The mirror carries the tag to GitHub, and Packagist picks it up from there. On GitHub, `.github/workflows/release.yml` then creates the release from the matching `## X.Y.Z (` section of `CHANGELOG.md` (it fails loudly when the section is missing or empty, and uses only the built-in `GITHUB_TOKEN`).
 5. A release needs a maintainer's approval. Never move or delete a published tag.
 6. When Preflight releases, update both of this repo's pins: the component tag in `.gitlab-ci.yml` and the tag
    in `.github/workflows/ci.yml`.

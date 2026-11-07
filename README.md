@@ -30,9 +30,9 @@ Status: 0.5.0, tagged and on Packagist.
 
 ## Where the code lives
 
-The canonical repository is on nougat: [enterprise-apps/squire](https://nougat.snu.gs/enterprise-apps/squire). git.wayne.edu and GitHub ([waynestate/squire](https://github.com/waynestate/squire)) are read-only mirrors of it.
-Open issues and merge requests on nougat, not on the mirrors.
-This moves to git.wayne.edu once it has CI runners. Your squire serves one banner, and it flies over nougat.
+The canonical repository is [git.wayne.edu/enterprise-apps/squire](https://git.wayne.edu/enterprise-apps/squire); clone it over SSH as `git@git.wayne.edu:enterprise-apps/squire.git` or over HTTPS as `https://git.wayne.edu/enterprise-apps/squire.git`. Open issues and merge requests there; tags are cut there, by a maintainer, with an approver.
+GitHub ([waynestate/squire](https://github.com/waynestate/squire)) is a read-only push mirror of it: Packagist reads from it, and nobody pushes to it.
+Your squire serves one banner, and it flies over git.wayne.edu.
 
 <details>
 <summary>Open the bag: two more cuts of the front page</summary>
@@ -696,7 +696,7 @@ MIT, copyright Wayne State University. A squire carries the armor; the knight st
 
 ## The rest of the party
 
-  <a href="https://github.com/waynestate/wayne-ui"><img src="docs/readme/cast/wayneui.png" width="44" alt="WayneUI"></a>
+  <a href="https://git.wayne.edu/enterprise-apps/wayne-ui"><img src="docs/readme/cast/wayneui.png" width="44" alt="WayneUI"></a>
   <a href="https://github.com/waynestate/creed"><img src="docs/readme/cast/creed.png" width="44" alt="CREED"></a>
   <a href="https://github.com/waynestate/proctor"><img src="docs/readme/cast/proctor.png" width="44" alt="PROCTOR"></a>
   <a href="https://github.com/waynestate/sesame"><img src="docs/readme/cast/sesame.png" width="44" alt="SESAME"></a>
@@ -707,7 +707,7 @@ MIT, copyright Wayne State University. A squire carries the armor; the knight st
   <a href="https://github.com/waynestate/pinstripe"><img src="docs/readme/cast/pinstripe.png" width="44" alt="Pinstripe"></a>
   <a href="https://github.com/waynestate/booster"><img src="docs/readme/cast/booster.png" width="44" alt="Booster"></a>
   <a href="https://github.com/waynestate/rollcall"><img src="docs/readme/cast/rollcall.png" width="44" alt="Rollcall"></a>
-  <a href="https://nougat.snu.gs/enterprise-apps/drawbridge"><img src="docs/readme/cast/drawbridge.png" width="44" alt="Drawbridge"></a>
+  <a href="https://git.wayne.edu/enterprise-apps/drawbridge"><img src="docs/readme/cast/drawbridge.png" width="44" alt="Drawbridge"></a>
   <a href="https://github.com/waynestate/advisor"><img src="docs/readme/cast/advisor.png" width="44" alt="ADVISOR"></a>
   <a href="https://github.com/waynestate/weld"><img src="docs/readme/cast/weld.png" width="44" alt="WELD"></a>
 

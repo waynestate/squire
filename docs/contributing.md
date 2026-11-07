@@ -9,7 +9,7 @@ A squire who forgets a buckle hears about it in the build log, so this page list
 
 ## Where the code lives
 
-The canonical repository is on nougat: [enterprise-apps/squire](https://nougat.snu.gs/enterprise-apps/squire). git.wayne.edu and GitHub ([waynestate/squire](https://github.com/waynestate/squire)) are read-only mirrors of it: `main` and tags are copied automatically, and nobody pushes to the mirrors. Open issues and merge requests on nougat, not on the mirrors. This moves to git.wayne.edu once it has CI runners. Your squire serves one banner, and it flies over nougat.
+The canonical repository is on git.wayne.edu: [enterprise-apps/squire](https://git.wayne.edu/enterprise-apps/squire) (clone over SSH as `git@git.wayne.edu:enterprise-apps/squire.git`, or over HTTPS). Open issues and merge requests there; tags are cut there, by a maintainer, with an approver. GitHub ([waynestate/squire](https://github.com/waynestate/squire)) is a read-only push mirror of it: `main` and tags are copied automatically, Packagist reads from it, and nobody pushes to it. Your squire serves one banner, and it flies over git.wayne.edu.
 
 ## Development commands
 
@@ -64,7 +64,7 @@ Every behavior change updates README, docs pages, CHANGELOG (Unreleased), site/l
 1. Move the lines under `## Unreleased` in `CHANGELOG.md` to a new `## X.Y.Z (YYYY-MM-DD)` heading, and bump `Squire::VERSION` in `src/Squire.php` to the same number in the release commit: the version guard test fails when the two disagree.
 2. `composer ci` and both linters green locally, then both pipelines green for that commit.
 3. Run a secrets scan of the history and check that nothing internal (server names, people, IDs) is in the tree.
-4. Tag `X.Y.Z` (no `v`) on nougat. The mirror carries the tag to GitHub, and Packagist picks it up from there. On GitHub, `.github/workflows/release.yml` then creates the release from the matching `## X.Y.Z (` section of `CHANGELOG.md` (it fails loudly when the section is missing or empty, and uses only the built-in `GITHUB_TOKEN`).
+4. Tag `X.Y.Z` (no `v`) on git.wayne.edu, with an approver. The mirror carries the tag to GitHub, and Packagist picks it up from there. On GitHub, `.github/workflows/release.yml` then creates the release from the matching `## X.Y.Z (` section of `CHANGELOG.md` (it fails loudly when the section is missing or empty, and uses only the built-in `GITHUB_TOKEN`).
 5. A release needs a maintainer's approval. Never move or delete a published tag.
 6. When Preflight releases, update both of this repo's pins: the component tag in `.gitlab-ci.yml` and the tag in `.github/workflows/ci.yml`.
 

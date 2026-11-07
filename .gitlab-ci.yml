@@ -62,7 +62,7 @@ js-tests:
     - npm test
 
 # Publish the Oracle images on a tag: buildah builds both platforms without a Docker daemon and pushes a
-# manifest list to the group's images project on the other GitLab's registry, at
+# manifest list to the group's images project on the stack's image registry, at
 # $NOUGAT_REGISTRY/$CI_PROJECT_NAMESPACE/images/squire-oracle-sail and .../squire-oracle-parity. This GitLab has
 # no container registry (its disk is too small, by its admin's decision), so the destination host, user and token
 # come from protected CI variables (NOUGAT_REGISTRY, NOUGAT_REGISTRY_USER and NOUGAT_REGISTRY_TOKEN, a deploy
