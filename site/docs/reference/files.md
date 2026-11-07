@@ -26,6 +26,7 @@ What `squire init` writes into your app, which target or layer each file belongs
 | `docker-compose.squire.yml` | The common parity compose plus a Node 22 service for frontend tooling. | Vue layer only |
 | `docker-compose.squire.yml`, `.squire/`, `.env.squire.example`, `scripts/parity.sh`, `scripts/parity.ps1` | Local parity. | Local parity kit |
 | `.squire/apache-hardening.conf` | `ServerTokens Prod`, `ServerSignature Off` and `TraceEnable Off`, enabled by the fallback base. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html). | Local parity kit |
+| `.squire/php-web.ini` | The web's own settings: the `disable_functions` list. The app image appends it to `php.ini` as `php-apache2handler.ini`, so the CLI keeps every function. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html). | Local parity kit |
 
 ## The .gitignore lines init keeps[#](https://squire.apps.wayne.edu/docs/reference/files.html#the-gitignore-lines-init-keeps)
 

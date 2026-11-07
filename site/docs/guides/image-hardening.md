@@ -43,3 +43,23 @@ These live in the base, never in the app image: locally the app image also runs 
 Note
 
 On Citadel the platform's own `php.ini` decides, not this file. Whether a Quick Update restarts Apache is the open Quick Update reset test; until it is answered, ask for `validate_timestamps` on, with `revalidate_freq` above 0, rather than off.
+
+## disable_functions: the web loses the shell[#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#disable-functions-the-web-loses-the-shell)
+
+A web request should never shell out. `.squire/php-web.ini` holds the settings only the web server gets, and the app image appends it to `php.ini` as `php-apache2handler.ini`, the file mod_php reads instead of `php.ini`. The CLI reads `php.ini` alone, so Composer and its scripts, artisan, queue workers, the health check and the release script keep every function.
+
+| Disabled on the web | Why |
+| --- | --- |
+| `exec`, `passthru`, `shell_exec`, `system` | Run a shell command: the first thing an injected payload reaches for. |
+| `pcntl_exec` | Replaces the PHP process with another program. |
+| `phpinfo`, `show_source`, `highlight_file` | Print the server's setup or its source to whoever asked. |
+
+`proc_open` and `popen` stay: Symfony Mailer's sendmail transport, Laravel's `Process` and PHPMailer use them on the web. A test runs PHP on the same two files and checks both sides: the web list is gone, and the CLI and the mail functions are still there.
+
+**The switch.** `SQUIRE_PHP_DISABLE_FUNCTIONS` replaces the list, and `none` (a name no function has) disables nothing: the way out for an older app that calls `exec` from a page while you move that work to a queued job. An empty value is the same as unset, because PHP falls back to the default for both. Locally, put `SQUIRE_PHP_DISABLE_FUNCTIONS=none` in `.env.squire`.
+
+`disable_classes` is not set. It never stopped a caller who could reach another class, and PHP 8.5 removed it.
+
+Note
+
+Like opcache, this is the kit's request: on Citadel the platform's own `php.ini` decides. A local run is stricter than Citadel until the platform adopts the list, which is the safe direction: an app that works locally works there.

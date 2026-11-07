@@ -55,6 +55,9 @@ services:
       # The dev override (SQUIRE-10): php.ini's production default is 0, which would keep serving the PHP compiled
       # before you saved a file. Set it to 0 in .env.squire to try production behavior locally.
       SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS: ${SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS:-1}
+      # The web's disable_functions list (SQUIRE-29). Unset passes an empty value, which php-web.ini reads as its
+      # default; SQUIRE_PHP_DISABLE_FUNCTIONS=none in .env.squire disables nothing.
+      SQUIRE_PHP_DISABLE_FUNCTIONS: ${SQUIRE_PHP_DISABLE_FUNCTIONS:-}
     # Same timing as Citadel's check (5 minutes, 15 seconds). The start_* settings are local-only: they make the
     # first result arrive in seconds instead of after 5 minutes.
     healthcheck:

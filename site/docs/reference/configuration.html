@@ -236,7 +236,7 @@
 </tbody>
 </table></div>
 <h2 id="php-in-the-image-squire-php-ini">PHP in the image (<code>.squire/php.ini</code>)<a class="docs-heading-link" aria-label="Link to this section" href="#php-in-the-image-squire-php-ini">#</a></h2>
-<p>PHP reads these from the container's environment when it starts (PHP 8.3 and later). The parity compose file passes <code>SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS</code> from <code>.env.squire</code>; on Citadel the platform's own <code>php.ini</code> decides. See <a href="../guides/image-hardening.html">Image hardening</a>.</p>
+<p>PHP reads these from the container's environment when it starts (PHP 8.3 and later). The parity compose file passes <code>SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS</code> and <code>SQUIRE_PHP_DISABLE_FUNCTIONS</code> from <code>.env.squire</code>; on Citadel the platform's own <code>php.ini</code> decides. See <a href="../guides/image-hardening.html">Image hardening</a>.</p>
 <div class="docs-table" role="region" aria-label="Table" tabindex="0"><table>
 <thead>
 <tr>
@@ -260,6 +260,11 @@
 <td><code>SQUIRE_OPCACHE_MAX_FILES</code></td>
 <td><code>20000</code></td>
 <td>How many scripts opcache keeps.</td>
+</tr>
+<tr>
+<td><code>SQUIRE_PHP_DISABLE_FUNCTIONS</code></td>
+<td><code>exec,passthru,shell_exec,system,pcntl_exec,phpinfo,show_source,highlight_file</code></td>
+<td>The web's <code>disable_functions</code> list (<code>.squire/php-web.ini</code>; the CLI disables nothing). It replaces the list; <code>none</code> disables nothing, and an empty value means the default.</td>
 </tr>
 </tbody>
 </table></div>

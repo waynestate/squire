@@ -110,6 +110,11 @@
 <td><code>ServerTokens Prod</code>, <code>ServerSignature Off</code> and <code>TraceEnable Off</code>, enabled by the fallback base. See <a href="../guides/image-hardening.html">Image hardening</a>.</td>
 <td>Local parity kit</td>
 </tr>
+<tr>
+<td><code>.squire/php-web.ini</code></td>
+<td>The web's own settings: the <code>disable_functions</code> list. The app image appends it to <code>php.ini</code> as <code>php-apache2handler.ini</code>, so the CLI keeps every function. See <a href="../guides/image-hardening.html">Image hardening</a>.</td>
+<td>Local parity kit</td>
+</tr>
 </tbody>
 </table></div>
 <h2 id="the-gitignore-lines-init-keeps">The .gitignore lines init keeps<a class="docs-heading-link" aria-label="Link to this section" href="#the-gitignore-lines-init-keeps">#</a></h2>

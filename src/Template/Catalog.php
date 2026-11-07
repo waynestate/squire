@@ -60,6 +60,7 @@ final class Catalog
             new Template('.squire/fallback/citadel-deploy', $parity, true),
             new Template('.squire/haproxy.cfg', $parity),
             new Template('.squire/php.ini', $parity),
+            new Template('.squire/php-web.ini', $parity),
             new Template('.squire/vhost.conf', $parity),
             new Template('scripts/parity.sh', $parity, true),
             new Template('scripts/parity.ps1', $parity),

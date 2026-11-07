@@ -133,4 +133,107 @@ final class ImageHardeningTest extends SquireTestCase
             self::assertStringContainsString('SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS: ${SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS:-1}', $this->read($source), $source . ': a bind mount needs changed files seen');
         }
     }
+
+    // --- SQUIRE-29: the web loses the shell, the CLI keeps it --------------------------------------------------------
+
+    private const WEB_DISABLED = 'exec,passthru,shell_exec,system,pcntl_exec,phpinfo,show_source,highlight_file';
+
+    /**
+     * Run a PHP snippet under an ini file and return what it prints. The snippet reports which functions exist.
+     *
+     * @param array<string, string> $env
+     */
+    private function underIni(string $iniFile, string $code, array $env = []): string
+    {
+        $process = proc_open(
+            [PHP_BINARY, '-c', $iniFile, '-r', $code],
+            [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
+            $pipes,
+            null,
+            ['PATH' => (string) getenv('PATH'), ...$env],
+        );
+        self::assertIsResource($process);
+        $out = (string) stream_get_contents($pipes[1]);
+        stream_get_contents($pipes[2]);
+        proc_close($process);
+
+        return trim($out);
+    }
+
+    /** The web's ini exactly as the app image builds it: php.ini, a blank line, php-web.ini. */
+    private function webIni(): string
+    {
+        $file = $this->tempDir() . '/php-apache2handler.ini';
+        file_put_contents($file, $this->read('common/.squire/php.ini') . "\n" . $this->read('common/.squire/php-web.ini'));
+
+        return $file;
+    }
+
+    /** What a Laravel request, a Composer script and the health check reach for, and the shell functions. */
+    private const PROBE = 'foreach (["exec", "shell_exec", "system", "passthru", "phpinfo", "proc_open", "popen", "fsockopen", "stream_socket_client", "file_get_contents"] as $f) { echo $f, "=", function_exists($f) ? "y" : "n", " "; }';
+
+    public function testTheWebLosesTheShellFunctionsAndKeepsWhatLaravelUses(): void
+    {
+        $out = $this->underIni($this->webIni(), self::PROBE);
+
+        foreach (['exec', 'shell_exec', 'system', 'passthru', 'phpinfo'] as $gone) {
+            self::assertStringContainsString($gone . '=n', $out, $gone . ' is disabled on the web');
+        }
+        // Symfony Mailer's sendmail transport and Laravel's Process need proc_open; PHPMailer needs popen; the HTTP
+        // clients and the health check need sockets.
+        foreach (['proc_open', 'popen', 'fsockopen', 'stream_socket_client', 'file_get_contents'] as $kept) {
+            self::assertStringContainsString($kept . '=y', $out, $kept . ' stays on the web');
+        }
+    }
+
+    public function testTheCliKeepsEveryFunctionForComposerScriptsArtisanAndTheHealthCheck(): void
+    {
+        $out = $this->underIni(Squire::templatesDir() . '/common/.squire/php.ini', self::PROBE);
+
+        foreach (['exec', 'shell_exec', 'system', 'passthru', 'proc_open', 'popen'] as $kept) {
+            self::assertStringContainsString($kept . '=y', $out, $kept . ' stays in the CLI');
+        }
+    }
+
+    public function testNoneDisablesNothingAnEmptyValueKeepsTheDefaultAndAListReplacesIt(): void
+    {
+        $web = $this->webIni();
+
+        self::assertStringContainsString('exec=y', $this->underIni($web, self::PROBE, ['SQUIRE_PHP_DISABLE_FUNCTIONS' => 'none']), 'none is the off switch');
+        // The parity compose file passes an empty value when .env.squire sets nothing; PHP must read it as the default.
+        self::assertStringContainsString('exec=n', $this->underIni($web, self::PROBE, ['SQUIRE_PHP_DISABLE_FUNCTIONS' => '']), 'empty means the default');
+        $custom = $this->underIni($web, self::PROBE, ['SQUIRE_PHP_DISABLE_FUNCTIONS' => 'popen']);
+        self::assertStringContainsString('popen=n', $custom);
+        self::assertStringContainsString('exec=y', $custom, 'the variable replaces the list, it does not add to it');
+    }
+
+    public function testTheAppImageBuildsTheWebIniFromBothFiles(): void
+    {
+        $dockerfile = $this->read('common/.squire/Dockerfile');
+
+        self::assertStringContainsString('COPY .squire/php-web.ini /usr/local/etc/php/php-web.ini', $dockerfile);
+        self::assertStringContainsString('{ cat /usr/local/etc/php/php.ini; echo; cat /usr/local/etc/php/php-web.ini; } > /usr/local/etc/php/php-apache2handler.ini', $dockerfile);
+        // The web ini is built after php.ini lands, or it would freeze the base image's php.ini instead of the kit's.
+        self::assertGreaterThan(strpos($dockerfile, 'COPY .squire/php.ini'), strpos($dockerfile, 'php-apache2handler.ini'));
+        self::assertTrue($this->catalogHas('.squire/php-web.ini'), 'init writes php-web.ini with the parity kit');
+    }
+
+    public function testPhpIniSetsNoDisableClassesAndNoCliDisableList(): void
+    {
+        $ini = $this->directives('common/.squire/php.ini', ';');
+
+        self::assertContains('disable_functions =', $ini, 'the CLI disables nothing');
+        foreach ($ini as $line) {
+            self::assertStringStartsNotWith('disable_classes', $line, 'PHP 8.5 removed disable_classes');
+        }
+    }
+
+    public function testThePhpWebIniHoldsTheListAndTheComposeFilesPassTheSwitch(): void
+    {
+        self::assertContains('disable_functions = ${SQUIRE_PHP_DISABLE_FUNCTIONS:-' . self::WEB_DISABLED . '}', $this->directives('common/.squire/php-web.ini', ';'));
+        foreach (['common/docker-compose.squire.yml', 'vue/docker-compose.squire.yml'] as $source) {
+            // One list, in php-web.ini: compose passes the variable or an empty value, never a second copy.
+            self::assertStringContainsString('SQUIRE_PHP_DISABLE_FUNCTIONS: ${SQUIRE_PHP_DISABLE_FUNCTIONS:-}', $this->read($source), $source);
+        }
+    }
 }

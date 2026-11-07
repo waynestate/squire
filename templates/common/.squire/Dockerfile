@@ -26,6 +26,10 @@ COPY .squire/vhost.conf "$APACHE_CONFDIR/sites-available/"
 RUN a2dissite 000-default && a2ensite vhost
 
 COPY .squire/php.ini /usr/local/etc/php/php.ini
+# The web's own ini (SQUIRE-29): mod_php reads php-apache2handler.ini instead of php.ini, so php.ini plus the web-only
+# settings in php-web.ini (a later key wins). The CLI still reads php.ini alone.
+COPY .squire/php-web.ini /usr/local/etc/php/php-web.ini
+RUN { cat /usr/local/etc/php/php.ini; echo; cat /usr/local/etc/php/php-web.ini; } > /usr/local/etc/php/php-apache2handler.ini
 
 WORKDIR /citadel/build
 COPY build.sh /citadel/build/

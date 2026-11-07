@@ -567,6 +567,9 @@ What the kit's images harden, and the switch for each, is on the docs page
 - **opcache** (`.squire/php.ini`): on for the web, `validate_timestamps` off, 128 MB, 20000 files. The parity compose
   file turns `SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS` on for your bind mount, and the release script warns when a release
   in place meets a frozen opcache.
+- **disable_functions** (`.squire/php-web.ini`, the web only): `exec`, `passthru`, `shell_exec`, `system`, `pcntl_exec`,
+  `phpinfo`, `show_source`, `highlight_file`. `proc_open` and `popen` stay for mail and Laravel's Process; the CLI
+  (Composer scripts, artisan, the health check) keeps everything. `SQUIRE_PHP_DISABLE_FUNCTIONS=none` turns it off.
 
 ### Oracle-ready images (local)
 
@@ -634,7 +637,8 @@ Health check (`health.php`): `SQUIRE_HEALTH_PATH`, `SQUIRE_HEALTH_PORT` (80), `S
 Citadel's 15), `SQUIRE_HEALTH_VENDOR` (`1` also requires `vendor/autoload.php`).
 
 PHP in the image (`.squire/php.ini`, read from the container's environment): `SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS` (`0`, and
-`1` in the parity compose file), `SQUIRE_OPCACHE_MEMORY` (`128`), `SQUIRE_OPCACHE_MAX_FILES` (`20000`).
+`1` in the parity compose file), `SQUIRE_OPCACHE_MEMORY` (`128`), `SQUIRE_OPCACHE_MAX_FILES` (`20000`), `SQUIRE_PHP_DISABLE_FUNCTIONS` (the web's list, from
+`.squire/php-web.ini`; `none` disables nothing).
 
 Local parity (`.env.squire`): `SQUIRE_PROJECT`, `SQUIRE_BASE_IMAGE`, `SQUIRE_PROXY_IMAGE`, `SQUIRE_MYSQL_IMAGE`,
 `SQUIRE_PUBLIC_DIR`, `SQUIRE_SERVER_NAME`, `SQUIRE_TZ`, `SQUIRE_ENVIRONMENT`, `SQUIRE_DEPLOYMENTS`, `SQUIRE_HTTP_PORT`,
@@ -997,6 +1001,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ### Unreleased[#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+- Added: the web loses the shell (SQUIRE-29): the new parity file `.squire/php-web.ini` sets `disable_functions` to `exec`, `passthru`, `shell_exec`, `system`, `pcntl_exec`, `phpinfo`, `show_source` and `highlight_file`, and the app image appends it to `php.ini` as `php-apache2handler.ini`, the file mod_php reads, so the CLI (Composer scripts, artisan, the health check, the release script) keeps every function. `proc_open` and `popen` stay for Symfony Mailer, Laravel's Process and PHPMailer. `SQUIRE_PHP_DISABLE_FUNCTIONS` replaces the list and `none` disables nothing (an empty value means the default, because PHP's `${NAME:-default}` falls back for both); the parity compose files pass it through. `php.ini` no longer sets `disable_classes`, which PHP 8.5 removed. Tests run PHP on both files.
 - Added: production opcache in the kit's `php.ini` (SQUIRE-10): opcache on for the web and off for the CLI, `validate_timestamps` off, `revalidate_freq` 0, 128 MB, 20000 files and a 16 MB interned strings buffer, with `SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS`, `SQUIRE_OPCACHE_MEMORY` and `SQUIRE_OPCACHE_MAX_FILES` read from the container's environment. The parity compose files turn `SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS` on, because the source is a bind mount; the fallback base loads opcache when its image does not. The release script gains a "check opcache" step that never fails: after a release with Apache running, a frozen opcache is a warning (Apache serves the old PHP until it restarts), and in the first-release hook it is a note. Docs: Image hardening, The release script, Configuration reference.
 - Added: the fallback base says less about itself (SQUIRE-9): the new parity file `.squire/apache-hardening.conf` sets `ServerTokens Prod`, `ServerSignature Off` and `TraceEnable Off`, and the base enables it as `zz-squire-hardening.conf`, after Debian's `security.conf` (which ships `ServerTokens OS` and `ServerSignature On`), so the `Server` header reads `Apache` and Apache's own error pages carry no version footer. The app image is unchanged, so a run on the real Citadel image still shows what that image says. New docs page: Guides, Image hardening.
 - Changed: the release script asks PROCTOR's deploy gate, `proctor gate`, for a go or no-go instead of running `proctor check`, and runs it right after `composer audit`, before the frontend build and the migrations, so an enforced no-go stops the release before it touches the database. The verdict is written to `storage/squire/proctor-gate.json` (new setting `SQUIRE_PROCTOR_RECORD_DIR`, in the settings-file allow list and the `.env.squire.example` files); when the release goes on, the verdict becomes the baseline the next release is ratcheted against, so a failure that is already live is held and only a new one blocks. `SQUIRE_PROCTOR=auto` still only reports a no-go, and `enforce` stops on it. With a PROCTOR that has no `gate` command the step warns, names the PROCTOR version, and runs `proctor check` as before. Needs a PROCTOR release with `proctor gate` to take effect.
@@ -1594,6 +1599,26 @@ Note
 
 On Citadel the platform's own `php.ini` decides, not this file. Whether a Quick Update restarts Apache is the open Quick Update reset test; until it is answered, ask for `validate_timestamps` on, with `revalidate_freq` above 0, rather than off.
 
+### disable_functions: the web loses the shell[#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#disable-functions-the-web-loses-the-shell)
+
+A web request should never shell out. `.squire/php-web.ini` holds the settings only the web server gets, and the app image appends it to `php.ini` as `php-apache2handler.ini`, the file mod_php reads instead of `php.ini`. The CLI reads `php.ini` alone, so Composer and its scripts, artisan, queue workers, the health check and the release script keep every function.
+
+| Disabled on the web | Why |
+| --- | --- |
+| `exec`, `passthru`, `shell_exec`, `system` | Run a shell command: the first thing an injected payload reaches for. |
+| `pcntl_exec` | Replaces the PHP process with another program. |
+| `phpinfo`, `show_source`, `highlight_file` | Print the server's setup or its source to whoever asked. |
+
+`proc_open` and `popen` stay: Symfony Mailer's sendmail transport, Laravel's `Process` and PHPMailer use them on the web. A test runs PHP on the same two files and checks both sides: the web list is gone, and the CLI and the mail functions are still there.
+
+**The switch.** `SQUIRE_PHP_DISABLE_FUNCTIONS` replaces the list, and `none` (a name no function has) disables nothing: the way out for an older app that calls `exec` from a page while you move that work to a queued job. An empty value is the same as unset, because PHP falls back to the default for both. Locally, put `SQUIRE_PHP_DISABLE_FUNCTIONS=none` in `.env.squire`.
+
+`disable_classes` is not set. It never stopped a caller who could reach another class, and PHP 8.5 removed it.
+
+Note
+
+Like opcache, this is the kit's request: on Citadel the platform's own `php.ini` decides. A local run is stricter than Citadel until the platform adopts the list, which is the safe direction: an app that works locally works there.
+
 ---
 
 Source: https://squire.apps.wayne.edu/docs/guides/local-parity.html
@@ -2172,13 +2197,14 @@ All optional. On Citadel, add `./.env.squire` as a configuration file (the confi
 
 ### PHP in the image (`.squire/php.ini`)[#](https://squire.apps.wayne.edu/docs/reference/configuration.html#php-in-the-image-squire-php-ini)
 
-PHP reads these from the container's environment when it starts (PHP 8.3 and later). The parity compose file passes `SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS` from `.env.squire`; on Citadel the platform's own `php.ini` decides. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html).
+PHP reads these from the container's environment when it starts (PHP 8.3 and later). The parity compose file passes `SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS` and `SQUIRE_PHP_DISABLE_FUNCTIONS` from `.env.squire`; on Citadel the platform's own `php.ini` decides. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html).
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
 | `SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS` | `0` in the image, `1` in the parity compose file | `1` makes opcache notice changed files (a bind mount, a release in place); `0` never checks until Apache restarts. |
 | `SQUIRE_OPCACHE_MEMORY` | `128` | opcache memory, in megabytes. |
 | `SQUIRE_OPCACHE_MAX_FILES` | `20000` | How many scripts opcache keeps. |
+| `SQUIRE_PHP_DISABLE_FUNCTIONS` | `exec,passthru,shell_exec,system,pcntl_exec,phpinfo,show_source,highlight_file` | The web's `disable_functions` list (`.squire/php-web.ini`; the CLI disables nothing). It replaces the list; `none` disables nothing, and an empty value means the default. |
 
 ### Local parity (`.env.squire`)[#](https://squire.apps.wayne.edu/docs/reference/configuration.html#local-parity-env-squire)
 
@@ -2230,6 +2256,7 @@ What `squire init` writes into your app, which target or layer each file belongs
 | `docker-compose.squire.yml` | The common parity compose plus a Node 22 service for frontend tooling. | Vue layer only |
 | `docker-compose.squire.yml`, `.squire/`, `.env.squire.example`, `scripts/parity.sh`, `scripts/parity.ps1` | Local parity. | Local parity kit |
 | `.squire/apache-hardening.conf` | `ServerTokens Prod`, `ServerSignature Off` and `TraceEnable Off`, enabled by the fallback base. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html). | Local parity kit |
+| `.squire/php-web.ini` | The web's own settings: the `disable_functions` list. The app image appends it to `php.ini` as `php-apache2handler.ini`, so the CLI keeps every function. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html). | Local parity kit |
 
 ### The .gitignore lines init keeps[#](https://squire.apps.wayne.edu/docs/reference/files.html#the-gitignore-lines-init-keeps)
 
