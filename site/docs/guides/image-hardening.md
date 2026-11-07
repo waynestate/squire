@@ -1,6 +1,6 @@
 ---
 title: "Image hardening | Squire docs"
-description: "What Squire's images and kit harden, and how to turn each piece down when an app needs it: Apache's banner and TRACE, production opcache with a dev override, a web-only disable_functions list, and secrets as files at run time."
+description: "What Squire's images and kit harden, and how to turn each piece down when an app needs it: Apache's banner and TRACE, production opcache with a dev override, a web-only disable_functions list, secrets as files at run time, and npm without install scripts."
 url: https://squire.apps.wayne.edu/docs/guides/image-hardening.html
 llms: https://squire.apps.wayne.edu/llms.txt
 generator: Squire agent-ready
@@ -95,3 +95,16 @@ secrets:
 Note
 
 The real Citadel image's entrypoint does not read `/run/secrets`; on Citadel, `./.env` is the secret path. Keep `./.env` and any `secrets/` folder out of git.
+
+## npm: no install scripts, no day-old versions[#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#npm-no-install-scripts-no-day-old-versions)
+
+A package's install script runs with the release's rights, and a hijacked version is usually caught and pulled within hours. So the release does two things:
+
+- **No install scripts.** `npm ci --ignore-scripts` (or `pnpm install --frozen-lockfile --ignore-scripts`), on by default with `SQUIRE_NPM_IGNORE_SCRIPTS=1`. A package that needs its own scripts (a native addon such as `sharp`, a binary download such as `esbuild`) is named in `SQUIRE_NPM_REBUILD`, and only it runs them after the install: `npm rebuild --ignore-scripts=false sharp`, or `pnpm rebuild sharp` (pnpm 10 also needs it in `pnpm.onlyBuiltDependencies`). Each name is checked against the shape of a package name first.
+- **A minimum release age.** The Vue layer's `.npmrc` sets `min-release-age=1`: `npm install` and `npm update` skip versions published less than a day ago, so they never reach the lock file. `npm ci` installs the lock exactly, so this guards the day the lock is written, not the release. npm reads the setting from 11.10 on; Node 22 ships npm 10, which ignores it, and the release says so in its log.
+
+**Policy.** Keep one day for every app; raise it, never lower it, in the app's own `.npmrc`. To take a fix published this morning, install it on purpose and review the lock diff:
+
+```sh
+npm install --min-release-age=0 some-package@1.2.3
+```

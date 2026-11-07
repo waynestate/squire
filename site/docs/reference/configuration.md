@@ -37,6 +37,7 @@ All optional. On Citadel, add `./.env.squire` as a configuration file (the confi
 | `SQUIRE_COMPOSER_AUDIT` | `report` | `report`, `fail` or `skip`. |
 | `SQUIRE_NPM` | `auto` | `auto` or `skip` (for committed built assets). |
 | `SQUIRE_NPM_IGNORE_SCRIPTS` | `1` | Install with `--ignore-scripts`. |
+| `SQUIRE_NPM_REBUILD` | empty | Packages, separated by spaces, whose install scripts run after the install (`npm rebuild --ignore-scripts=false`, or `pnpm rebuild`; pnpm 10 also needs them in `pnpm.onlyBuiltDependencies`). The escape hatch for a package that needs its own scripts, such as a native addon. |
 | `SQUIRE_NPM_BUILD_SCRIPT` | `build` | The `package.json` script to run. |
 | `SQUIRE_MIGRATE` | `1` | Laravel: `migrate --force`. |
 | `SQUIRE_ARTISAN_OPTIMIZE` | `1` | Laravel: `optimize`. |

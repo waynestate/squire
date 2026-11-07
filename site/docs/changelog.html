@@ -45,6 +45,9 @@ Versioning once 1.0 is out.</p>
 <h2 id="unreleased">Unreleased<a class="docs-heading-link" aria-label="Link to this section" href="#unreleased">#</a></h2>
 <ul>
 <li>
+<p>Added: an escape hatch for npm install scripts and a written release-age policy (SQUIRE-26): <code>SQUIRE_NPM_REBUILD</code> names the packages (space-separated, each checked against the shape of a package name) that run their own install scripts after <code>npm ci --ignore-scripts</code> (<code>npm rebuild --ignore-scripts=false</code>, or <code>pnpm rebuild</code>), so one native addon no longer means turning scripts back on for every package. The release logs the npm version and notes when that npm (older than 11.10) ignores <code>min-release-age</code>. The Vue layer's <code>.npmrc</code> keeps <code>min-release-age=1</code> and explains it, with the deliberate <code>--min-release-age=0</code> install for an urgent fix. Docs: Image hardening, The release script, Configuration reference.</p>
+</li>
+<li>
 <p>Added: secrets as files at run time (SQUIRE-18): <code>scripts/release.sh</code> and the fallback entrypoint share one loader that turns each file in <code>SQUIRE_SECRETS_DIR</code> (default <code>/run/secrets</code>, where Docker, Compose and Kubernetes mount secrets) named like a variable into that variable, unless the environment already sets it; names that change how the shell runs are skipped, and only names are printed. The entrypoint loads them before Apache starts; the release loads them again after <code>su -l</code>. <code>SQUIRE_SECRETS_DIR</code> joins the settings-file allow list. Tests run the loader in bash, keep the two copies identical, and keep secrets out of the Dockerfiles, the build context and <code>build.sh</code>. Docs: Image hardening (Citadel, Compose, <code>docker run</code>, OpenShift), Citadel setup, The release script, Configuration reference.</p>
 </li>
 <li>

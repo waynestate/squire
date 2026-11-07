@@ -22,7 +22,7 @@ What `squire init` writes into your app, which target or layer each file belongs
 | `public/up.php` | The endpoint that answers `ok`. Laravel has `/up` built in. | Raw PHP and static |
 | `public/index.php` | Raw: the front controller that serves `public/` files safely and hands the rest to the app's entry. Static: the one that serves the committed site with HELMET's headers. Never written over an app's own. | Raw and static |
 | `public/.htaccess` | Raw: sends every request but `index.php` and `up.php` to the front controller. Static: routes every request that is not a real file to it. | Raw and static |
-| `.npmrc` | Sets `min-release-age=1` for the frontend install. | Vue layer only |
+| `.npmrc` | Sets `min-release-age=1` (days) for the frontend install, with the escape hatches in its comments. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#npm-no-install-scripts-no-day-old-versions). | Vue layer only |
 | `docker-compose.squire.yml` | The common parity compose plus a Node 22 service for frontend tooling. | Vue layer only |
 | `docker-compose.squire.yml`, `.squire/`, `.env.squire.example`, `scripts/parity.sh`, `scripts/parity.ps1` | Local parity. | Local parity kit |
 | `.squire/apache-hardening.conf` | `ServerTokens Prod`, `ServerSignature Off` and `TraceEnable Off`, enabled by the fallback base. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html). | Local parity kit |

@@ -27,6 +27,7 @@
 #   SQUIRE_COMPOSER_AUDIT=report     report | fail | skip
 #   SQUIRE_NPM=auto                  auto | skip
 #   SQUIRE_NPM_IGNORE_SCRIPTS=1      1 runs the installer with --ignore-scripts (S57)
+#   SQUIRE_NPM_REBUILD=              packages (space-separated) whose install scripts run after the install (SQUIRE-26)
 #   SQUIRE_NPM_BUILD_SCRIPT=build    the package.json script to run after install
 #   SQUIRE_MIGRATE=1                 Laravel: run `migrate --force`
 #   SQUIRE_ARTISAN_OPTIMIZE=1        Laravel: run `optimize` after the environment is in place (S16)
@@ -127,7 +128,7 @@ squire_load_settings() {
         value="${line#*=}"
         case "$key" in
             SQUIRE_FRAMEWORK | SQUIRE_ALLOW_ROOT | SQUIRE_REQUIRE_ENV | SQUIRE_WRITABLE_DIRS | \
-                SQUIRE_COMPOSER_AUDIT | SQUIRE_NPM | SQUIRE_NPM_IGNORE_SCRIPTS | SQUIRE_NPM_BUILD_SCRIPT | \
+                SQUIRE_COMPOSER_AUDIT | SQUIRE_NPM | SQUIRE_NPM_IGNORE_SCRIPTS | SQUIRE_NPM_REBUILD | SQUIRE_NPM_BUILD_SCRIPT | \
                 SQUIRE_MIGRATE | SQUIRE_ARTISAN_OPTIMIZE | SQUIRE_PROCTOR | SQUIRE_PROCTOR_BIN | \
                 SQUIRE_PROCTOR_POLICY | SQUIRE_PROCTOR_RECORD_DIR | SQUIRE_SMOKE | SQUIRE_SMOKE_URL | SQUIRE_SMOKE_RETRIES | SQUIRE_SMOKE_DELAY | \
                 SQUIRE_SECRETS_DIR) ;;
@@ -161,6 +162,7 @@ squire_load_secrets
 : "${SQUIRE_COMPOSER_AUDIT:=report}"
 : "${SQUIRE_NPM:=auto}"
 : "${SQUIRE_NPM_IGNORE_SCRIPTS:=1}"
+: "${SQUIRE_NPM_REBUILD:=}"
 : "${SQUIRE_NPM_BUILD_SCRIPT:=build}"
 : "${SQUIRE_MIGRATE:=1}"
 : "${SQUIRE_ARTISAN_OPTIMIZE:=1}"
@@ -379,16 +381,50 @@ else
     if [ "$SQUIRE_NPM_IGNORE_SCRIPTS" = "1" ]; then
         ignore_flag="--ignore-scripts"
     fi
+    # The escape hatch for a package that needs its install script (SQUIRE-26): name it, and only it runs its scripts.
+    # read -a splits on spaces without expanding globs, and each word must look like an npm package name.
+    rebuild=()
+    read -r -a rebuild_words <<<"$SQUIRE_NPM_REBUILD" || true
+    for package in "${rebuild_words[@]}"; do
+        case "$package" in
+            [!a-z0-9@]* | *[!a-z0-9@/._-]* | *..* | ?*@* | @*/*/* | [!@]*/* | @ | @/* | */)
+                fail "SQUIRE_NPM_REBUILD takes package names separated by spaces; got '$package'" ;;
+        esac
+        rebuild+=("$package")
+    done
     if [ -f package-lock.json ]; then
         command -v npm >/dev/null 2>&1 || fail "package-lock.json found but npm is not on PATH"
-        npm --version
+        npm_version="$(npm --version)"
+        printf '%s\n' "$npm_version"
+        # min-release-age in .npmrc holds back versions younger than its days when a lock file is written; npm reads it
+        # from 11.10 on. npm ci installs the lock exactly either way, so the release itself never picks a new version.
+        npm_major="${npm_version%%.*}"
+        npm_minor="${npm_version#*.}"
+        npm_minor="${npm_minor%%.*}"
+        npm_reads_age=0
+        case "$npm_major$npm_minor" in
+            '' | *[!0-9]*) ;;
+            *) npm_reads_age=$((npm_major > 11 || (npm_major == 11 && npm_minor >= 10))) ;;
+        esac
+        if [ "$npm_reads_age" = "0" ] && [ -f .npmrc ] && grep -q '^min-release-age' .npmrc; then
+            note "npm $npm_version ignores min-release-age in .npmrc (npm 11.10 or later reads it); the lock file still decides what installs"
+        fi
         # shellcheck disable=SC2086  # the flag is empty or one word
         npm ci $ignore_flag
+        if [ "${#rebuild[@]}" -gt 0 ]; then
+            note "running install scripts for: ${rebuild[*]}"
+            npm rebuild --ignore-scripts=false "${rebuild[@]}"
+        fi
         run_build=(npm run "$SQUIRE_NPM_BUILD_SCRIPT")
     elif [ -f pnpm-lock.yaml ]; then
         command -v corepack >/dev/null 2>&1 || fail "pnpm-lock.yaml found but corepack is not on PATH"
         # shellcheck disable=SC2086  # the flag is empty or one word
         corepack pnpm install --frozen-lockfile $ignore_flag
+        if [ "${#rebuild[@]}" -gt 0 ]; then
+            # pnpm 10 also runs a dependency's build only when package.json lists it in pnpm.onlyBuiltDependencies.
+            note "running install scripts for: ${rebuild[*]}"
+            corepack pnpm rebuild "${rebuild[@]}"
+        fi
         run_build=(corepack pnpm run "$SQUIRE_NPM_BUILD_SCRIPT")
     else
         fail "package.json has no package-lock.json or pnpm-lock.yaml; commit a lock file, or set SQUIRE_NPM=skip if the built assets are committed"

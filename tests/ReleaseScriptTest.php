@@ -41,6 +41,7 @@ final class ReleaseScriptTest extends SquireTestCase
         $this->stub('npm', <<<'SH'
             #!/bin/sh
             echo "npm $*" >> "$STUB_LOG"
+            if [ "$1" = "--version" ]; then echo "${STUB_NPM_VERSION:-10.9.2}"; exit 0; fi
             if [ "$1" = "run" ] && [ "$2" = "build" ]; then exit "${STUB_NPM_BUILD_EXIT:-0}"; fi
             exit 0
             SH);
@@ -563,6 +564,92 @@ final class ReleaseScriptTest extends SquireTestCase
         self::assertContains('npm ci --ignore-scripts', $calls);
         self::assertContains('npm run build', $calls);
         self::assertLessThan((int) array_search('npm run build', $calls, true), (int) array_search('npm ci --ignore-scripts', $calls, true));
+    }
+
+    // --- SQUIRE-26: the install-script escape hatch and the release-age note -----------------------------------------
+
+    private function npmApp(): string
+    {
+        $app = $this->initializedVueApp();
+        $this->put($app, 'package.json', '{"scripts":{"build":"vite build"}}');
+        $this->put($app, 'package-lock.json', '{}');
+
+        return $app;
+    }
+
+    public function testOnlyTheNamedPackagesRunTheirInstallScriptsAfterTheInstall(): void
+    {
+        $result = $this->exec($this->npmApp(), 'scripts/release.sh', ['SQUIRE_NPM_REBUILD' => 'esbuild @parcel/watcher']);
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        $calls = $this->calls();
+        $install = array_search('npm ci --ignore-scripts', $calls, true);
+        $rebuild = array_search('npm rebuild --ignore-scripts=false esbuild @parcel/watcher', $calls, true);
+        self::assertNotFalse($install, 'the install itself still runs no scripts');
+        self::assertNotFalse($rebuild, 'the named packages run theirs');
+        self::assertGreaterThan($install, $rebuild);
+        self::assertLessThan((int) array_search('npm run build', $calls, true), $rebuild, 'before the build that needs them');
+    }
+
+    public function testWithoutTheHatchNothingIsRebuilt(): void
+    {
+        $result = $this->exec($this->npmApp(), 'scripts/release.sh');
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertSame([], array_filter($this->calls(), static fn(string $c): bool => str_starts_with($c, 'npm rebuild')));
+    }
+
+    public function testThePnpmHatchRebuildsTheNamedPackages(): void
+    {
+        $app = $this->initializedVueApp();
+        $this->put($app, 'package.json', '{"scripts":{"build":"vite build"}}');
+        $this->put($app, 'pnpm-lock.yaml', "lockfileVersion: '9.0'\n");
+
+        $result = $this->exec($app, 'scripts/release.sh', ['SQUIRE_NPM_REBUILD' => 'sharp']);
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertContains('corepack pnpm rebuild sharp', $this->calls());
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function badRebuildNames(): iterable
+    {
+        yield 'a flag' => ['--unsafe-perm'];
+        yield 'a version' => ['esbuild@0.25.0'];
+        yield 'a path' => ['../evil'];
+        yield 'a glob' => ['*'];
+        yield 'a shell word' => ['esbuild;id'];
+        yield 'capitals' => ['EsBuild'];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('badRebuildNames')]
+    public function testARebuildValueThatIsNotAPackageNameStopsTheRelease(string $value): void
+    {
+        $result = $this->exec($this->npmApp(), 'scripts/release.sh', ['SQUIRE_NPM_REBUILD' => $value]);
+
+        self::assertSame(1, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertStringContainsString('SQUIRE_NPM_REBUILD takes package names separated by spaces', $result['stderr']);
+        self::assertSame([], array_filter($this->calls(), static fn(string $c): bool => str_starts_with($c, 'npm rebuild') || str_starts_with($c, 'npm ci')));
+    }
+
+    public function testAnNpmThatIgnoresMinReleaseAgeIsNoted(): void
+    {
+        $old = $this->exec($this->npmApp(), 'scripts/release.sh', ['STUB_NPM_VERSION' => '10.9.2']);
+        self::assertSame(0, $old['exit'], $old['stdout'] . $old['stderr']);
+        self::assertStringContainsString('npm 10.9.2 ignores min-release-age', $old['stdout'] . $old['stderr']);
+
+        $new = $this->exec($this->npmApp(), 'scripts/release.sh', ['STUB_NPM_VERSION' => '11.10.0']);
+        self::assertSame(0, $new['exit'], $new['stdout'] . $new['stderr']);
+        self::assertStringNotContainsString('ignores min-release-age', $new['stdout'] . $new['stderr']);
+    }
+
+    public function testTheVueNpmrcKeepsOneDayAndDocumentsTheHatches(): void
+    {
+        $npmrc = (string) file_get_contents(Squire::templatesDir() . '/vue/.npmrc');
+
+        self::assertMatchesRegularExpression('/^min-release-age=1$/m', $npmrc);
+        self::assertStringContainsString('npm install --min-release-age=0', $npmrc, 'the deliberate way past the age');
+        self::assertStringContainsString('SQUIRE_NPM_REBUILD', $npmrc, 'the way to let one package run its scripts');
     }
 
     public function testPnpmLockSelectsPnpmInstallAndBuild(): void
