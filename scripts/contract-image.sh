@@ -16,6 +16,15 @@
 #   - php health.php exits 0 inside the container
 #   - the first-release deployment log exists with no failed sibling
 #
+# and then the hardening, inside the running image (scripts/contract-image-checks.php, piped to php in the container):
+#
+#   - Apache: Server is exactly "Apache", no X-Powered-By, TRACE answers 405 without a version footer (SQUIRE-9)
+#   - the web's opcache is on with validate_timestamps 0, and the release warns about it in place (SQUIRE-10)
+#   - the web disables exec and the rest, keeps proc_open and popen; the CLI disables nothing, and a Composer script
+#     that shells out runs in the release (SQUIRE-29)
+#   - a secret mounted at /run/secrets reaches the web and the release by name, and its value is in no log, no layer
+#     and no image config (SQUIRE-18)
+#
 # One line per assertion, PASS or FAIL; exit 1 on any FAIL. Unless --keep, the container, the app image, the logs
 # volume and the temp dir are removed (the shared base image stays, like any pulled image).
 #
@@ -38,6 +47,9 @@ BASE_TAG="squire/php-parity-base:8.4"
 APP_TAG="squire/contract-app:$$"
 CID="squire-contract-$$"
 LOGVOL="squire-contract-logs-$$"
+# A throwaway secret, mounted as a file the way Docker, Compose and Kubernetes mount one (SQUIRE-18).
+SECRET_NAME="SQUIRE_CONTRACT_SECRET"
+SECRET_VALUE="contract-secret-$$-$(date +%s)"
 KEEP=0
 PLATFORM=""
 TMPROOT=""
@@ -117,12 +129,17 @@ make_fixture() {
             -v "$(win_path "$TMPROOT"):/work" \
             -v squire-vendor:/app/vendor \
             -w /app \
-            composer:2.10.3 \
+            composer:2.10.3@sha256:2cf275428757e5435a667bfc0d038b14520ca02be2b1b70d44a05c8c19e2de48 \
             sh -c 'if [ ! -f vendor/autoload.php ]; then composer install --no-interaction --quiet; fi; php bin/squire init --path=/work/app --target=raw'
     fi
     # public/index.php and public/up.php come from the raw template; init writes them, but make sure they are here.
     [ -f "$FIXTURE/public/index.php" ] || cp "$REPO/templates/raw/public/index.php" "$FIXTURE/public/index.php"
     [ -f "$FIXTURE/public/up.php" ] || cp "$REPO/templates/raw/public/up.php" "$FIXTURE/public/up.php"
+    # The app's entry: a probe page that reports the web's own PHP settings to contract-image-checks.php.
+    cp "$REPO/scripts/contract-image-probe.php" "$FIXTURE/app.php"
+    mkdir -p "$TMPROOT/secrets"
+    printf '%s' "$SECRET_VALUE" >"$TMPROOT/secrets/$SECRET_NAME"
+    chmod 0644 "$TMPROOT/secrets/$SECRET_NAME"
     for f in build.sh deployments/001-first-release.sh scripts/release.sh health.php public/index.php public/up.php .squire/Dockerfile .squire/base-fallback.Dockerfile; do
         [ -f "$FIXTURE/$f" ] || die "init did not write $f into the fixture"
     done
@@ -167,6 +184,7 @@ run_container() {
         -p "127.0.0.1:$PORT:80" \
         -v "$(win_path "$FIXTURE")":/citadel/src \
         -v "$LOGVOL":/citadel/logs \
+        -v "$(win_path "$TMPROOT/secrets/$SECRET_NAME")":"/run/secrets/$SECRET_NAME":ro \
         "$APP_TAG" >/dev/null
     printf 'container %s up on http://127.0.0.1:%s (the first release runs before Apache starts)\n' "$CID" "$PORT" >&2
 }
@@ -230,6 +248,10 @@ build_images
 run_container
 wait_for_apache
 
+# A Composer script that shells out, so the release proves the CLI keeps what the web loses (SQUIRE-29).
+docker exec -u citadel -w /citadel/src "$CID" composer config scripts.post-install-cmd \
+    "@php -r \"file_put_contents('.contract-composer-script', shell_exec('echo ok'));\""
+
 # release.sh again, as the citadel user, with the smoke test on (its default). The first release already ran it
 # without the smoke test at container start, so this is the idempotency half of the contract.
 rc=0
@@ -254,6 +276,40 @@ report "$rc" "php health.php exited 0 inside the container"
 rc=0
 docker exec -u citadel "$CID" sh -c '[ -f /citadel/logs/deployments/001-first-release.sh.log ] && [ ! -e /citadel/logs/deployments/001-first-release.sh.failed.log ]' || rc=1
 report "$rc" "the first-release deployment log exists with no failed sibling"
+
+# --- the hardening, checked in the running image (SQUIRE-40) ------------------------------------------------------
+
+rc=0
+grep -q "secrets from /run/secrets: $SECRET_NAME" "$TMPROOT/release.log" || rc=1
+report "$rc" "the release loaded the mounted secret by name"
+
+rc=0
+if grep -q "$SECRET_VALUE" "$TMPROOT/release.log" "$TMPROOT/health.log"; then rc=1; fi
+if docker exec -u citadel "$CID" sh -c 'cat /citadel/logs/deployments/*.log' 2>/dev/null | grep -q "$SECRET_VALUE"; then rc=1; fi
+report "$rc" "the secret's value is in no release or deployment log"
+
+rc=0
+if docker history --no-trunc "$APP_TAG" 2>/dev/null | grep -q "$SECRET_VALUE"; then rc=1; fi
+if docker image inspect "$APP_TAG" 2>/dev/null | grep -q "$SECRET_VALUE"; then rc=1; fi
+if docker image inspect "$BASE_TAG" 2>/dev/null | grep -q "$SECRET_VALUE"; then rc=1; fi
+report "$rc" "the secret's value is in no image layer or image config"
+
+rc=0
+grep -q "opcache.validate_timestamps=0: Apache keeps serving" "$TMPROOT/release.log" || rc=1
+report "$rc" "the release warned that a frozen opcache needs an Apache restart after a release in place"
+
+secret_md5="$(docker exec "$CID" php -r 'echo md5_file($argv[1]);' "/run/secrets/$SECRET_NAME")"
+rc=0
+docker exec -i -u citadel \
+    -e "CONTRACT_SECRET_NAME=$SECRET_NAME" \
+    -e "CONTRACT_SECRET_MD5=$secret_md5" \
+    -e "CONTRACT_APP_DIR=/citadel/src" \
+    "$CID" php <"$REPO/scripts/contract-image-checks.php" >"$TMPROOT/checks.log" 2>&1 || rc=$?
+cat "$TMPROOT/checks.log"
+FAILURES=$((FAILURES + $(grep -c '^FAIL: ' "$TMPROOT/checks.log" || true)))
+if [ "$rc" != "0" ] && ! grep -q '^FAIL: ' "$TMPROOT/checks.log"; then
+    report 1 "contract-image-checks.php ran to the end (exit $rc)"
+fi
 
 if [ "$FAILURES" != "0" ]; then
     printf 'contract-image: %s assertion(s) failed\n' "$FAILURES" >&2

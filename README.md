@@ -711,8 +711,9 @@ See [OPEN_QUESTIONS.md](OPEN_QUESTIONS.md). The big ones: the local `php.ini` ho
 platform's file, the Citadel image has no digest to pin, and a full Update may not refresh `vendor/`. The release asks
 PROCTOR's `proctor gate` for a go or no-go once the installed PROCTOR has it; what is still missing on PROCTOR's side is a published phar.
 
-- The release script is contract-tested inside the fallback image on GitHub, not yet on the real image (OPEN_QUESTIONS
-  19, "Contract suite on the real image and on GitLab").
+- The release script and the image hardening are contract-tested inside the built fallback image on GitHub (both
+  platforms) and on a maintainer's machine, not yet on the real image or on GitLab (OPEN_QUESTIONS 19, "Contract
+  suite on the real image and on GitLab").
 
 ## License
 

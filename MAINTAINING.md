@@ -58,7 +58,14 @@ It makes a throwaway fixture app (`squire init --target=raw`, with `composer.jso
 `deploy/`), builds the fallback base and the app image for the platform, runs the container with the fixture mounted
 at `/citadel/src` the way the kit's compose file mounts it, runs `release.sh` as the `citadel` user with the smoke
 test on, and prints one PASS or FAIL line per assertion: the release.sh exit code, HTTP 200 from `/up.php` on the
-host, `php health.php` inside the container, and the first-release deployment log with no failed sibling. The exit
+host, `php health.php` inside the container, and the first-release deployment log with no failed sibling. Then it
+checks the hardening in the running image (SQUIRE-40): `scripts/contract-image-checks.php` is piped to `php` in the
+container and asks Apache for the fixture's probe page (`scripts/contract-image-probe.php`, copied in as `app.php`).
+It checks that the `Server` header is exactly `Apache`, there is no `X-Powered-By`, `TRACE` answers 405 with no
+version footer, the web's opcache is on with `validate_timestamps` 0, the web has no `exec` but keeps `proc_open`
+and `popen`, the CLI disables nothing, and a Composer `post-install-cmd` that shells out ran in the release. A
+throwaway secret is mounted at `/run/secrets/SQUIRE_CONTRACT_SECRET`: the web must see it (compared as an md5), the
+release must name it, and its value must be in no log, no `docker history` line and no image config. The exit
 code is 1 on any FAIL. It needs Docker with buildx and network access (the fixture installs its Composer
 dependencies); without PHP on the PATH it runs the initializer in a `composer:2.10.3` container.
 
@@ -72,8 +79,10 @@ green run is a contract, not a certificate.
 **In CI.** The `contract-image` job on GitHub runs the script for both platforms, linux/amd64 and linux/arm64, with
 the arm64 leg under QEMU and allowed to fail until it has been seen green once. The `contract-parity-sh` and
 `contract-parity-pwsh` jobs bring the local parity stack up on the fallback image with `scripts/parity.sh` and
-`scripts/parity.ps1` and check that the proxy answers 200 on `/up.php`. GitLab has no job yet because its runner
-has no Docker daemon.
+`scripts/parity.ps1` and check that the proxy answers 200 on `/up.php`. The hardening checks run in the same
+`contract-image` job, so both platforms check them. GitLab has no job yet because its runner has no Docker daemon:
+the in-image checks are a PHP file piped to the container, so a buildah or podman driver can reuse them once the
+runner can run a container with a port.
 
 ## CI
 

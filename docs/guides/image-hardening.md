@@ -5,7 +5,7 @@ description: "What Squire's images and kit harden, and how to turn each piece do
 
 # Image hardening
 
-This page lists what the kit's images harden, where each setting lives, and the switch that turns it down when an app needs that. Every item has a test that reads the file. Read [Local parity](local-parity.md) first for the images themselves.
+This page lists what the kit's images harden, where each setting lives, and the switch that turns it down when an app needs that. Every item has a test that reads the file, and the [image contract suite](#the-image-contract-suite) checks it again inside the built image. Read [Local parity](local-parity.md) first for the images themselves.
 
 Two kinds of file carry the hardening. The **base** (`.squire/base-fallback.Dockerfile`) stands in for the Citadel image; what it sets is what Squire asks the real image to set, and the real image keeps deciding on Citadel. The **app image** (`.squire/Dockerfile`) is the local copy of the Dockerfile Citadel generates, and runs on either base.
 
@@ -114,4 +114,22 @@ docker buildx imagetools inspect php:8.4.28-apache
 ```
 
 Look for the `Digest:` line, and for `linux/amd64` and `linux/arm64/v8` under Manifests. Then run the tests and the image contract suite on both platforms. Maintainers have the full procedure in `MAINTAINING.md`. Two references are yours, not the kit's: the real Citadel image (`SQUIRE_BASE_IMAGE`, pin it once you have its digest) and any `SQUIRE_NODE_IMAGE`, `SQUIRE_PROXY_IMAGE` or `SQUIRE_MYSQL_IMAGE` override.
+
+## The image contract suite
+
+A file can promise anything; the running image is what counts. `scripts/contract-image.sh` (in Squire's repository) builds the fallback base and the app image for a platform, runs the container with a throwaway raw PHP app mounted at `/citadel/src` and a throwaway secret mounted at `/run/secrets`, runs the release as `citadel`, and then pipes `scripts/contract-image-checks.php` to `php` inside the container. One PASS or FAIL line per check:
+
+| Item | Checked in the running image |
+|---|---|
+| Apache | the `Server` header is exactly `Apache`; no `X-Powered-By`; `TRACE` answers 405 with no version footer |
+| opcache | on for the web, `validate_timestamps` 0, 20000 files; the release warns about the frozen opcache after a release in place |
+| disable_functions | the web has no `exec` and the rest, and keeps `proc_open` and `popen`; the CLI disables nothing; a Composer `post-install-cmd` that shells out runs in the release |
+| Secrets | the web sees the mounted secret (compared as an md5, never printed), the release names it, and its value is in no log, no layer and no image config |
+
+```sh
+sh scripts/contract-image.sh --platform=linux/amd64
+sh scripts/contract-image.sh --platform=linux/arm64   # needs qemu emulation on an amd64 host
+```
+
+GitHub CI runs it for both platforms on every push. It proves the fallback base, not the real Citadel image, which is internal: a green run is a contract, not a certificate.
 

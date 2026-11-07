@@ -67,7 +67,10 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
 19. **Contract suite on the real image and on GitLab.** What runs today: the three GitHub jobs in
     `.github/workflows/ci.yml` (`contract-image` on linux/amd64 and linux/arm64, the arm64 leg under QEMU and allowed
     to fail until it has been seen green once; `contract-parity-sh`; and `contract-parity-pwsh`, pwsh 7 on Linux, also
-    allowed to fail until it has been seen green once), all on the fallback image, not the real Citadel image. What is
+    allowed to fail until it has been seen green once), all on the fallback image, not the real Citadel image. Since SQUIRE-40 the `contract-image` job also checks the
+    hardening inside the running image (Apache's banner and TRACE, opcache, the web's disable_functions, a mounted
+    secret, a Composer script), with the checks in `scripts/contract-image-checks.php` so another driver can reuse
+    them. What is
     not proven: the real Citadel image (internal, with no pullable digest), Windows PowerShell 5.1, and the GitLab
     runner path (the runner is arm64, has no Docker daemon and no qemu binfmt, so the GitLab pipeline has no contract
     job). What is needed to close it: Docker access on the GitLab runner (and qemu binfmt for amd64-only images), a

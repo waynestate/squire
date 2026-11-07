@@ -689,8 +689,9 @@ See [OPEN_QUESTIONS.md](https://github.com/waynestate/squire/blob/HEAD/OPEN_QUES
 platform's file, the Citadel image has no digest to pin, and a full Update may not refresh `vendor/`. The release asks
 PROCTOR's `proctor gate` for a go or no-go once the installed PROCTOR has it; what is still missing on PROCTOR's side is a published phar.
 
-- The release script is contract-tested inside the fallback image on GitHub, not yet on the real image (OPEN_QUESTIONS
-  19, "Contract suite on the real image and on GitLab").
+- The release script and the image hardening are contract-tested inside the built fallback image on GitHub (both
+  platforms) and on a maintainer's machine, not yet on the real image or on GitLab (OPEN_QUESTIONS 19, "Contract
+  suite on the real image and on GitLab").
 
 ### License
 
@@ -1007,6 +1008,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ### Unreleased[#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+- Added: the image contract suite checks the hardening inside the running image (SQUIRE-40): after the release, `scripts/contract-image.sh` pipes the new `scripts/contract-image-checks.php` to `php` in the container, which asks Apache for a probe page (`scripts/contract-image-probe.php`, the fixture's `app.php`) and checks the `Server` header, `X-Powered-By`, `TRACE`, the web's opcache and `disable_functions`, the CLI's full function set, a Composer `post-install-cmd` that shells out, and a throwaway secret mounted at `/run/secrets` (seen by the web, named by the release, absent from every log, layer and image config). Green on linux/amd64 locally (23 assertions); GitHub's `contract-image` job runs it on both platforms. The driver's Composer image is pinned by digest.
 - Changed: every image the kit pulls is pinned by its multi-arch list digest (SQUIRE-30): the fallback base's `php:8.4.27-apache`, `node:22.23.4-trixie-slim` and `composer:2.10.3`, the Vue layer's Node service (`node:22.23.4-bookworm-slim`, was the moving `node:22-bookworm-slim`), the Oracle parity image's PHP base and Composer, and the Composer image the Oracle build scripts run. The parity bases move to `images/oracle/php-images.txt`, one pinned row per PHP line (8.3, 8.4, 8.5), which both Oracle build scripts read and pass as `PHP_IMAGE`; a line without a row is refused. A test fails on any unpinned reference. Bump procedure: Image hardening in the docs and MAINTAINING.md.
 - Added: an escape hatch for npm install scripts and a written release-age policy (SQUIRE-26): `SQUIRE_NPM_REBUILD` names the packages (space-separated, each checked against the shape of a package name) that run their own install scripts after `npm ci --ignore-scripts` (`npm rebuild --ignore-scripts=false`, or `pnpm rebuild`), so one native addon no longer means turning scripts back on for every package. The release logs the npm version and notes when that npm (older than 11.10) ignores `min-release-age`. The Vue layer's `.npmrc` keeps `min-release-age=1` and explains it, with the deliberate `--min-release-age=0` install for an urgent fix. Docs: Image hardening, The release script, Configuration reference.
 - Added: secrets as files at run time (SQUIRE-18): `scripts/release.sh` and the fallback entrypoint share one loader that turns each file in `SQUIRE_SECRETS_DIR` (default `/run/secrets`, where Docker, Compose and Kubernetes mount secrets) named like a variable into that variable, unless the environment already sets it; names that change how the shell runs are skipped, and only names are printed. The entrypoint loads them before Apache starts; the release loads them again after `su -l`. `SQUIRE_SECRETS_DIR` joins the settings-file allow list. Tests run the loader in bash, keep the two copies identical, and keep secrets out of the Dockerfiles, the build context and `build.sh`. Docs: Image hardening (Citadel, Compose, `docker run`, OpenShift), Citadel setup, The release script, Configuration reference.
@@ -1574,7 +1576,7 @@ Source: https://squire.apps.wayne.edu/docs/guides/image-hardening.html
 
 ## Image hardening[#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#image-hardening)
 
-This page lists what the kit's images harden, where each setting lives, and the switch that turns it down when an app needs that. Every item has a test that reads the file. Read [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html) first for the images themselves.
+This page lists what the kit's images harden, where each setting lives, and the switch that turns it down when an app needs that. Every item has a test that reads the file, and the [image contract suite](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#the-image-contract-suite) checks it again inside the built image. Read [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html) first for the images themselves.
 
 Two kinds of file carry the hardening. The **base** (`.squire/base-fallback.Dockerfile`) stands in for the Citadel image; what it sets is what Squire asks the real image to set, and the real image keeps deciding on Citadel. The **app image** (`.squire/Dockerfile`) is the local copy of the Dockerfile Citadel generates, and runs on either base.
 
@@ -1686,6 +1688,24 @@ docker buildx imagetools inspect php:8.4.28-apache
 ```
 
 Look for the `Digest:` line, and for `linux/amd64` and `linux/arm64/v8` under Manifests. Then run the tests and the image contract suite on both platforms. Maintainers have the full procedure in `MAINTAINING.md`. Two references are yours, not the kit's: the real Citadel image (`SQUIRE_BASE_IMAGE`, pin it once you have its digest) and any `SQUIRE_NODE_IMAGE`, `SQUIRE_PROXY_IMAGE` or `SQUIRE_MYSQL_IMAGE` override.
+
+### The image contract suite[#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#the-image-contract-suite)
+
+A file can promise anything; the running image is what counts. `scripts/contract-image.sh` (in Squire's repository) builds the fallback base and the app image for a platform, runs the container with a throwaway raw PHP app mounted at `/citadel/src` and a throwaway secret mounted at `/run/secrets`, runs the release as `citadel`, and then pipes `scripts/contract-image-checks.php` to `php` inside the container. One PASS or FAIL line per check:
+
+| Item | Checked in the running image |
+| --- | --- |
+| Apache | the `Server` header is exactly `Apache`; no `X-Powered-By`; `TRACE` answers 405 with no version footer |
+| opcache | on for the web, `validate_timestamps` 0, 20000 files; the release warns about the frozen opcache after a release in place |
+| disable_functions | the web has no `exec` and the rest, and keeps `proc_open` and `popen`; the CLI disables nothing; a Composer `post-install-cmd` that shells out runs in the release |
+| Secrets | the web sees the mounted secret (compared as an md5, never printed), the release names it, and its value is in no log, no layer and no image config |
+
+```sh
+sh scripts/contract-image.sh --platform=linux/amd64
+sh scripts/contract-image.sh --platform=linux/arm64   # needs qemu emulation on an amd64 host
+```
+
+GitHub CI runs it for both platforms on every push. It proves the fallback base, not the real Citadel image, which is internal: a green run is a contract, not a certificate.
 
 ---
 
