@@ -20,7 +20,7 @@ Squire is the Citadel kit: the standard `build.sh`, the release script, the heal
 
 ## Where the code lives[#](https://squire.apps.wayne.edu/docs/#where-the-code-lives)
 
-The canonical repository is on nougat: [enterprise-apps/squire](https://nougat.snu.gs/enterprise-apps/squire). git.wayne.edu and GitHub ([waynestate/squire](https://github.com/waynestate/squire)) are read-only mirrors of it. Open issues and merge requests on nougat, not on the mirrors. This moves to git.wayne.edu once it has CI runners. Your squire serves one banner, and it flies over nougat.
+The canonical repository is [git.wayne.edu/enterprise-apps/squire](https://git.wayne.edu/enterprise-apps/squire); clone it over SSH as `git@git.wayne.edu:enterprise-apps/squire.git` or over HTTPS as `https://git.wayne.edu/enterprise-apps/squire.git`. Open issues and merge requests there; tags are cut there, by a maintainer, with an approver. GitHub ([waynestate/squire](https://github.com/waynestate/squire)) is a read-only push mirror of it: Packagist reads from it, and nobody pushes to it. Your squire serves one banner, and it flies over git.wayne.edu.
 
 ## Its place in the stack[#](https://squire.apps.wayne.edu/docs/#its-place-in-the-stack)
 

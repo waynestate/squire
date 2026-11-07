@@ -8,7 +8,7 @@ The README and the Markdown twin of every page, joined. The index is https://squ
 
 ## README
 
-Source: https://nougat.snu.gs/enterprise-apps/squire/blob/HEAD/README.md
+Source: https://github.com/waynestate/squire/blob/HEAD/README.md
 
 ## Squire
 
@@ -24,16 +24,16 @@ Squire is the Citadel kit: build.sh, the release script, the health check, and l
 
 > A knight never suits up alone. Your app shouldn't deploy alone either.
 
-Front page: [`site/index.html`](https://nougat.snu.gs/enterprise-apps/squire/blob/HEAD/site/index.html), a static page you can serve from anywhere.
-On Citadel it is served by the raw-PHP deploy layer in [`deploy/`](https://nougat.snu.gs/enterprise-apps/squire/blob/HEAD/deploy/): a Squire kit whose front controller serves `site/` behind HELMET's security headers. For local development, keep serving `site/` directly.
+Front page: [`site/index.html`](https://github.com/waynestate/squire/blob/HEAD/site/index.html), a static page you can serve from anywhere.
+On Citadel it is served by the raw-PHP deploy layer in [`deploy/`](https://github.com/waynestate/squire/blob/HEAD/deploy/): a Squire kit whose front controller serves `site/` behind HELMET's security headers. For local development, keep serving `site/` directly.
 
 Status: 0.5.0, tagged and on Packagist.
 
 ### Where the code lives
 
-The canonical repository is on nougat: [enterprise-apps/squire](https://nougat.snu.gs/enterprise-apps/squire). git.wayne.edu and GitHub ([waynestate/squire](https://github.com/waynestate/squire)) are read-only mirrors of it.
-Open issues and merge requests on nougat, not on the mirrors.
-This moves to git.wayne.edu once it has CI runners. Your squire serves one banner, and it flies over nougat.
+The canonical repository is [git.wayne.edu/enterprise-apps/squire](https://git.wayne.edu/enterprise-apps/squire); clone it over SSH as `git@git.wayne.edu:enterprise-apps/squire.git` or over HTTPS as `https://git.wayne.edu/enterprise-apps/squire.git`. Open issues and merge requests there; tags are cut there, by a maintainer, with an approver.
+GitHub ([waynestate/squire](https://github.com/waynestate/squire)) is a read-only push mirror of it: Packagist reads from it, and nobody pushes to it.
+Your squire serves one banner, and it flies over git.wayne.edu.
 
 ### Docs
 
@@ -50,7 +50,7 @@ The pages under `docs/` build into the committed site at `site/docs/`: rebuild w
 - `squire update` takes the new template versions for the files you never edited, writes the template files a newer
   release added to a group the kit records (recording them in `.squire.json`), and shows a diff for the ones you did.
   It never overwrites your edits, and it runs the same in CI and on a laptop.
-- `squire doctor` checks an app against the best practices a machine can decide ([BEST_PRACTICES.md](https://nougat.snu.gs/enterprise-apps/squire/blob/HEAD/BEST_PRACTICES.md)).
+- `squire doctor` checks an app against the best practices a machine can decide ([BEST_PRACTICES.md](https://github.com/waynestate/squire/blob/HEAD/BEST_PRACTICES.md)).
   The lock file, composer audit and MySQL 5.6 checks are owned by PROCTOR; `doctor` hands off to it (S50) instead of repeating them.
 - A local setup that runs your app on the Citadel PHP image, behind a proxy like Citadel's, with the same MySQL 5.6.
 - Squire's maintainers send platform improvement proposals to the platform team privately. Squire never touches a server.
@@ -630,7 +630,7 @@ placeholders only.
 
 ### Development
 
-Maintainers: how to build, test and release this project, and where its data comes from, is in [MAINTAINING.md](https://nougat.snu.gs/enterprise-apps/squire/blob/HEAD/MAINTAINING.md).
+Maintainers: how to build, test and release this project, and where its data comes from, is in [MAINTAINING.md](https://github.com/waynestate/squire/blob/HEAD/MAINTAINING.md).
 
 ```
 composer install
@@ -659,7 +659,7 @@ axe-core against it with the WCAG 2.2 AA tag set, in light and dark mode at 360 
 
 ### Known limits
 
-See [OPEN_QUESTIONS.md](https://nougat.snu.gs/enterprise-apps/squire/blob/HEAD/OPEN_QUESTIONS.md). The big ones: the local `php.ini` holds safe defaults rather than the
+See [OPEN_QUESTIONS.md](https://github.com/waynestate/squire/blob/HEAD/OPEN_QUESTIONS.md). The big ones: the local `php.ini` holds safe defaults rather than the
 platform's file, the Citadel image has no digest to pin, and a full Update may not refresh `vendor/`. PROCTOR can now
 gate a release with `SQUIRE_PROCTOR=enforce`; what is still missing on its side is a phar and a dedicated `gate` command.
 
@@ -981,6 +981,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ### Unreleased[#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+- Changed: The canonical repository is git.wayne.edu (ADR-0021); docs, links and package metadata no longer point at the archived nougat copy.
 - Changed: the Oracle images publish to the group's images project (`images/squire-oracle-sail`, `images/squire-oracle-parity`) because git.wayne.edu has no registry.
 - Fixed: `squire update` writes the template files a newer release added to a group the kit records: a file the target release has that `.squire.json` does not list is written from the template, recorded, and printed as added, so one `update` converges the kit (a kit made before 0.4.0 gains `oracle-check.php` when it moves past it) instead of leaving the new files to `squire init`; a file the app already has is still left alone, and an edited file is still refused and shown as a diff.
 - Fixed: `squire init` without `--only` defaults to the groups the `.squire.json` records instead of `release,parity`, so a bare `init` completes an existing kit without dropping its groups; with no manifest it still writes `release,parity`, and `--only` still wins.
@@ -1141,7 +1142,7 @@ A squire who forgets a buckle hears about it in the build log, so this page list
 
 ### Where the code lives[#](https://squire.apps.wayne.edu/docs/contributing.html#where-the-code-lives)
 
-The canonical repository is on nougat: [enterprise-apps/squire](https://nougat.snu.gs/enterprise-apps/squire). git.wayne.edu and GitHub ([waynestate/squire](https://github.com/waynestate/squire)) are read-only mirrors of it: `main` and tags are copied automatically, and nobody pushes to the mirrors. Open issues and merge requests on nougat, not on the mirrors. This moves to git.wayne.edu once it has CI runners. Your squire serves one banner, and it flies over nougat.
+The canonical repository is on git.wayne.edu: [enterprise-apps/squire](https://git.wayne.edu/enterprise-apps/squire) (clone over SSH as `git@git.wayne.edu:enterprise-apps/squire.git`, or over HTTPS). Open issues and merge requests there; tags are cut there, by a maintainer, with an approver. GitHub ([waynestate/squire](https://github.com/waynestate/squire)) is a read-only push mirror of it: `main` and tags are copied automatically, Packagist reads from it, and nobody pushes to it. Your squire serves one banner, and it flies over git.wayne.edu.
 
 ### Development commands[#](https://squire.apps.wayne.edu/docs/contributing.html#development-commands)
 
@@ -1192,7 +1193,7 @@ Every behavior change updates README, docs pages, CHANGELOG (Unreleased), site/l
 1. Move the lines under `## Unreleased` in `CHANGELOG.md` to a new `## X.Y.Z (YYYY-MM-DD)` heading, and bump `Squire::VERSION` in `src/Squire.php` to the same number in the release commit: the version guard test fails when the two disagree.
 2. `composer ci` and both linters green locally, then both pipelines green for that commit.
 3. Run a secrets scan of the history and check that nothing internal (server names, people, IDs) is in the tree.
-4. Tag `X.Y.Z` (no `v`) on nougat. The mirror carries the tag to GitHub, and Packagist picks it up from there. On GitHub, `.github/workflows/release.yml` then creates the release from the matching `## X.Y.Z (` section of `CHANGELOG.md` (it fails loudly when the section is missing or empty, and uses only the built-in `GITHUB_TOKEN`).
+4. Tag `X.Y.Z` (no `v`) on git.wayne.edu, with an approver. The mirror carries the tag to GitHub, and Packagist picks it up from there. On GitHub, `.github/workflows/release.yml` then creates the release from the matching `## X.Y.Z (` section of `CHANGELOG.md` (it fails loudly when the section is missing or empty, and uses only the built-in `GITHUB_TOKEN`).
 5. A release needs a maintainer's approval. Never move or delete a published tag.
 6. When Preflight releases, update both of this repo's pins: the component tag in `.gitlab-ci.yml` and the tag in `.github/workflows/ci.yml`.
 
@@ -1928,7 +1929,7 @@ Squire is the Citadel kit: the standard `build.sh`, the release script, the heal
 
 ### Where the code lives[#](https://squire.apps.wayne.edu/docs/#where-the-code-lives)
 
-The canonical repository is on nougat: [enterprise-apps/squire](https://nougat.snu.gs/enterprise-apps/squire). git.wayne.edu and GitHub ([waynestate/squire](https://github.com/waynestate/squire)) are read-only mirrors of it. Open issues and merge requests on nougat, not on the mirrors. This moves to git.wayne.edu once it has CI runners. Your squire serves one banner, and it flies over nougat.
+The canonical repository is [git.wayne.edu/enterprise-apps/squire](https://git.wayne.edu/enterprise-apps/squire); clone it over SSH as `git@git.wayne.edu:enterprise-apps/squire.git` or over HTTPS as `https://git.wayne.edu/enterprise-apps/squire.git`. Open issues and merge requests there; tags are cut there, by a maintainer, with an approver. GitHub ([waynestate/squire](https://github.com/waynestate/squire)) is a read-only push mirror of it: Packagist reads from it, and nobody pushes to it. Your squire serves one banner, and it flies over git.wayne.edu.
 
 ### Its place in the stack[#](https://squire.apps.wayne.edu/docs/#its-place-in-the-stack)
 

@@ -12,6 +12,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ## Unreleased[#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+- Changed: The canonical repository is git.wayne.edu (ADR-0021); docs, links and package metadata no longer point at the archived nougat copy.
 - Changed: the Oracle images publish to the group's images project (`images/squire-oracle-sail`, `images/squire-oracle-parity`) because git.wayne.edu has no registry.
 - Fixed: `squire update` writes the template files a newer release added to a group the kit records: a file the target release has that `.squire.json` does not list is written from the template, recorded, and printed as added, so one `update` converges the kit (a kit made before 0.4.0 gains `oracle-check.php` when it moves past it) instead of leaving the new files to `squire init`; a file the app already has is still left alone, and an edited file is still refused and shown as a diff.
 - Fixed: `squire init` without `--only` defaults to the groups the `.squire.json` records instead of `release,parity`, so a bare `init` completes an existing kit without dropping its groups; with no manifest it still writes `release,parity`, and `--only` still wins.
