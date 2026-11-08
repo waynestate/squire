@@ -12,6 +12,8 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ## Unreleased[#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+## 0.7.1 (2026-11-08)[#](https://squire.apps.wayne.edu/docs/changelog.html#0-7-1-2026-11-08)
+
 - Fixed: Squire's own deploy/.squire.json records the release.sh it ships (it kept the 0.6.0 hash after the W22 restart step), so squire update no longer refuses it; a test now checks every recorded hash.
 - Docs: the queue-workers guide names the QUEUE_WORKER_MODE switch (scheduler or none) that Sourdough's Laravel shapes ship, with --tries=3 and the test that covers both modes.
 - Fixed: the kit's php.ini no longer sets session.sid_length or session.sid_bits_per_character, so PHP 8.4 and later raise no deprecation notices and session IDs use PHP's default (32 hex characters, 128 bits), as HELMET and SESAME S45 say. Run squire update to take it.
