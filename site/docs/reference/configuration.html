@@ -145,6 +145,11 @@
 <td>Laravel: <code>optimize</code>.</td>
 </tr>
 <tr>
+<td><code>SQUIRE_ARTISAN_RESTART</code></td>
+<td><code>1</code></td>
+<td>Laravel: tell queue workers and <code>schedule:work</code> to restart on the new code (<code>reload</code>, or <code>queue:restart</code> and <code>schedule:interrupt</code>). Report only.</td>
+</tr>
+<tr>
 <td><code>SQUIRE_PROCTOR</code></td>
 <td><code>auto</code></td>
 <td><code>auto</code>, <code>skip</code> or <code>enforce</code>. The release asks <code>proctor gate</code> for a go or no-go (<code>proctor check</code> on a PROCTOR without the gate). By default a no-go is a report and never stops the release; <code>enforce</code> makes a no-go stop it, before the frontend build and the migrations.</td>

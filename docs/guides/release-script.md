@@ -1,6 +1,6 @@
 ---
 title: "The release script"
-description: "What scripts/release.sh does step by step on Citadel: preconditions, composer install from the lock file, audit, PROCTOR's deploy gate, frontend build, Laravel migrate and optimize, the Oracle check, and the /up smoke test."
+description: "What scripts/release.sh does step by step on Citadel: preconditions, composer install from the lock file, audit, PROCTOR's deploy gate, frontend build, Laravel migrate, optimize and the restart of the long-lived processes, the Oracle check, and the /up smoke test."
 ---
 
 # The release script
@@ -9,7 +9,7 @@ This page walks through `scripts/release.sh`, the one common script every app ge
 
 ## What it is
 
-`scripts/release.sh` is the idempotent release: preconditions, `composer install --no-dev` from the lock file, audit, PROCTOR's deploy gate (a report by default, a stop with `SQUIRE_PROCTOR=enforce`), frontend build, Laravel `migrate --force` and `optimize`, an Oracle connection check (a report, never a gate), and a `/up` smoke test. It runs from the first-release hook and from the Quick Update post-script (user `citadel`, script `./scripts/release.sh`).
+`scripts/release.sh` is the idempotent release: preconditions, `composer install --no-dev` from the lock file, audit, PROCTOR's deploy gate (a report by default, a stop with `SQUIRE_PROCTOR=enforce`), frontend build, Laravel `migrate --force`, `optimize` and the restart of the long-lived processes, an Oracle connection check (a report, never a gate), and a `/up` smoke test. It runs from the first-release hook and from the Quick Update post-script (user `citadel`, script `./scripts/release.sh`).
 
 Its neighbors in the kit:
 
@@ -36,9 +36,10 @@ Safe to run twice: every step repeats with the same result (S10). Each step prin
 6. **frontend install and build**: skipped without a `package.json` or with `SQUIRE_NPM=skip`. With `package-lock.json` it runs `npm ci` (with `--ignore-scripts` when `SQUIRE_NPM_IGNORE_SCRIPTS=1`); with `pnpm-lock.yaml` it runs `corepack pnpm install --frozen-lockfile`; with neither lock file it fails, telling you to commit one or set `SQUIRE_NPM=skip` if the built assets are committed. The packages named in `SQUIRE_NPM_REBUILD` then run their own install scripts, and nothing else does. With npm older than 11.10 and a `min-release-age` line in `.npmrc`, it notes that this npm ignores the line (the lock file still decides what installs). It then runs the `build` script (or `SQUIRE_NPM_BUILD_SCRIPT`) when `package.json` defines it.
 7. **laravel migrate** (Laravel only): `php artisan migrate --force` when `SQUIRE_MIGRATE=1`.
 8. **laravel optimize** (Laravel only): `php artisan optimize` when `SQUIRE_ARTISAN_OPTIMIZE=1`. After this the config is cached and `.env` is no longer read, so `env()` works only inside `config/` (S16).
-9. **check Oracle (never fails the release)**: runs `php oracle-check.php` when the file exists, and notes a skip when it does not (the app does not use Oracle).
-10. **check opcache (never fails the release)**: reports whether the web server sees changed files by itself. With the kit's default (`SQUIRE_OPCACHE_VALIDATE=1`, files checked every 2 seconds) it is a note. With `0`, meant for an image that bakes its code in, Apache keeps serving the PHP it compiled before this release until it restarts, so after a release with Apache running this is a warning naming `SQUIRE_OPCACHE_VALIDATE=1`; in the first-release hook, before Apache starts, it is a note. See [Image hardening](image-hardening.md).
-11. **smoke test the health endpoint**: skipped when `SQUIRE_SMOKE=0` (Apache is not running inside the first-release hook). Otherwise it requests `SQUIRE_SMOKE_URL` up to `SQUIRE_SMOKE_RETRIES` attempts (default 5), sleeping `SQUIRE_SMOKE_DELAY` seconds (default 2) between them, and fails unless the answer is HTTP 200.
+9. **laravel restart long-lived processes** (Laravel only): skipped when `SQUIRE_ARTISAN_RESTART=0`. When `php artisan reload --help` succeeds it runs `php artisan reload`; otherwise it runs `php artisan queue:restart` and `php artisan schedule:interrupt`, each only when its own `--help` succeeds, and notes the skip when neither exists. A failing command is a warning naming the command and its exit code, and the release goes on. A worker that keeps running holds the old code in memory until it restarts, so the step sits after the caches are built and before the smoke test.
+10. **check Oracle (never fails the release)**: runs `php oracle-check.php` when the file exists, and notes a skip when it does not (the app does not use Oracle).
+11. **check opcache (never fails the release)**: reports whether the web server sees changed files by itself. With the kit's default (`SQUIRE_OPCACHE_VALIDATE=1`, files checked every 2 seconds) it is a note. With `0`, meant for an image that bakes its code in, Apache keeps serving the PHP it compiled before this release until it restarts, so after a release with Apache running this is a warning naming `SQUIRE_OPCACHE_VALIDATE=1`; in the first-release hook, before Apache starts, it is a note. See [Image hardening](image-hardening.md).
+12. **smoke test the health endpoint**: skipped when `SQUIRE_SMOKE=0` (Apache is not running inside the first-release hook). Otherwise it requests `SQUIRE_SMOKE_URL` up to `SQUIRE_SMOKE_RETRIES` attempts (default 5), sleeping `SQUIRE_SMOKE_DELAY` seconds (default 2) between them, and fails unless the answer is HTTP 200.
 
 ## PROCTOR: the deploy gate
 

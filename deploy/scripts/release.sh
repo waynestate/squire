@@ -7,8 +7,8 @@
 #   Quick Update post-script in the Citadel dashboard:  user `citadel`, script `./scripts/release.sh`
 #
 # Steps: preconditions, composer install from the lock file without dev packages, composer audit (report),
-# PROCTOR's deploy gate, frontend install and build, Laravel migrate and optimize, an Oracle connection check (report
-# only), an opcache report, and a smoke test of /up.
+# PROCTOR's deploy gate, frontend install and build, Laravel migrate, optimize and the restart of the long-lived
+# processes, an Oracle connection check (report only), an opcache report, and a smoke test of /up.
 # PROCTOR runs `proctor gate` (or `proctor check` on a PROCTOR without the gate): a go or no-go for this commit,
 # ratcheted against the verdict of the last release that went on, so only a new failure blocks. The verdict is kept in
 # SQUIRE_PROCTOR_RECORD_DIR. By default a no-go is a report here, never a stop: a failing post-script cannot undo a
@@ -31,6 +31,7 @@
 #   SQUIRE_NPM_BUILD_SCRIPT=build    the package.json script to run after install
 #   SQUIRE_MIGRATE=1                 Laravel: run `migrate --force`
 #   SQUIRE_ARTISAN_OPTIMIZE=1        Laravel: run `optimize` after the environment is in place (S16)
+#   SQUIRE_ARTISAN_RESTART=1         Laravel: tell queue workers and schedule:work to restart on the new code (reload, or queue:restart and schedule:interrupt)
 #   SQUIRE_PROCTOR=auto              auto | skip | enforce (report only by default; enforce stops the release on a no-go)
 #   SQUIRE_PROCTOR_BIN=              path to proctor (default: vendor/bin/proctor, then `proctor` on PATH)
 #   SQUIRE_PROCTOR_POLICY=           path to the CREED policy.json (when unset: the one CREED ships, if installed; otherwise PROCTOR's own default)
@@ -129,7 +130,7 @@ squire_load_settings() {
         case "$key" in
             SQUIRE_FRAMEWORK | SQUIRE_ALLOW_ROOT | SQUIRE_REQUIRE_ENV | SQUIRE_WRITABLE_DIRS | \
                 SQUIRE_COMPOSER_AUDIT | SQUIRE_NPM | SQUIRE_NPM_IGNORE_SCRIPTS | SQUIRE_NPM_REBUILD | SQUIRE_NPM_BUILD_SCRIPT | \
-                SQUIRE_MIGRATE | SQUIRE_ARTISAN_OPTIMIZE | SQUIRE_PROCTOR | SQUIRE_PROCTOR_BIN | \
+                SQUIRE_MIGRATE | SQUIRE_ARTISAN_OPTIMIZE | SQUIRE_ARTISAN_RESTART | SQUIRE_PROCTOR | SQUIRE_PROCTOR_BIN | \
                 SQUIRE_PROCTOR_POLICY | SQUIRE_PROCTOR_RECORD_DIR | SQUIRE_SMOKE | SQUIRE_SMOKE_URL | SQUIRE_SMOKE_RETRIES | SQUIRE_SMOKE_DELAY | \
                 SQUIRE_SECRETS_DIR) ;;
             *) continue ;;
@@ -166,6 +167,7 @@ squire_load_secrets
 : "${SQUIRE_NPM_BUILD_SCRIPT:=build}"
 : "${SQUIRE_MIGRATE:=1}"
 : "${SQUIRE_ARTISAN_OPTIMIZE:=1}"
+: "${SQUIRE_ARTISAN_RESTART:=1}"
 : "${SQUIRE_PROCTOR:=auto}"
 : "${SQUIRE_PROCTOR_BIN:=}"
 : "${SQUIRE_PROCTOR_POLICY:=}"
@@ -218,6 +220,10 @@ fi
 case "$framework" in
     laravel | raw) ;;
     *) fail "SQUIRE_FRAMEWORK must be auto, laravel or raw; got '$framework'" ;;
+esac
+case "$SQUIRE_ARTISAN_RESTART" in
+    0 | 1) ;;
+    *) fail "SQUIRE_ARTISAN_RESTART must be 0 or 1; got '$SQUIRE_ARTISAN_RESTART'" ;;
 esac
 note "framework: $framework"
 
@@ -450,6 +456,42 @@ if [ "$framework" = "laravel" ]; then
         php artisan optimize
     else
         note "skipped (SQUIRE_ARTISAN_OPTIMIZE=0)"
+    fi
+
+    step "laravel restart long-lived processes"
+    if [ "$SQUIRE_ARTISAN_RESTART" = "0" ]; then
+        note "skipped (SQUIRE_ARTISAN_RESTART=0)"
+    elif php artisan reload --help >/dev/null 2>&1; then
+        # A queue worker and a running schedule:work keep the old code in memory until they are told to stop. reload
+        # tells them (and any other long-lived services) to exit after their current work, and the supervisor starts
+        # them again on the new code.
+        restart_status=0
+        php artisan reload || restart_status=$?
+        if [ "$restart_status" -ne 0 ]; then
+            warn "php artisan reload exited $restart_status (report only; the release goes on)"
+        fi
+    else
+        # Older Laravel has no reload: run the two commands it knows, each when its own --help answers.
+        found_restart_command=0
+        if php artisan queue:restart --help >/dev/null 2>&1; then
+            found_restart_command=1
+            restart_status=0
+            php artisan queue:restart || restart_status=$?
+            if [ "$restart_status" -ne 0 ]; then
+                warn "php artisan queue:restart exited $restart_status (report only; the release goes on)"
+            fi
+        fi
+        if php artisan schedule:interrupt --help >/dev/null 2>&1; then
+            found_restart_command=1
+            restart_status=0
+            php artisan schedule:interrupt || restart_status=$?
+            if [ "$restart_status" -ne 0 ]; then
+                warn "php artisan schedule:interrupt exited $restart_status (report only; the release goes on)"
+            fi
+        fi
+        if [ "$found_restart_command" -eq 0 ]; then
+            note "this Laravel has no restart commands (no reload, queue:restart or schedule:interrupt); nothing to restart"
+        fi
     fi
 fi
 

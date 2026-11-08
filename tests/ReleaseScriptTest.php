@@ -482,7 +482,7 @@ final class ReleaseScriptTest extends SquireTestCase
     {
         $app = $this->initializedApp(true);
         $this->put($app, '.env', "APP_ENV=testing\n");
-        $this->put($app, 'artisan', "<?php\nfile_put_contents(getenv('STUB_LOG'), 'artisan ' . implode(' ', array_slice(\$argv, 1)) . \"\\n\", FILE_APPEND);\n");
+        $this->artisanStub($app);
 
         $result = $this->exec($app, 'scripts/release.sh');
 
@@ -490,9 +490,13 @@ final class ReleaseScriptTest extends SquireTestCase
         $calls = $this->calls();
         $migrate = array_search('artisan migrate --force', $calls, true);
         $optimize = array_search('artisan optimize', $calls, true);
+        $reload = array_search('artisan reload', $calls, true);
         self::assertIsInt($migrate);
         self::assertIsInt($optimize);
+        self::assertIsInt($reload, 'a Laravel that answers reload --help gets its long-lived processes restarted');
         self::assertLessThan($optimize, $migrate, 'migrate runs before the caches are built');
+        self::assertGreaterThan($optimize, $reload, 'the restart comes after the caches are built');
+        self::assertNotContains('artisan queue:restart', $calls, 'reload covers the workers, so the fallback commands stay off');
         $gate = array_search('proctor gate --path . --record storage/squire/proctor-gate.json', $calls, true);
         self::assertIsInt($gate, 'PROCTOR on PATH is found and asked for the gate');
         self::assertLessThan($migrate, $gate, 'the gate decides before the migrations touch the database');
@@ -501,6 +505,93 @@ final class ReleaseScriptTest extends SquireTestCase
         self::assertStringNotContainsString('up.php', $curl[0]);
         self::assertDirectoryExists($app . '/storage');
         self::assertDirectoryExists($app . '/bootstrap/cache');
+    }
+
+    /**
+     * A logging artisan that answers every command, except the ones a test makes fail through STUB_RELOAD_HELP_EXIT,
+     * STUB_QUEUE_RESTART_EXIT and STUB_SCHEDULE_INTERRUPT_EXIT.
+     */
+    private function artisanStub(string $app): void
+    {
+        $this->put($app, 'artisan', "<?php\n\$args = array_slice(\$argv, 1);\nfile_put_contents(getenv('STUB_LOG'), 'artisan ' . implode(' ', \$args) . \"\\n\", FILE_APPEND);\n\$command = \$args[0] ?? '';\n\$help = in_array('--help', \$args, true);\nif (\$command === 'reload' && \$help) { exit((int) (getenv('STUB_RELOAD_HELP_EXIT') ?: 0)); }\nif (\$command === 'queue:restart' && !\$help) { exit((int) (getenv('STUB_QUEUE_RESTART_EXIT') ?: 0)); }\nif (\$command === 'schedule:interrupt' && !\$help) { exit((int) (getenv('STUB_SCHEDULE_INTERRUPT_EXIT') ?: 0)); }\nexit(0);\n");
+    }
+
+    public function testWithoutReloadTheReleaseFallsBackToQueueRestartAndScheduleInterrupt(): void
+    {
+        $app = $this->initializedApp(true);
+        $this->put($app, '.env', "APP_ENV=testing\n");
+        $this->artisanStub($app);
+
+        $result = $this->exec($app, 'scripts/release.sh', ['STUB_RELOAD_HELP_EXIT' => '1']);
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        $calls = $this->calls();
+        $optimize = array_search('artisan optimize', $calls, true);
+        $queueRestart = array_search('artisan queue:restart', $calls, true);
+        $interrupt = array_search('artisan schedule:interrupt', $calls, true);
+        self::assertIsInt($optimize);
+        self::assertIsInt($queueRestart, 'without reload the release falls back to queue:restart');
+        self::assertIsInt($interrupt, 'and to schedule:interrupt');
+        self::assertGreaterThan($optimize, $queueRestart, 'both restarts come after the caches are built');
+        self::assertLessThan($interrupt, $queueRestart, 'queue:restart first, then schedule:interrupt');
+        self::assertFalse(in_array('artisan reload', $calls, true), 'a Laravel without reload is never asked for it');
+    }
+
+    public function testAFailingQueueRestartIsAWarningAndTheReleaseGoesOn(): void
+    {
+        $app = $this->initializedApp(true);
+        $this->put($app, '.env', "APP_ENV=testing\n");
+        $this->artisanStub($app);
+
+        $result = $this->exec($app, 'scripts/release.sh', ['STUB_RELOAD_HELP_EXIT' => '1', 'STUB_QUEUE_RESTART_EXIT' => '3']);
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertStringContainsString('WARNING: php artisan queue:restart exited 3 (report only; the release goes on)', $result['stderr']);
+        self::assertStringContainsString('[squire] release ok', $result['stdout'], 'the report-only step never fails the release');
+        $calls = $this->calls();
+        $queueRestart = array_search('artisan queue:restart', $calls, true);
+        $interrupt = array_search('artisan schedule:interrupt', $calls, true);
+        self::assertIsInt($queueRestart);
+        self::assertIsInt($interrupt, 'the failing command does not stop the rest of the step');
+        self::assertGreaterThan($queueRestart, $interrupt);
+    }
+
+    public function testTurningOffTheRestartSkipsEveryRestartCommand(): void
+    {
+        $app = $this->initializedApp(true);
+        $this->put($app, '.env', "APP_ENV=testing\n");
+        $this->artisanStub($app);
+
+        $result = $this->exec($app, 'scripts/release.sh', ['SQUIRE_ARTISAN_RESTART' => '0']);
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertStringContainsString('skipped (SQUIRE_ARTISAN_RESTART=0)', $result['stdout']);
+        self::assertSame([], array_filter($this->calls(), static fn(string $c): bool => str_starts_with($c, 'artisan reload') || str_starts_with($c, 'artisan queue:restart') || str_starts_with($c, 'artisan schedule:interrupt')));
+    }
+
+    public function testARestartSettingThatIsNotZeroOrOneStopsBeforeAnythingInstalls(): void
+    {
+        $app = $this->initializedApp(true);
+        $this->put($app, '.env', "APP_ENV=testing\n");
+        $this->artisanStub($app);
+
+        $result = $this->exec($app, 'scripts/release.sh', ['SQUIRE_ARTISAN_RESTART' => '2']);
+
+        self::assertSame(1, $result['exit']);
+        self::assertStringContainsString("SQUIRE_ARTISAN_RESTART must be 0 or 1; got '2'", $result['stderr']);
+        self::assertStringContainsString('FAILED at step 1', $result['stderr']);
+        self::assertNotContains('composer install --no-dev --optimize-autoloader --no-interaction --no-progress --prefer-dist', $this->calls());
+    }
+
+    public function testARawReleaseNeverRestartsLongLivedProcesses(): void
+    {
+        $app = $this->initializedApp();
+
+        $result = $this->exec($app, 'scripts/release.sh');
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertStringNotContainsString('laravel restart long-lived processes', $result['stdout']);
+        self::assertSame([], array_filter($this->calls(), static fn(string $c): bool => str_starts_with($c, 'artisan ')));
     }
 
     /** A php on PATH that answers the opcache probe with $state and hands everything else to the real PHP. */
