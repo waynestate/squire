@@ -29,6 +29,7 @@
 #   SQUIRE_NPM_IGNORE_SCRIPTS=1      1 runs the installer with --ignore-scripts (S57)
 #   SQUIRE_NPM_REBUILD=              packages (space-separated) whose install scripts run after the install (SQUIRE-26)
 #   SQUIRE_NPM_BUILD_SCRIPT=build    the package.json script to run after install
+#   SQUIRE_CACHE_DIR=.cache/squire   where Composer and npm keep their download caches between releases (off: their defaults)
 #   SQUIRE_MIGRATE=1                 Laravel: run `migrate --force`
 #   SQUIRE_ARTISAN_OPTIMIZE=1        Laravel: run `optimize` after the environment is in place (S16)
 #   SQUIRE_ARTISAN_RESTART=1         Laravel: tell queue workers and schedule:work to restart on the new code (reload, or queue:restart and schedule:interrupt)
@@ -129,7 +130,7 @@ squire_load_settings() {
         value="${line#*=}"
         case "$key" in
             SQUIRE_FRAMEWORK | SQUIRE_ALLOW_ROOT | SQUIRE_REQUIRE_ENV | SQUIRE_WRITABLE_DIRS | \
-                SQUIRE_COMPOSER_AUDIT | SQUIRE_NPM | SQUIRE_NPM_IGNORE_SCRIPTS | SQUIRE_NPM_REBUILD | SQUIRE_NPM_BUILD_SCRIPT | \
+                SQUIRE_COMPOSER_AUDIT | SQUIRE_NPM | SQUIRE_NPM_IGNORE_SCRIPTS | SQUIRE_NPM_REBUILD | SQUIRE_NPM_BUILD_SCRIPT | SQUIRE_CACHE_DIR | \
                 SQUIRE_MIGRATE | SQUIRE_ARTISAN_OPTIMIZE | SQUIRE_ARTISAN_RESTART | SQUIRE_PROCTOR | SQUIRE_PROCTOR_BIN | \
                 SQUIRE_PROCTOR_POLICY | SQUIRE_PROCTOR_RECORD_DIR | SQUIRE_SMOKE | SQUIRE_SMOKE_URL | SQUIRE_SMOKE_RETRIES | SQUIRE_SMOKE_DELAY | \
                 SQUIRE_SECRETS_DIR) ;;
@@ -165,6 +166,7 @@ squire_load_secrets
 : "${SQUIRE_NPM_IGNORE_SCRIPTS:=1}"
 : "${SQUIRE_NPM_REBUILD:=}"
 : "${SQUIRE_NPM_BUILD_SCRIPT:=build}"
+: "${SQUIRE_CACHE_DIR:=.cache/squire}"
 : "${SQUIRE_MIGRATE:=1}"
 : "${SQUIRE_ARTISAN_OPTIMIZE:=1}"
 : "${SQUIRE_ARTISAN_RESTART:=1}"
@@ -252,6 +254,28 @@ for dir in $writable; do
     mkdir -p "$dir"
     note "ready: $dir"
 done
+
+step "package download caches"
+if [ "$SQUIRE_CACHE_DIR" = "off" ]; then
+    note "skipped (SQUIRE_CACHE_DIR=off)"
+else
+    # The app folder survives a Citadel Update, the container home does not, so the caches live there by default; an
+    # absolute path is used as is. A value the host set wins.
+    case "$SQUIRE_CACHE_DIR" in
+        /*) ;;
+        *) SQUIRE_CACHE_DIR="$SQUIRE_APP_DIR/$SQUIRE_CACHE_DIR" ;;
+    esac
+    mkdir -p "$SQUIRE_CACHE_DIR/composer" "$SQUIRE_CACHE_DIR/npm"
+    # Each only when missing, so a rerun leaves them alone.
+    [ -f "$SQUIRE_CACHE_DIR/.gitignore" ] || printf '%s\n' '*' >"$SQUIRE_CACHE_DIR/.gitignore"
+    [ -f "$SQUIRE_CACHE_DIR/.htaccess" ] || printf '%s\n' 'Require all denied' >"$SQUIRE_CACHE_DIR/.htaccess"
+    : "${COMPOSER_CACHE_DIR:=$SQUIRE_CACHE_DIR/composer}"
+    export COMPOSER_CACHE_DIR
+    : "${npm_config_cache:=$SQUIRE_CACHE_DIR/npm}"
+    export npm_config_cache
+    note "composer cache: $COMPOSER_CACHE_DIR"
+    note "npm cache: $npm_config_cache"
+fi
 
 step "composer install from the lock file, without dev packages"
 export COMPOSER_NO_INTERACTION=1
@@ -416,7 +440,9 @@ else
             note "npm $npm_version ignores min-release-age in .npmrc (npm 11.10 or later reads it); the lock file still decides what installs"
         fi
         # shellcheck disable=SC2086  # the flag is empty or one word
-        npm ci $ignore_flag
+        # --prefer-offline takes the lock file's versions from the cache when they are already there; the audit is
+        # Composer's and PROCTOR's job here.
+        npm ci --prefer-offline --no-audit --no-fund $ignore_flag
         if [ "${#rebuild[@]}" -gt 0 ]; then
             note "running install scripts for: ${rebuild[*]}"
             npm rebuild --ignore-scripts=false "${rebuild[@]}"

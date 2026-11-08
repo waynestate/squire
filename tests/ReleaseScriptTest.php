@@ -29,6 +29,7 @@ final class ReleaseScriptTest extends SquireTestCase
         $this->stub('composer', <<<'SH'
             #!/bin/sh
             echo "composer $*" >> "$STUB_LOG"
+            echo "COMPOSER_CACHE_DIR=${COMPOSER_CACHE_DIR:-}" >> "$STUB_LOG"
             if [ "$1" = "audit" ]; then exit "${STUB_AUDIT_EXIT:-0}"; fi
             if [ "$1" = "--version" ]; then echo "Composer version stub"; fi
             exit 0
@@ -41,6 +42,7 @@ final class ReleaseScriptTest extends SquireTestCase
         $this->stub('npm', <<<'SH'
             #!/bin/sh
             echo "npm $*" >> "$STUB_LOG"
+            echo "npm_config_cache=${npm_config_cache:-}" >> "$STUB_LOG"
             if [ "$1" = "--version" ]; then echo "${STUB_NPM_VERSION:-10.9.2}"; exit 0; fi
             if [ "$1" = "run" ] && [ "$2" = "build" ]; then exit "${STUB_NPM_BUILD_EXIT:-0}"; fi
             exit 0
@@ -652,9 +654,60 @@ final class ReleaseScriptTest extends SquireTestCase
 
         self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
         $calls = $this->calls();
-        self::assertContains('npm ci --ignore-scripts', $calls);
+        self::assertContains('npm ci --prefer-offline --no-audit --no-fund --ignore-scripts', $calls);
         self::assertContains('npm run build', $calls);
-        self::assertLessThan((int) array_search('npm run build', $calls, true), (int) array_search('npm ci --ignore-scripts', $calls, true));
+        self::assertLessThan((int) array_search('npm run build', $calls, true), (int) array_search('npm ci --prefer-offline --no-audit --no-fund --ignore-scripts', $calls, true));
+    }
+
+    // --- package download caches ---------------------------------------------------------------------------------------
+
+    public function testTheDownloadCachesLiveInTheAppFolderByDefault(): void
+    {
+        $app = $this->npmApp();
+        $result = $this->exec($app, 'scripts/release.sh');
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertStringContainsString('package download caches', $result['stdout']);
+        $calls = $this->calls();
+        $composerEnv = array_values(array_filter($calls, static fn(string $c): bool => str_starts_with($c, 'COMPOSER_CACHE_DIR=')));
+        self::assertNotEmpty($composerEnv);
+        self::assertStringEndsWith('/.cache/squire/composer', $composerEnv[0]);
+        $npmEnv = array_values(array_filter($calls, static fn(string $c): bool => str_starts_with($c, 'npm_config_cache=')));
+        self::assertNotEmpty($npmEnv);
+        self::assertStringEndsWith('/.cache/squire/npm', $npmEnv[0]);
+        self::assertDirectoryExists($app . '/.cache/squire/composer');
+        self::assertDirectoryExists($app . '/.cache/squire/npm');
+        self::assertSame("*\n", (string) file_get_contents($app . '/.cache/squire/.gitignore'), 'the cache folder never reaches git');
+        self::assertSame("Require all denied\n", (string) file_get_contents($app . '/.cache/squire/.htaccess'), 'Apache never serves the cache folder');
+    }
+
+    public function testACacheDirTheHostSetWinsOverTheDefault(): void
+    {
+        $app = $this->initializedApp();
+        $result = $this->exec($app, 'scripts/release.sh', ['COMPOSER_CACHE_DIR' => '/opt/host-composer-cache']);
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertContains('COMPOSER_CACHE_DIR=/opt/host-composer-cache', $this->calls());
+    }
+
+    public function testTurningTheCacheOffExportsNothingAndCreatesNoCacheFolder(): void
+    {
+        $app = $this->npmApp();
+        $result = $this->exec($app, 'scripts/release.sh', ['SQUIRE_CACHE_DIR' => 'off']);
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertStringContainsString('skipped (SQUIRE_CACHE_DIR=off)', $result['stdout']);
+        $exported = array_filter($this->calls(), static fn(string $c): bool => preg_match('/^(COMPOSER_CACHE_DIR|npm_config_cache)=./', $c) === 1);
+        self::assertSame([], array_values($exported), 'neither installer sees a cache directory');
+        self::assertDirectoryDoesNotExist($app . '/.cache/squire');
+    }
+
+    public function testNpmCiPrefersTheOfflineCacheAndSkipsItsAudit(): void
+    {
+        $result = $this->exec($this->npmApp(), 'scripts/release.sh');
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertContains('npm ci --prefer-offline --no-audit --no-fund --ignore-scripts', $this->calls());
     }
 
     // --- SQUIRE-26: the install-script escape hatch and the release-age note -----------------------------------------
@@ -674,7 +727,7 @@ final class ReleaseScriptTest extends SquireTestCase
 
         self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
         $calls = $this->calls();
-        $install = array_search('npm ci --ignore-scripts', $calls, true);
+        $install = array_search('npm ci --prefer-offline --no-audit --no-fund --ignore-scripts', $calls, true);
         $rebuild = array_search('npm rebuild --ignore-scripts=false esbuild @parcel/watcher', $calls, true);
         self::assertNotFalse($install, 'the install itself still runs no scripts');
         self::assertNotFalse($rebuild, 'the named packages run theirs');
@@ -755,7 +808,7 @@ final class ReleaseScriptTest extends SquireTestCase
         $calls = $this->calls();
         self::assertContains('corepack pnpm install --frozen-lockfile --ignore-scripts', $calls);
         self::assertContains('corepack pnpm run build', $calls);
-        self::assertNotContains('npm ci --ignore-scripts', $calls);
+        self::assertNotContains('npm ci --prefer-offline --no-audit --no-fund --ignore-scripts', $calls);
         self::assertLessThan((int) array_search('corepack pnpm run build', $calls, true), (int) array_search('corepack pnpm install --frozen-lockfile --ignore-scripts', $calls, true));
     }
 
@@ -769,7 +822,7 @@ final class ReleaseScriptTest extends SquireTestCase
         self::assertSame(1, $result['exit']);
         self::assertStringContainsString('commit a lock file', $result['stderr']);
         self::assertNotContains('npm install', $this->calls());
-        self::assertNotContains('npm ci --ignore-scripts', $this->calls());
+        self::assertNotContains('npm ci --prefer-offline --no-audit --no-fund --ignore-scripts', $this->calls());
     }
 
     public function testFrontendInstallCanBeSkippedWhenBuiltAssetsAreCommitted(): void
@@ -795,7 +848,7 @@ final class ReleaseScriptTest extends SquireTestCase
 
         self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
         $calls = $this->calls();
-        self::assertContains('npm ci --ignore-scripts', $calls);
+        self::assertContains('npm ci --prefer-offline --no-audit --no-fund --ignore-scripts', $calls);
         self::assertContains('npm run build', $calls);
     }
 
@@ -822,7 +875,7 @@ final class ReleaseScriptTest extends SquireTestCase
 
         self::assertSame(1, $result['exit']);
         self::assertStringContainsString('frontend install and build', $result['stderr']);
-        self::assertContains('npm ci --ignore-scripts', $this->calls());
+        self::assertContains('npm ci --prefer-offline --no-audit --no-fund --ignore-scripts', $this->calls());
         self::assertContains('npm run build', $this->calls());
     }
 

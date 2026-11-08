@@ -80,7 +80,7 @@ final class TemplateContentTest extends SquireTestCase
         $common = $this->read('common/scripts/release.sh');
 
         self::assertStringContainsString('step "frontend install and build"', $common);
-        self::assertStringContainsString('npm ci $ignore_flag', $common);
+        self::assertStringContainsString('npm ci --prefer-offline --no-audit --no-fund $ignore_flag', $common);
         self::assertStringContainsString('corepack pnpm install --frozen-lockfile $ignore_flag', $common);
         self::assertStringContainsString('npm run "$SQUIRE_NPM_BUILD_SCRIPT"', $common);
         self::assertStringContainsString('corepack pnpm run "$SQUIRE_NPM_BUILD_SCRIPT"', $common);

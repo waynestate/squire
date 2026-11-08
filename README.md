@@ -678,6 +678,7 @@ Release script (`scripts/release.sh`):
 | `SQUIRE_NPM_IGNORE_SCRIPTS` | `1` | Install with `--ignore-scripts`. |
 | `SQUIRE_NPM_REBUILD` | empty | Packages, separated by spaces, whose install scripts run after the install (`npm rebuild --ignore-scripts=false`, or `pnpm rebuild`; pnpm 10 also needs them in `pnpm.onlyBuiltDependencies`). The escape hatch for a package that needs its own scripts, such as a native addon. |
 | `SQUIRE_NPM_BUILD_SCRIPT` | `build` | The `package.json` script to run. |
+| `SQUIRE_CACHE_DIR` | `.cache/squire` | Where Composer and npm keep their download caches between releases, inside the app folder so a Citadel Update keeps them; `off` leaves their defaults. |
 | `SQUIRE_MIGRATE` | `1` | Laravel: `migrate --force`. |
 | `SQUIRE_ARTISAN_OPTIMIZE` | `1` | Laravel: `optimize`. |
 | `SQUIRE_ARTISAN_RESTART` | `1` | Laravel: tell queue workers and `schedule:work` to restart on the new code (`reload`, or `queue:restart` and `schedule:interrupt`). Report only. |
