@@ -6,6 +6,8 @@ Versioning once 1.0 is out.
 ## Unreleased
 
 - Changed: the deploy layer requires PROCTOR ^0.8 (locked 0.8.0).
+- Fixed: the front page's Get started prompt wears the site's look (paper card, stitched seam, Arvo title, green buttons) inside the page width; it came out plain white and full-bleed because `squire.css` mapped none of the kit's `--ar-*` tokens.
+- Fixed: the docs kit's mobile menu closes with Escape and puts focus back on its summary (`kit/docs/docs.js`; Enter and Space already toggled it). Other sites get it on their next kit sync.
 - Changed: the pipeline pins every Preflight CI component to 0.3.0 (preflight@0.3.0); component image inputs are plain image names, since Preflight adds the Dependency Proxy prefix itself.
 - Docs: the README's Commands section gains the stack's "Which command when" table, copied word for word from WELD's docs: `squire doctor`, `squire init --check`, `weld:doctor`, `proctor check` and the other look-alikes, with what each checks, when to run it and where it runs (D-064).
 - Docs: the build.sh template and MAINTAINING.md say what a Citadel test showed (SQUIRE-16): an edited build.sh rebuilds its image step on a full Update, and a Quick Update never runs it; the revision marker stays.

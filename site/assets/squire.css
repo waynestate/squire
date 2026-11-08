@@ -590,6 +590,45 @@ code {
   transform: translateX(-50%);
 }
 
+/* ------------------------------------------- 3a. get started, the agent prompt */
+
+/* The kit brings the layout and none of the look, so the card wears the bag:
+   paper, a stitched seam, Arvo for the title and green for the buttons. It
+   used to arrive bare, white and wall to wall, like a squire who forgot the
+   saddle. */
+.getstarted {
+  padding-block: 0 clamp(2.5rem, 6vw, 4rem);
+}
+
+.ar-prompt {
+  --ar-bg: var(--sq-paper);
+  --ar-ink: var(--sq-ink);
+  --ar-muted: var(--sq-ink-muted);
+  --ar-rule: var(--sq-stitch);
+  --ar-accent: var(--sq-green);
+  --ar-on-accent: var(--sq-cream);
+  --ar-focus: var(--sq-green);
+  --ar-code-bg: var(--sq-cream);
+  --ar-code-ink: var(--sq-ink);
+  --ar-term-bg: var(--sq-term);
+  --ar-term-ink: var(--sq-term-text);
+  --ar-display: var(--sq-display);
+  --ar-body: inherit;
+  --ar-mono: var(--wsu-font-family-mono);
+  --ar-radius: 12px;
+  --ar-shadow: 0 1px 0 rgba(90, 58, 34, 0.08), 0 18px 36px -24px rgba(59, 38, 20, 0.5);
+}
+
+.getstarted .ar-prompt {
+  max-width: 56rem;
+  margin-inline: auto;
+  border: 2px dashed var(--sq-stitch);
+}
+
+.getstarted .ar-prompt__title {
+  color: var(--sq-green);
+}
+
 /* ----------------------------------------------------- 4. sections, list */
 
 .section {

@@ -103,13 +103,23 @@
   </section>
 
   <!-- ====================================================== get started -->
-  <section class="ar-prompt" id="get-started" data-ar-prompt>
-    <h3 class="ar-prompt__title">Get started with Squire</h3>
-    <p class="ar-prompt__desc">Pack your app for the Citadel and try it at home first.</p>
-    <pre class="ar-prompt__text"><code>You are a coding agent. Read https://squire.apps.wayne.edu/llms.txt and ask ADVISOR.
+  <div class="getstarted">
+    <div class="wsu-container">
+      <section class="ar-prompt ar-prompt--lead" id="get-started" aria-labelledby="get-started-title" data-ar-prompt>
+        <header class="ar-prompt__head">
+          <span class="ar-prompt__glyph" aria-hidden="true">01</span>
+          <div>
+            <p class="ar-prompt__kicker">Before you ride · Any PHP app</p>
+            <h3 class="ar-prompt__title" id="get-started-title">Get started with Squire</h3>
+            <p class="ar-prompt__desc">Pack your app for the Citadel and try it at home first.</p>
+          </div>
+        </header>
+        <pre class="ar-prompt__text"><code>You are a coding agent. Read https://squire.apps.wayne.edu/llms.txt and ask ADVISOR.
 Install it with `composer require waynestate/squire --dev`, then run `vendor/bin/squire init` at the root of your app.
 Ask me before you guess.</code></pre>
-  </section>
+      </section>
+    </div>
+  </div>
 
   <!-- ====================================================== packing list -->
   <section class="section section--canvas" id="kit" aria-labelledby="kit-title">

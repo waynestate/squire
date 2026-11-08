@@ -92,3 +92,24 @@ test('copy says Copy failed when the clipboard write is refused', async () => {
   assert.equal(button.textContent, 'Copy failed');
   assert.equal(status.textContent, 'Could not copy the code.');
 });
+
+const MENU_PAGE = '<!doctype html><html lang="en"><body><details class="docs-menu" open><summary>Menu</summary><nav class="docs-nav"><a href="#a">A page</a></nav></details></body></html>';
+
+test('Escape closes the open docs menu and puts focus back on its summary', async () => {
+  const { window, document } = load(MENU_PAGE);
+  await new Promise((resolve) => window.setTimeout(resolve, 0));
+  const menu = document.querySelector('.docs-menu');
+  const link = menu.querySelector('a');
+  link.focus();
+  link.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+  assert.equal(menu.open, false);
+  assert.equal(document.activeElement, menu.querySelector('summary'));
+});
+
+test('other keys leave the docs menu open', async () => {
+  const { window, document } = load(MENU_PAGE);
+  await new Promise((resolve) => window.setTimeout(resolve, 0));
+  const menu = document.querySelector('.docs-menu');
+  menu.querySelector('a').dispatchEvent(new window.KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+  assert.equal(menu.open, true);
+});
