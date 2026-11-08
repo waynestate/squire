@@ -48,7 +48,7 @@ Workers do not notice new code until they restart, so a release restarts them ([
 
 For the short worker above, the restart is mostly belt-and-braces: a run started before the release ends within its 50-second cap regardless, and the command makes sure it ends now instead of finishing the rest of the window on old code. For a supervised worker the restart is the whole mechanism, because the process never exits on its own.
 
-In Squire's `scripts/release.sh` the step belongs in the Laravel block, after `laravel migrate` and `laravel optimize` and before the Oracle check and the smoke test: the code is checked out and optimized, the smoke test has not run yet, and a worker restarted here comes up on the new code before the release declares success. See [The release script](release-script.md) for the step order. The template does not run either command today; add the step where your app has a queue, behind a setting like `SQUIRE_MIGRATE` so an app without jobs skips it.
+Squire's `scripts/release.sh` does this for you in its Laravel block, after `laravel migrate` and `laravel optimize` and before the Oracle check and the smoke test: the code is checked out and optimized, the smoke test has not run yet, and a worker restarted here comes up on the new code before the release declares success. The step runs `php artisan reload` where Laravel has it, and otherwise `queue:restart` and `schedule:interrupt`, each only when that command exists. It is report only (a failed restart is a warning), and `SQUIRE_ARTISAN_RESTART=0` turns it off. See [The release script](release-script.md) for the step order.
 
 ## Not yet tested on Citadel
 
