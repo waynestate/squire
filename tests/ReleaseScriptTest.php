@@ -84,22 +84,26 @@ final class ReleaseScriptTest extends SquireTestCase
     }
 
     /**
-     * @param array<string, string> $env
+     * SQUIRE_PHP_RUNTIME is skip here so the gate arguments the other tests pin do not depend on the php running
+     * the suite; the runtime tests set it, and a null value unsets a variable to reach the script's own default.
+     *
+     * @param array<string, string|null> $env
      *
      * @return array{exit: int, stdout: string, stderr: string}
      */
     private function exec(string $app, string $script, array $env = [], string $interpreter = 'bash'): array
     {
         $path = $this->stubs . PATH_SEPARATOR . dirname(PHP_BINARY) . PATH_SEPARATOR . (string) getenv('PATH');
-        $environment = [
+        $environment = array_filter([
             'PATH' => $path,
             'HOME' => $this->tempDir(),
             'STUB_LOG' => $this->log,
             'SQUIRE_ALLOW_ROOT' => '1',
             'SQUIRE_SMOKE_DELAY' => '0',
             'SQUIRE_SMOKE_RETRIES' => '2',
+            'SQUIRE_PHP_RUNTIME' => 'skip',
             ...$env,
-        ];
+        ], static fn(?string $value): bool => $value !== null);
         $process = proc_open([$interpreter, $script], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, $app, $environment);
         self::assertIsResource($process);
         $stdout = (string) stream_get_contents($pipes[1]);
@@ -330,6 +334,73 @@ final class ReleaseScriptTest extends SquireTestCase
         self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
         self::assertFileExists($app . '/var/gate/proctor-gate.json');
         self::assertFileExists($app . '/var/gate/proctor-gate-baseline.json');
+    }
+
+    /** The one `proctor gate --path ...` call of the release (the `gate --help` probe is not it). */
+    private function gateCall(): string
+    {
+        $gates = array_values(array_filter($this->calls(), static fn(string $c): bool => str_starts_with($c, 'proctor gate --path ')));
+        self::assertCount(1, $gates, implode("\n", $this->calls()));
+
+        return $gates[0];
+    }
+
+    public function testByDefaultTheGateGradesThePhpThatRunsTheRelease(): void
+    {
+        $app = $this->initializedApp();
+        // A php that claims 8.4.27 when asked its version and is the real one for everything else: an actor
+        // playing PHP, which Creed Bratton assures us is how he got most of his jobs.
+        $this->stub('php', "#!/bin/sh\n"
+            . "if [ \"\$1\" = \"-r\" ] && [ \"\$2\" = 'echo PHP_VERSION;' ]; then printf '%s' 8.4.27; exit 0; fi\n"
+            . 'exec ' . escapeshellarg(PHP_BINARY) . " \"\$@\"\n");
+        $result = $this->exec($app, 'scripts/release.sh', [
+            'SQUIRE_PROCTOR_BIN' => $this->stubs . '/proctor',
+            'SQUIRE_PROCTOR_POLICY' => '/policy.json',
+            'SQUIRE_PHP_RUNTIME' => null,
+        ]);
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertStringContainsString('gate: grading PHP 8.4.27', $result['stdout'] . $result['stderr']);
+        self::assertStringContainsString(' --php-runtime 8.4.27', $this->gateCall());
+    }
+
+    public function testAnExplicitPhpRuntimeIsGraded(): void
+    {
+        $app = $this->initializedApp();
+        $result = $this->exec($app, 'scripts/release.sh', [
+            'SQUIRE_PROCTOR_BIN' => $this->stubs . '/proctor',
+            'SQUIRE_PHP_RUNTIME' => '8.3.15',
+        ]);
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertStringContainsString('gate: grading PHP 8.3.15', $result['stdout'] . $result['stderr']);
+        self::assertStringContainsString(' --php-runtime 8.3.15', $this->gateCall());
+    }
+
+    public function testSkipLeavesTheRuntimeUngraded(): void
+    {
+        $app = $this->initializedApp();
+        $result = $this->exec($app, 'scripts/release.sh', [
+            'SQUIRE_PROCTOR_BIN' => $this->stubs . '/proctor',
+            'SQUIRE_PHP_RUNTIME' => 'skip',
+        ]);
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertStringContainsString('gate: SQUIRE_PHP_RUNTIME=skip, runtime not graded', $result['stdout'] . $result['stderr']);
+        self::assertStringNotContainsString('--php-runtime', $this->gateCall());
+    }
+
+    public function testAPhpRuntimeThatIsNotThreePartsIsNotGraded(): void
+    {
+        $app = $this->initializedApp();
+        $result = $this->exec($app, 'scripts/release.sh', [
+            'SQUIRE_PROCTOR_BIN' => $this->stubs . '/proctor',
+            'SQUIRE_PHP_RUNTIME' => '8.4',
+        ]);
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertStringContainsString('gate: SQUIRE_PHP_RUNTIME is not X.Y.Z, runtime not graded', $result['stdout'] . $result['stderr']);
+        self::assertStringNotContainsString('--php-runtime', $this->gateCall());
     }
 
     public function testAnOlderProctorWithoutTheGateFallsBackToCheckWithAClearMessage(): void

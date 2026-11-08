@@ -180,6 +180,11 @@
 <td>Where the gate keeps its verdicts, relative to the app root: <code>proctor-gate.json</code> (the last verdict) and <code>proctor-gate-baseline.json</code> (the verdict of the last release that went on, the next run's baseline). The folder gets a <code>.gitignore</code> of <code>*</code>, so it never reaches git.</td>
 </tr>
 <tr>
+<td><code>SQUIRE_PHP_RUNTIME</code></td>
+<td><code>auto</code></td>
+<td>The PHP version the gate grades for PROCTOR's unpatched check, passed as <code>--php-runtime</code>: <code>auto</code> reads the php that runs <code>release.sh</code> (it is the one serving the app; a suffix such as <code>-dev</code> is cut), <code>skip</code> grades no runtime, and an <code>X.Y.Z</code> value is graded as given. A value that is not <code>X.Y.Z</code> is a note and grades nothing. Only <code>proctor gate</code> gets it; the older <code>proctor check</code> fallback does not.</td>
+</tr>
+<tr>
 <td><code>SQUIRE_SMOKE</code></td>
 <td><code>1</code></td>
 <td>Request the health URL at the end and fail unless it answers 200.</td>

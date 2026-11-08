@@ -7,7 +7,7 @@
         "parity"
     ],
     "files": {
-        ".env.squire.example": "a0bc5bffdd38a7685ed993644902559133dba918d49c8d60584bd12a7dfd0da9",
+        ".env.squire.example": "9fee40c218f1418a9a3965e33a84ea6cf77d5efa99700ec995ebab0cdf61810c",
         ".squire/Dockerfile": "2d0f1eafbb78fa10741b3abe400fd254a21ad8b3605ca0860aef1bcac5923d2e",
         ".squire/Dockerfile.dockerignore": "6ccbb5a302475dd6322dc9f46057f98d0a5db59e5cfcc334d956df862d5da6fe",
         ".squire/apache-hardening.conf": "1f4f8dbcb70ad69a9ac91d852780a3e811527098c8bbf90416076ded25c52a40",
@@ -31,6 +31,6 @@
         "public/up.php": "84d1b3d8823fcd5519fbe92988f822ce68cdc05eff2c889814deb3f33982600a",
         "scripts/parity.ps1": "da69deebe08280a5054a4b3724ceaeb61aa22b73febb9bcc2cdc913177414736",
         "scripts/parity.sh": "f0fb6a963277bde29b77e8b7869a1775acd517ea8d4f2774567469bf77235eae",
-        "scripts/release.sh": "8f6596487c2136dac7fbf79b1a05b45fc471098b78caa25a0773e29f2f4691e4"
+        "scripts/release.sh": "40e27bade75cbf456ad7d54496b2033b46baac2f2291e92c04e431697c3a55b6"
     }
 }

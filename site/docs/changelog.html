@@ -44,6 +44,7 @@
 Versioning once 1.0 is out.</p>
 <h2 id="unreleased">Unreleased<a class="docs-heading-link" aria-label="Link to this section" href="#unreleased">#</a></h2>
 <ul>
+<li>Changed: the release gate passes <code>--php-runtime</code> (SQUIRE_PHP_RUNTIME, default <code>auto</code>: the php that runs release.sh, which is the one serving the app), so the deploy path grades the runtime for PROCTOR's unpatched check.</li>
 <li>Changed: the GitHub workflow's arm64 image leg and pwsh parity leg block the run (no <code>continue-on-error</code>): both passed in five pushes in a row on 2026-11-08.</li>
 </ul>
 <h2 id="0-8-0-2026-11-08">0.8.0 (2026-11-08)<a class="docs-heading-link" aria-label="Link to this section" href="#0-8-0-2026-11-08">#</a></h2>

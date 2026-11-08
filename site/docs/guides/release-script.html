@@ -98,6 +98,9 @@
 <p><strong>The record.</strong> Every gated release writes its verdict to <code>storage/squire/proctor-gate.json</code> (<code>SQUIRE_PROCTOR_RECORD_DIR</code>). When the release goes on (a go, or a reported no-go, which goes live anyway) that verdict is copied to <code>proctor-gate-baseline.json</code>, and the next release passes it to the gate as <code>--baseline</code>. A stopped release leaves the baseline alone, so re-running after a stop is judged against the release that is really live. The folder gets a <code>.gitignore</code> of <code>*</code>. The first gated release has no baseline, so every failure blocks it.</p>
 </li>
 <li>
+<p><strong>The runtime.</strong> The gate also grades the PHP that will serve the app for PROCTOR's unpatched check, passed as <code>--php-runtime</code> (<code>SQUIRE_PHP_RUNTIME</code>, default <code>auto</code>). <code>auto</code> asks the php that runs <code>release.sh</code>, because that is the one serving the app, and cuts any suffix (<code>8.4.27-dev</code> is graded as <code>8.4.27</code>); the log says <code>gate: grading PHP 8.4.27</code>. An <code>X.Y.Z</code> value is graded as given, for a host where the release runs under another php than the web server. <code>skip</code> grades no runtime. A value that is not <code>X.Y.Z</code> (say <code>8.4</code>) or a php that does not answer is a note, and the gate runs without the flag. The older <code>proctor check</code> fallback never gets it.</p>
+</li>
+<li>
 <p><strong>An older PROCTOR.</strong> When the installed PROCTOR has no <code>gate</code> command, the step prints a warning naming its version, runs <code>proctor check</code> as before (a failed check is a report, or a stop under <code>enforce</code>), and writes no record. Update <code>waynestate/proctor</code> to a release that has the gate.</p>
 </li>
 <li>
