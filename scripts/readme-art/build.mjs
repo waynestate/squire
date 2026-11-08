@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* ============================================================================
-   SQUIRE README art kit.
+   Squire README art kit.
 
    Cuts the README images from this repo's own static front page (site/), its
    brand files and its source, and writes them under docs/readme/. Nothing is
@@ -106,7 +106,7 @@ const CAST = [
 ];
 
 function castSource(name) {
-  // SQUIRE's own mark is not in assets/marks/ (the site shows it from brand/).
+  // Squire's own mark is not in assets/marks/ (the site shows it from brand/).
   if (name === "squire") return path.join(siteDir, "brand", "squire-avatar-256.png");
   return path.join(siteDir, "assets", "marks", `${name}.png`);
 }
@@ -353,7 +353,7 @@ async function buildPackingList(page) {
 
   const lastStart = 4 + (n - 1) * step + 9;
   const desc =
-    `A leather strap hangs a luggage tag for each file in SQUIRE's packing list, one after another: ` +
+    `A leather strap hangs a luggage tag for each file in Squire's packing list, one after another: ` +
     `${items.map((it) => (it.count ? `${it.name} (${it.count})` : it.name)).join(", ")}. ` +
     `Each tag is stamped ${items[0].stamp}. Then the satchel's own tag reads ${rows.map((r) => `${r.k} ${r.v}`).join(", ")}, ` +
     `and the counter says ${pl.counter}.`;

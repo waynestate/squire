@@ -64,7 +64,7 @@ abstract class SquireTestCase extends TestCase
 
     /**
      * A deploy layer inside a git repository: the repository root carries a .git, the layer sits below it in its own
-     * folder, so SQUIRE manages the layer's .gitignore. The .git is a plain directory; no git binary is needed.
+     * folder, so Squire manages the layer's .gitignore. The .git is a plain directory; no git binary is needed.
      *
      * @param array<string, string> $extra relative path => content
      */
@@ -96,7 +96,7 @@ abstract class SquireTestCase extends TestCase
         file_put_contents($full, $content);
     }
 
-    /** An app with every SQUIRE file written into it. */
+    /** An app with every Squire file written into it. */
     protected function initializedApp(bool $laravel = false): string
     {
         $dir = $this->app([], $laravel);
@@ -111,7 +111,7 @@ abstract class SquireTestCase extends TestCase
         return $this->app($extra + ['package.json' => '{"dependencies":{"vue":"^3.0.0"}}' . "\n"], $laravel);
     }
 
-    /** A Vue app with every SQUIRE file written into it. */
+    /** A Vue app with every Squire file written into it. */
     protected function initializedVueApp(bool $laravel = false): string
     {
         $dir = $this->vueApp($laravel);

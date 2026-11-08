@@ -11,7 +11,7 @@ use Waynestate\Squire\ToolError;
  * Writes the templates into an app, or reports how an app has drifted from them.
  *
  * "Depend, don't copy": the app keeps the files (Citadel needs them in the repository), but the manifest remembers
- * what SQUIRE wrote, so an update never overwrites a file the team edited, and `--check` says which files fell behind.
+ * what Squire wrote, so an update never overwrites a file the team edited, and `--check` says which files fell behind.
  */
 final class Initializer
 {
@@ -96,8 +96,8 @@ final class Initializer
 
             $state = $previous !== null ? FileResult::MODIFIED : FileResult::UNTRACKED;
             $detail = $previous !== null
-                ? 'edited since SQUIRE wrote it'
-                : 'exists, but SQUIRE did not write it';
+                ? 'edited since Squire wrote it'
+                : 'exists, but Squire did not write it';
 
             if ($check) {
                 $results[] = new FileResult($template->destination, $state, $detail);
@@ -116,8 +116,8 @@ final class Initializer
             $results[] = new FileResult($template->destination, FileResult::OVERWRITTEN, $detail . '; overwritten by --force');
         }
 
-        // The .gitignore is not a template: SQUIRE appends the missing lines and records no hash, because once the
-        // team edits it, it is theirs. In a directory below the repository root it is part of the layer SQUIRE wrote.
+        // The .gitignore is not a template: Squire appends the missing lines and records no hash, because once the
+        // team edits it, it is theirs. In a directory below the repository root it is part of the layer Squire wrote.
         $gitignoreResult = $this->gitignore->ensure($appPath, $this->writer, $check);
         if ($gitignoreResult !== null) {
             $results[] = $gitignoreResult;

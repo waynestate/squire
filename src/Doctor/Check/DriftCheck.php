@@ -14,7 +14,7 @@ use Waynestate\Squire\Template\Manifest;
 use Waynestate\Squire\ToolError;
 
 /**
- * Reports files that fell behind SQUIRE's templates. It is a warning and never a failure: an edited release script is
+ * Reports files that fell behind Squire's templates. It is a warning and never a failure: an edited release script is
  * the team's right, and the other checks judge whether it is still correct.
  */
 final class DriftCheck implements Check
@@ -29,7 +29,7 @@ final class DriftCheck implements Check
             return [Finding::warn('S9', $e->getMessage(), Squire::MANIFEST)];
         }
         if ($manifest === null) {
-            return [Finding::info('S9', sprintf('No %s, so drift from the SQUIRE templates was not checked. `squire init` creates it.', Squire::MANIFEST))];
+            return [Finding::info('S9', sprintf('No %s, so drift from the Squire templates was not checked. `squire init` creates it.', Squire::MANIFEST))];
         }
 
         $layer = $manifest->layer ?? Catalog::detectLayer($project->path);
@@ -42,7 +42,7 @@ final class DriftCheck implements Check
             }
         }
         if ($findings === []) {
-            $findings[] = Finding::pass('S9', sprintf('Every SQUIRE file matches template version %s.', Squire::version()));
+            $findings[] = Finding::pass('S9', sprintf('Every Squire file matches template version %s.', Squire::version()));
         }
 
         return $findings;

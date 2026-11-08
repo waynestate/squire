@@ -8,13 +8,13 @@ use Waynestate\Squire\Squire;
 use Waynestate\Squire\ToolError;
 
 /**
- * `.squire.json` in the app: which SQUIRE wrote which files, and the hash of what it wrote. The hash is how
+ * `.squire.json` in the app: which Squire wrote which files, and the hash of what it wrote. The hash is how
  * `init --check` tells "the template moved on" apart from "someone edited the file".
  */
 final readonly class Manifest
 {
     /**
-     * @param array<string, string> $files destination => sha256 of the content SQUIRE wrote
+     * @param array<string, string> $files destination => sha256 of the content Squire wrote
      * @param list<string>          $groups
      * @param string|null          $layer
      */
@@ -36,7 +36,7 @@ final readonly class Manifest
         $raw = file_get_contents($path);
         $data = $raw === false ? null : json_decode($raw, true);
         if (!is_array($data) || !isset($data['target'], $data['files']) || !is_array($data['files'])) {
-            throw new ToolError(sprintf('%s is not a SQUIRE manifest. Delete it and run `squire init` again.', Squire::MANIFEST));
+            throw new ToolError(sprintf('%s is not a Squire manifest. Delete it and run `squire init` again.', Squire::MANIFEST));
         }
 
         $files = [];
@@ -68,7 +68,7 @@ final readonly class Manifest
         $files = $this->files;
         ksort($files);
         $data = [
-            'squire' => 'Written by SQUIRE. Commit this file: `vendor/bin/squire init --check` reads it to report drift.',
+            'squire' => 'Written by Squire. Commit this file: `vendor/bin/squire init --check` reads it to report drift.',
             'version' => $this->version,
             'target' => $this->target,
             'groups' => $this->groups,

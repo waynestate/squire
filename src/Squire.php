@@ -14,16 +14,16 @@ final class Squire
     public const TOOL = 'squire';
 
     /**
-     * The version SQUIRE reports when it is not installed as a Composer package:
+     * The version Squire reports when it is not installed as a Composer package:
      * a dev checkout of this repository, or a copy without one. An installed
      * copy reports its real release version instead.
      */
     public const VERSION = '0.6.0';
 
-    /** The package name SQUIRE publishes under. */
+    /** The package name Squire publishes under. */
     private const PACKAGE = 'waynestate/squire';
 
-    /** The file in an app that records which templates SQUIRE wrote, so `init --check` can report drift. */
+    /** The file in an app that records which templates Squire wrote, so `init --check` can report drift. */
     public const MANIFEST = '.squire.json';
 
     private function __construct() {}
@@ -35,8 +35,8 @@ final class Squire
     }
 
     /**
-     * The version SQUIRE prints and records: the installed package version
-     * when SQUIRE runs as a Composer dependency, the fallback constant
+     * The version Squire prints and records: the installed package version
+     * when Squire runs as a Composer dependency, the fallback constant
      * otherwise.
      */
     public static function version(): string
@@ -48,7 +48,7 @@ final class Squire
 
     /**
      * The pretty version Composer recorded for this package, or null when
-     * SQUIRE is not installed as a release: no entry at all (a phar or a
+     * Squire is not installed as a release: no entry at all (a phar or a
      * manual copy), or the placeholder Composer stamps on a version-less
      * root package (a dev checkout of this very repository). A leading "v"
      * is dropped, the way the release tags read.

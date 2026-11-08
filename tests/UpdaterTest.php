@@ -130,7 +130,7 @@ final class UpdaterTest extends SquireTestCase
     }
 
     /**
-     * Drop one file from the manifest's record, leaving whatever is on disk: a kit made before SQUIRE knew
+     * Drop one file from the manifest's record, leaving whatever is on disk: a kit made before Squire knew
      * about the file.
      */
     private function forget(string $app, string $destination): void
@@ -185,7 +185,7 @@ final class UpdaterTest extends SquireTestCase
         $results = $updater->run($app, 'raw', ['release', 'parity'], false);
         $states = $this->states($results);
 
-        self::assertArrayNotHasKey('oracle-check.php', $states, 'a file SQUIRE did not write is not in the plan');
+        self::assertArrayNotHasKey('oracle-check.php', $states, 'a file Squire did not write is not in the plan');
         self::assertStringContainsString("the app's own", (string) file_get_contents($app . '/oracle-check.php'));
         $manifest = Manifest::load($app);
         self::assertNotNull($manifest);
@@ -243,7 +243,7 @@ final class UpdaterTest extends SquireTestCase
         $results = (new Updater($catalog))->run($app, 'raw', ['release'], false);
         $states = $this->states($results);
 
-        self::assertArrayNotHasKey('build.sh', $states, 'a file SQUIRE did not write is not in the plan');
+        self::assertArrayNotHasKey('build.sh', $states, 'a file Squire did not write is not in the plan');
         self::assertStringContainsString('theirs', (string) file_get_contents($app . '/build.sh'));
     }
 

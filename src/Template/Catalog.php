@@ -30,7 +30,7 @@ final class Catalog
     public function __construct(private readonly string $templatesDir) {}
 
     /**
-     * Every template SQUIRE knows, for every target.
+     * Every template Squire knows, for every target.
      *
      * @return list<Template>
      */

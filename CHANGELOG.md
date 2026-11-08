@@ -5,6 +5,7 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+- Docs: source comments, messages and art titles write Squire as a word, not in capitals; wordmarks keep their display type.
 - Fixed: the pipeline's PROCTOR jobs no longer pass `--policy`, which PROCTOR 0.7 refuses in CI; PROCTOR checks against the CREED policy it bundles.
 - Changed: the GitLab pipeline pins the Preflight components to 0.2.0 (was 0.1.4).
 - Changed: the front page's deploy layer (`deploy/`) pins HELMET `^0.4` (locked 0.4.0) and PROCTOR `^0.7` (locked 0.7.0).

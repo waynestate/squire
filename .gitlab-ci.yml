@@ -1,7 +1,7 @@
 # composer ci is the contract: the checks are defined there, and this pipeline only wraps them.
-# SQUIRE's pipeline, built from the PREFLIGHT components on this GitLab.
-# Pinned to PREFLIGHT 0.2.0. Never use ~latest.
-# SQUIRE requires PHP ^8.3, so the test matrix starts at 8.3.
+# Squire's pipeline, built from the Preflight components on this GitLab.
+# Pinned to Preflight 0.2.0. Never use ~latest.
+# Squire requires PHP ^8.3, so the test matrix starts at 8.3.
 # Docker Hub images go through the GitLab Dependency Proxy to avoid the anonymous pull limit.
 include:
   - component: $CI_SERVER_FQDN/enterprise-apps/preflight/php-test@0.2.0

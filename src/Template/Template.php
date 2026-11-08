@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Waynestate\Squire\Template;
 
 /**
- * One file SQUIRE can write into an app.
+ * One file Squire can write into an app.
  */
 final readonly class Template
 {
