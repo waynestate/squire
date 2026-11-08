@@ -12,7 +12,7 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
-- Changed: the pipeline pins every Preflight CI component to 0.3.0 (preflight@0.3.0); component image inputs are plain image names, since Preflight adds the Dependency Proxy prefix itself.
+- Docs: the README's Commands section gains the stack's "Which command when" table, copied word for word from WELD's docs: `squire doctor`, `squire init --check`, `weld:doctor`, `proctor check` and the other look-alikes, with what each checks, when to run it and where it runs (D-064).
 - Docs: the build.sh template and MAINTAINING.md say what a Citadel test showed (SQUIRE-16): an edited build.sh rebuilds its image step on a full Update, and a Quick Update never runs it; the revision marker stays.
 - Docs: a queue workers guide (the scheduler-driven short worker that works today, the timeout rule, and the supervised-worker request for Citadel).
 - Changed: the GitHub a11y job is blocking now that it has been seen green on GitHub (SQUIRE-35).
