@@ -1,6 +1,6 @@
 ---
 title: "Upgrading"
-description: "What changed in each released minor of Squire (0.7.0, 0.6.0, 0.5.0, 0.4.0 and the 0.3.x line), the steps to move an app to them, and how to verify the upgrade held."
+description: "What changed in each released minor of Squire (0.8.0, 0.7.0, 0.6.0, 0.5.0, 0.4.0 and the 0.3.x line), the steps to move an app to them, and how to verify the upgrade held."
 ---
 
 # Upgrading
@@ -16,6 +16,20 @@ vendor/bin/squire init --check
 vendor/bin/squire update --dry-run
 
 `squire init --check` reports when your copies have drifted from the templates; it exits `0` when they match and `1` when they have. `squire update --dry-run` prints the plan and writes nothing; it exits `1` when an edited file still differs from the template. Exit `2` means the tool itself could not run. For the full command reference, see [Commands](reference/commands.md).
+
+## 0.8.0 (2026-11-08)
+
+No breaks. The portable image (`.squire/portable.Dockerfile`, ADR-0010) bakes the code in and runs as `web`, `worker`, `scheduler` or `migrate`, picked by argument or `SQUIRE_ROLE`, as a non-root user in group 0 with Apache on 8080, for OpenShift, Coolify and raw Docker. `health.php` reads `SQUIRE_APP_DIR` for the app root, so a kit kept in a subfolder checks the app it serves. The release script keeps Composer's and npm's download caches in `.cache/squire` inside the app folder, so a Citadel Update no longer downloads every package again. The Citadel path is unchanged.
+
+### Steps
+
+1. Update the `waynestate/squire` dev dependency: `composer require --dev waynestate/squire:^0.8`.
+2. Run `vendor/bin/squire update`: it adds the portable files and shows a diff for any kit file the app edited.
+3. Stack repos: refresh `deploy/` the same way. Sourdough: refresh its generated copy with `php bin/export-templates.php --to=templates/squire`.
+
+### How to verify
+
+Run the two checks at the top of this page; both exit `0`. The app now carries the five new portable files, led by `.squire/portable.Dockerfile`.
 
 ## 0.7.1 (2026-11-08)
 

@@ -5,6 +5,8 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+## 0.8.0 (2026-11-08)
+
 - Added: the portable image (`.squire/portable.Dockerfile`, ADR-0010), for OpenShift, Coolify and raw Docker. One image with the code baked in runs as `web`, `worker` (`queue:work --tries=3 --max-time=3600 --sleep=3`), `scheduler` (`schedule:work`) or `migrate`, picked by argument or `SQUIRE_ROLE`, as `USER 10001:0` with group-0 writable folders (any arbitrary UID in group 0 runs it), Apache on 8080 (`SQUIRE_PORT`, else `PORT`), logs to stdout and stderr, and a graceful stop on `SIGTERM` (WELD W8, W13). The compose file's new `portable` profile runs the four roles; a plain `up` is unchanged. The Citadel mirror (`.squire/Dockerfile`, port 80) does not change. Run `squire update` to take the five new files.
 - Added: `health.php` reads `SQUIRE_APP_DIR` for the app root, so a kit kept in a subfolder (WELD's `deploy/`) checks the app it serves.
 - Fixed: the front page and the README's packing list count the parity kit as it ships (19 files; they still said 12).
