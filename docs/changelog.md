@@ -12,6 +12,7 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+- Fixed: the front page accessibility gate installs again on GitHub: `tools/a11y/package-lock.json` now matches the `@axe-core/playwright` 4.14.0 pin (the dependency update had changed only `package.json`).
 - Docs: source comments, messages and art titles write Squire as a word, not in capitals; wordmarks keep their display type.
 - Fixed: the front page's deploy layer (`deploy/`) really runs kit 0.6.0 now: the earlier update kept the old record and missed `release.sh`, the Dockerfiles, `php.ini`, the compose file and the two hardening files (`.squire/apache-hardening.conf`, `.squire/php-web.ini`); `squire init --check` passes on all 23 files.
 - Fixed: `squire update` records the current release in `.squire.json` even when every file already matches it; it kept the old version, so Squire's own deploy layer said 0.5.0 on 0.6.0 files.
