@@ -5,6 +5,7 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+- Changed: CI caches Composer and npm downloads under a fixed key, so a lock change downloads only what changed (D-072).
 - Changed: HELMET moves to `^1.0`, its first stable release, wherever this repo requires it.
 - Fixed: OPEN_QUESTIONS.md no longer says there is no GitHub release job; only the GitLab one is missing.
 - Docs: OPEN_QUESTIONS 13 records the Node every current Citadel image ships (Node 22 from NodeSource, npm bundled, pnpm and yarn through corepack).
