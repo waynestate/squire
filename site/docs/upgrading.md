@@ -1,6 +1,6 @@
 ---
 title: "Upgrading | Squire docs"
-description: "What changed in each released minor of Squire (0.7.0, 0.6.0, 0.5.0, 0.4.0 and the 0.3.x line), the steps to move an app to them, and how to verify the upgrade held."
+description: "What changed in each released minor of Squire (0.8.0, 0.7.0, 0.6.0, 0.5.0, 0.4.0 and the 0.3.x line), the steps to move an app to them, and how to verify the upgrade held."
 url: https://squire.apps.wayne.edu/docs/upgrading.html
 llms: https://squire.apps.wayne.edu/llms.txt
 generator: Squire agent-ready
@@ -18,17 +18,31 @@ vendor/bin/squire init --check vendor/bin/squire update --dry-run
 
 `squire init --check` reports when your copies have drifted from the templates; it exits `0` when they match and `1` when they have. `squire update --dry-run` prints the plan and writes nothing; it exits `1` when an edited file still differs from the template. Exit `2` means the tool itself could not run. For the full command reference, see [Commands](https://squire.apps.wayne.edu/docs/reference/commands.html).
 
+## 0.8.0 (2026-11-08)[#](https://squire.apps.wayne.edu/docs/upgrading.html#0-8-0-2026-11-08)
+
+No breaks. The portable image (`.squire/portable.Dockerfile`, ADR-0010) bakes the code in and runs as `web`, `worker`, `scheduler` or `migrate`, picked by argument or `SQUIRE_ROLE`, as a non-root user in group 0 with Apache on 8080, for OpenShift, Coolify and raw Docker. `health.php` reads `SQUIRE_APP_DIR` for the app root, so a kit kept in a subfolder checks the app it serves. The release script keeps Composer's and npm's download caches in `.cache/squire` inside the app folder, so a Citadel Update no longer downloads every package again. The Citadel path is unchanged.
+
+### Steps[#](https://squire.apps.wayne.edu/docs/upgrading.html#steps)
+
+1. Update the `waynestate/squire` dev dependency: `composer require --dev waynestate/squire:^0.8`.
+2. Run `vendor/bin/squire update`: it adds the portable files and shows a diff for any kit file the app edited.
+3. Stack repos: refresh `deploy/` the same way. Sourdough: refresh its generated copy with `php bin/export-templates.php --to=templates/squire`.
+
+### How to verify[#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify)
+
+Run the two checks at the top of this page; both exit `0`. The app now carries the five new portable files, led by `.squire/portable.Dockerfile`.
+
 ## 0.7.1 (2026-11-08)[#](https://squire.apps.wayne.edu/docs/upgrading.html#0-7-1-2026-11-08)
 
 No breaks: a patch on 0.7.0. The kit's `php.ini` no longer sets `session.sid_length` or `session.sid_bits_per_character`. PHP 8.4 deprecated both and raises a notice for each, and leaving them out gives PHP's default session ID (32 hex characters, 128 bits), which is what HELMET and SESAME's S45 expect. Squire's own `deploy/.squire.json` also records the `release.sh` it ships, so `squire update` on Squire itself no longer refuses that file.
 
-### Steps[#](https://squire.apps.wayne.edu/docs/upgrading.html#steps)
+### Steps[#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-1)
 
 1. Update the `waynestate/squire` dev dependency: `composer require --dev waynestate/squire:^0.7.1`.
 2. Run `vendor/bin/squire update`: it takes the new `.squire/php.ini` when the app never edited it, and shows a diff when it did. Keep your edits and drop the two `session.sid_` lines.
 3. Stack repos: refresh `deploy/` the same way. Sourdough: refresh its generated copy with `php bin/export-templates.php --to=templates/squire`.
 
-### How to verify[#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify)
+### How to verify[#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-1)
 
 Run the two checks at the top of this page; both exit `0`. `.squire/php.ini` has no `session.sid_length` or `session.sid_bits_per_character` line.
 
@@ -48,7 +62,7 @@ One behavior change for the web, from the CHANGELOG's SQUIRE-29 entry: the app i
 
 **CI and deploy layer.** CI pins the Preflight components to 0.3.1 and runs its a11y component on `site/`, blocking. Squire's own deploy layer requires HELMET `^1.0` and PROCTOR `^0.8`.
 
-### Steps[#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-1)
+### Steps[#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-2)
 
 1. Update the `waynestate/squire` dev dependency: `composer require --dev waynestate/squire:^0.7`.
 2. Run `vendor/bin/squire update`: it takes the new template versions for the files you never edited and shows a diff for the ones you did.
@@ -56,7 +70,7 @@ One behavior change for the web, from the CHANGELOG's SQUIRE-29 entry: the app i
 4. An app that bakes its code into the image (OpenShift, Coolify, raw Docker) sets `SQUIRE_OPCACHE_VALIDATE=0`. Citadel apps keep the default.
 5. Stack repos: regenerate the `deploy/` folder with `squire init` and check it with `squire init --check`. Sourdough: refresh its generated copy with `php bin/export-templates.php --to=templates/squire` and verify it with `--check`.
 
-### How to verify[#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-1)
+### How to verify[#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-2)
 
 Run `squire init --check` and `squire update --dry-run` (the two checks at the top of this page); both exit `0` once the kit is at the new release. After the next release on the server, the release log shows the "laravel restart long-lived processes" and "check opcache" steps.
 
@@ -70,13 +84,13 @@ None: the CHANGELOG records no breaking change for 0.6.0.
 
 **Fixed.** `squire update` writes the template files a newer release added to a group the kit records: a file the target release has that `.squire.json` does not list is written from the template, recorded, and printed as added, so one `update` converges the kit instead of leaving the new files to `squire init`. A file the app already has is still left alone, and an edited file is still refused and shown as a diff. `squire init` without `--only` defaults to the groups the `.squire.json` records instead of `release,parity`, so a bare `init` completes an existing kit without dropping its groups; with no manifest it still writes `release,parity`, and `--only` still wins.
 
-### Steps[#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-2)
+### Steps[#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-3)
 
 1. Update the `waynestate/squire` dev dependency to the next release.
 2. Run `vendor/bin/squire update`: it takes the new template versions for the files you never edited, writes the files the release added, and shows a diff for the ones you did.
 3. Stack repos: regenerate the `deploy/` folder with `squire init` and check it with `squire init --check`. Sourdough: refresh its generated copy with `php bin/export-templates.php --to=templates/squire` and verify it with `--check`.
 
-### How to verify[#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-2)
+### How to verify[#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-3)
 
 Run `squire init --check` and `squire update --dry-run` (the two checks at the top of this page); both exit `0` once the kit is at the new release.
 
@@ -98,13 +112,13 @@ None: the CHANGELOG records no breaking change for 0.5.0.
 
 **Docs.** WSL 2 file-location advice and an engines and licenses note for local parity. The contract suite gap on GitLab and the real image is recorded as an open question. The docs name the real image path instead of placeholders.
 
-### Steps[#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-3)
+### Steps[#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-4)
 
 1. Update the `waynestate/squire` dev dependency to 0.5.0 (it is on Packagist).
 2. Run `vendor/bin/squire update` to take the new template versions for the files you never edited; it shows a diff for the ones you did and never overwrites your edits.
 3. Stack repos: regenerate the `deploy/` folder with `squire init` and check it with `squire init --check`. Sourdough: refresh its generated copy with `php bin/export-templates.php --to=templates/squire` and verify it with `--check`.
 
-### How to verify[#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-3)
+### How to verify[#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-4)
 
 Run `squire init --check` and `squire update --dry-run` (the two checks at the top of this page); both exit `0` once the kit is at 0.5.0. New in this version: `squire doctor oracle` answers from your terminal, and a coding agent that runs ADVISOR sees the `squire_doctor` and `squire_drift` tools.
 
@@ -122,13 +136,13 @@ None: the CHANGELOG records no breaking change for 0.4.0.
 - The readme art check allows the word Citadel.
 - The deploy layer's Squire kit is refreshed to 0.3.4 (the local `.env.squire` file is now git-ignored).
 
-### Steps[#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-4)
+### Steps[#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-5)
 
 1. Update the `waynestate/squire` dev dependency to 0.4.0.
 2. Run `vendor/bin/squire update` to take the updated build and release scripts, then `vendor/bin/squire init` to write `oracle-check.php` (this release's `update` refreshed only the files the kit already recorded; `update` writes new files from the next release on).
 3. Apps that talk to Oracle: optionally build the Oracle-ready images with `scripts/oracle-image-build.sh` (flavors `sail` and `parity`).
 
-### How to verify[#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-4)
+### How to verify[#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-5)
 
 Run `squire init --check` and `squire update --dry-run`. Once the kit is at 0.4.0, the app has `oracle-check.php`, and a release log shows the Oracle check after PROCTOR and before the smoke test, printing nothing when the app has no `ORACLE_*` settings.
 
@@ -146,14 +160,14 @@ None: the CHANGELOG records no breaking change in the 0.3.x line.
 - **0.3.1 (2026-10-29).** README, site and open questions match 0.3.0 (Sourdough requires Squire, the policy default, the Preflight pin, the static target). The agent-ready tool's messages write Squire as a word, and the static template's `SQUIRE_STATIC_ROOT` comment matches the code. `bin/agent-ready.php` is clean under Pint's laravel preset (CI checks it), and the README says how consumers keep the kit out of Composer downloads.
 - **0.3.0 (2026-10-29).** The raw target ships a front controller.
 
-### Steps[#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-5)
+### Steps[#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-6)
 
 1. Update the `waynestate/squire` dev dependency to 0.3.4, the latest of the line.
 2. Run `vendor/bin/squire update` to take the new template versions for the files you never edited.
 3. If your app predates the line, run `vendor/bin/squire init` so the new template files land (for example the raw target's front controller from 0.3.0); `init` never overwrites a file you edited.
 4. On Citadel, set the release options in the app's `./.env.squire` configuration file, which `release.sh` reads from 0.3.3 on.
 
-### How to verify[#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-5)
+### How to verify[#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-6)
 
 Run `squire init --check` and `squire update --dry-run`. Check the version-specific results: 0.3.4 appends `.env` and `.env.squire` to the target `.gitignore` when they are missing; 0.3.3 reads release options from `./.env.squire`; 0.3.0 gives a raw PHP app the front controller `public/index.php`.
 
