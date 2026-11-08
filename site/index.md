@@ -252,7 +252,7 @@ Known limits
 
 ## Scuffs on the leather
 
-Squire 0.6.0 is tagged and on Packagist. Where we had to guess how Citadel behaves, `OPEN_QUESTIONS.md` lists each guess and the default it chose.
+Squire 0.7.0 is tagged and on Packagist. Where we had to guess how Citadel behaves, `OPEN_QUESTIONS.md` lists each guess and the default it chose.
 
 - The local `php.ini` holds the safe defaults HELMET also enforces at runtime, not the platform's file.
 - The Citadel image has no registry digest to pin yet; doctor warns under S67 until you run `pin`.
