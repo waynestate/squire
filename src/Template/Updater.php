@@ -160,7 +160,9 @@ final class Updater
             );
         }
 
-        if (!$dryRun && $written !== $manifest->files) {
+        // Save when the files moved, or when the record still names an older release: a kit whose files already
+        // match the newer release must not keep the old version.
+        if (!$dryRun && ($written !== $manifest->files || $manifest->version !== Squire::version())) {
             (new Manifest(Squire::version(), $manifest->target, $manifest->groups, $written, $manifest->layer))->save($appPath);
         }
 

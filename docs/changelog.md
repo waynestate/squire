@@ -12,7 +12,8 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
-- Docs: source comments, messages and art titles write Squire as a word, not in capitals; wordmarks keep their display type.
+- Fixed: the front page's deploy layer (`deploy/`) really runs kit 0.6.0 now: the earlier update kept the old record and missed `release.sh`, the Dockerfiles, `php.ini`, the compose file and the two hardening files (`.squire/apache-hardening.conf`, `.squire/php-web.ini`); `squire init --check` passes on all 23 files.
+- Fixed: `squire update` records the current release in `.squire.json` even when every file already matches it; it kept the old version, so Squire's own deploy layer said 0.5.0 on 0.6.0 files.
 - Fixed: the pipeline's PROCTOR jobs no longer pass `--policy`, which PROCTOR 0.7 refuses in CI; PROCTOR checks against the CREED policy it bundles.
 - Changed: the GitLab pipeline pins the Preflight components to 0.2.0 (was 0.1.4).
 - Changed: the front page's deploy layer (`deploy/`) pins HELMET `^0.4` (locked 0.4.0) and PROCTOR `^0.7` (locked 0.7.0).
