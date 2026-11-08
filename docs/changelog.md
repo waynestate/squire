@@ -12,6 +12,7 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+- Docs: a queue workers guide (the scheduler-driven short worker that works today, the timeout rule, and the supervised-worker request for Citadel).
 - Changed: the GitHub a11y job is blocking now that it has been seen green on GitHub (SQUIRE-35).
 - Fixed: the front page accessibility gate installs again on GitHub: `tools/a11y/package-lock.json` now matches the `@axe-core/playwright` 4.14.0 pin (the dependency update had changed only `package.json`).
 - Docs: source comments, messages and art titles write Squire as a word, not in capitals; wordmarks keep their display type.
