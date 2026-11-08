@@ -6,6 +6,9 @@ Versioning once 1.0 is out.
 ## Unreleased
 
 - Docs: OPEN_QUESTIONS 13 records the Node every current Citadel image ships (Node 22 from NodeSource, npm bundled, pnpm and yarn through corepack).
+- Added: the docs builder stamps the front page too. An element in a top-level `site/*.html` page that carries `data-docs-version` holds the docs stamp (the first released CHANGELOG heading, the same value as the docs header's `{{version}}`); a plain run writes it, `--check` reports the page stale after a release, and an element with markup inside is a finding. Squire's own chip now carries it. Other sites get it on their next kit sync.
+- Fixed: the docs kit's copy button no longer covers the first line of code when it says Copied or Copy failed. It grows only where it stays clear of the code; over the code it keeps its resting width and shows a check or a cross when the word does not fit (the live region still says it in words). The failure word is now Failed.
+- Fixed: the front page's quick start command folds at its spaces on a phone (560 px and narrower), with the `--dev` flag kept whole, instead of hiding its tail behind a sideways scrollbar.
 - Changed: the deploy layer requires PROCTOR ^0.8 (locked 0.8.0).
 - Fixed: the front page's Get started prompt wears the site's look (paper card, stitched seam, Arvo title, green buttons) inside the page width; it came out plain white and full-bleed because `squire.css` mapped none of the kit's `--ar-*` tokens.
 - Fixed: the docs kit's mobile menu closes with Escape and puts focus back on its summary (`kit/docs/docs.js`; Enter and Space already toggled it). Other sites get it on their next kit sync.

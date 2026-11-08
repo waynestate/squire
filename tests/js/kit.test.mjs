@@ -87,10 +87,60 @@ test('a code block that overflows only once the web fonts load joins the tab ord
   assert.equal(pre.getAttribute('tabindex'), '0');
 });
 
-test('copy says Copy failed when the clipboard write is refused', async () => {
+test('copy says Failed when the clipboard write is refused', async () => {
   const { button, status } = await clickCopy(() => Promise.reject(new Error('denied')));
-  assert.equal(button.textContent, 'Copy failed');
+  assert.equal(button.textContent, 'Failed');
   assert.equal(status.textContent, 'Could not copy the code.');
+});
+
+// A laid-out block: the button sits in the top right corner (its resting width, and a content width that grows
+// with the word it holds); the code's box starts at codeTop, so a codeTop at or below the button's 32px means a
+// band above the code, and 0 means the button sits over the code's first line.
+async function clickCopyLaidOut(writeText, restWidth, charWidth, codeTop = 0) {
+  const { window, document } = load(CODE_PAGE);
+  Object.defineProperty(window.navigator, 'clipboard', { value: { writeText }, configurable: true });
+  await new Promise((resolve) => window.setTimeout(resolve, 0));
+  const button = document.querySelector('.docs-copy__button');
+  const pre = document.querySelector('.docs-article pre');
+  const width = () => (button.style.inlineSize ? parseFloat(button.style.inlineSize) : Math.max(restWidth, button.textContent.length * charWidth));
+  button.getBoundingClientRect = () => ({ width: width(), height: 32, top: 0, bottom: 32, left: 400 - width(), right: 400 });
+  pre.getBoundingClientRect = () => ({ width: 400, height: 100, top: codeTop, bottom: 100, left: 0, right: 400 });
+  Object.defineProperty(button, 'clientWidth', { get: () => width(), configurable: true });
+  Object.defineProperty(button, 'scrollWidth', { get: () => Math.max(width(), button.textContent.length * charWidth), configurable: true });
+  button.click();
+  await new Promise((resolve) => window.setTimeout(resolve, 0));
+  return { window, button, status: document.querySelector('.docs-copy__status') };
+}
+
+test('over the code, the copy button keeps its resting width while a state shows', async () => {
+  const { button } = await clickCopyLaidOut(() => Promise.resolve(), 72, 10);
+  // Copied (6 x 10 = 60) fits the 72px rest: the word shows, in the locked width.
+  assert.equal(button.textContent, 'Copied');
+  assert.equal(button.style.inlineSize, '72px');
+});
+
+test('in a band clear of the code, the copy button may grow to fit the word', async () => {
+  const { button } = await clickCopyLaidOut(() => Promise.resolve(), 50, 10, 40);
+  assert.equal(button.textContent, 'Copied');
+  assert.equal(button.style.inlineSize, '');
+});
+
+test('a state word wider than the resting button gives way to a mark, and the live region keeps the words', async () => {
+  const ok = await clickCopyLaidOut(() => Promise.resolve(), 50, 10);
+  assert.equal(ok.button.textContent, '✓');
+  assert.equal(ok.status.textContent, 'Code copied.');
+  assert.equal(ok.button.getAttribute('aria-label'), 'Copy code to clipboard');
+  const refused = await clickCopyLaidOut(() => Promise.reject(new Error('denied')), 50, 10);
+  assert.equal(refused.button.textContent, '✕');
+  assert.equal(refused.status.textContent, 'Could not copy the code.');
+});
+
+test('the copy button goes back to Copy and its own width after the state', async () => {
+  const { window, button } = await clickCopyLaidOut(() => Promise.resolve(), 72, 10);
+  assert.equal(button.style.inlineSize, '72px');
+  await new Promise((resolve) => window.setTimeout(resolve, 2100));
+  assert.equal(button.textContent, 'Copy');
+  assert.equal(button.style.inlineSize, '');
 });
 
 const MENU_PAGE = '<!doctype html><html lang="en"><body><details class="docs-menu" open><summary>Menu</summary><nav class="docs-nav"><a href="#a">A page</a></nav></details></body></html>';

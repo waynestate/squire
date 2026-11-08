@@ -1883,7 +1883,10 @@ code {
   .packlist::before { left: 4px; width: 20px; }
   .packlist::after { left: 13px; }
   .item::before { left: -26px; width: 40px; }
-  .quickstart__code { font-size: 0.75rem; padding-inline: 0.75rem; }
+  /* The whole command stays in view on a phone: it folds at its spaces
+     inside the terminal instead of hiding its tail behind a scrollbar. A flag never splits at its own hyphens. */
+  .quickstart__code { font-size: 0.75rem; padding-inline: 0.75rem; white-space: normal; overflow-wrap: break-word; overflow-x: visible; }
+  .quickstart__flag { white-space: nowrap; }
   .copy-btn { min-width: 4.25rem; padding: 0 0.75rem; }
   .term__body { font-size: 0.72rem; padding-inline: 0.85rem; }
 }

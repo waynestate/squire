@@ -35,6 +35,8 @@ The builder copies your CSS file to `site/docs/theme/`. Dark mode, fonts and col
 
 The header file takes exactly two placeholders, `{{project}}` and `{{version}}`. Any other placeholder fails the build with exit 2. Write header links relative to `site/`, not relative to `docs/`.
 
+The front page can carry the same version. Put `data-docs-version` on the element that holds it, in any top-level `site/*.html` page, and leave only the version text inside: `<span class="brand__version" data-docs-version>0.6.0</span>`. A plain build writes the docs stamp there, and `--check` reports the page stale after a release until you rebuild. Words around the number (Rev, Sheet, v) stay outside the element.
+
 ## Checklist[#](https://squire.apps.wayne.edu/docs/guides/theming.html#checklist)
 
 - [ ] `docs/docs.json` has a `theme` key with `css` and `header`.
@@ -42,6 +44,7 @@ The header file takes exactly two placeholders, `{{project}}` and `{{version}}`.
 - [ ] Your CSS carries dark mode, fonts and colors, and the kit's `docs.css` stays untouched.
 - [ ] The header uses only `{{project}}` and `{{version}}`.
 - [ ] Header links are relative to `site/`.
+- [ ] The front page's version chip carries `data-docs-version`, so it matches the docs.
 
 ## A worked example[#](https://squire.apps.wayne.edu/docs/guides/theming.html#a-worked-example)
 

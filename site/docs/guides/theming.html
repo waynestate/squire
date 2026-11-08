@@ -54,6 +54,7 @@
 <p>The builder copies your CSS file to <code>site/docs/theme/</code>. Dark mode, fonts and colors live in that theme CSS, and the kit's <code>docs.css</code> is never edited.</p>
 <h2 id="placeholders-and-links">Placeholders and links<a class="docs-heading-link" aria-label="Link to this section" href="#placeholders-and-links">#</a></h2>
 <p>The header file takes exactly two placeholders, <code>{{project}}</code> and <code>{{version}}</code>. Any other placeholder fails the build with exit 2. Write header links relative to <code>site/</code>, not relative to <code>docs/</code>.</p>
+<p>The front page can carry the same version. Put <code>data-docs-version</code> on the element that holds it, in any top-level <code>site/*.html</code> page, and leave only the version text inside: <code>&lt;span class=&quot;brand__version&quot; data-docs-version&gt;0.6.0&lt;/span&gt;</code>. A plain build writes the docs stamp there, and <code>--check</code> reports the page stale after a release until you rebuild. Words around the number (Rev, Sheet, v) stay outside the element.</p>
 <h2 id="checklist">Checklist<a class="docs-heading-link" aria-label="Link to this section" href="#checklist">#</a></h2>
 <ul>
 <li><label class="docs-task"><input disabled="" type="checkbox"> <code>docs/docs.json</code> has a <code>theme</code> key with <code>css</code> and <code>header</code>.</label></li>
@@ -61,6 +62,7 @@
 <li><label class="docs-task"><input disabled="" type="checkbox"> Your CSS carries dark mode, fonts and colors, and the kit's <code>docs.css</code> stays untouched.</label></li>
 <li><label class="docs-task"><input disabled="" type="checkbox"> The header uses only <code>{{project}}</code> and <code>{{version}}</code>.</label></li>
 <li><label class="docs-task"><input disabled="" type="checkbox"> Header links are relative to <code>site/</code>.</label></li>
+<li><label class="docs-task"><input disabled="" type="checkbox"> The front page's version chip carries <code>data-docs-version</code>, so it matches the docs.</label></li>
 </ul>
 <h2 id="a-worked-example">A worked example<a class="docs-heading-link" aria-label="Link to this section" href="#a-worked-example">#</a></h2>
 <p>These pages are one. Squire's <code>docs/docs.json</code> names <code>theme/squire.css</code> and <code>_header.html</code>: the header is the front page's masthead, and the CSS maps the front page's canvas, leather and gold onto the kit's <code>--dk-*</code> tokens, then adds the luggage tags, the stitched seams and a derived dark set. Read those two files in the repository for a theme that passes the accessibility gate in light and dark.</p>
