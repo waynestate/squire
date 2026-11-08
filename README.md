@@ -586,9 +586,10 @@ What the kit's images harden, and the switch for each, is on the docs page
 - **Apache** (the fallback base, `.squire/apache-hardening.conf`): `ServerTokens Prod`, `ServerSignature Off`,
   `TraceEnable Off`. It lives in the base, not the app image, so a run on the real Citadel image shows what that image
   really says.
-- **opcache** (`.squire/php.ini`): on for the web, `validate_timestamps` off, 128 MB, 20000 files. The parity compose
-  file turns `SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS` on for your bind mount, and the release script warns when a release
-  in place meets a frozen opcache.
+- **opcache** (`.squire/php.ini`): on for the web, 128 MB, 20000 files, and set by how code arrives. Pulled into a
+  running container (Citadel, a bind mount, or unknown): files are checked every 2 seconds, the default. Baked into an
+  immutable image: build with `SQUIRE_OPCACHE_VALIDATE=0` and they are never checked. The release script warns when
+  a release in place meets `0`.
 - **disable_functions** (`.squire/php-web.ini`, the web only): `exec`, `passthru`, `shell_exec`, `system`, `pcntl_exec`,
   `phpinfo`, `show_source`, `highlight_file`. `proc_open` and `popen` stay for mail and Laravel's Process; the CLI
   (Composer scripts, artisan, the health check) keeps everything. `SQUIRE_PHP_DISABLE_FUNCTIONS=none` turns it off.
@@ -664,8 +665,8 @@ directory. Static `public/index.php`: `SQUIRE_STATIC_ROOT` (`../../site`).
 Health check (`health.php`): `SQUIRE_HEALTH_PATH`, `SQUIRE_HEALTH_PORT` (80), `SQUIRE_HEALTH_TIMEOUT` (5, at most 14, inside
 Citadel's 15), `SQUIRE_HEALTH_VENDOR` (`1` also requires `vendor/autoload.php`).
 
-PHP in the image (`.squire/php.ini`, read from the container's environment): `SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS` (`0`, and
-`1` in the parity compose file), `SQUIRE_OPCACHE_MEMORY` (`128`), `SQUIRE_OPCACHE_MAX_FILES` (`20000`), `SQUIRE_PHP_DISABLE_FUNCTIONS` (the web's list, from
+PHP in the image (`.squire/php.ini`, read from the container's environment): `SQUIRE_OPCACHE_VALIDATE` (`1`; `0` for an
+image that bakes its code in), `SQUIRE_OPCACHE_MEMORY` (`128`), `SQUIRE_OPCACHE_MAX_FILES` (`20000`), `SQUIRE_PHP_DISABLE_FUNCTIONS` (the web's list, from
 `.squire/php-web.ini`; `none` disables nothing).
 
 Local parity (`.env.squire`): `SQUIRE_PROJECT`, `SQUIRE_BASE_IMAGE`, `SQUIRE_PROXY_IMAGE`, `SQUIRE_MYSQL_IMAGE`,

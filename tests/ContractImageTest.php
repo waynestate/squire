@@ -31,6 +31,20 @@ final class ContractImageTest extends SquireTestCase
         self::assertStringNotContainsString('-e "$SECRET_NAME', $driver, 'the secret reaches the container as a file only');
     }
 
+    public function testTheDriverChecksBothOpcacheCases(): void
+    {
+        $driver = $this->repoFile('scripts/contract-image.sh');
+
+        // Pulled in place (the mounted fixture): the release notes that files are checked.
+        self::assertStringContainsString('grep -q "opcache.validate_timestamps=1: the web server sees changed files by itself" "$TMPROOT/release.log"', $driver);
+        // Baked in: a second app image built with the switch at 0, whose web never checks, and whose release warns.
+        self::assertStringContainsString('--build-arg "SQUIRE_OPCACHE_VALIDATE=0"', $driver);
+        self::assertStringContainsString('[ "$baked" = "0" ] || rc=1', $driver);
+        self::assertStringContainsString('grep -q "opcache.validate_timestamps=0: Apache keeps serving" "$TMPROOT/baked-release.log"', $driver);
+        self::assertStringContainsString('docker rmi "$APP_TAG" "$BAKED_TAG"', $driver, 'the baked image is removed with the other');
+        self::assertStringContainsString("'revalidate_freq' => ini_get('opcache.revalidate_freq')", $this->repoFile('scripts/contract-image-probe.php'));
+    }
+
     /** @return iterable<string, array{string}> */
     public static function promises(): iterable
     {
@@ -40,6 +54,7 @@ final class ContractImageTest extends SquireTestCase
         yield 'expose_php' => ["'x-powered-by'"];
         yield 'SQUIRE-10 opcache on' => ["\$web['opcache']"];
         yield 'SQUIRE-10 validate_timestamps' => ["\$web['validate_timestamps']"];
+        yield 'SQUIRE-10 revalidate_freq' => ["\$web['revalidate_freq']"];
         yield 'SQUIRE-29 web list' => ["'exec', 'passthru', 'shell_exec', 'system', 'pcntl_exec', 'phpinfo', 'show_source', 'highlight_file'"];
         yield 'SQUIRE-29 proc_open stays' => ["\$web['proc_open']"];
         yield 'SQUIRE-29 CLI keeps all' => ["ini_get('disable_functions')"];

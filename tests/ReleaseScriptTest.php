@@ -518,7 +518,7 @@ final class ReleaseScriptTest extends SquireTestCase
         self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
         self::assertStringContainsString('check opcache (never fails the release)', $result['stdout']);
         self::assertStringContainsString('opcache.validate_timestamps=0: Apache keeps serving the PHP it compiled before this release', $result['stderr']);
-        self::assertStringContainsString('SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS=1', $result['stderr']);
+        self::assertStringContainsString('SQUIRE_OPCACHE_VALIDATE=1', $result['stderr']);
     }
 
     public function testAFrozenOpcacheIsOnlyANoteInTheFirstReleaseHookBeforeApacheStarts(): void

@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Image hardening | Squire docs</title>
-<meta name="description" content="What Squire&#039;s images and kit harden, and how to turn each piece down when an app needs it: Apache&#039;s banner and TRACE, production opcache with a dev override, a web-only disable_functions list, secrets as files at run time, npm without install scripts, and bases pinned by digest.">
+<meta name="description" content="What Squire&#039;s images and kit harden, and how to turn each piece down when an app needs it: Apache&#039;s banner and TRACE, opcache set by how code arrives, a web-only disable_functions list, secrets as files at run time, npm without install scripts, and bases pinned by digest.">
 <meta name="docs-version" content="0.5.0">
 <link rel="stylesheet" href="../../assets/wayne-ui/wayne-ui.css">
 <link rel="stylesheet" href="../../assets/docs.css">
@@ -66,8 +66,31 @@
 </tbody>
 </table></div>
 <p>These live in the base, never in the app image: locally the app image also runs on the real Citadel image, and hardening it there would show a parity the platform does not have.</p>
-<h2 id="opcache-production-settings-a-dev-override">opcache: production settings, a dev override<a class="docs-heading-link" aria-label="Link to this section" href="#opcache-production-settings-a-dev-override">#</a></h2>
-<p><code>.squire/php.ini</code> turns opcache on for the web (<code>opcache.enable = 1</code>, <code>opcache.enable_cli = 0</code>) with production values, and the fallback base loads the extension when its image does not already. A value written <code>${NAME:-default}</code> reads the container's environment (PHP 8.3 and later), so the same image serves production and a bind mount:</p>
+<h2 id="opcache-set-by-how-your-code-arrives">opcache: set by how your code arrives<a class="docs-heading-link" aria-label="Link to this section" href="#opcache-set-by-how-your-code-arrives">#</a></h2>
+<p><code>.squire/php.ini</code> turns opcache on for the web (<code>opcache.enable = 1</code>, <code>opcache.enable_cli = 0</code>), and the fallback base loads the extension when its image does not already. Whether opcache looks at your files again depends on how the code gets into the container, so there are two cases and one switch, <code>SQUIRE_OPCACHE_VALIDATE</code>:</p>
+<div class="docs-table" role="region" aria-label="Table" tabindex="0"><table>
+<thead>
+<tr>
+<th>How code arrives</th>
+<th><code>SQUIRE_OPCACHE_VALIDATE</code></th>
+<th>What opcache does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pulled into a running container: a Citadel Quick Update, a bind mount on your machine, or anywhere Squire cannot tell</td>
+<td><code>1</code>, the default</td>
+<td>Checks a file again at most every 2 seconds (<code>revalidate_freq = 2</code>), so a release is served within 2 seconds with no restart.</td>
+</tr>
+<tr>
+<td>Baked into an image that never changes: OpenShift, Coolify or raw Docker with the code copied in at build time</td>
+<td><code>0</code>, which you choose</td>
+<td>Never checks a file again. The image is replaced, not edited, so there is nothing to notice, and requests skip the check.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Set the switch where the image is built, <code>docker build --build-arg SQUIRE_OPCACHE_VALIDATE=0 -f .squire/Dockerfile .</code>, or when it runs, <code>-e SQUIRE_OPCACHE_VALIDATE=0</code> (the run-time value wins). Use <code>0</code> or <code>1</code>, never an empty value: PHP falls back to the default only when the variable is unset, and empty turns the checks off. Locally, put <code>SQUIRE_OPCACHE_VALIDATE=0</code> in <code>.env.squire</code> to try the baked case on your bind mount, and remember that saved files then wait for an Apache restart.</p>
+<p>The other values, each read from the environment (PHP 8.3 and later):</p>
 <div class="docs-table" role="region" aria-label="Table" tabindex="0"><table>
 <thead>
 <tr>
@@ -77,16 +100,6 @@
 </tr>
 </thead>
 <tbody>
-<tr>
-<td><code>opcache.validate_timestamps</code></td>
-<td><code>0</code>: a compiled file is never checked again until Apache restarts</td>
-<td><code>SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS</code></td>
-</tr>
-<tr>
-<td><code>opcache.revalidate_freq</code></td>
-<td><code>0</code>: when checking is on, every request sees the newest file</td>
-<td>none</td>
-</tr>
 <tr>
 <td><code>opcache.memory_consumption</code></td>
 <td><code>128</code> (megabytes)</td>
@@ -104,9 +117,8 @@
 </tr>
 </tbody>
 </table></div>
-<p><strong>The dev override.</strong> The parity compose file sets <code>SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS=1</code> for the app container, because your source is a bind mount you edit. Set it to <code>0</code> in <code>.env.squire</code> to see production behavior locally.</p>
-<p><strong>Releases in place.</strong> With <code>0</code>, Apache serves the PHP it compiled before a release until it restarts. That is right for an image that carries its code, or a platform that restarts Apache on a release. Where a release changes files in place (a Citadel Quick Update runs <code>scripts/release.sh</code> in the running container), either the platform restarts Apache or the container runs with <code>SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS=1</code>. The release script reports which it sees, in its &quot;check opcache&quot; step: a warning after a release with Apache running, a note in the first-release hook, never a failure.</p>
-<aside class="docs-callout docs-callout--note" role="note"><p class="docs-callout__label">Note</p><p>On Citadel the platform's own <code>php.ini</code> decides, not this file. Whether a Quick Update restarts Apache is the open Quick Update reset test; until it is answered, ask for <code>validate_timestamps</code> on, with <code>revalidate_freq</code> above 0, rather than off.</p></aside>
+<p><strong>The release warning stays.</strong> The release script's &quot;check opcache&quot; step never fails, and says what it sees: a note when opcache checks files, and a warning when a release runs in place (Apache up) against an opcache set to <code>0</code>, because Apache keeps serving the PHP it compiled before the release until it restarts. In the first-release hook, before Apache starts, <code>0</code> is only a note.</p>
+<aside class="docs-callout docs-callout--note" role="note"><p class="docs-callout__label">Note</p><p>On Citadel the platform's own <code>php.ini</code> decides, not this file. Ask for the same as the kit's default: <code>validate_timestamps</code> on, <code>revalidate_freq</code> 2, because a Quick Update pulls code into the running container.</p></aside>
 <h2 id="disable-functions-the-web-loses-the-shell">disable_functions: the web loses the shell<a class="docs-heading-link" aria-label="Link to this section" href="#disable-functions-the-web-loses-the-shell">#</a></h2>
 <p>A web request should never shell out. <code>.squire/php-web.ini</code> holds the settings only the web server gets, and the app image appends it to <code>php.ini</code> as <code>php-apache2handler.ini</code>, the file mod_php reads instead of <code>php.ini</code>. The CLI reads <code>php.ini</code> alone, so Composer and its scripts, artisan, queue workers, the health check and the release script keep every function.</p>
 <div class="docs-table" role="region" aria-label="Table" tabindex="0"><table>
@@ -132,7 +144,7 @@
 </tbody>
 </table></div>
 <p><code>proc_open</code> and <code>popen</code> stay: Symfony Mailer's sendmail transport, Laravel's <code>Process</code> and PHPMailer use them on the web. A test runs PHP on the same two files and checks both sides: the web list is gone, and the CLI and the mail functions are still there.</p>
-<p><strong>The switch.</strong> <code>SQUIRE_PHP_DISABLE_FUNCTIONS</code> replaces the list, and <code>none</code> (a name no function has) disables nothing: the way out for an older app that calls <code>exec</code> from a page while you move that work to a queued job. An empty value is the same as unset, because PHP falls back to the default for both. Locally, put <code>SQUIRE_PHP_DISABLE_FUNCTIONS=none</code> in <code>.env.squire</code>.</p>
+<p><strong>The switch.</strong> <code>SQUIRE_PHP_DISABLE_FUNCTIONS</code> replaces the list, and <code>none</code> (a name no function has) disables nothing: the way out for an older app that calls <code>exec</code> from a page while you move that work to a queued job. Leave it unset for the default list: PHP falls back only when the variable is unset, so an empty value disables nothing as well, and the parity compose files pass it by name only for that reason. Locally, put <code>SQUIRE_PHP_DISABLE_FUNCTIONS=none</code> in <code>.env.squire</code>.</p>
 <p><code>disable_classes</code> is not set. It never stopped a caller who could reach another class, and PHP 8.5 removed it.</p>
 <aside class="docs-callout docs-callout--note" role="note"><p class="docs-callout__label">Note</p><p>Like opcache, this is the kit's request: on Citadel the platform's own <code>php.ini</code> decides. A local run is stricter than Citadel until the platform adopts the list, which is the safe direction: an app that works locally works there.</p></aside>
 <h2 id="secrets-files-at-run-time-never-in-a-layer">Secrets: files at run time, never in a layer<a class="docs-heading-link" aria-label="Link to this section" href="#secrets-files-at-run-time-never-in-a-layer">#</a></h2>
@@ -212,7 +224,7 @@ secrets:
 </tr>
 <tr>
 <td>opcache</td>
-<td>on for the web, <code>validate_timestamps</code> 0, 20000 files; the release warns about the frozen opcache after a release in place</td>
+<td>code pulled in place: the web checks files (<code>validate_timestamps</code> 1, <code>revalidate_freq</code> 2) and the release notes it; code baked in (the app image rebuilt with <code>SQUIRE_OPCACHE_VALIDATE=0</code>): the web never checks; 20000 files either way</td>
 </tr>
 <tr>
 <td>disable_functions</td>
@@ -232,7 +244,7 @@ sh scripts/contract-image.sh --platform=linux/arm64   # needs qemu emulation on 
     </main>
     <nav class="docs-pager" aria-label="Pages"><a class="docs-pager__link" href="../../docs/guides/local-parity.html"><span class="docs-pager__dir">Previous</span><span class="docs-pager__title">Local parity</span></a><a class="docs-pager__link docs-pager__link--next" href="../../docs/guides/oracle.html"><span class="docs-pager__dir">Next</span><span class="docs-pager__title">Oracle</span></a></nav>
   </div>
-  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item"><a href="#apache-a-quieter-banner-no-trace">Apache: a quieter banner, no TRACE</a></li><li class="docs-toc__item"><a href="#opcache-production-settings-a-dev-override">opcache: production settings, a dev override</a></li><li class="docs-toc__item"><a href="#disable-functions-the-web-loses-the-shell">disable_functions: the web loses the shell</a></li><li class="docs-toc__item"><a href="#secrets-files-at-run-time-never-in-a-layer">Secrets: files at run time, never in a layer</a></li><li class="docs-toc__item"><a href="#npm-no-install-scripts-no-day-old-versions">npm: no install scripts, no day-old versions</a></li><li class="docs-toc__item"><a href="#base-images-pinned-by-digest">Base images: pinned by digest</a></li><li class="docs-toc__item"><a href="#the-image-contract-suite">The image contract suite</a></li></ul></nav>
+  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item"><a href="#apache-a-quieter-banner-no-trace">Apache: a quieter banner, no TRACE</a></li><li class="docs-toc__item"><a href="#opcache-set-by-how-your-code-arrives">opcache: set by how your code arrives</a></li><li class="docs-toc__item"><a href="#disable-functions-the-web-loses-the-shell">disable_functions: the web loses the shell</a></li><li class="docs-toc__item"><a href="#secrets-files-at-run-time-never-in-a-layer">Secrets: files at run time, never in a layer</a></li><li class="docs-toc__item"><a href="#npm-no-install-scripts-no-day-old-versions">npm: no install scripts, no day-old versions</a></li><li class="docs-toc__item"><a href="#base-images-pinned-by-digest">Base images: pinned by digest</a></li><li class="docs-toc__item"><a href="#the-image-contract-suite">The image contract suite</a></li></ul></nav>
 </div>
 <footer class="docs-footer">
   <span>Documents Squire <span data-docs-version>0.5.0</span></span>

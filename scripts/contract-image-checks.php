@@ -65,7 +65,9 @@ $web = is_array($web) ? $web : [];
 
 // SQUIRE-10
 $report(($web['opcache'] ?? false) === true, 'opcache is on for the web');
-$report(($web['validate_timestamps'] ?? null) === '0', 'opcache.validate_timestamps is 0 for the web (got ' . var_export($web['validate_timestamps'] ?? null, true) . ')');
+// The code here is mounted and pulled in place, so the web must check files again (validate_timestamps 1, every 2 s).
+// contract-image.sh checks the baked case (an app image built with SQUIRE_OPCACHE_VALIDATE=0) on its own.
+$report(($web['validate_timestamps'] ?? null) === '1' && ($web['revalidate_freq'] ?? null) === '2', 'code pulled in place: the web checks files every 2 seconds (got validate_timestamps ' . var_export($web['validate_timestamps'] ?? null, true) . ', revalidate_freq ' . var_export($web['revalidate_freq'] ?? null, true) . ')');
 $report(($web['max_files'] ?? null) === '20000', 'opcache.max_accelerated_files is 20000 for the web');
 
 // SQUIRE-29

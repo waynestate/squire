@@ -1,6 +1,6 @@
 ---
 title: "Image hardening | Squire docs"
-description: "What Squire's images and kit harden, and how to turn each piece down when an app needs it: Apache's banner and TRACE, production opcache with a dev override, a web-only disable_functions list, secrets as files at run time, npm without install scripts, and bases pinned by digest."
+description: "What Squire's images and kit harden, and how to turn each piece down when an app needs it: Apache's banner and TRACE, opcache set by how code arrives, a web-only disable_functions list, secrets as files at run time, npm without install scripts, and bases pinned by digest."
 url: https://squire.apps.wayne.edu/docs/guides/image-hardening.html
 llms: https://squire.apps.wayne.edu/llms.txt
 generator: Squire agent-ready
@@ -24,25 +24,30 @@ The base enables `.squire/apache-hardening.conf` as `zz-squire-hardening.conf`, 
 
 These live in the base, never in the app image: locally the app image also runs on the real Citadel image, and hardening it there would show a parity the platform does not have.
 
-## opcache: production settings, a dev override[#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#opcache-production-settings-a-dev-override)
+## opcache: set by how your code arrives[#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#opcache-set-by-how-your-code-arrives)
 
-`.squire/php.ini` turns opcache on for the web (`opcache.enable = 1`, `opcache.enable_cli = 0`) with production values, and the fallback base loads the extension when its image does not already. A value written `${NAME:-default}` reads the container's environment (PHP 8.3 and later), so the same image serves production and a bind mount:
+`.squire/php.ini` turns opcache on for the web (`opcache.enable = 1`, `opcache.enable_cli = 0`), and the fallback base loads the extension when its image does not already. Whether opcache looks at your files again depends on how the code gets into the container, so there are two cases and one switch, `SQUIRE_OPCACHE_VALIDATE`:
+
+| How code arrives | `SQUIRE_OPCACHE_VALIDATE` | What opcache does |
+| --- | --- | --- |
+| Pulled into a running container: a Citadel Quick Update, a bind mount on your machine, or anywhere Squire cannot tell | `1`, the default | Checks a file again at most every 2 seconds (`revalidate_freq = 2`), so a release is served within 2 seconds with no restart. |
+| Baked into an image that never changes: OpenShift, Coolify or raw Docker with the code copied in at build time | `0`, which you choose | Never checks a file again. The image is replaced, not edited, so there is nothing to notice, and requests skip the check. |
+
+Set the switch where the image is built, `docker build --build-arg SQUIRE_OPCACHE_VALIDATE=0 -f .squire/Dockerfile .`, or when it runs, `-e SQUIRE_OPCACHE_VALIDATE=0` (the run-time value wins). Use `0` or `1`, never an empty value: PHP falls back to the default only when the variable is unset, and empty turns the checks off. Locally, put `SQUIRE_OPCACHE_VALIDATE=0` in `.env.squire` to try the baked case on your bind mount, and remember that saved files then wait for an Apache restart.
+
+The other values, each read from the environment (PHP 8.3 and later):
 
 | Setting | Default | Environment variable |
 | --- | --- | --- |
-| `opcache.validate_timestamps` | `0`: a compiled file is never checked again until Apache restarts | `SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS` |
-| `opcache.revalidate_freq` | `0`: when checking is on, every request sees the newest file | none |
 | `opcache.memory_consumption` | `128` (megabytes) | `SQUIRE_OPCACHE_MEMORY` |
 | `opcache.max_accelerated_files` | `20000` (a Laravel app with its `vendor/` is 10000 to 15000 files) | `SQUIRE_OPCACHE_MAX_FILES` |
 | `opcache.interned_strings_buffer` | `16` | none |
 
-**The dev override.** The parity compose file sets `SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS=1` for the app container, because your source is a bind mount you edit. Set it to `0` in `.env.squire` to see production behavior locally.
-
-**Releases in place.** With `0`, Apache serves the PHP it compiled before a release until it restarts. That is right for an image that carries its code, or a platform that restarts Apache on a release. Where a release changes files in place (a Citadel Quick Update runs `scripts/release.sh` in the running container), either the platform restarts Apache or the container runs with `SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS=1`. The release script reports which it sees, in its "check opcache" step: a warning after a release with Apache running, a note in the first-release hook, never a failure.
+**The release warning stays.** The release script's "check opcache" step never fails, and says what it sees: a note when opcache checks files, and a warning when a release runs in place (Apache up) against an opcache set to `0`, because Apache keeps serving the PHP it compiled before the release until it restarts. In the first-release hook, before Apache starts, `0` is only a note.
 
 Note
 
-On Citadel the platform's own `php.ini` decides, not this file. Whether a Quick Update restarts Apache is the open Quick Update reset test; until it is answered, ask for `validate_timestamps` on, with `revalidate_freq` above 0, rather than off.
+On Citadel the platform's own `php.ini` decides, not this file. Ask for the same as the kit's default: `validate_timestamps` on, `revalidate_freq` 2, because a Quick Update pulls code into the running container.
 
 ## disable_functions: the web loses the shell[#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#disable-functions-the-web-loses-the-shell)
 
@@ -56,7 +61,7 @@ A web request should never shell out. `.squire/php-web.ini` holds the settings o
 
 `proc_open` and `popen` stay: Symfony Mailer's sendmail transport, Laravel's `Process` and PHPMailer use them on the web. A test runs PHP on the same two files and checks both sides: the web list is gone, and the CLI and the mail functions are still there.
 
-**The switch.** `SQUIRE_PHP_DISABLE_FUNCTIONS` replaces the list, and `none` (a name no function has) disables nothing: the way out for an older app that calls `exec` from a page while you move that work to a queued job. An empty value is the same as unset, because PHP falls back to the default for both. Locally, put `SQUIRE_PHP_DISABLE_FUNCTIONS=none` in `.env.squire`.
+**The switch.** `SQUIRE_PHP_DISABLE_FUNCTIONS` replaces the list, and `none` (a name no function has) disables nothing: the way out for an older app that calls `exec` from a page while you move that work to a queued job. Leave it unset for the default list: PHP falls back only when the variable is unset, so an empty value disables nothing as well, and the parity compose files pass it by name only for that reason. Locally, put `SQUIRE_PHP_DISABLE_FUNCTIONS=none` in `.env.squire`.
 
 `disable_classes` is not set. It never stopped a caller who could reach another class, and PHP 8.5 removed it.
 
@@ -128,7 +133,7 @@ A file can promise anything; the running image is what counts. `scripts/contract
 | Item | Checked in the running image |
 | --- | --- |
 | Apache | the `Server` header is exactly `Apache`; no `X-Powered-By`; `TRACE` answers 405 with no version footer |
-| opcache | on for the web, `validate_timestamps` 0, 20000 files; the release warns about the frozen opcache after a release in place |
+| opcache | code pulled in place: the web checks files (`validate_timestamps` 1, `revalidate_freq` 2) and the release notes it; code baked in (the app image rebuilt with `SQUIRE_OPCACHE_VALIDATE=0`): the web never checks; 20000 files either way |
 | disable_functions | the web has no `exec` and the rest, and keeps `proc_open` and `popen`; the CLI disables nothing; a Composer `post-install-cmd` that shells out runs in the release |
 | Secrets | the web sees the mounted secret (compared as an md5, never printed), the release names it, and its value is in no log, no layer and no image config |
 

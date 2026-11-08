@@ -76,11 +76,11 @@ final class ImageHardeningTest extends SquireTestCase
     private function iniValue(string $iniFile, string $setting, array $env = []): string
     {
         $process = proc_open(
-            [PHP_BINARY, '-c', $iniFile, ...$this->opcacheFlag(), '-r', 'echo json_encode(ini_get($argv[1]));', $setting],
+            [...$this->withEnv($env), PHP_BINARY, '-c', $iniFile, ...$this->opcacheFlag(), '-r', 'echo json_encode(ini_get($argv[1]));', $setting],
             [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
             $pipes,
             null,
-            ['PATH' => (string) getenv('PATH'), ...$env],
+            ['PATH' => (string) getenv('PATH')],
         );
         self::assertIsResource($process);
         $out = (string) stream_get_contents($pipes[1]);
@@ -88,6 +88,26 @@ final class ImageHardeningTest extends SquireTestCase
         proc_close($process);
 
         return (string) json_decode($out);
+    }
+
+    /**
+     * The child's variables, set through env(1): proc_open drops a variable whose value is empty, and the empty case
+     * is one these tests must see. @param array<string, string> $env @return list<string>
+     */
+    private function withEnv(array $env): array
+    {
+        if ($env === []) {
+            return [];
+        }
+        if (!is_executable('/usr/bin/env')) {
+            self::markTestSkipped('these checks set variables through /usr/bin/env, which this machine lacks.');
+        }
+        $args = ['/usr/bin/env'];
+        foreach ($env as $name => $value) {
+            $args[] = $name . '=' . $value;
+        }
+
+        return $args;
     }
 
     /** Load opcache in the child when this PHP has it built but not enabled (the official images before 8.5). @return list<string> */
@@ -102,22 +122,60 @@ final class ImageHardeningTest extends SquireTestCase
 
         self::assertContains('opcache.enable = 1', $ini);
         self::assertContains('opcache.enable_cli = 0', $ini);
-        self::assertContains('opcache.validate_timestamps = ${SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS:-0}', $ini, 'off in production, with an override');
-        self::assertContains('opcache.revalidate_freq = 0', $ini);
+        self::assertContains('opcache.validate_timestamps = ${SQUIRE_OPCACHE_VALIDATE:-1}', $ini, 'on unless the image says its code is baked in');
+        self::assertContains('opcache.revalidate_freq = 2', $ini);
         self::assertContains('opcache.memory_consumption = ${SQUIRE_OPCACHE_MEMORY:-128}', $ini);
         self::assertContains('opcache.max_accelerated_files = ${SQUIRE_OPCACHE_MAX_FILES:-20000}', $ini, 'room for Laravel and its vendor/');
         self::assertContains('opcache.interned_strings_buffer = 16', $ini);
     }
 
-    public function testTheValidateTimestampsDefaultIsOffAndTheEnvironmentTurnsItOn(): void
+    private function opcacheIni(): string
     {
         $ini = Squire::templatesDir() . '/common/.squire/php.ini';
         if ($this->iniValue($ini, 'opcache.enable') === '') {
             self::markTestSkipped('this PHP has no opcache, so its settings cannot be read.');
         }
 
-        self::assertSame('0', $this->iniValue($ini, 'opcache.validate_timestamps'));
-        self::assertSame('1', $this->iniValue($ini, 'opcache.validate_timestamps', ['SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS' => '1']));
+        return $ini;
+    }
+
+    public function testCodePulledIntoARunningContainerIsCheckedEveryTwoSeconds(): void
+    {
+        $ini = $this->opcacheIni();
+
+        // Citadel, a bind mount, and any target Squire cannot tell: the variable is unset, or 1 from the app image.
+        self::assertSame('1', $this->iniValue($ini, 'opcache.validate_timestamps'));
+        self::assertSame('1', $this->iniValue($ini, 'opcache.validate_timestamps', ['SQUIRE_OPCACHE_VALIDATE' => '1']));
+        self::assertSame('2', $this->iniValue($ini, 'opcache.revalidate_freq'));
+    }
+
+    public function testAnEmptySwitchIsNotTheDefaultSoTheKitNeverPassesOne(): void
+    {
+        $ini = $this->opcacheIni();
+
+        // PHP's ${NAME:-default} falls back only when NAME is unset: empty reads as off. Hence ARG ...=1 and compose by name.
+        self::assertSame('', $this->iniValue($ini, 'opcache.validate_timestamps', ['SQUIRE_OPCACHE_VALIDATE' => '']));
+    }
+
+    public function testCodeBakedIntoAnImageIsNeverCheckedWhenTheSwitchSaysSo(): void
+    {
+        $ini = $this->opcacheIni();
+
+        self::assertSame('0', $this->iniValue($ini, 'opcache.validate_timestamps', ['SQUIRE_OPCACHE_VALIDATE' => '0']));
+    }
+
+    public function testTheAppImageTakesTheSwitchAsABuildArgumentWithOneAsItsDefault(): void
+    {
+        $dockerfile = $this->read('common/.squire/Dockerfile');
+
+        self::assertStringContainsString("ARG SQUIRE_OPCACHE_VALIDATE=1\n", $dockerfile, 'code pulled in place unless the build says it is baked in');
+        self::assertStringContainsString('ENV SQUIRE_OPCACHE_VALIDATE=$SQUIRE_OPCACHE_VALIDATE', $dockerfile);
+    }
+
+    public function testTheOtherOpcacheSizesReadTheEnvironment(): void
+    {
+        $ini = $this->opcacheIni();
+
         self::assertSame('20000', $this->iniValue($ini, 'opcache.max_accelerated_files'));
         self::assertSame('256', $this->iniValue($ini, 'opcache.memory_consumption', ['SQUIRE_OPCACHE_MEMORY' => '256']));
     }
@@ -127,10 +185,12 @@ final class ImageHardeningTest extends SquireTestCase
         self::assertStringContainsString("php -m | grep -qx 'Zend OPcache' || docker-php-ext-enable opcache", $this->read('common/.squire/base-fallback.Dockerfile'));
     }
 
-    public function testTheParityComposeFilesTurnTheDevOverrideOn(): void
+    public function testTheParityComposeFilesPassTheSwitchByNameOnly(): void
     {
         foreach (['common/docker-compose.squire.yml', 'vue/docker-compose.squire.yml'] as $source) {
-            self::assertStringContainsString('SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS: ${SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS:-1}', $this->read($source), $source . ': a bind mount needs changed files seen');
+            $compose = $this->read($source);
+            self::assertStringContainsString("      SQUIRE_OPCACHE_VALIDATE:\n", $compose, $source . ': unset stays unset, so the image\'s 1 holds for the bind mount');
+            self::assertStringNotContainsString('SQUIRE_OPCACHE_VALIDATE: ${', $compose, $source . ': no interpolation, which would pass an empty value');
         }
     }
 
@@ -146,11 +206,11 @@ final class ImageHardeningTest extends SquireTestCase
     private function underIni(string $iniFile, string $code, array $env = []): string
     {
         $process = proc_open(
-            [PHP_BINARY, '-c', $iniFile, '-r', $code],
+            [...$this->withEnv($env), PHP_BINARY, '-c', $iniFile, '-r', $code],
             [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
             $pipes,
             null,
-            ['PATH' => (string) getenv('PATH'), ...$env],
+            ['PATH' => (string) getenv('PATH')],
         );
         self::assertIsResource($process);
         $out = (string) stream_get_contents($pipes[1]);
@@ -195,13 +255,14 @@ final class ImageHardeningTest extends SquireTestCase
         }
     }
 
-    public function testNoneDisablesNothingAnEmptyValueKeepsTheDefaultAndAListReplacesIt(): void
+    public function testNoneDisablesNothingAnEmptyValueTooAndAListReplacesIt(): void
     {
         $web = $this->webIni();
 
         self::assertStringContainsString('exec=y', $this->underIni($web, self::PROBE, ['SQUIRE_PHP_DISABLE_FUNCTIONS' => 'none']), 'none is the off switch');
-        // The parity compose file passes an empty value when .env.squire sets nothing; PHP must read it as the default.
-        self::assertStringContainsString('exec=n', $this->underIni($web, self::PROBE, ['SQUIRE_PHP_DISABLE_FUNCTIONS' => '']), 'empty means the default');
+        // PHP falls back only when the variable is unset: empty disables nothing. Hence compose passes it by name only.
+        self::assertStringContainsString('exec=y', $this->underIni($web, self::PROBE, ['SQUIRE_PHP_DISABLE_FUNCTIONS' => '']), 'empty is not the default');
+        self::assertStringContainsString('exec=n', $this->underIni($web, self::PROBE), 'unset is');
         $custom = $this->underIni($web, self::PROBE, ['SQUIRE_PHP_DISABLE_FUNCTIONS' => 'popen']);
         self::assertStringContainsString('popen=n', $custom);
         self::assertStringContainsString('exec=y', $custom, 'the variable replaces the list, it does not add to it');
@@ -232,8 +293,10 @@ final class ImageHardeningTest extends SquireTestCase
     {
         self::assertContains('disable_functions = ${SQUIRE_PHP_DISABLE_FUNCTIONS:-' . self::WEB_DISABLED . '}', $this->directives('common/.squire/php-web.ini', ';'));
         foreach (['common/docker-compose.squire.yml', 'vue/docker-compose.squire.yml'] as $source) {
-            // One list, in php-web.ini: compose passes the variable or an empty value, never a second copy.
-            self::assertStringContainsString('SQUIRE_PHP_DISABLE_FUNCTIONS: ${SQUIRE_PHP_DISABLE_FUNCTIONS:-}', $this->read($source), $source);
+            // One list, in php-web.ini: compose passes the variable by name only, never an empty value or a second copy.
+            $compose = $this->read($source);
+            self::assertStringContainsString("      SQUIRE_PHP_DISABLE_FUNCTIONS:\n", $compose, $source);
+            self::assertStringNotContainsString('SQUIRE_PHP_DISABLE_FUNCTIONS: ${', $compose, $source);
         }
     }
 

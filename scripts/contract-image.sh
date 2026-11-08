@@ -19,7 +19,9 @@
 # and then the hardening, inside the running image (scripts/contract-image-checks.php, piped to php in the container):
 #
 #   - Apache: Server is exactly "Apache", no X-Powered-By, TRACE answers 405 without a version footer (SQUIRE-9)
-#   - the web's opcache is on with validate_timestamps 0, and the release warns about it in place (SQUIRE-10)
+#   - opcache by how code arrives (SQUIRE-10): the mounted code is checked every 2 seconds and the release notes it;
+#     a second app image built with SQUIRE_OPCACHE_VALIDATE=0 (code baked in) never checks, and a release in place
+#     there warns that Apache needs a restart
 #   - the web disables exec and the rest, keeps proc_open and popen; the CLI disables nothing, and a Composer script
 #     that shells out runs in the release (SQUIRE-29)
 #   - a secret mounted at /run/secrets reaches the web and the release by name, and its value is in no log, no layer
@@ -47,6 +49,9 @@ BASE_TAG="squire/php-parity-base:8.4"
 APP_TAG="squire/contract-app:$$"
 CID="squire-contract-$$"
 LOGVOL="squire-contract-logs-$$"
+# The baked case of SQUIRE-10: the same app image built with SQUIRE_OPCACHE_VALIDATE=0.
+BAKED_TAG="squire/contract-app-baked:$$"
+BAKED_CID="squire-contract-baked-$$"
 # A throwaway secret, mounted as a file the way Docker, Compose and Kubernetes mount one (SQUIRE-18).
 SECRET_NAME="SQUIRE_CONTRACT_SECRET"
 SECRET_VALUE="contract-secret-$$-$(date +%s)"
@@ -74,11 +79,11 @@ die() {
 
 cleanup() {
     [ -n "$TMPROOT" ] || return 0
-    docker rm -f "$CID" >/dev/null 2>&1 || true
+    docker rm -f "$CID" "$BAKED_CID" >/dev/null 2>&1 || true
     if [ "$KEEP" = "1" ]; then
         printf 'kept: container %s, image %s, volume %s, dir %s\n' "$CID" "$APP_TAG" "$LOGVOL" "$TMPROOT"
     else
-        docker rmi "$APP_TAG" >/dev/null 2>&1 || true
+        docker rmi "$APP_TAG" "$BAKED_TAG" >/dev/null 2>&1 || true
         docker volume rm "$LOGVOL" >/dev/null 2>&1 || true
         rm -rf "$TMPROOT"
     fi
@@ -295,8 +300,8 @@ if docker image inspect "$BASE_TAG" 2>/dev/null | grep -q "$SECRET_VALUE"; then 
 report "$rc" "the secret's value is in no image layer or image config"
 
 rc=0
-grep -q "opcache.validate_timestamps=0: Apache keeps serving" "$TMPROOT/release.log" || rc=1
-report "$rc" "the release warned that a frozen opcache needs an Apache restart after a release in place"
+grep -q "opcache.validate_timestamps=1: the web server sees changed files by itself" "$TMPROOT/release.log" || rc=1
+report "$rc" "code pulled in place: the release noted that opcache checks changed files"
 
 secret_md5="$(docker exec "$CID" php -r 'echo md5_file($argv[1]);' "/run/secrets/$SECRET_NAME")"
 rc=0
@@ -311,6 +316,37 @@ if [ "$rc" != "0" ] && ! grep -q '^FAIL: ' "$TMPROOT/checks.log"; then
     report 1 "contract-image-checks.php ran to the end (exit $rc)"
 fi
 
+# --- SQUIRE-10, the baked case: the app image built with SQUIRE_OPCACHE_VALIDATE=0 --------------------------------
+
+printf 'building the baked-code app image %s for %s\n' "$BAKED_TAG" "$PLATFORM" >&2
+rc=0
+docker buildx build --load --platform "$PLATFORM" \
+    --build-arg "BASE_IMAGE=$BASE_TAG" \
+    --build-arg "SQUIRE_OPCACHE_VALIDATE=0" \
+    -f "$(win_path "$FIXTURE/.squire/Dockerfile")" \
+    -t "$BAKED_TAG" \
+    "$(win_path "$FIXTURE")" >"$TMPROOT/baked-build.log" 2>&1 || rc=$?
+if [ "$rc" != "0" ]; then
+    tail -n 30 "$TMPROOT/baked-build.log" >&2 || true
+fi
+report "$rc" "the app image builds with --build-arg SQUIRE_OPCACHE_VALIDATE=0"
+if [ "$rc" = "0" ]; then
+    # Apache alone (no first-release hook: the fixture already has its vendor/ from the run above).
+    docker run -d --name "$BAKED_CID" --entrypoint apache2-foreground \
+        -v "$(win_path "$FIXTURE")":/citadel/src \
+        -v "$LOGVOL":/citadel/logs \
+        "$BAKED_TAG" >/dev/null
+    # shellcheck disable=SC2016  # the PHP program is single-quoted on purpose
+    baked="$(docker exec "$BAKED_CID" php -r 'for ($i = 0; $i < 60; $i++) { $b = @file_get_contents("http://127.0.0.1:80/squire-contract-probe"); if ($b !== false) { $j = json_decode($b, true); echo $j["validate_timestamps"] ?? "?"; exit(0); } sleep(1); } echo "none";' 2>/dev/null || true)"
+    rc=0
+    [ "$baked" = "0" ] || rc=1
+    report "$rc" "code baked in: the web never checks files (validate_timestamps $baked)"
+
+    rc=0
+    docker exec -u citadel -w /citadel/src "$BAKED_CID" bash ./scripts/release.sh >"$TMPROOT/baked-release.log" 2>&1 || rc=1
+    grep -q "opcache.validate_timestamps=0: Apache keeps serving" "$TMPROOT/baked-release.log" || rc=1
+    report "$rc" "code baked in: a release in place still passes and warns that Apache needs a restart"
+fi
 if [ "$FAILURES" != "0" ]; then
     printf 'contract-image: %s assertion(s) failed\n' "$FAILURES" >&2
     exit 1

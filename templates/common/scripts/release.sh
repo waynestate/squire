@@ -462,16 +462,17 @@ else
 fi
 
 step "check opcache (never fails the release)"
-# Apache keeps the PHP it compiled. With opcache.validate_timestamps=0 (the kit's production php.ini) it never looks at
-# the files again, so a release that changed them in place is not served until Apache restarts. Say so in the log.
+# Apache keeps the PHP it compiled. The kit's php.ini checks files again every 2 seconds (SQUIRE_OPCACHE_VALIDATE=1, the
+# default wherever code is pulled in place); with 0, for an image that bakes its code in, it never looks at them
+# again, so a release that changed files in place is not served until Apache restarts. Say so in the log.
 # shellcheck disable=SC2016  # the PHP program is single-quoted on purpose
 opcache_state="$(php -r 'if (!extension_loaded("Zend OPcache")) { echo "off"; } elseif (ini_get("opcache.validate_timestamps")) { echo "checks"; } else { echo "frozen"; }' 2>/dev/null || true)"
 case "$opcache_state" in
     off) note "opcache is not loaded in this image" ;;
-    checks) note "opcache.validate_timestamps=1: the web server sees changed files by itself" ;;
+    checks) note "opcache.validate_timestamps=1: the web server sees changed files by itself (within opcache.revalidate_freq seconds)" ;;
     frozen)
         if [ "$SQUIRE_SMOKE" = "1" ]; then
-            warn "opcache.validate_timestamps=0: Apache keeps serving the PHP it compiled before this release until it restarts; restart it, or set SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS=1 where releases change files in place"
+            warn "opcache.validate_timestamps=0: Apache keeps serving the PHP it compiled before this release until it restarts; restart it, or set SQUIRE_OPCACHE_VALIDATE=1 where releases change files in place"
         else
             note "opcache.validate_timestamps=0: fine here, Apache starts after this hook and compiles this release"
         fi

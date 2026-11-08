@@ -69,14 +69,14 @@ All optional. On Citadel, add `./.env.squire` as a configuration file (the confi
 
 ## PHP in the image (`.squire/php.ini`)[#](https://squire.apps.wayne.edu/docs/reference/configuration.html#php-in-the-image-squire-php-ini)
 
-PHP reads these from the container's environment when it starts (PHP 8.3 and later). The parity compose file passes `SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS` and `SQUIRE_PHP_DISABLE_FUNCTIONS` from `.env.squire`; on Citadel the platform's own `php.ini` decides. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html).
+PHP reads these from the container's environment when it starts (PHP 8.3 and later). The parity compose file passes `SQUIRE_OPCACHE_VALIDATE` and `SQUIRE_PHP_DISABLE_FUNCTIONS` from `.env.squire`; on Citadel the platform's own `php.ini` decides. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html).
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
-| `SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS` | `0` in the image, `1` in the parity compose file | `1` makes opcache notice changed files (a bind mount, a release in place); `0` never checks until Apache restarts. |
+| `SQUIRE_OPCACHE_VALIDATE` | `1` | How code arrives. `1`: pulled into the running container (Citadel, a bind mount, or unknown), so opcache checks files every 2 seconds. `0`: baked into an image that never changes, so it never checks. Also a build argument of `.squire/Dockerfile` (default `1`); the run-time value wins. Never empty: that turns the checks off. |
 | `SQUIRE_OPCACHE_MEMORY` | `128` | opcache memory, in megabytes. |
 | `SQUIRE_OPCACHE_MAX_FILES` | `20000` | How many scripts opcache keeps. |
-| `SQUIRE_PHP_DISABLE_FUNCTIONS` | `exec,passthru,shell_exec,system,pcntl_exec,phpinfo,show_source,highlight_file` | The web's `disable_functions` list (`.squire/php-web.ini`; the CLI disables nothing). It replaces the list; `none` disables nothing, and an empty value means the default. |
+| `SQUIRE_PHP_DISABLE_FUNCTIONS` | `exec,passthru,shell_exec,system,pcntl_exec,phpinfo,show_source,highlight_file` | The web's `disable_functions` list (`.squire/php-web.ini`; the CLI disables nothing). It replaces the list; `none` disables nothing. Leave it unset for the default: an empty value disables nothing too. |
 
 ## Local parity (`.env.squire`)[#](https://squire.apps.wayne.edu/docs/reference/configuration.html#local-parity-env-squire)
 

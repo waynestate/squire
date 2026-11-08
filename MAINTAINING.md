@@ -62,7 +62,9 @@ host, `php health.php` inside the container, and the first-release deployment lo
 checks the hardening in the running image (SQUIRE-40): `scripts/contract-image-checks.php` is piped to `php` in the
 container and asks Apache for the fixture's probe page (`scripts/contract-image-probe.php`, copied in as `app.php`).
 It checks that the `Server` header is exactly `Apache`, there is no `X-Powered-By`, `TRACE` answers 405 with no
-version footer, the web's opcache is on with `validate_timestamps` 0, the web has no `exec` but keeps `proc_open`
+version footer, the web's opcache is on and checks files (`validate_timestamps` 1, `revalidate_freq` 2) for the
+mounted code, a second app image built with `SQUIRE_OPCACHE_VALIDATE=0` never checks them (the baked case), the
+web has no `exec` but keeps `proc_open`
 and `popen`, the CLI disables nothing, and a Composer `post-install-cmd` that shells out ran in the release. A
 throwaway secret is mounted at `/run/secrets/SQUIRE_CONTRACT_SECRET`: the web must see it (compared as an md5), the
 release must name it, and its value must be in no log, no `docker history` line and no image config. The exit

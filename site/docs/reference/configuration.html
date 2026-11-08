@@ -246,7 +246,7 @@
 </tbody>
 </table></div>
 <h2 id="php-in-the-image-squire-php-ini">PHP in the image (<code>.squire/php.ini</code>)<a class="docs-heading-link" aria-label="Link to this section" href="#php-in-the-image-squire-php-ini">#</a></h2>
-<p>PHP reads these from the container's environment when it starts (PHP 8.3 and later). The parity compose file passes <code>SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS</code> and <code>SQUIRE_PHP_DISABLE_FUNCTIONS</code> from <code>.env.squire</code>; on Citadel the platform's own <code>php.ini</code> decides. See <a href="../guides/image-hardening.html">Image hardening</a>.</p>
+<p>PHP reads these from the container's environment when it starts (PHP 8.3 and later). The parity compose file passes <code>SQUIRE_OPCACHE_VALIDATE</code> and <code>SQUIRE_PHP_DISABLE_FUNCTIONS</code> from <code>.env.squire</code>; on Citadel the platform's own <code>php.ini</code> decides. See <a href="../guides/image-hardening.html">Image hardening</a>.</p>
 <div class="docs-table" role="region" aria-label="Table" tabindex="0"><table>
 <thead>
 <tr>
@@ -257,9 +257,9 @@
 </thead>
 <tbody>
 <tr>
-<td><code>SQUIRE_OPCACHE_VALIDATE_TIMESTAMPS</code></td>
-<td><code>0</code> in the image, <code>1</code> in the parity compose file</td>
-<td><code>1</code> makes opcache notice changed files (a bind mount, a release in place); <code>0</code> never checks until Apache restarts.</td>
+<td><code>SQUIRE_OPCACHE_VALIDATE</code></td>
+<td><code>1</code></td>
+<td>How code arrives. <code>1</code>: pulled into the running container (Citadel, a bind mount, or unknown), so opcache checks files every 2 seconds. <code>0</code>: baked into an image that never changes, so it never checks. Also a build argument of <code>.squire/Dockerfile</code> (default <code>1</code>); the run-time value wins. Never empty: that turns the checks off.</td>
 </tr>
 <tr>
 <td><code>SQUIRE_OPCACHE_MEMORY</code></td>
@@ -274,7 +274,7 @@
 <tr>
 <td><code>SQUIRE_PHP_DISABLE_FUNCTIONS</code></td>
 <td><code>exec,passthru,shell_exec,system,pcntl_exec,phpinfo,show_source,highlight_file</code></td>
-<td>The web's <code>disable_functions</code> list (<code>.squire/php-web.ini</code>; the CLI disables nothing). It replaces the list; <code>none</code> disables nothing, and an empty value means the default.</td>
+<td>The web's <code>disable_functions</code> list (<code>.squire/php-web.ini</code>; the CLI disables nothing). It replaces the list; <code>none</code> disables nothing. Leave it unset for the default: an empty value disables nothing too.</td>
 </tr>
 </tbody>
 </table></div>
