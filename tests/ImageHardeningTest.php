@@ -403,4 +403,16 @@ final class ImageHardeningTest extends SquireTestCase
             self::assertStringNotContainsString('PHP_LINE=', $text, $script . ' no longer builds from a moving tag');
         }
     }
+
+    // --- PHP 8.4: the session ID length stays at PHP's defaults ------------------------------------------------------
+
+    public function testPhpIniLeavesTheSessionIdLengthAtPhpsDefaults(): void
+    {
+        $ini = $this->directives('common/.squire/php.ini', ';');
+
+        foreach ($ini as $line) {
+            self::assertStringStartsNotWith('session.sid_length', $line, 'deprecated in PHP 8.4; PHP\'s default is 32 hex characters');
+            self::assertStringStartsNotWith('session.sid_bits_per_character', $line, 'deprecated in PHP 8.4; 128 bits is the default');
+        }
+    }
 }

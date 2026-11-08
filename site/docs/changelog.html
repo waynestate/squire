@@ -43,8 +43,14 @@
 <p>All notable changes to Squire are recorded here. The format follows Keep a Changelog; the project follows Semantic
 Versioning once 1.0 is out.</p>
 <h2 id="unreleased">Unreleased<a class="docs-heading-link" aria-label="Link to this section" href="#unreleased">#</a></h2>
+<h3 id="fixed">Fixed<a class="docs-heading-link" aria-label="Link to this section" href="#fixed">#</a></h3>
 <ul>
-<li>Changed: the local a11y scripts run Preflight's own checker (vendored from 0.3.1 and pinned by a test), so they check what CI checks: axe-core 4.14.0, 320 and 1280 px, and the reflow check.</li>
+<li>
+<p>Fixed: the kit's php.ini no longer sets session.sid_length or session.sid_bits_per_character, so PHP 8.4 and later raise no deprecation notices and session IDs use PHP's default (32 hex characters, 128 bits), as HELMET and SESAME S45 say. Run squire update to take it.</p>
+</li>
+<li>
+<p>Changed: the local a11y scripts run Preflight's own checker (vendored from 0.3.1 and pinned by a test), so they check what CI checks: axe-core 4.14.0, 320 and 1280 px, and the reflow check.</p>
+</li>
 </ul>
 <h2 id="0-7-0-2026-11-08">0.7.0 (2026-11-08)<a class="docs-heading-link" aria-label="Link to this section" href="#0-7-0-2026-11-08">#</a></h2>
 <ul>
@@ -314,7 +320,7 @@ Versioning once 1.0 is out.</p>
 </li>
 </ul>
 <h2 id="0-2-1-2026-10-29">0.2.1 (2026-10-29)<a class="docs-heading-link" aria-label="Link to this section" href="#0-2-1-2026-10-29">#</a></h2>
-<h3 id="fixed">Fixed<a class="docs-heading-link" aria-label="Link to this section" href="#fixed">#</a></h3>
+<h3 id="fixed-1">Fixed<a class="docs-heading-link" aria-label="Link to this section" href="#fixed-1">#</a></h3>
 <ul>
 <li>Fixed: SQUIRE reported 0.1.0 after the 0.2.0 release.</li>
 </ul>
@@ -361,7 +367,7 @@ base image, <code>scripts/parity.sh</code> and <code>scripts/parity.ps1</code>.<
     </main>
     <nav class="docs-pager" aria-label="Pages"><a class="docs-pager__link" href="../docs/0.1-plan.html"><span class="docs-pager__dir">Previous</span><span class="docs-pager__title">Squire 0.1 plan</span></a></nav>
   </div>
-  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item"><a href="#unreleased">Unreleased</a></li><li class="docs-toc__item"><a href="#0-7-0-2026-11-08">0.7.0 (2026-11-08)</a></li><li class="docs-toc__item"><a href="#0-6-0-2026-11-07">0.6.0 (2026-11-07)</a></li><li class="docs-toc__item"><a href="#0-5-0-2026-11-03">0.5.0 (2026-11-03)</a></li><li class="docs-toc__item"><a href="#0-4-0-2026-11-01">0.4.0 (2026-11-01)</a></li><li class="docs-toc__item"><a href="#0-3-4-2026-10-29">0.3.4 (2026-10-29)</a></li><li class="docs-toc__item"><a href="#0-3-3-2026-10-29">0.3.3 (2026-10-29)</a></li><li class="docs-toc__item"><a href="#0-3-2-2026-10-29">0.3.2 (2026-10-29)</a></li><li class="docs-toc__item"><a href="#0-3-1-2026-10-29">0.3.1 (2026-10-29)</a></li><li class="docs-toc__item"><a href="#0-3-0-2026-10-29">0.3.0 (2026-10-29)</a></li><li class="docs-toc__item"><a href="#0-2-2-2026-10-29">0.2.2 (2026-10-29)</a></li><li class="docs-toc__item"><a href="#0-2-1-2026-10-29">0.2.1 (2026-10-29)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#fixed">Fixed</a></li><li class="docs-toc__item"><a href="#0-2-0-2026-10-29">0.2.0 (2026-10-29)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#added">Added</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#changed">Changed</a></li><li class="docs-toc__item"><a href="#0-1-0-2026-10-29">0.1.0 (2026-10-29)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#added-1">Added</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#changed-1">Changed</a></li></ul></nav>
+  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item"><a href="#unreleased">Unreleased</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#fixed">Fixed</a></li><li class="docs-toc__item"><a href="#0-7-0-2026-11-08">0.7.0 (2026-11-08)</a></li><li class="docs-toc__item"><a href="#0-6-0-2026-11-07">0.6.0 (2026-11-07)</a></li><li class="docs-toc__item"><a href="#0-5-0-2026-11-03">0.5.0 (2026-11-03)</a></li><li class="docs-toc__item"><a href="#0-4-0-2026-11-01">0.4.0 (2026-11-01)</a></li><li class="docs-toc__item"><a href="#0-3-4-2026-10-29">0.3.4 (2026-10-29)</a></li><li class="docs-toc__item"><a href="#0-3-3-2026-10-29">0.3.3 (2026-10-29)</a></li><li class="docs-toc__item"><a href="#0-3-2-2026-10-29">0.3.2 (2026-10-29)</a></li><li class="docs-toc__item"><a href="#0-3-1-2026-10-29">0.3.1 (2026-10-29)</a></li><li class="docs-toc__item"><a href="#0-3-0-2026-10-29">0.3.0 (2026-10-29)</a></li><li class="docs-toc__item"><a href="#0-2-2-2026-10-29">0.2.2 (2026-10-29)</a></li><li class="docs-toc__item"><a href="#0-2-1-2026-10-29">0.2.1 (2026-10-29)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#fixed-1">Fixed</a></li><li class="docs-toc__item"><a href="#0-2-0-2026-10-29">0.2.0 (2026-10-29)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#added">Added</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#changed">Changed</a></li><li class="docs-toc__item"><a href="#0-1-0-2026-10-29">0.1.0 (2026-10-29)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#added-1">Added</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#changed-1">Changed</a></li></ul></nav>
 </div>
 <footer class="docs-footer">
   <span>Documents Squire <span data-docs-version>0.7.0</span></span>

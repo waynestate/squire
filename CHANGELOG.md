@@ -5,6 +5,7 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+- Fixed: the kit's php.ini no longer sets session.sid_length or session.sid_bits_per_character, so PHP 8.4 and later raise no deprecation notices and session IDs use PHP's default (32 hex characters, 128 bits), as HELMET and SESAME S45 say. Run squire update to take it.
 - Changed: the local a11y scripts run Preflight's own checker (vendored from 0.3.1 and pinned by a test), so they check what CI checks: axe-core 4.14.0, 320 and 1280 px, and the reflow check.
 
 ## 0.7.0 (2026-11-08)
