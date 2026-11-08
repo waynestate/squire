@@ -12,8 +12,6 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ## Unreleased[#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
-### Fixed[#](https://squire.apps.wayne.edu/docs/changelog.html#fixed)
-
 - Fixed: the kit's php.ini no longer sets session.sid_length or session.sid_bits_per_character, so PHP 8.4 and later raise no deprecation notices and session IDs use PHP's default (32 hex characters, 128 bits), as HELMET and SESAME S45 say. Run squire update to take it.
 - Changed: the local a11y scripts run Preflight's own checker (vendored from 0.3.1 and pinned by a test), so they check what CI checks: axe-core 4.14.0, 320 and 1280 px, and the reflow check.
 
@@ -178,7 +176,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ## 0.2.1 (2026-10-29)[#](https://squire.apps.wayne.edu/docs/changelog.html#0-2-1-2026-10-29)
 
-### Fixed[#](https://squire.apps.wayne.edu/docs/changelog.html#fixed-1)
+### Fixed[#](https://squire.apps.wayne.edu/docs/changelog.html#fixed)
 
 - Fixed: SQUIRE reported 0.1.0 after the 0.2.0 release.
 
