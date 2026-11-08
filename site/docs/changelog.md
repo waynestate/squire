@@ -12,6 +12,8 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ## Unreleased[#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+- Added: release.sh keeps Composer's and npm's download caches in .cache/squire inside the app folder (SQUIRE_CACHE_DIR, off to disable), so a Citadel Update no longer downloads every package again, and npm ci prefers the cache.
+
 ## 0.7.1 (2026-11-08)[#](https://squire.apps.wayne.edu/docs/changelog.html#0-7-1-2026-11-08)
 
 - Fixed: Squire's own deploy/.squire.json records the release.sh it ships (it kept the 0.6.0 hash after the W22 restart step), so squire update no longer refuses it; a test now checks every recorded hash.

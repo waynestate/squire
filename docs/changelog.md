@@ -12,6 +12,8 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+- Added: release.sh keeps Composer's and npm's download caches in .cache/squire inside the app folder (SQUIRE_CACHE_DIR, off to disable), so a Citadel Update no longer downloads every package again, and npm ci prefers the cache.
+
 ## 0.7.1 (2026-11-08)
 
 - Fixed: Squire's own deploy/.squire.json records the release.sh it ships (it kept the 0.6.0 hash after the W22 restart step), so squire update no longer refuses it; a test now checks every recorded hash.
