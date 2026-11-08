@@ -5,6 +5,7 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+- Docs: the build.sh template and MAINTAINING.md say what a Citadel test showed (SQUIRE-16): an edited build.sh rebuilds its image step on a full Update, and a Quick Update never runs it; the revision marker stays.
 - Docs: a queue workers guide (the scheduler-driven short worker that works today, the timeout rule, and the supervised-worker request for Citadel).
 - Changed: the GitHub a11y job is blocking now that it has been seen green on GitHub (SQUIRE-35).
 - Fixed: the front page accessibility gate installs again on GitHub: `tools/a11y/package-lock.json` now matches the `@axe-core/playwright` 4.14.0 pin (the dependency update had changed only `package.json`).

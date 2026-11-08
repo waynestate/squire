@@ -154,8 +154,9 @@ amd64 image cannot be built there today. See OPEN_QUESTIONS.md, "Oracle images: 
 - Templates follow Citadel's real behavior: `build.sh` runs at image build time as root with only that one file
   present; `deployments/` scripts run once per file name at container start; the Quick Update post-script runs after
   `git pull`. Everything that runs twice must be safe to run twice.
-- Citadel can reuse a cached build layer after `build.sh` changes. Bump the `SQUIRE_BUILD_REVISION` marker so the log
-  shows which version ran.
+- A changed `build.sh` rebuilds its image step on a full Update (tested on Citadel pre-production, 2026-11-07); a
+  Quick Update never runs it. Bump the `SQUIRE_BUILD_REVISION` marker with each change so the build log shows which
+  version ran.
 - Shell scripts need their executable bit in git, also when committed from Windows:
   `git update-index --chmod=+x <file>`.
 - **After any template change, refresh Sourdough's copy** and check it:
