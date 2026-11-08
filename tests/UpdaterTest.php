@@ -102,6 +102,35 @@ final class UpdaterTest extends SquireTestCase
         self::assertSame($manifestBefore, (string) file_get_contents($app . '/' . Squire::MANIFEST), 'nothing written, no manifest churn');
     }
 
+    public function testAnUpdateWithNoFileChangesRecordsTheCurrentRelease(): void
+    {
+        [$app, $updater] = $this->movableApp();
+        $manifest = Manifest::load($app);
+        self::assertNotNull($manifest);
+        (new Manifest('0.0.1', $manifest->target, $manifest->groups, $manifest->files, $manifest->layer))->save($app);
+
+        $results = $updater->run($app, 'raw', ['release', 'parity'], false);
+
+        self::assertSame([FileResult::CURRENT], array_values(array_unique(array_map(static fn(FileResult $r): string => $r->state, $results))), 'a version-only save adds no per-file result');
+        $manifest = Manifest::load($app);
+        self::assertNotNull($manifest);
+        self::assertSame(Squire::version(), $manifest->version, 'the record names the release the update checked against');
+    }
+
+    public function testADryRunDoesNotRecordTheRelease(): void
+    {
+        [$app, $updater] = $this->movableApp();
+        $manifest = Manifest::load($app);
+        self::assertNotNull($manifest);
+        (new Manifest('0.0.1', $manifest->target, $manifest->groups, $manifest->files, $manifest->layer))->save($app);
+
+        $updater->run($app, 'raw', ['release', 'parity'], true);
+
+        $manifest = Manifest::load($app);
+        self::assertNotNull($manifest);
+        self::assertSame('0.0.1', $manifest->version, 'a dry run writes nothing, manifest included');
+    }
+
     public function testAnEditedFileWithAnUnchangedTemplateIsCurrent(): void
     {
         [$app, $updater] = $this->movableApp();
