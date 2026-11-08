@@ -1041,6 +1041,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ### Unreleased[#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+- Docs: the queue-workers guide names the QUEUE_WORKER_MODE switch (scheduler or none) that Sourdough's Laravel shapes ship, with --tries=3 and the test that covers both modes.
 - Fixed: the kit's php.ini no longer sets session.sid_length or session.sid_bits_per_character, so PHP 8.4 and later raise no deprecation notices and session IDs use PHP's default (32 hex characters, 128 bits), as HELMET and SESAME S45 say. Run squire update to take it.
 - Changed: the local a11y scripts run Preflight's own checker (vendored from 0.3.1 and pinned by a test), so they check what CI checks: axe-core 4.14.0, 320 and 1280 px, and the reflow check.
 
@@ -1911,6 +1912,8 @@ Each piece is documented:
 - `withoutOverlapping(10)` skips the tick while the previous run is still going. The lock lives in the cache and expires after 24 hours by default; the explicit 10-minute expiry bounds a lock that a crashed run leaves behind ([scheduling](https://laravel.com/docs/13.x/scheduling#preventing-task-overlaps)).
 
 Because every run boots fresh and exits, there is no stale code and no memory growth between runs. The trade is latency: a job waits for the next minute tick, and a busy queue drains one burst per minute.
+
+Apps that Sourdough generates in its Laravel shapes ship this already, behind one switch. `config/worker.php` reads `QUEUE_WORKER_MODE`: `scheduler` (the `.env.example` default) schedules the short worker above, and `none` schedules nothing, for an app whose worker a supervisor or a separate container runs. Their task adds `--tries=3`, so a failing job stops after three attempts instead of retrying on every tick ([queues](https://laravel.com/docs/13.x/queues#dealing-with-failed-jobs)), and `tests/Feature/QueueWorkerScheduleTest.php` checks both modes. An app built by hand can copy the same three pieces.
 
 Warning
 
