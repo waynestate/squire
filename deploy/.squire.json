@@ -26,6 +26,6 @@
         "public/up.php": "84d1b3d8823fcd5519fbe92988f822ce68cdc05eff2c889814deb3f33982600a",
         "scripts/parity.ps1": "da69deebe08280a5054a4b3724ceaeb61aa22b73febb9bcc2cdc913177414736",
         "scripts/parity.sh": "f0fb6a963277bde29b77e8b7869a1775acd517ea8d4f2774567469bf77235eae",
-        "scripts/release.sh": "a0406f9a94d36a78acd909a05eacb00924a5c9aa064f29c7e77498a88810829b"
+        "scripts/release.sh": "8f6596487c2136dac7fbf79b1a05b45fc471098b78caa25a0773e29f2f4691e4"
     }
 }
