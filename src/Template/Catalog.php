@@ -62,6 +62,13 @@ final class Catalog
             new Template('.squire/php.ini', $parity),
             new Template('.squire/php-web.ini', $parity),
             new Template('.squire/vhost.conf', $parity),
+            // The portable image (ADR-0010): the same base, baked code, one image for web, worker, scheduler and
+            // migrate, a non-root user in group 0 on 8080. Citadel never reads these files.
+            new Template('.squire/portable.Dockerfile', $parity),
+            new Template('.squire/portable.Dockerfile.dockerignore', $parity),
+            new Template('.squire/portable/squire-entrypoint.sh', $parity, true),
+            new Template('.squire/portable/ports.conf', $parity),
+            new Template('.squire/portable/vhost.conf', $parity),
             new Template('scripts/parity.sh', $parity, true),
             new Template('scripts/parity.ps1', $parity),
             new Template('.env.squire.example', $parity, false, 'raw'),

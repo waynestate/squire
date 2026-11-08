@@ -139,6 +139,24 @@ final class HealthPhpTest extends SquireTestCase
         self::assertStringContainsString('healthy: /up answered', $laravel['stdout']);
     }
 
+    public function testAKitInASubfolderChecksTheAppNamedBySquireAppDir(): void
+    {
+        // WELD's shape: the Laravel app at the root, the kit (and so health.php) in deploy/.
+        $app = $this->tempDir();
+        $this->put($app, 'artisan', "<?php\n");
+        $this->put($app, 'vendor/autoload.php', "<?php\n");
+        mkdir($app . '/deploy');
+        copy(Squire::templatesDir() . '/common/health.php', $app . '/deploy/health.php');
+        $port = $this->serve($this->tempDir(), 200);
+
+        $kitOnly = $this->health($app . '/deploy', ['SQUIRE_HEALTH_PORT' => (string) $port]);
+        self::assertSame(1, $kitOnly['exit'], 'on its own it checks its own folder, which has no vendor/');
+
+        $portable = $this->health($app . '/deploy', ['SQUIRE_HEALTH_PORT' => (string) $port, 'SQUIRE_APP_DIR' => $app]);
+        self::assertSame(0, $portable['exit'], $portable['stdout']);
+        self::assertStringContainsString('healthy: /up answered HTTP 200', $portable['stdout'], 'the app root has artisan, so it asks Laravel\'s /up');
+    }
+
     public function testAMalformedPathIsRejectedBeforeAnythingIsSent(): void
     {
         $result = $this->health($this->appWithHealth(), ['SQUIRE_HEALTH_PATH' => "/up\r\nX-Evil: 1"]);

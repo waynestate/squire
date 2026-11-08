@@ -350,6 +350,7 @@ final class ImageHardeningTest extends SquireTestCase
         foreach ([
             'templates/common/.squire/base-fallback.Dockerfile',
             'templates/common/.squire/Dockerfile',
+            'templates/common/.squire/portable.Dockerfile',
             'templates/common/docker-compose.squire.yml',
             'templates/vue/docker-compose.squire.yml',
             'images/oracle/parity.Dockerfile',
