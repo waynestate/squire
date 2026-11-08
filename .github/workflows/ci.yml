@@ -61,8 +61,7 @@ jobs:
       fail-fast: false
       matrix:
         platform: [linux/amd64, linux/arm64]
-    # emulated builds are slow and the arm64 leg is allowed to fail until it has been seen green once
-    continue-on-error: ${{ matrix.platform == 'linux/arm64' }}
+    # emulated builds are slow; the arm64 leg blocks the run now that it passed on 2026-11-08
     steps:
       - uses: actions/checkout@v4
       # pin by SHA at the first release, the same way the preflight line above does
@@ -144,11 +143,10 @@ jobs:
   contract-parity-pwsh:
     # The PowerShell twin of the shell leg: proves parity.ps1 up -Fallback brings the same stack up and the proxy
     # answers 200 on /up.php. Same limit as the shell leg: it runs on the fallback image, an approximation, not the
-    # real Citadel image. This is pwsh 7 on Linux, not Windows PowerShell 5.1 (see OPEN_QUESTIONS), and the leg is
-    # allowed to fail until it has been seen green once, like the arm64 image leg.
+    # real Citadel image. This is pwsh 7 on Linux, not Windows PowerShell 5.1 (see OPEN_QUESTIONS). The leg blocks
+    # the run now that it passed on 2026-11-08.
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       # pin by SHA at the first release, the same way the preflight line above does
