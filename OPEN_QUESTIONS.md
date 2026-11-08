@@ -38,8 +38,12 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
     or more. The scripts print a warning; nothing else is done. No emulated build time has been measured yet; the plan is
     to time one `parity.sh up --fallback` build and one real-image build on an Apple Silicon machine and record both dates
     and numbers here.
-13. **No Node version check.** `release.sh` uses whatever `node` and `npm` the image has. Citadel's images ship a Node LTS
-    from NodeSource; the version is not asserted.
+13. **No Node version check.** `release.sh` uses whatever `node` and `npm` the image has. Answered 2026-11-08 from the
+    Citadel image build files (`citadel-php8.3r3`, `8.4r5` and `8.5r3`): every current image installs **Node 22** from
+    NodeSource's `setup_22.x` repo, with the npm that Node 22 bundles and pnpm and yarn through `corepack enable`. The
+    major is fixed per image; the minor is whatever NodeSource served when the image was built. Node 22 is a
+    maintenance LTS (security fixes until April 2027), so PROCTOR's `node-eol` check warns on it before then. Default:
+    still no assertion in `release.sh`; an app that needs a newer Node asks Citadel for a newer image.
 14. **Audit default.** `SQUIRE_COMPOSER_AUDIT=report`. A finding does not fail a release by default, because a Quick Update
     cannot roll back and an advisory published today should not take down a site that deployed fine yesterday. `fail` is
     available.
