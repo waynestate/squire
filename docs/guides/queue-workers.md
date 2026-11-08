@@ -52,6 +52,10 @@ For the short worker above, the restart is mostly belt-and-braces: a run started
 
 Squire's `scripts/release.sh` does this for you in its Laravel block, after `laravel migrate` and `laravel optimize` and before the Oracle check and the smoke test: the code is checked out and optimized, the smoke test has not run yet, and a worker restarted here comes up on the new code before the release declares success. The step runs `php artisan reload` where Laravel has it, and otherwise `queue:restart` and `schedule:interrupt`, each only when that command exists. It is report only (a failed restart is a warning), and `SQUIRE_ARTISAN_RESTART=0` turns it off. See [The release script](release-script.md) for the step order.
 
+## Off Citadel: a worker process type
+
+On a platform that runs more than one process per app (OpenShift, Coolify, raw Docker), the worker is its own container from the same image: [The portable image](portable-image.md) runs as `worker` (`php artisan queue:work --tries=3 --max-time=3600 --sleep=3`, the command the request below asks Citadel for) and as `scheduler` (`php artisan schedule:work`), picked by `SQUIRE_ROLE`. The scheduler there sets `QUEUE_WORKER_MODE=none`, so the short worker above is not scheduled beside the real one. A deploy replaces the containers, so no restart signal is needed, and the timeout rule above holds on both paths.
+
 ## Not yet tested on Citadel
 
 The short worker is the stack's plan, not a measured fact: the combination of `--stop-when-empty`, `--max-time` and `withoutOverlapping` puts three documented features together, and it has not been run on Citadel yet. How fast a queue actually drains, how the cron entry behaves on the platform, and what the logs look like are all unmeasured, and the Citadel test is tracked separately; this page will say what it found when it lands.

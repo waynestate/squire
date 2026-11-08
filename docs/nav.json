@@ -42,6 +42,10 @@
                     "path": "guides/local-parity"
                 },
                 {
+                    "title": "The portable image",
+                    "path": "guides/portable-image"
+                },
+                {
                     "title": "Image hardening",
                     "path": "guides/image-hardening"
                 },

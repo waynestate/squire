@@ -44,6 +44,8 @@ Commands: `up`, `down`, `reset` (also removes volumes), `logs [service]`, `shell
 
 It starts the app container from the Citadel image (built by Citadel's `build_images` command, or pulled from wherever you keep it) with your source mounted at `/citadel/src`, runs your `deployments/` as the `citadel` user the way Citadel does, and puts an HA-Proxy in front that adds the same forwarding headers. MySQL 5.6.51 is reachable from the app as host `mysql` and from your machine on `127.0.0.1:3307`. Containers drop capabilities, set `no-new-privileges`, and carry memory and process limits. The database port is bound to loopback only. The Vue layer's compose file adds a Node 22 service, pinned to the same major as the Citadel image, for frontend tooling.
 
+The compose file's `portable` profile starts nothing on a plain `up`. Named, it runs [the portable image](https://squire.apps.wayne.edu/docs/guides/portable-image.html) instead: the code baked in, one image as `migrate`, `web`, `worker` and `scheduler`, as a non-root user in group 0 on 8080, the way a platform other than Citadel runs it.
+
 ## No access to the real image?[#](https://squire.apps.wayne.edu/docs/guides/local-parity.html#no-access-to-the-real-image)
 
 `--fallback` builds an approximation from the official `php` image plus Citadel's extensions. It is good for trying Squire out and not for proving parity. If the build step fails with a permission error writing `vendor/`, the source folder is not writable by the container's `citadel` user (uid 1000 by default); on Linux set `SQUIRE_SOURCE_UID` and `SQUIRE_SOURCE_GID` to yours.

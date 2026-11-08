@@ -182,9 +182,10 @@ The canonical copy of this table is in WELD's docs: [Which command when](https:/
 | `.npmrc` | Vue layer only: sets `min-release-age=1` for the frontend install. |
 | Vue `docker-compose.squire.yml` | Vue layer only: the common parity compose plus a Node 22 service for frontend tooling. |
 | `docker-compose.squire.yml`, `.squire/`, `.env.squire.example`, `scripts/parity.sh`, `scripts/parity.ps1` | Local parity. |
+| `.squire/portable.Dockerfile`, `.squire/portable/` | The portable image for platforms other than Citadel: one image as web, worker, scheduler or migrate, non-root in group 0 on 8080. Citadel never reads it. |
 
 <div align="center">
-  <img src="docs/readme/packing-list.svg" width="100%" alt="A leather strap hangs a luggage tag for each file Squire packs: build.sh, deployments/001-first-release.sh, scripts/release.sh, health.php and the parity kit of 12 files. Each tag is stamped Packed, then the satchel's own tag reads From my-app, Holds 15 files.">
+  <img src="docs/readme/packing-list.svg" width="100%" alt="A leather strap hangs a luggage tag for each file Squire packs: build.sh, deployments/001-first-release.sh, scripts/release.sh, health.php and the parity kit of 19 files. Each tag is stamped Packed, then the satchel's own tag reads From my-app, Holds 23 files.">
   <br><sub>The packing list for deploy day: each tag lands on the strap and gets its stamp.</sub>
 </div>
 
@@ -628,6 +629,18 @@ What the kit's images harden, and the switch for each, is on the docs page
   tree at deploy time; with Docker, Compose or OpenShift they are files mounted at `/run/secrets`, which the release
   script and the fallback entrypoint turn into variables (`SQUIRE_SECRETS_DIR`). Tests keep secrets out of the
   Dockerfiles, the build context and `build.sh`.
+
+### The portable image
+
+Citadel builds its own image, and `.squire/Dockerfile` stays a mirror of it. For OpenShift, Coolify or raw Docker
+(ADR-0010's portable path), `.squire/portable.Dockerfile` bakes the code in and runs as any of four roles, picked by the
+first argument or `SQUIRE_ROLE`: `web` (Apache on 8080), `worker` (`php artisan queue:work --tries=3 --max-time=3600
+--sleep=3`), `scheduler` (`php artisan schedule:work`) and `migrate` (once per release). It runs as `USER 10001:0`, and
+every folder it writes belongs to group 0 and is group-writable, so OpenShift's arbitrary UID runs it as it is
+(`docker run --user 1000123:0` shows the same). It stops gracefully on `SIGTERM`, logs to stdout and stderr, and caches
+Laravel's config when a container starts, never at build. The compose file's `portable` profile runs the four roles from
+one image; a plain `up` still starts only the parity stack. Full page:
+[The portable image](https://squire.apps.wayne.edu/docs/guides/portable-image.html).
 
 ## Oracle-ready images (local)
 

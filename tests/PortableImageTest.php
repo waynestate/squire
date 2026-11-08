@@ -197,7 +197,7 @@ final class PortableImageTest extends SquireTestCase
         }
         self::assertStringContainsString('ARG SQUIRE_OPCACHE_VALIDATE=0', $portable, 'baked code: opcache never checks files (SQUIRE-10)');
         self::assertStringContainsString('FROM ${BASE_IMAGE}', $portable, 'the same base as the Citadel mirror');
-        self::assertDoesNotMatchRegularExpression('/^# *syntax=/m', $portable,'a frontend image would be one more unpinned pull (SQUIRE-30)');
+        self::assertDoesNotMatchRegularExpression('/^# *syntax=/m', $portable, 'a frontend image would be one more unpinned pull (SQUIRE-30)');
     }
 
     public function testTheImageBuildRunsTheReleaseWithoutItsRunTimeSteps(): void

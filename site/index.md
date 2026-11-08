@@ -42,11 +42,11 @@ vendor/bin/squire init
 2. `deployments/001-first-release.sh` Runs once per app and calls the release with the smoke test off; Apache is not up yet.
 3. `scripts/release.sh` The idempotent release: install from the lock file, audit, ask PROCTOR's gate for a go or no-go, build, migrate, smoke-test `/up`. Also your Quick Update post-script.
 4. `health.php` Citadel's health check: one request to `/up`, never boots the framework.
-5. `The parity kit 12 files` `docker-compose.squire.yml`, `.squire/`, `.env.squire.example`, `scripts/parity.sh` and `scripts/parity.ps1`: Citadel, on your machine.
+5. `The parity kit 19 files` `docker-compose.squire.yml`, `.squire/`, `.env.squire.example`, `scripts/parity.sh` and `scripts/parity.ps1`: Citadel on your machine, and the portable image for everywhere else.
 
 ![Squire's satchel](https://squire.apps.wayne.edu/brand/squire-avatar-512.png)
 
-**To** the Citadel **From** my-app **Holds** 16 files
+**To** the Citadel **From** my-app **Holds** 23 files
 
 5 of 5 packed, buckled for deploy day
 

@@ -26,6 +26,9 @@ What `squire init` writes into your app, which target or layer each file belongs
 | `docker-compose.squire.yml` | The common parity compose plus a Node 22 service for frontend tooling. | Vue layer only |
 | `docker-compose.squire.yml`, `.squire/`, `.env.squire.example`, `scripts/parity.sh`, `scripts/parity.ps1` | Local parity. | Local parity kit |
 | `.squire/apache-hardening.conf` | `ServerTokens Prod`, `ServerSignature Off` and `TraceEnable Off`, enabled by the fallback base. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html). | Local parity kit |
+| `.squire/portable.Dockerfile`, `.squire/portable.Dockerfile.dockerignore` | The portable image for platforms other than Citadel: the code baked in, `USER 10001:0`, group-0 writable folders, port 8080, `STOPSIGNAL SIGTERM`. Its ignore file keeps `.env`, secrets, `.git`, `vendor/` and `node_modules/` out of the build. See [The portable image](https://squire.apps.wayne.edu/docs/guides/portable-image.html). | Local parity kit |
+| `.squire/portable/squire-entrypoint.sh` | The portable image's entrypoint: the `web`, `worker`, `scheduler`, `migrate` and `health` roles, picked by argument or `SQUIRE_ROLE`. | Local parity kit |
+| `.squire/portable/ports.conf`, `.squire/portable/vhost.conf` | Apache for the portable image: `Listen ${SQUIRE_PORT}`, the same document root as Citadel's vhost, logs to stdout and stderr. | Local parity kit |
 | `.squire/php-web.ini` | The web's own settings: the `disable_functions` list. The app image appends it to `php.ini` as `php-apache2handler.ini`, so the CLI keeps every function. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html). | Local parity kit |
 
 ## The .gitignore lines init keeps[#](https://squire.apps.wayne.edu/docs/reference/files.html#the-gitignore-lines-init-keeps)

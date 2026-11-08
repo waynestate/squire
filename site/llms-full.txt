@@ -163,6 +163,7 @@ The canonical copy of this table is in WELD's docs: [Which command when](https:/
 | `.npmrc` | Vue layer only: sets `min-release-age=1` for the frontend install. |
 | Vue `docker-compose.squire.yml` | Vue layer only: the common parity compose plus a Node 22 service for frontend tooling. |
 | `docker-compose.squire.yml`, `.squire/`, `.env.squire.example`, `scripts/parity.sh`, `scripts/parity.ps1` | Local parity. |
+| `.squire/portable.Dockerfile`, `.squire/portable/` | The portable image for platforms other than Citadel: one image as web, worker, scheduler or migrate, non-root in group 0 on 8080. Citadel never reads it. |
 
 Every shell script uses `set -euo pipefail` (`build.sh` uses `set -eu`, because Citadel runs it with `/bin/sh`), prints a
 `[squire] ==> step N: ...` marker for each step, and can be run twice with the same result.
@@ -605,6 +606,18 @@ What the kit's images harden, and the switch for each, is on the docs page
   script and the fallback entrypoint turn into variables (`SQUIRE_SECRETS_DIR`). Tests keep secrets out of the
   Dockerfiles, the build context and `build.sh`.
 
+#### The portable image
+
+Citadel builds its own image, and `.squire/Dockerfile` stays a mirror of it. For OpenShift, Coolify or raw Docker
+(ADR-0010's portable path), `.squire/portable.Dockerfile` bakes the code in and runs as any of four roles, picked by the
+first argument or `SQUIRE_ROLE`: `web` (Apache on 8080), `worker` (`php artisan queue:work --tries=3 --max-time=3600
+--sleep=3`), `scheduler` (`php artisan schedule:work`) and `migrate` (once per release). It runs as `USER 10001:0`, and
+every folder it writes belongs to group 0 and is group-writable, so OpenShift's arbitrary UID runs it as it is
+(`docker run --user 1000123:0` shows the same). It stops gracefully on `SIGTERM`, logs to stdout and stderr, and caches
+Laravel's config when a container starts, never at build. The compose file's `portable` profile runs the four roles from
+one image; a plain `up` still starts only the parity stack. Full page:
+[The portable image](https://squire.apps.wayne.edu/docs/guides/portable-image.html).
+
 ### Oracle-ready images (local)
 
 Apps that talk to Oracle need the Instant Client and the `oci8` extension. Squire ships two opt-in Docker recipes
@@ -771,11 +784,11 @@ vendor/bin/squire init
 2. `deployments/001-first-release.sh` Runs once per app and calls the release with the smoke test off; Apache is not up yet.
 3. `scripts/release.sh` The idempotent release: install from the lock file, audit, ask PROCTOR's gate for a go or no-go, build, migrate, smoke-test `/up`. Also your Quick Update post-script.
 4. `health.php` Citadel's health check: one request to `/up`, never boots the framework.
-5. `The parity kit 12 files` `docker-compose.squire.yml`, `.squire/`, `.env.squire.example`, `scripts/parity.sh` and `scripts/parity.ps1`: Citadel, on your machine.
+5. `The parity kit 19 files` `docker-compose.squire.yml`, `.squire/`, `.env.squire.example`, `scripts/parity.sh` and `scripts/parity.ps1`: Citadel on your machine, and the portable image for everywhere else.
 
 ![Squire's satchel](https://squire.apps.wayne.edu/brand/squire-avatar-512.png)
 
-**To** the Citadel **From** my-app **Holds** 16 files
+**To** the Citadel **From** my-app **Holds** 23 files
 
 5 of 5 packed, buckled for deploy day
 
@@ -1042,6 +1055,9 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ### Unreleased[#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+- Added: the portable image (`.squire/portable.Dockerfile`, ADR-0010), for OpenShift, Coolify and raw Docker. One image with the code baked in runs as `web`, `worker` (`queue:work --tries=3 --max-time=3600 --sleep=3`), `scheduler` (`schedule:work`) or `migrate`, picked by argument or `SQUIRE_ROLE`, as `USER 10001:0` with group-0 writable folders (any arbitrary UID in group 0 runs it), Apache on 8080 (`SQUIRE_PORT`, else `PORT`), logs to stdout and stderr, and a graceful stop on `SIGTERM` (WELD W8, W13). The compose file's new `portable` profile runs the four roles; a plain `up` is unchanged. The Citadel mirror (`.squire/Dockerfile`, port 80) does not change. Run `squire update` to take the five new files.
+- Added: `health.php` reads `SQUIRE_APP_DIR` for the app root, so a kit kept in a subfolder (WELD's `deploy/`) checks the app it serves.
+- Fixed: the front page and the README's packing list count the parity kit as it ships (19 files; they still said 12).
 - Added: release.sh keeps Composer's and npm's download caches in .cache/squire inside the app folder (SQUIRE_CACHE_DIR, off to disable), so a Citadel Update no longer downloads every package again, and npm ci prefers the cache.
 
 ### 0.7.1 (2026-11-08)[#](https://squire.apps.wayne.edu/docs/changelog.html#0-7-1-2026-11-08)
@@ -1828,6 +1844,8 @@ Commands: `up`, `down`, `reset` (also removes volumes), `logs [service]`, `shell
 
 It starts the app container from the Citadel image (built by Citadel's `build_images` command, or pulled from wherever you keep it) with your source mounted at `/citadel/src`, runs your `deployments/` as the `citadel` user the way Citadel does, and puts an HA-Proxy in front that adds the same forwarding headers. MySQL 5.6.51 is reachable from the app as host `mysql` and from your machine on `127.0.0.1:3307`. Containers drop capabilities, set `no-new-privileges`, and carry memory and process limits. The database port is bound to loopback only. The Vue layer's compose file adds a Node 22 service, pinned to the same major as the Citadel image, for frontend tooling.
 
+The compose file's `portable` profile starts nothing on a plain `up`. Named, it runs [the portable image](https://squire.apps.wayne.edu/docs/guides/portable-image.html) instead: the code baked in, one image as `migrate`, `web`, `worker` and `scheduler`, as a non-root user in group 0 on 8080, the way a platform other than Citadel runs it.
+
 ### No access to the real image?[#](https://squire.apps.wayne.edu/docs/guides/local-parity.html#no-access-to-the-real-image)
 
 `--fallback` builds an approximation from the official `php` image plus Citadel's extensions. It is good for trying Squire out and not for proving parity. If the build step fails with a permission error writing `vendor/`, the source folder is not writable by the container's `citadel` user (uid 1000 by default); on Linux set `SQUIRE_SOURCE_UID` and `SQUIRE_SOURCE_GID` to yours.
@@ -1886,6 +1904,121 @@ scripts/oracle-image-test.sh --flavour all --platform linux/amd64
 
 ---
 
+Source: https://squire.apps.wayne.edu/docs/guides/portable-image.html
+
+## The portable image[#](https://squire.apps.wayne.edu/docs/guides/portable-image.html#the-portable-image)
+
+Citadel builds its own image, and `.squire/Dockerfile` mirrors that one and stays a mirror. Everywhere else (OpenShift, Coolify, a plain `docker run`, ADR-0010's portable path) an app needs an image it can take with it: the code inside, one image for every process type, and no assumption that it starts as root. That is `.squire/portable.Dockerfile`. A squire packs one saddlebag that fits every horse.
+
+Read [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html) first for the base image, and [Queue workers on Citadel](https://squire.apps.wayne.edu/docs/guides/queue-workers.html) for the Citadel side of the same worker.
+
+### What differs from the Citadel mirror[#](https://squire.apps.wayne.edu/docs/guides/portable-image.html#what-differs-from-the-citadel-mirror)
+
+Both start from the same base, the same `php.ini` and `php-web.ini`, and YOUR `build.sh`. Then:
+
+|  | `.squire/Dockerfile` (Citadel mirror) | `.squire/portable.Dockerfile` |
+| --- | --- | --- |
+| Code | mounted at `/citadel/src` | baked in at `/citadel/src` |
+| Process types | Apache only (`CMD ["apache2-foreground"]`) | web, worker, scheduler or migrate, by argument or `SQUIRE_ROLE` |
+| User | starts as root, Apache drops to `prisoner` | `USER 10001:0`; any UID in group 0 works |
+| Port | 80 | 8080 (`SQUIRE_PORT`, else `PORT`) |
+| Logs | files under `/citadel/logs`, rotated | stdout and stderr |
+| Stop signal | `SIGWINCH` (the base's) | `SIGTERM`, a graceful stop for every role |
+| Release | `scripts/release.sh` on the running container | its install-and-build half at image build; config cached at container start; migrations from the `migrate` role |
+| opcache | checks files (a bind mount changes them) | never checks files (`SQUIRE_OPCACHE_VALIDATE=0`) |
+
+Citadel never reads the portable files, so nothing here changes a Citadel app.
+
+### Build it[#](https://squire.apps.wayne.edu/docs/guides/portable-image.html#build-it)
+
+From the app root, with the kit at the root (where Sourdough and `squire init` put it):
+
+```sh
+docker build -f .squire/portable.Dockerfile --build-arg BASE_IMAGE=<base image> -t my-app .
+```
+
+With the kit in a subfolder (WELD keeps it in `deploy/`), the context is still the app root; say where the kit is:
+
+```sh
+docker build -f deploy/.squire/portable.Dockerfile --build-arg SQUIRE_KIT_DIR=deploy --build-arg BASE_IMAGE=<base image> -t my-app .
+```
+
+`BASE_IMAGE` is the real Citadel image or the fallback base (`.squire/base-fallback.Dockerfile`), pushed to a registry the platform can pull from. The build runs `scripts/release.sh` with the run-time steps off: Composer without dev packages, the frontend build, the writable folders, and nothing that needs the app's settings (no migrate, no optimize, no restart, no smoke test, and PROCTOR's gate belongs in CI on this path). Composer's and npm's downloads go through a BuildKit cache mount, so a rebuild fetches only what changed.
+
+`portable.Dockerfile.dockerignore` sits next to the Dockerfile, so Docker reads it for this build only: `.env` files, `auth.json`, `secrets`, keys, `.git`, `vendor/` and `node_modules/` never reach the build context, let alone a layer.
+
+### Run it as an arbitrary UID[#](https://squire.apps.wayne.edu/docs/guides/portable-image.html#run-it-as-an-arbitrary-uid)
+
+OpenShift runs a container as a random UID that has no `/etc/passwd` entry and is always in group 0 ([OKD: support arbitrary user IDs](https://docs.okd.io/latest/openshift_images/create-images.html#use-uid_create-images)). The image follows that recipe: the folders the app and Apache write (Apache's run, lock and log folders; `storage/` and `bootstrap/cache/` for Laravel) belong to group 0 and are group-writable (`chgrp -R 0` then `chmod -R g=u`). Try it the way OpenShift would:
+
+```sh
+docker run -d --name my-app-web --user 1000123:0 --cap-drop ALL --security-opt no-new-privileges:true \
+  --env-file .env -p 127.0.0.1:8081:8080 my-app
+curl -i http://127.0.0.1:8081/up
+```
+
+It needs no capability at all: it never starts as root, and 8080 is not a privileged port. A raw PHP app that writes somewhere else names those folders at build time with `--build-arg SQUIRE_WRITABLE_DIRS="var/cache var/log"`.
+
+### One image, four roles[#](https://squire.apps.wayne.edu/docs/guides/portable-image.html#one-image-four-roles)
+
+The first argument picks the role, else `SQUIRE_ROLE`, else `web`:
+
+| Role | Runs | Replace it with |
+| --- | --- | --- |
+| `web` | Apache and mod_php on `SQUIRE_PORT` (else `PORT`, else 8080) |  |
+| `worker` | `php artisan queue:work --tries=3 --max-time=3600 --sleep=3` | `SQUIRE_WORKER_COMMAND` |
+| `scheduler` | `php artisan schedule:work` | `SQUIRE_SCHEDULER_COMMAND` |
+| `migrate` | `php artisan migrate --force`, once per release | `SQUIRE_MIGRATE_COMMAND` |
+
+Arguments after the role are passed on (`worker --queue=high,default`), and options alone go to the `SQUIRE_ROLE` process, so a platform that sets only `command: ["--queue=high"]` beside `SQUIRE_ROLE=worker` gets what it means. Any other first argument is run as a command: `docker run --rm my-app php artisan about`.
+
+The Laravel roles run `php artisan optimize` first, so config, routes and views are cached for the container's own environment when it starts, never at build time, where they would freeze the build machine's settings. `SQUIRE_ARTISAN_OPTIMIZE=0` skips it (the same switch `scripts/release.sh` reads). A route closure that cannot be serialized fails `route:cache` and stops the container with Laravel's message; skip optimize while you fix the route, and know the release on Citadel stumbles on the same route.
+
+A raw PHP app has no `artisan`, so it names its own worker and scheduler; the role stops with a plain message (exit 64) when the command is missing, instead of starting something that is not there. `migrate` with nothing to migrate succeeds, so the services that wait for it still start.
+
+A bad setting stops the container before anything starts, with exit 64 and one line that says what to change: a port that is not a number, a port below 1024 for a user that is not root, an unknown role, an empty named command.
+
+### Compose: the `portable` profile[#](https://squire.apps.wayne.edu/docs/guides/portable-image.html#compose-the-portable-profile)
+
+`docker-compose.squire.yml` carries the same four roles as a profile beside the parity stack. A plain `up` still starts only the Citadel parity services; the profile starts nothing until you name it:
+
+```sh
+docker compose -f docker-compose.squire.yml --env-file .env.squire --profile portable up -d --build web worker scheduler
+```
+
+- **One image.** Every service builds and runs `squire-local/portable:<project>`; they differ only in `SQUIRE_ROLE`.
+- **migrate** runs once, after MySQL is healthy, and the other three wait for it to finish successfully (`restart: "no"`).
+- **web** is published on `127.0.0.1:${SQUIRE_PORTABLE_HTTP_PORT:-8081}`, beside the parity proxy on 8080.
+- **worker** comes back after `--max-time` ends it, through `restart: unless-stopped`.
+- **scheduler** sets `QUEUE_WORKER_MODE=none`: Sourdough's Laravel shapes schedule a short queue worker by default, and here the worker service has the queue.
+- Every service runs as `${SQUIRE_PORTABLE_USER:-10001:0}` with `cap_drop: [ALL]`, `no-new-privileges`, and memory and process limits, reads the app's settings from `${SQUIRE_PORTABLE_ENV_FILE:-.env}` (never baked in), and logs to stderr.
+
+The settings are in `.env.squire.example` under "the portable image". WELD sets `SQUIRE_PORTABLE_CONTEXT=..` and `SQUIRE_KIT_DIR=deploy`, because its app sits one folder up from the kit.
+
+### Deploys and signals[#](https://squire.apps.wayne.edu/docs/guides/portable-image.html#deploys-and-signals)
+
+Every role stops on `SIGTERM`, the signal every platform sends. Apache's graceful stop is `SIGWINCH`, so for `web` the entrypoint stays as a small init that turns `SIGTERM` and `SIGINT` into `SIGWINCH` and exits with Apache's status: requests in flight finish. `worker` and `scheduler` exec PHP directly, and `queue:work` finishes its current job on `SIGTERM` before it exits ([queues](https://laravel.com/docs/13.x/queues#queue-workers-and-deployment)). A platform that replaces containers on a deploy therefore starts the new ones on the new code, and needs no restart signal; `scripts/release.sh`'s `SQUIRE_ARTISAN_RESTART` step stays the Citadel answer, where the container lives on across releases. Keep each job's timeout below its connection's `retry_after`, as on Citadel.
+
+### Health[#](https://squire.apps.wayne.edu/docs/guides/portable-image.html#health)
+
+The image's `HEALTHCHECK` runs `squire-entrypoint health`. For `web` that is `health.php` on the port Apache listens on; `SQUIRE_APP_DIR` (set in the image) points `health.php` at the app root even when the kit sits in a subfolder. `worker`, `scheduler` and `migrate` have no endpoint to ask, so they are healthy while their process runs, and the platform's restart policy covers a process that dies.
+
+### Not covered here[#](https://squire.apps.wayne.edu/docs/guides/portable-image.html#not-covered-here)
+
+- The base image's `EXPOSE 80` still shows in the image metadata (a Dockerfile cannot take back an inherited port); nothing listens there.
+- Publishing the image is the platform's or the CI's job; this kit builds it.
+- The Citadel mirror, `vhost.conf` on 80 and the fallback base's `EXPOSE 80` are unchanged on purpose: a change there would claim a parity Citadel does not have.
+
+### How it was checked[#](https://squire.apps.wayne.edu/docs/guides/portable-image.html#how-it-was-checked)
+
+`tests/PortableImageTest.php` reads every portable file and runs the entrypoint in bash with stand-ins for `php`, `apache2-foreground` and `id`: each role, the argument and setting precedence, the refusals, the health check, the secrets loader, and `SIGTERM` reaching Apache as its graceful stop. On 2026-11-08 the image was also built and run for real, for a raw PHP app and for WELD: `docker run --user 1000123:0` answered `/up` with 200 on 8080 from Apache running as `1000123:0`; the compose profile ran `migrate` (exit 0), then `web`, `worker` and `scheduler` healthy as `1000123:0`; the worker ran a queued job; and `docker stop` ended all three in about two seconds, each with exit 0.
+
+### Next[#](https://squire.apps.wayne.edu/docs/guides/portable-image.html#next)
+
+Read [Queue workers on Citadel](https://squire.apps.wayne.edu/docs/guides/queue-workers.html) for the timeout rule both paths share, or [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html) for what the base and the kit harden.
+
+---
+
 Source: https://squire.apps.wayne.edu/docs/guides/queue-workers.html
 
 ## Queue workers on Citadel[#](https://squire.apps.wayne.edu/docs/guides/queue-workers.html#queue-workers-on-citadel)
@@ -1937,6 +2070,10 @@ Workers do not notice new code until they restart, so a release restarts them ([
 For the short worker above, the restart is mostly belt-and-braces: a run started before the release ends within its 50-second cap regardless, and the command makes sure it ends now instead of finishing the rest of the window on old code. For a supervised worker the restart is the whole mechanism, because the process never exits on its own.
 
 Squire's `scripts/release.sh` does this for you in its Laravel block, after `laravel migrate` and `laravel optimize` and before the Oracle check and the smoke test: the code is checked out and optimized, the smoke test has not run yet, and a worker restarted here comes up on the new code before the release declares success. The step runs `php artisan reload` where Laravel has it, and otherwise `queue:restart` and `schedule:interrupt`, each only when that command exists. It is report only (a failed restart is a warning), and `SQUIRE_ARTISAN_RESTART=0` turns it off. See [The release script](https://squire.apps.wayne.edu/docs/guides/release-script.html) for the step order.
+
+### Off Citadel: a worker process type[#](https://squire.apps.wayne.edu/docs/guides/queue-workers.html#off-citadel-a-worker-process-type)
+
+On a platform that runs more than one process per app (OpenShift, Coolify, raw Docker), the worker is its own container from the same image: [The portable image](https://squire.apps.wayne.edu/docs/guides/portable-image.html) runs as `worker` (`php artisan queue:work --tries=3 --max-time=3600 --sleep=3`, the command the request below asks Citadel for) and as `scheduler` (`php artisan schedule:work`), picked by `SQUIRE_ROLE`. The scheduler there sets `QUEUE_WORKER_MODE=none`, so the short worker above is not scheduled beside the real one. A deploy replaces the containers, so no restart signal is needed, and the timeout rule above holds on both paths.
 
 ### Not yet tested on Citadel[#](https://squire.apps.wayne.edu/docs/guides/queue-workers.html#not-yet-tested-on-citadel)
 
@@ -2416,6 +2553,7 @@ All optional. On Citadel, add `./.env.squire` as a configuration file (the confi
 | Front controller | raw `public/index.php`, static `public/index.php` | the app's environment |
 | Health check | `health.php` | the app's environment |
 | Local parity | the parity compose file | `.env.squire` (see `.env.squire.example`; it holds placeholders only) |
+| Portable image | `.squire/portable/squire-entrypoint.sh`, `docker build` | the container's environment, and build arguments |
 
 ### Release script (`scripts/release.sh`)[#](https://squire.apps.wayne.edu/docs/reference/configuration.html#release-script-scripts-release-sh)
 
@@ -2460,6 +2598,25 @@ All optional. On Citadel, add `./.env.squire` as a configuration file (the confi
 | `SQUIRE_HEALTH_PORT` | `80` | The port the health check requests. |
 | `SQUIRE_HEALTH_TIMEOUT` | `5`, at most `14`, inside Citadel's `15` | Seconds the health check waits. |
 | `SQUIRE_HEALTH_VENDOR` | `1` also requires `vendor/autoload.php` | Whether the health check also requires the autoloader. |
+| `SQUIRE_APP_DIR` | the folder `health.php` is in | The app root the check reads (`artisan`, `vendor/`). The portable image sets `/citadel/src`, so a kit in a subfolder checks the app it serves. |
+
+### Portable image (`.squire/portable.Dockerfile`)[#](https://squire.apps.wayne.edu/docs/reference/configuration.html#portable-image-squire-portable-dockerfile)
+
+The entrypoint reads these when a container starts; the build arguments are read at `docker build`. Citadel never reads either. See [The portable image](https://squire.apps.wayne.edu/docs/guides/portable-image.html).
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `SQUIRE_ROLE` | `web` | `web`, `worker`, `scheduler` or `migrate`. A first argument naming a role wins. |
+| `SQUIRE_PORT` | `PORT`, else `8080` | The port Apache listens on and the health check asks. Below 1024 is refused for a user that is not root. |
+| `PORT` | not set | Read when `SQUIRE_PORT` is not set (the name several platforms set). |
+| `SQUIRE_WORKER_COMMAND` | `php artisan queue:work --tries=3 --max-time=3600 --sleep=3` | The worker's command, split on spaces. Required for a raw PHP app. |
+| `SQUIRE_SCHEDULER_COMMAND` | `php artisan schedule:work` | The scheduler's command. Required for a raw PHP app. |
+| `SQUIRE_MIGRATE_COMMAND` | `php artisan migrate --force` | The migrate role's command; a raw PHP app without one has nothing to migrate. |
+| `SQUIRE_ARTISAN_OPTIMIZE` | `1` | Laravel: `php artisan optimize` when a `web`, `worker` or `scheduler` container starts. |
+| `SQUIRE_SECRETS_DIR` | `/run/secrets` | The same secrets loader as the release script, before any role starts. |
+| `SQUIRE_KIT_DIR` (build argument) | `.` | Where the kit sits in the build context (`deploy` for WELD). |
+| `SQUIRE_WRITABLE_DIRS` (build argument) | Laravel: `storage bootstrap/cache` | Folders handed to group 0 and made group-writable, separated by spaces. |
+| `SQUIRE_OPCACHE_VALIDATE` (build argument) | `0` | Baked code: opcache never checks files. A run-time `1` still wins. |
 
 ### PHP in the image (`.squire/php.ini`)[#](https://squire.apps.wayne.edu/docs/reference/configuration.html#php-in-the-image-squire-php-ini)
 
@@ -2495,6 +2652,11 @@ PHP reads these from the container's environment when it starts (PHP 8.3 and lat
 | `SQUIRE_DB_ROOT_PASSWORD` | not stated | Local parity: the database root password. |
 | `SQUIRE_DB_PORT` | not stated | Local parity: the database port. |
 | `SQUIRE_DB_MEMORY` | not stated | Local parity: the database memory limit. |
+| `SQUIRE_PORTABLE_HTTP_PORT` | `8081` | The `portable` profile: where the web container is published on loopback. |
+| `SQUIRE_PORTABLE_USER` | `10001:0` | The `portable` profile: the UID and group the containers run as (try `1000123:0`). |
+| `SQUIRE_PORTABLE_ENV_FILE` | `.env` | The `portable` profile: the app's env file, read at run time and never baked in. |
+| `SQUIRE_PORTABLE_CONTEXT` | `.` | The `portable` profile: the build context, relative to the compose file (`..` for WELD). |
+| `SQUIRE_KIT_DIR` | `.` | The `portable` profile: the kit's folder inside that context (`deploy` for WELD). |
 
 The Vue layer's compose file also reads `SQUIRE_NODE_IMAGE` (default `node:22.23.4-bookworm-slim`, pinned by digest), `SQUIRE_NODE_ENV` (default `production`) and `SQUIRE_NODE_MEMORY` (default `512m`). The compose file refuses to start without the two passwords. See `.env.squire.example`; it holds placeholders only.
 
@@ -2522,6 +2684,9 @@ What `squire init` writes into your app, which target or layer each file belongs
 | `docker-compose.squire.yml` | The common parity compose plus a Node 22 service for frontend tooling. | Vue layer only |
 | `docker-compose.squire.yml`, `.squire/`, `.env.squire.example`, `scripts/parity.sh`, `scripts/parity.ps1` | Local parity. | Local parity kit |
 | `.squire/apache-hardening.conf` | `ServerTokens Prod`, `ServerSignature Off` and `TraceEnable Off`, enabled by the fallback base. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html). | Local parity kit |
+| `.squire/portable.Dockerfile`, `.squire/portable.Dockerfile.dockerignore` | The portable image for platforms other than Citadel: the code baked in, `USER 10001:0`, group-0 writable folders, port 8080, `STOPSIGNAL SIGTERM`. Its ignore file keeps `.env`, secrets, `.git`, `vendor/` and `node_modules/` out of the build. See [The portable image](https://squire.apps.wayne.edu/docs/guides/portable-image.html). | Local parity kit |
+| `.squire/portable/squire-entrypoint.sh` | The portable image's entrypoint: the `web`, `worker`, `scheduler`, `migrate` and `health` roles, picked by argument or `SQUIRE_ROLE`. | Local parity kit |
+| `.squire/portable/ports.conf`, `.squire/portable/vhost.conf` | Apache for the portable image: `Listen ${SQUIRE_PORT}`, the same document root as Citadel's vhost, logs to stdout and stderr. | Local parity kit |
 | `.squire/php-web.ini` | The web's own settings: the `disable_functions` list. The app image appends it to `php.ini` as `php-apache2handler.ini`, so the CLI keeps every function. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html). | Local parity kit |
 
 ### The .gitignore lines init keeps[#](https://squire.apps.wayne.edu/docs/reference/files.html#the-gitignore-lines-init-keeps)

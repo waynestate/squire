@@ -24,6 +24,7 @@ All optional. On Citadel, add `./.env.squire` as a configuration file (the confi
 | Front controller | raw `public/index.php`, static `public/index.php` | the app's environment |
 | Health check | `health.php` | the app's environment |
 | Local parity | the parity compose file | `.env.squire` (see `.env.squire.example`; it holds placeholders only) |
+| Portable image | `.squire/portable/squire-entrypoint.sh`, `docker build` | the container's environment, and build arguments |
 
 ## Release script (`scripts/release.sh`)[#](https://squire.apps.wayne.edu/docs/reference/configuration.html#release-script-scripts-release-sh)
 
@@ -68,6 +69,25 @@ All optional. On Citadel, add `./.env.squire` as a configuration file (the confi
 | `SQUIRE_HEALTH_PORT` | `80` | The port the health check requests. |
 | `SQUIRE_HEALTH_TIMEOUT` | `5`, at most `14`, inside Citadel's `15` | Seconds the health check waits. |
 | `SQUIRE_HEALTH_VENDOR` | `1` also requires `vendor/autoload.php` | Whether the health check also requires the autoloader. |
+| `SQUIRE_APP_DIR` | the folder `health.php` is in | The app root the check reads (`artisan`, `vendor/`). The portable image sets `/citadel/src`, so a kit in a subfolder checks the app it serves. |
+
+## Portable image (`.squire/portable.Dockerfile`)[#](https://squire.apps.wayne.edu/docs/reference/configuration.html#portable-image-squire-portable-dockerfile)
+
+The entrypoint reads these when a container starts; the build arguments are read at `docker build`. Citadel never reads either. See [The portable image](https://squire.apps.wayne.edu/docs/guides/portable-image.html).
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `SQUIRE_ROLE` | `web` | `web`, `worker`, `scheduler` or `migrate`. A first argument naming a role wins. |
+| `SQUIRE_PORT` | `PORT`, else `8080` | The port Apache listens on and the health check asks. Below 1024 is refused for a user that is not root. |
+| `PORT` | not set | Read when `SQUIRE_PORT` is not set (the name several platforms set). |
+| `SQUIRE_WORKER_COMMAND` | `php artisan queue:work --tries=3 --max-time=3600 --sleep=3` | The worker's command, split on spaces. Required for a raw PHP app. |
+| `SQUIRE_SCHEDULER_COMMAND` | `php artisan schedule:work` | The scheduler's command. Required for a raw PHP app. |
+| `SQUIRE_MIGRATE_COMMAND` | `php artisan migrate --force` | The migrate role's command; a raw PHP app without one has nothing to migrate. |
+| `SQUIRE_ARTISAN_OPTIMIZE` | `1` | Laravel: `php artisan optimize` when a `web`, `worker` or `scheduler` container starts. |
+| `SQUIRE_SECRETS_DIR` | `/run/secrets` | The same secrets loader as the release script, before any role starts. |
+| `SQUIRE_KIT_DIR` (build argument) | `.` | Where the kit sits in the build context (`deploy` for WELD). |
+| `SQUIRE_WRITABLE_DIRS` (build argument) | Laravel: `storage bootstrap/cache` | Folders handed to group 0 and made group-writable, separated by spaces. |
+| `SQUIRE_OPCACHE_VALIDATE` (build argument) | `0` | Baked code: opcache never checks files. A run-time `1` still wins. |
 
 ## PHP in the image (`.squire/php.ini`)[#](https://squire.apps.wayne.edu/docs/reference/configuration.html#php-in-the-image-squire-php-ini)
 
@@ -103,5 +123,10 @@ PHP reads these from the container's environment when it starts (PHP 8.3 and lat
 | `SQUIRE_DB_ROOT_PASSWORD` | not stated | Local parity: the database root password. |
 | `SQUIRE_DB_PORT` | not stated | Local parity: the database port. |
 | `SQUIRE_DB_MEMORY` | not stated | Local parity: the database memory limit. |
+| `SQUIRE_PORTABLE_HTTP_PORT` | `8081` | The `portable` profile: where the web container is published on loopback. |
+| `SQUIRE_PORTABLE_USER` | `10001:0` | The `portable` profile: the UID and group the containers run as (try `1000123:0`). |
+| `SQUIRE_PORTABLE_ENV_FILE` | `.env` | The `portable` profile: the app's env file, read at run time and never baked in. |
+| `SQUIRE_PORTABLE_CONTEXT` | `.` | The `portable` profile: the build context, relative to the compose file (`..` for WELD). |
+| `SQUIRE_KIT_DIR` | `.` | The `portable` profile: the kit's folder inside that context (`deploy` for WELD). |
 
 The Vue layer's compose file also reads `SQUIRE_NODE_IMAGE` (default `node:22.23.4-bookworm-slim`, pinned by digest), `SQUIRE_NODE_ENV` (default `production`) and `SQUIRE_NODE_MEMORY` (default `512m`). The compose file refuses to start without the two passwords. See `.env.squire.example`; it holds placeholders only.
