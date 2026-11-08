@@ -17,6 +17,20 @@ vendor/bin/squire update --dry-run
 
 `squire init --check` reports when your copies have drifted from the templates; it exits `0` when they match and `1` when they have. `squire update --dry-run` prints the plan and writes nothing; it exits `1` when an edited file still differs from the template. Exit `2` means the tool itself could not run. For the full command reference, see [Commands](reference/commands.md).
 
+## 0.7.1 (2026-11-08)
+
+No breaks: a patch on 0.7.0. The kit's `php.ini` no longer sets `session.sid_length` or `session.sid_bits_per_character`. PHP 8.4 deprecated both and raises a notice for each, and leaving them out gives PHP's default session ID (32 hex characters, 128 bits), which is what HELMET and SESAME's S45 expect. Squire's own `deploy/.squire.json` also records the `release.sh` it ships, so `squire update` on Squire itself no longer refuses that file.
+
+### Steps
+
+1. Update the `waynestate/squire` dev dependency: `composer require --dev waynestate/squire:^0.7.1`.
+2. Run `vendor/bin/squire update`: it takes the new `.squire/php.ini` when the app never edited it, and shows a diff when it did. Keep your edits and drop the two `session.sid_` lines.
+3. Stack repos: refresh `deploy/` the same way. Sourdough: refresh its generated copy with `php bin/export-templates.php --to=templates/squire`.
+
+### How to verify
+
+Run the two checks at the top of this page; both exit `0`. `.squire/php.ini` has no `session.sid_length` or `session.sid_bits_per_character` line.
+
 ## 0.7.0 (2026-11-08)
 
 ### Breaking
