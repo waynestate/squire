@@ -34,6 +34,10 @@
                     "path": "guides/citadel-setup"
                 },
                 {
+                    "title": "Queue workers",
+                    "path": "guides/queue-workers"
+                },
+                {
                     "title": "Local parity",
                     "path": "guides/local-parity"
                 },
