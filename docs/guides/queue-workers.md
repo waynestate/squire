@@ -34,6 +34,8 @@ Each piece is documented:
 
 Because every run boots fresh and exits, there is no stale code and no memory growth between runs. The trade is latency: a job waits for the next minute tick, and a busy queue drains one burst per minute.
 
+Apps that Sourdough generates in its Laravel shapes ship this already, behind one switch. `config/worker.php` reads `QUEUE_WORKER_MODE`: `scheduler` (the `.env.example` default) schedules the short worker above, and `none` schedules nothing, for an app whose worker a supervisor or a separate container runs. Their task adds `--tries=3`, so a failing job stops after three attempts instead of retrying on every tick ([queues](https://laravel.com/docs/13.x/queues#dealing-with-failed-jobs)), and `tests/Feature/QueueWorkerScheduleTest.php` checks both modes. An app built by hand can copy the same three pieces.
+
 > [!WARNING]
 > Keep every job's timeout below its connection's `retry_after`, at least several seconds shorter. If a job is still processing past `retry_after`, the connection releases it back onto the queue and another run picks it up, so the job runs twice. The worker's `--timeout` is 60 seconds by default, the shipped `retry_after` is 90, and a job may name its own timeout with the `Timeout` attribute ([worker timeouts](https://laravel.com/docs/13.x/queues#worker-timeouts), [job expiration](https://laravel.com/docs/13.x/queues#job-expiration)). Job timeouts need the PCNTL extension in the image ([max job attempts and timeout](https://laravel.com/docs/13.x/queues#max-job-attempts-and-timeout)). Give jobs a finite number of tries: `--tries=0` retries forever, and a permanently failing job would then spin the queue every minute.
 
