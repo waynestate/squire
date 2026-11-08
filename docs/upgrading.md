@@ -1,6 +1,6 @@
 ---
 title: "Upgrading"
-description: "What changed in each released minor of Squire (0.6.0, 0.5.0, 0.4.0 and the 0.3.x line), the steps to move an app to them, and how to verify the upgrade held."
+description: "What changed in each released minor of Squire (0.7.0, 0.6.0, 0.5.0, 0.4.0 and the 0.3.x line), the steps to move an app to them, and how to verify the upgrade held."
 ---
 
 # Upgrading
@@ -16,6 +16,34 @@ vendor/bin/squire init --check
 vendor/bin/squire update --dry-run
 
 `squire init --check` reports when your copies have drifted from the templates; it exits `0` when they match and `1` when they have. `squire update --dry-run` prints the plan and writes nothing; it exits `1` when an edited file still differs from the template. Exit `2` means the tool itself could not run. For the full command reference, see [Commands](reference/commands.md).
+
+## 0.7.0 (2026-11-08)
+
+### Breaking
+
+One behavior change for the web, from the CHANGELOG's SQUIRE-29 entry: the app image now sets `disable_functions` for mod_php to `exec`, `passthru`, `shell_exec`, `system`, `pcntl_exec`, `phpinfo`, `show_source` and `highlight_file`. Web code that calls one of them stops working. The CLI (Composer scripts, artisan, the health check, the release script) keeps every function, and `proc_open` and `popen` stay for Symfony Mailer, Laravel's Process and PHPMailer. An app that needs one back sets `SQUIRE_PHP_DISABLE_FUNCTIONS` to its own list, or to `none`. The kit's `php.ini` also stops setting `disable_classes`, which PHP 8.5 removed.
+
+### What changed
+
+**Hardening.** The fallback base sets `ServerTokens Prod`, `ServerSignature Off` and `TraceEnable Off` (SQUIRE-9). The kit's `php.ini` turns on production opcache for the web, with one switch, `SQUIRE_OPCACHE_VALIDATE`: `1` (the default) checks files every 2 seconds, for code pulled into a running container such as a Citadel Quick Update; `0` never checks, for an image that bakes its code in (SQUIRE-10). The release script and the fallback entrypoint load secrets mounted as files from `SQUIRE_SECRETS_DIR` (default `/run/secrets`) (SQUIRE-18). `SQUIRE_NPM_REBUILD` lets named packages run their install scripts after `npm ci --ignore-scripts` (SQUIRE-26). Every image the kit pulls is pinned by its multi-arch list digest (SQUIRE-30). The image contract suite checks the hardening inside the running image (SQUIRE-40).
+
+**Release script.** After `laravel optimize`, a new report-only step restarts Laravel's long-lived processes: `php artisan reload` where Laravel has it, otherwise `queue:restart` and `schedule:interrupt`, each only when that command exists. `SQUIRE_ARTISAN_RESTART=0` turns it off (WELD W22). A new "check opcache" step never fails.
+
+**Fixed.** `squire update` records the current release in `.squire.json` even when every file already matches it. The pipeline's PROCTOR jobs no longer pass `--policy`. The docs kit's copy button and mobile menu, and the front page's quick start and Get started prompt, are fixed (see the CHANGELOG).
+
+**CI and deploy layer.** CI pins the Preflight components to 0.3.1 and runs its a11y component on `site/`, blocking. Squire's own deploy layer requires HELMET `^1.0` and PROCTOR `^0.8`.
+
+### Steps
+
+1. Update the `waynestate/squire` dev dependency: `composer require --dev waynestate/squire:^0.7`.
+2. Run `vendor/bin/squire update`: it takes the new template versions for the files you never edited and shows a diff for the ones you did.
+3. If web code calls one of the disabled functions, set `SQUIRE_PHP_DISABLE_FUNCTIONS` in the app's environment (see [Configuration](reference/configuration.md)) or move that call to a command.
+4. An app that bakes its code into the image (OpenShift, Coolify, raw Docker) sets `SQUIRE_OPCACHE_VALIDATE=0`. Citadel apps keep the default.
+5. Stack repos: regenerate the `deploy/` folder with `squire init` and check it with `squire init --check`. Sourdough: refresh its generated copy with `php bin/export-templates.php --to=templates/squire` and verify it with `--check`.
+
+### How to verify
+
+Run `squire init --check` and `squire update --dry-run` (the two checks at the top of this page); both exit `0` once the kit is at the new release. After the next release on the server, the release log shows the "laravel restart long-lived processes" and "check opcache" steps.
 
 ## 0.6.0 (2026-11-07)
 

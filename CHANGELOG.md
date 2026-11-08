@@ -5,6 +5,8 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+## 0.7.0 (2026-11-08)
+
 - Added: the release script restarts Laravel's long-lived processes after optimize (reload, or queue:restart and schedule:interrupt), report only; SQUIRE_ARTISAN_RESTART=0 turns it off (WELD W22).
 - Added: CI runs Preflight's a11y component (0.3.1) on site/, every page in light and dark at 320 and 1280 px with the WCAG 1.4.10 reflow check, blocking.
 - Changed: CI pins the Preflight components to 0.3.1 (fixed cache keys, and caches saved even when a job fails; D-072).
