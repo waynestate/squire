@@ -44,6 +44,7 @@
 Versioning once 1.0 is out.</p>
 <h2 id="unreleased">Unreleased<a class="docs-heading-link" aria-label="Link to this section" href="#unreleased">#</a></h2>
 <ul>
+<li>Changed: HELMET moves to <code>^1.0</code>, its first stable release, wherever this repo requires it.</li>
 <li>Fixed: OPEN_QUESTIONS.md no longer says there is no GitHub release job; only the GitLab one is missing.</li>
 <li>Docs: OPEN_QUESTIONS 13 records the Node every current Citadel image ships (Node 22 from NodeSource, npm bundled, pnpm and yarn through corepack).</li>
 <li>Added: the docs builder stamps the front page too. An element in a top-level <code>site/*.html</code> page that carries <code>data-docs-version</code> holds the docs stamp (the first released CHANGELOG heading, the same value as the docs header's <code>{{version}}</code>); a plain run writes it, <code>--check</code> reports the page stale after a release, and an element with markup inside is a finding. Squire's own chip now carries it. Other sites get it on their next kit sync.</li>
