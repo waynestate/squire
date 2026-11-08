@@ -12,6 +12,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ## Unreleased[#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+- Docs: source comments, messages and art titles write Squire as a word, not in capitals; wordmarks keep their display type.
 - Fixed: the front page's deploy layer (`deploy/`) really runs kit 0.6.0 now: the earlier update kept the old record and missed `release.sh`, the Dockerfiles, `php.ini`, the compose file and the two hardening files (`.squire/apache-hardening.conf`, `.squire/php-web.ini`); `squire init --check` passes on all 23 files.
 - Fixed: `squire update` records the current release in `.squire.json` even when every file already matches it; it kept the old version, so Squire's own deploy layer said 0.5.0 on 0.6.0 files.
 - Fixed: the pipeline's PROCTOR jobs no longer pass `--policy`, which PROCTOR 0.7 refuses in CI; PROCTOR checks against the CREED policy it bundles.

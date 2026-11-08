@@ -44,6 +44,7 @@
 Versioning once 1.0 is out.</p>
 <h2 id="unreleased">Unreleased<a class="docs-heading-link" aria-label="Link to this section" href="#unreleased">#</a></h2>
 <ul>
+<li>Docs: source comments, messages and art titles write Squire as a word, not in capitals; wordmarks keep their display type.</li>
 <li>Fixed: the front page's deploy layer (<code>deploy/</code>) really runs kit 0.6.0 now: the earlier update kept the old record and missed <code>release.sh</code>, the Dockerfiles, <code>php.ini</code>, the compose file and the two hardening files (<code>.squire/apache-hardening.conf</code>, <code>.squire/php-web.ini</code>); <code>squire init --check</code> passes on all 23 files.</li>
 <li>Fixed: <code>squire update</code> records the current release in <code>.squire.json</code> even when every file already matches it; it kept the old version, so Squire's own deploy layer said 0.5.0 on 0.6.0 files.</li>
 <li>Fixed: the pipeline's PROCTOR jobs no longer pass <code>--policy</code>, which PROCTOR 0.7 refuses in CI; PROCTOR checks against the CREED policy it bundles.</li>

@@ -384,7 +384,7 @@ A small, realistic partial:
 </header>
 ```
 
-Squire's own docs wear this hook: `docs/_header.html` is the front page's masthead (the satchel, SQUIRE, the same
+Squire's own docs wear this hook: `docs/_header.html` is the front page's masthead (the satchel, Squire, the same
 links and the version tag) and `docs/theme/squire.css` carries the front page's canvas, leather, Arvo titles, luggage
 tags and terminals, with a derived dark set. To change how Squire's docs look, edit those two files and rebuild; never
 edit the kit.
@@ -1009,6 +1009,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ### Unreleased[#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+- Docs: source comments, messages and art titles write Squire as a word, not in capitals; wordmarks keep their display type.
 - Fixed: the front page's deploy layer (`deploy/`) really runs kit 0.6.0 now: the earlier update kept the old record and missed `release.sh`, the Dockerfiles, `php.ini`, the compose file and the two hardening files (`.squire/apache-hardening.conf`, `.squire/php-web.ini`); `squire init --check` passes on all 23 files.
 - Fixed: `squire update` records the current release in `.squire.json` even when every file already matches it; it kept the old version, so Squire's own deploy layer said 0.5.0 on 0.6.0 files.
 - Fixed: the pipeline's PROCTOR jobs no longer pass `--policy`, which PROCTOR 0.7 refuses in CI; PROCTOR checks against the CREED policy it bundles.
@@ -2168,13 +2169,13 @@ The block below is owned by the docs builder: it lists every command the CLI kee
 
 | Command | What it does |
 | --- | --- |
-| `squire doctor` | Check an app's Citadel release setup against the SQUIRE rules (S1 to S78). |
+| `squire doctor` | Check an app's Citadel release setup against the Squire rules (S1 to S78). |
 | `squire init` | Write the standard Citadel scripts into an app, or report drift with --check. |
-| `squire update` | Take new template versions for files SQUIRE wrote that were never edited, add the files a newer release wrote, and show a diff for the edited ones. |
+| `squire update` | Take new template versions for files Squire wrote that were never edited, add the files a newer release wrote, and show a diff for the edited ones. |
 
 #### `squire doctor` [#](https://squire.apps.wayne.edu/docs/reference/commands.html#squire-doctor)
 
-Check an app's Citadel release setup against the SQUIRE rules (S1 to S78).
+Check an app's Citadel release setup against the Squire rules (S1 to S78).
 
 Usage: `squire doctor [--path PATH] [--format FORMAT] [--] [<topic>]`
 
@@ -2200,12 +2201,12 @@ Usage: `squire init [--path PATH] [--target TARGET] [--only ONLY] [--check] [--f
 | `--target=VALUE` | raw, laravel or static (default: the target recorded in .squire.json, else laravel when an artisan file exists; static must be asked for). |  |
 | `--only=VALUE` | Comma-separated groups to write: release, parity. (default: the groups recorded in .squire.json, else release, parity) |  |
 | `--check` | Write nothing; report files that are missing, outdated or edited. Exit 1 on drift. |  |
-| `--force` | Overwrite files that were edited or that SQUIRE did not write. |  |
+| `--force` | Overwrite files that were edited or that Squire did not write. |  |
 | `--silent` | Do not output any message |  |
 
 #### `squire update` [#](https://squire.apps.wayne.edu/docs/reference/commands.html#squire-update)
 
-Take new template versions for files SQUIRE wrote that were never edited, add the files a newer release wrote, and show a diff for the edited ones.
+Take new template versions for files Squire wrote that were never edited, add the files a newer release wrote, and show a diff for the edited ones.
 
 Usage: `squire update [--path PATH] [--target TARGET] [--only ONLY] [--dry-run]`
 
