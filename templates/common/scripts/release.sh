@@ -37,6 +37,7 @@
 #   SQUIRE_PROCTOR_BIN=              path to proctor (default: vendor/bin/proctor, then `proctor` on PATH)
 #   SQUIRE_PROCTOR_POLICY=           path to the CREED policy.json (when unset: the one CREED ships, if installed; otherwise PROCTOR's own default)
 #   SQUIRE_PROCTOR_RECORD_DIR=storage/squire  where the gate's verdict (proctor-gate.json) and baseline are kept
+#   SQUIRE_PHP_RUNTIME=auto          auto | skip | X.Y.Z   the PHP version the gate grades (auto: the php that runs this script)
 #   SQUIRE_SMOKE=1                   1 requests the health URL at the end and fails if it is not 200 (S21)
 #   SQUIRE_SMOKE_URL=                full URL (default: http://127.0.0.1:80/up for Laravel, /up.php for raw PHP)
 #   SQUIRE_SMOKE_RETRIES=5           attempts
@@ -132,7 +133,7 @@ squire_load_settings() {
             SQUIRE_FRAMEWORK | SQUIRE_ALLOW_ROOT | SQUIRE_REQUIRE_ENV | SQUIRE_WRITABLE_DIRS | \
                 SQUIRE_COMPOSER_AUDIT | SQUIRE_NPM | SQUIRE_NPM_IGNORE_SCRIPTS | SQUIRE_NPM_REBUILD | SQUIRE_NPM_BUILD_SCRIPT | SQUIRE_CACHE_DIR | \
                 SQUIRE_MIGRATE | SQUIRE_ARTISAN_OPTIMIZE | SQUIRE_ARTISAN_RESTART | SQUIRE_PROCTOR | SQUIRE_PROCTOR_BIN | \
-                SQUIRE_PROCTOR_POLICY | SQUIRE_PROCTOR_RECORD_DIR | SQUIRE_SMOKE | SQUIRE_SMOKE_URL | SQUIRE_SMOKE_RETRIES | SQUIRE_SMOKE_DELAY | \
+                SQUIRE_PROCTOR_POLICY | SQUIRE_PROCTOR_RECORD_DIR | SQUIRE_PHP_RUNTIME | SQUIRE_SMOKE | SQUIRE_SMOKE_URL | SQUIRE_SMOKE_RETRIES | SQUIRE_SMOKE_DELAY | \
                 SQUIRE_SECRETS_DIR) ;;
             *) continue ;;
         esac
@@ -174,6 +175,7 @@ squire_load_secrets
 : "${SQUIRE_PROCTOR_BIN:=}"
 : "${SQUIRE_PROCTOR_POLICY:=}"
 : "${SQUIRE_PROCTOR_RECORD_DIR:=storage/squire}"
+: "${SQUIRE_PHP_RUNTIME:=auto}"
 : "${SQUIRE_SMOKE:=1}"
 : "${SQUIRE_SMOKE_URL:=}"
 : "${SQUIRE_SMOKE_RETRIES:=5}"
@@ -350,6 +352,31 @@ else
             verdict_file="$record_dir/proctor-gate.json"
             baseline_file="$record_dir/proctor-gate-baseline.json"
             gate_args=(gate --path . ${policy_args[@]+"${policy_args[@]}"} --record "$verdict_file")
+            # The php that runs this script is the one serving the app, so by default the gate grades it for the
+            # unpatched check; SQUIRE_PHP_RUNTIME names another version or skips the grade.
+            case "$SQUIRE_PHP_RUNTIME" in
+                auto)
+                    php_version="$(php -r 'echo PHP_VERSION;' 2>/dev/null || true)"
+                    php_version="${php_version%%[!0-9.]*}"
+                    if [[ "$php_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                        gate_args+=(--php-runtime "$php_version")
+                        note "gate: grading PHP $php_version"
+                    else
+                        note "gate: could not read the PHP version, runtime not graded"
+                    fi
+                    ;;
+                skip)
+                    note "gate: SQUIRE_PHP_RUNTIME=skip, runtime not graded"
+                    ;;
+                *)
+                    if [[ "$SQUIRE_PHP_RUNTIME" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                        gate_args+=(--php-runtime "$SQUIRE_PHP_RUNTIME")
+                        note "gate: grading PHP $SQUIRE_PHP_RUNTIME"
+                    else
+                        note "gate: SQUIRE_PHP_RUNTIME is not X.Y.Z, runtime not graded"
+                    fi
+                    ;;
+            esac
             if [ -f "$baseline_file" ]; then
                 gate_args+=(--baseline "$baseline_file")
                 note "baseline: $baseline_file (the verdict of the last release that went on)"
