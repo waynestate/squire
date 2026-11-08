@@ -12,6 +12,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ## Unreleased[#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+- Changed: the pipeline pins every Preflight CI component to 0.3.0 ([preflight@0.3.0](mailto:preflight@0.3.0)); component image inputs are plain image names, since Preflight adds the Dependency Proxy prefix itself.
 - Docs: the build.sh template and MAINTAINING.md say what a Citadel test showed (SQUIRE-16): an edited build.sh rebuilds its image step on a full Update, and a Quick Update never runs it; the revision marker stays.
 - Docs: a queue workers guide (the scheduler-driven short worker that works today, the timeout rule, and the supervised-worker request for Citadel).
 - Changed: the GitHub a11y job is blocking now that it has been seen green on GitHub (SQUIRE-35).
