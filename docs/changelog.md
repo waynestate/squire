@@ -12,6 +12,7 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+- Changed: CI pins the Preflight components to 0.3.1 (fixed cache keys, and caches saved even when a job fails; D-072).
 - Changed: CI saves its Composer and npm caches even when a job fails, so a retry after a dropped download fetches only what is missing (D-072).
 - Changed: CI caches Composer and npm downloads under a fixed key, so a lock change downloads only what changed (D-072).
 - Changed: HELMET moves to `^1.0`, its first stable release, wherever this repo requires it.
