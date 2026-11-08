@@ -31,14 +31,14 @@ The other gates, by platform:
 | Lint the shell templates (ShellCheck in Docker) | `scripts\lint-shell.ps1` | `scripts/lint-shell.sh` |
 | Lint the PowerShell templates (PSScriptAnalyzer) | `scripts\lint-powershell.ps1` | `pwsh -File scripts/lint-powershell.ps1` |
 | Local parity, in an app | `scripts\parity.ps1 up` | `scripts/parity.sh up` |
-| Front page accessibility gate (axe-core in Playwright, in Docker) | `scripts\a11y.ps1` | `scripts/a11y.sh` |
+| Front page accessibility gate (Preflight's a11y checker, in Docker) | `scripts\a11y.ps1` | `scripts/a11y.sh` |
 | Docs kit JavaScript tests (needs Node, or Docker) | `npm ci && npm test` | `npm ci && npm test` |
 
 PHPStan and Pint follow Pinstripe, the stack's coding standard: `phpstan.neon` includes Pinstripe's raw PHP preset (`vendor/waynestate/pinstripe/phpstan/raw.neon`) and keeps only Squire's own paths and PHP version range, and Pint runs the same built-in `per` preset that Pinstripe's `pint/per.json` wraps, so `pint.json` stays local with Squire's own excludes. The tests run the real shell templates against stub `composer`, `curl`, `npm`, `corepack` and `proctor` programs, and start a PHP server to test `health.php`.
 
 ### The accessibility gate[#](https://squire.apps.wayne.edu/docs/contributing.html#the-accessibility-gate)
 
-The front page has its own accessibility gate: `scripts/a11y.sh` on Linux and macOS, `scripts\a11y.ps1` on Windows. It serves `site/`, opens it in a real Chromium (Playwright in Docker, so no host browser is needed) and runs axe-core against it with the WCAG 2.2 AA tag set, in light and dark mode at 360 px and 1280 px. It stays out of `composer ci` because CI has no browser; GitHub runs it as a separate `a11y` job.
+The front page has its own accessibility gate: `scripts/a11y.sh` on Linux and macOS, `scripts\a11y.ps1` on Windows. It runs Preflight's own a11y checker, vendored in `tools/a11y/check.mjs` from the same Preflight tag the CI job runs at and pinned by `tests/A11yCheckerPinTest.php`, in a real Chromium (Playwright in Docker, so no host browser is needed): every page of `site/` in light and dark mode at 320 px and 1280 px, with the WCAG 2.2 AA tag set and the WCAG 1.4.10 reflow check. The reports land in `build/a11y/` (gitignored). It stays out of `composer ci` because CI has no browser; GitHub runs it as a separate `a11y` job.
 
 ### The docs builder[#](https://squire.apps.wayne.edu/docs/contributing.html#the-docs-builder)
 

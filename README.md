@@ -734,9 +734,11 @@ Windows) and the PowerShell with PSScriptAnalyzer (`scripts/lint-powershell.ps1`
 against stub `composer`, `curl`, `npm`, `corepack` and `proctor` programs, and start a PHP server to test `health.php`.
 
 The front page has its own accessibility gate: `scripts/a11y.sh` on Linux and macOS, `scripts\a11y.ps1` on Windows.
-It serves `site/`, opens it in a real Chromium (Playwright in Docker, so no host browser is needed) and runs
-axe-core against it with the WCAG 2.2 AA tag set, in light and dark mode at 360 px and 1280 px. It stays out of
-`composer ci` because CI has no browser; GitHub runs it as a separate `a11y` job.
+It runs Preflight's own a11y checker, vendored in `tools/a11y/check.mjs` from the same Preflight tag the CI job
+runs at and pinned by `tests/A11yCheckerPinTest.php`, in a real Chromium (Playwright in Docker, so no host browser
+is needed): every page of `site/` in light and dark mode at 320 px and 1280 px, with the WCAG 2.2 AA tag set and
+the WCAG 1.4.10 reflow check. It stays out of `composer ci` because CI has no browser; GitHub runs it as a separate
+`a11y` job.
 
 ## Known limits
 

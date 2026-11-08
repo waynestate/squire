@@ -76,7 +76,7 @@ composer ci</p>
 <td><code>scripts/parity.sh up</code></td>
 </tr>
 <tr>
-<td>Front page accessibility gate (axe-core in Playwright, in Docker)</td>
+<td>Front page accessibility gate (Preflight's a11y checker, in Docker)</td>
 <td><code>scripts\a11y.ps1</code></td>
 <td><code>scripts/a11y.sh</code></td>
 </tr>
@@ -89,7 +89,7 @@ composer ci</p>
 </table></div>
 <p>PHPStan and Pint follow Pinstripe, the stack's coding standard: <code>phpstan.neon</code> includes Pinstripe's raw PHP preset (<code>vendor/waynestate/pinstripe/phpstan/raw.neon</code>) and keeps only Squire's own paths and PHP version range, and Pint runs the same built-in <code>per</code> preset that Pinstripe's <code>pint/per.json</code> wraps, so <code>pint.json</code> stays local with Squire's own excludes. The tests run the real shell templates against stub <code>composer</code>, <code>curl</code>, <code>npm</code>, <code>corepack</code> and <code>proctor</code> programs, and start a PHP server to test <code>health.php</code>.</p>
 <h3 id="the-accessibility-gate">The accessibility gate<a class="docs-heading-link" aria-label="Link to this section" href="#the-accessibility-gate">#</a></h3>
-<p>The front page has its own accessibility gate: <code>scripts/a11y.sh</code> on Linux and macOS, <code>scripts\a11y.ps1</code> on Windows. It serves <code>site/</code>, opens it in a real Chromium (Playwright in Docker, so no host browser is needed) and runs axe-core against it with the WCAG 2.2 AA tag set, in light and dark mode at 360 px and 1280 px. It stays out of <code>composer ci</code> because CI has no browser; GitHub runs it as a separate <code>a11y</code> job.</p>
+<p>The front page has its own accessibility gate: <code>scripts/a11y.sh</code> on Linux and macOS, <code>scripts\a11y.ps1</code> on Windows. It runs Preflight's own a11y checker, vendored in <code>tools/a11y/check.mjs</code> from the same Preflight tag the CI job runs at and pinned by <code>tests/A11yCheckerPinTest.php</code>, in a real Chromium (Playwright in Docker, so no host browser is needed): every page of <code>site/</code> in light and dark mode at 320 px and 1280 px, with the WCAG 2.2 AA tag set and the WCAG 1.4.10 reflow check. The reports land in <code>build/a11y/</code> (gitignored). It stays out of <code>composer ci</code> because CI has no browser; GitHub runs it as a separate <code>a11y</code> job.</p>
 <h3 id="the-docs-builder">The docs builder<a class="docs-heading-link" aria-label="Link to this section" href="#the-docs-builder">#</a></h3>
 <p>The pages under <code>docs/</code> build into the committed site at <code>site/docs/</code>: rebuild with <code>composer docs</code>, check with <code>composer docs:check</code>. The builder is <code>bin/docs-site.php</code>; see <a href="guides/docs-builder.html">The docs builder</a> for generated blocks, callouts and what the check proves. Other stack repos take the kit from a Squire checkout with <code>php bin/docs-site.php --sync-to=&lt;repo&gt;</code>, then build and commit their own <code>site/docs/</code>. Squire's docs wear the front page's look through the theme key in <code>docs/docs.json</code>: the masthead is <code>docs/_header.html</code> and the styles are <code>docs/theme/squire.css</code>. Change those two files, not the kit's <code>docs.css</code> or <code>docs.js</code>, then rebuild.</p>
 <p>The docs kit's JavaScript tests run with Node 22 on the PATH (<code>npm ci &amp;&amp; npm test</code>) or, with only Docker:</p>

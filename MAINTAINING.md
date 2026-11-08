@@ -31,7 +31,7 @@ it: `main` and tags are copied automatically, Packagist reads from it, and nobod
 | Lint the shell templates (ShellCheck in Docker) | `scripts\lint-shell.ps1` | `scripts/lint-shell.sh` |
 | Lint the PowerShell templates (PSScriptAnalyzer) | `scripts\lint-powershell.ps1` | `pwsh -File scripts/lint-powershell.ps1` |
 | Local parity, in an app | `scripts\parity.ps1 up` | `scripts/parity.sh up` |
-| Front page accessibility gate (axe-core in Playwright, in Docker) | `scripts\a11y.ps1` | `scripts/a11y.sh` |
+| Front page accessibility gate (Preflight's a11y checker, in Docker) | `scripts\a11y.ps1` | `scripts/a11y.sh` |
 | Docs kit JavaScript tests (needs Node, or Docker) | `npm ci && npm test` | `npm ci && npm test` |
 
 With only Docker:

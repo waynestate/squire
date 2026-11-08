@@ -12,6 +12,8 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ## Unreleased[#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+- Changed: the local a11y scripts run Preflight's own checker (vendored from 0.3.1 and pinned by a test), so they check what CI checks: axe-core 4.14.0, 320 and 1280 px, and the reflow check.
+
 ## 0.7.0 (2026-11-08)[#](https://squire.apps.wayne.edu/docs/changelog.html#0-7-0-2026-11-08)
 
 - Added: the release script restarts Laravel's long-lived processes after optimize (reload, or queue:restart and schedule:interrupt), report only; SQUIRE_ARTISAN_RESTART=0 turns it off (WELD W22).
