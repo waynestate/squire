@@ -26,7 +26,7 @@ final class UpdateCommand extends Command
     {
         $this
             ->setName('update')
-            ->setDescription('Take new template versions for files SQUIRE wrote that were never edited, add the files a newer release wrote, and show a diff for the edited ones.')
+            ->setDescription('Take new template versions for files Squire wrote that were never edited, add the files a newer release wrote, and show a diff for the edited ones.')
             ->addOption('path', null, InputOption::VALUE_REQUIRED, 'Path to the application.', '.')
             ->addOption('target', null, InputOption::VALUE_REQUIRED, 'raw, laravel or static (default: the target recorded in .squire.json).')
             ->addOption('only', null, InputOption::VALUE_REQUIRED, 'Comma-separated groups to update: release, parity. (default: the groups recorded in .squire.json)')

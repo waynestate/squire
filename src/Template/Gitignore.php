@@ -7,7 +7,7 @@ namespace Waynestate\Squire\Template;
 use Waynestate\Squire\ToolError;
 
 /**
- * The .gitignore SQUIRE keeps honest in a directory it writes into: a deploy layer below the repository root.
+ * The .gitignore Squire keeps honest in a directory it writes into: a deploy layer below the repository root.
  *
  * It only ever adds a line that is missing; it never moves, edits or deletes one the app wrote, because the moment
  * the team adds a line of their own the file is theirs to keep. The repository root's .gitignore is always the app's:
@@ -19,7 +19,7 @@ final class Gitignore
     public const LINES = ['/vendor/', '.env', '.env.squire'];
 
     /**
-     * Whether SQUIRE tends to this directory's .gitignore: yes when the directory sits below the root of a git
+     * Whether Squire tends to this directory's .gitignore: yes when the directory sits below the root of a git
      * checkout (a deploy layer inside a bigger repository), no when it is the root itself or no repository is above.
      */
     public static function isManaged(string $dir): bool

@@ -8,12 +8,12 @@ use Waynestate\Squire\Squire;
 use Waynestate\Squire\ToolError;
 
 /**
- * Brings the files SQUIRE wrote up to the current templates, and lands the files a newer release added.
+ * Brings the files Squire wrote up to the current templates, and lands the files a newer release added.
  *
- * The manifest is the source of truth for the files SQUIRE wrote: a file the team never touched takes the new
+ * The manifest is the source of truth for the files Squire wrote: a file the team never touched takes the new
  * template; a file they edited is left alone and shown as a diff, because only they can merge it. A template file
  * a newer release added to a recorded group is written, recorded in the manifest and printed as added. Files
- * SQUIRE did not write are never touched.
+ * Squire did not write are never touched.
  */
 final class Updater
 {
@@ -111,7 +111,7 @@ final class Updater
             $results[] = new FileResult(
                 $destination,
                 FileResult::EDITED,
-                'edited since SQUIRE wrote it, and the template has changed',
+                'edited since Squire wrote it, and the template has changed',
                 Diff::unified($content, $disk, 'a/' . $destination . ' (template)', 'b/' . $destination . ' (on disk)'),
             );
         }
@@ -160,7 +160,9 @@ final class Updater
             );
         }
 
-        if (!$dryRun && $written !== $manifest->files) {
+        // Save when the files moved, or when the record still names an older release: a kit whose files already
+        // match the newer release must not keep the old version.
+        if (!$dryRun && ($written !== $manifest->files || $manifest->version !== Squire::version())) {
             (new Manifest(Squire::version(), $manifest->target, $manifest->groups, $written, $manifest->layer))->save($appPath);
         }
 

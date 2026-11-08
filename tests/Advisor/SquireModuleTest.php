@@ -40,7 +40,7 @@ final class SquireModuleTest extends SquireTestCase
         $processes = new class implements ProcessRunner {
             public function run(array $argv, string $cwd, int $timeoutSeconds): ProcessOutput
             {
-                throw new RuntimeException('A SQUIRE tool started a subprocess; the tools must run in-process.');
+                throw new RuntimeException('A Squire tool started a subprocess; the tools must run in-process.');
             }
         };
         $context = new ModuleContext(
@@ -90,9 +90,9 @@ final class SquireModuleTest extends SquireTestCase
         self::assertSame('pass', $result['result']);
         self::assertSame(0, $result['exit']);
         self::assertSame(0, $result['counts']['fail']);
-        self::assertStringContainsString('SQUIRE doctor', $result['ran']);
+        self::assertStringContainsString('Squire doctor', $result['ran']);
         self::assertStringContainsString('in-process', $result['ran']);
-        self::assertStringStartsWith('Reference data from SQUIRE', $result['notice']);
+        self::assertStringStartsWith('Reference data from Squire', $result['notice']);
 
         // The findings are exactly what `squire doctor --format=json` prints, relabelled by relative path.
         $expected = json_decode(Report::json($app, (new Doctor())->run(new Project($app))), true, 512, JSON_THROW_ON_ERROR);

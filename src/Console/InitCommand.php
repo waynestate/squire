@@ -30,7 +30,7 @@ final class InitCommand extends Command
             ->addOption('target', null, InputOption::VALUE_REQUIRED, 'raw, laravel or static (default: the target recorded in .squire.json, else laravel when an artisan file exists; static must be asked for).')
             ->addOption('only', null, InputOption::VALUE_REQUIRED, 'Comma-separated groups to write: release, parity. (default: the groups recorded in .squire.json, else release, parity)')
             ->addOption('check', null, InputOption::VALUE_NONE, 'Write nothing; report files that are missing, outdated or edited. Exit 1 on drift.')
-            ->addOption('force', null, InputOption::VALUE_NONE, 'Overwrite files that were edited or that SQUIRE did not write.');
+            ->addOption('force', null, InputOption::VALUE_NONE, 'Overwrite files that were edited or that Squire did not write.');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -47,7 +47,7 @@ final class InitCommand extends Command
             if (!is_dir($path)) {
                 throw new ToolError(sprintf('Not a directory: %s', $path));
             }
-            // An app SQUIRE already initialized keeps its recorded target and groups: detection cannot see a
+            // An app Squire already initialized keeps its recorded target and groups: detection cannot see a
             // static app, so a plain folder would read as raw and the front controller would slip past --check,
             // and a bare `init` should complete the kit with its recorded groups instead of rewriting it as
             // release,parity.

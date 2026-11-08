@@ -12,13 +12,13 @@ The block below is owned by the docs builder: it lists every command the CLI kee
 
 | Command | What it does |
 | --- | --- |
-| `squire doctor` | Check an app's Citadel release setup against the SQUIRE rules (S1 to S78). |
+| `squire doctor` | Check an app's Citadel release setup against the Squire rules (S1 to S78). |
 | `squire init` | Write the standard Citadel scripts into an app, or report drift with --check. |
-| `squire update` | Take new template versions for files SQUIRE wrote that were never edited, add the files a newer release wrote, and show a diff for the edited ones. |
+| `squire update` | Take new template versions for files Squire wrote that were never edited, add the files a newer release wrote, and show a diff for the edited ones. |
 
 ### `squire doctor` [#](https://squire.apps.wayne.edu/docs/reference/commands.html#squire-doctor)
 
-Check an app's Citadel release setup against the SQUIRE rules (S1 to S78).
+Check an app's Citadel release setup against the Squire rules (S1 to S78).
 
 Usage: `squire doctor [--path PATH] [--format FORMAT] [--] [<topic>]`
 
@@ -44,12 +44,12 @@ Usage: `squire init [--path PATH] [--target TARGET] [--only ONLY] [--check] [--f
 | `--target=VALUE` | raw, laravel or static (default: the target recorded in .squire.json, else laravel when an artisan file exists; static must be asked for). |  |
 | `--only=VALUE` | Comma-separated groups to write: release, parity. (default: the groups recorded in .squire.json, else release, parity) |  |
 | `--check` | Write nothing; report files that are missing, outdated or edited. Exit 1 on drift. |  |
-| `--force` | Overwrite files that were edited or that SQUIRE did not write. |  |
+| `--force` | Overwrite files that were edited or that Squire did not write. |  |
 | `--silent` | Do not output any message |  |
 
 ### `squire update` [#](https://squire.apps.wayne.edu/docs/reference/commands.html#squire-update)
 
-Take new template versions for files SQUIRE wrote that were never edited, add the files a newer release wrote, and show a diff for the edited ones.
+Take new template versions for files Squire wrote that were never edited, add the files a newer release wrote, and show a diff for the edited ones.
 
 Usage: `squire update [--path PATH] [--target TARGET] [--only ONLY] [--dry-run]`
 

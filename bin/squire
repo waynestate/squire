@@ -5,7 +5,7 @@ declare(strict_types=1);
 
 use Waynestate\Squire\Console\Application;
 
-// SQUIRE is a Composer package: its autoloader is either its own vendor/ or the host app's.
+// Squire is a Composer package: its autoloader is either its own vendor/ or the host app's.
 $autoloaders = [
     __DIR__ . '/../vendor/autoload.php',
     __DIR__ . '/../../../autoload.php',

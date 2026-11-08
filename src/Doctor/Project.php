@@ -182,7 +182,7 @@ final class Project
         return false;
     }
 
-    /** The release script's path, looking in the places SQUIRE and common practice put it. */
+    /** The release script's path, looking in the places Squire and common practice put it. */
     public function releaseScript(): ?string
     {
         foreach (['scripts/release.sh', 'release.sh', 'bin/release.sh', 'deploy/release.sh'] as $candidate) {
