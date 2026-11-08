@@ -12,6 +12,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ## Unreleased[#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+- Fixed: the pipeline's PROCTOR jobs no longer pass `--policy`, which PROCTOR 0.7 refuses in CI; PROCTOR checks against the CREED policy it bundles.
 - Changed: the GitLab pipeline pins the Preflight components to 0.2.0 (was 0.1.4).
 - Changed: the front page's deploy layer (`deploy/`) pins HELMET `^0.4` (locked 0.4.0) and PROCTOR `^0.7` (locked 0.7.0).
 - Added: the image contract suite checks the hardening inside the running image (SQUIRE-40): after the release, `scripts/contract-image.sh` pipes the new `scripts/contract-image-checks.php` to `php` in the container, which asks Apache for a probe page (`scripts/contract-image-probe.php`, the fixture's `app.php`) and checks the `Server` header, `X-Powered-By`, `TRACE`, the web's opcache and `disable_functions`, the CLI's full function set, a Composer `post-install-cmd` that shells out, and a throwaway secret mounted at `/run/secrets` (seen by the web, named by the release, absent from every log, layer and image config). Green on linux/amd64 locally (23 assertions); GitHub's `contract-image` job runs it on both platforms. The driver's Composer image is pinned by digest.
