@@ -12,6 +12,7 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+- Docs: OPEN_QUESTIONS 13 records the Node every current Citadel image ships (Node 22 from NodeSource, npm bundled, pnpm and yarn through corepack).
 - Changed: the deploy layer requires PROCTOR ^0.8 (locked 0.8.0).
 - Fixed: the front page's Get started prompt wears the site's look (paper card, stitched seam, Arvo title, green buttons) inside the page width; it came out plain white and full-bleed because `squire.css` mapped none of the kit's `--ar-*` tokens.
 - Fixed: the docs kit's mobile menu closes with Escape and puts focus back on its summary (`kit/docs/docs.js`; Enter and Space already toggled it). Other sites get it on their next kit sync.
