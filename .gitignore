@@ -4,3 +4,4 @@
 /.phpunit.cache/
 /.env
 /.env.squire
+/.cache/

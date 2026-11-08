@@ -5,8 +5,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Upgrading | Squire docs</title>
-<meta name="description" content="What changed in the unreleased fixes and each released minor of Squire (0.5.0, 0.4.0 and the 0.3.x line), the steps to move an app to them, and how to verify the upgrade held.">
-<meta name="docs-version" content="0.5.0">
+<meta name="description" content="What changed in each released minor of Squire (0.6.0, 0.5.0, 0.4.0 and the 0.3.x line), the steps to move an app to them, and how to verify the upgrade held.">
+<meta name="docs-version" content="0.6.0">
 <link rel="stylesheet" href="../assets/wayne-ui/wayne-ui.css">
 <link rel="stylesheet" href="../assets/docs.css">
 <link rel="stylesheet" href="../docs/theme/squire.css">
@@ -28,7 +28,7 @@
       <a href="../index.html#party">The party</a>
       <a href="../docs/index.html" aria-current="page">Documentation</a>
     </nav>
-    <span class="brand__version">v0.5.0</span>
+    <span class="brand__version">v0.6.0</span>
   </div>
 </header><div class="docs-layout docs-layout--toc">
   <details class="docs-menu">
@@ -46,9 +46,9 @@
 <p>vendor/bin/squire init --check
 vendor/bin/squire update --dry-run</p>
 <p><code>squire init --check</code> reports when your copies have drifted from the templates; it exits <code>0</code> when they match and <code>1</code> when they have. <code>squire update --dry-run</code> prints the plan and writes nothing; it exits <code>1</code> when an edited file still differs from the template. Exit <code>2</code> means the tool itself could not run. For the full command reference, see <a href="reference/commands.html">Commands</a>.</p>
-<h2 id="unreleased">Unreleased<a class="docs-heading-link" aria-label="Link to this section" href="#unreleased">#</a></h2>
+<h2 id="0-6-0-2026-11-07">0.6.0 (2026-11-07)<a class="docs-heading-link" aria-label="Link to this section" href="#0-6-0-2026-11-07">#</a></h2>
 <h3 id="breaking">Breaking<a class="docs-heading-link" aria-label="Link to this section" href="#breaking">#</a></h3>
-<p>None: the CHANGELOG records no breaking change for the unreleased fixes.</p>
+<p>None: the CHANGELOG records no breaking change for 0.6.0.</p>
 <h3 id="what-changed">What changed<a class="docs-heading-link" aria-label="Link to this section" href="#what-changed">#</a></h3>
 <p><strong>Fixed.</strong> <code>squire update</code> writes the template files a newer release added to a group the kit records: a file the target release has that <code>.squire.json</code> does not list is written from the template, recorded, and printed as added, so one <code>update</code> converges the kit instead of leaving the new files to <code>squire init</code>. A file the app already has is still left alone, and an edited file is still refused and shown as a diff. <code>squire init</code> without <code>--only</code> defaults to the groups the <code>.squire.json</code> records instead of <code>release,parity</code>, so a bare <code>init</code> completes an existing kit without dropping its groups; with no manifest it still writes <code>release,parity</code>, and <code>--only</code> still wins.</p>
 <h3 id="steps">Steps<a class="docs-heading-link" aria-label="Link to this section" href="#steps">#</a></h3>
@@ -120,10 +120,10 @@ vendor/bin/squire update --dry-run</p>
     </main>
     <nav class="docs-pager" aria-label="Pages"><a class="docs-pager__link" href="../docs/troubleshooting.html"><span class="docs-pager__dir">Previous</span><span class="docs-pager__title">Troubleshooting</span></a><a class="docs-pager__link docs-pager__link--next" href="../docs/contributing.html"><span class="docs-pager__dir">Next</span><span class="docs-pager__title">Contributing</span></a></nav>
   </div>
-  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item"><a href="#the-two-checks">The two checks</a></li><li class="docs-toc__item"><a href="#unreleased">Unreleased</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#breaking">Breaking</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#what-changed">What changed</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#steps">Steps</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#how-to-verify">How to verify</a></li><li class="docs-toc__item"><a href="#0-5-0-2026-11-03">0.5.0 (2026-11-03)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#breaking-1">Breaking</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#what-changed-1">What changed</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#steps-1">Steps</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#how-to-verify-1">How to verify</a></li><li class="docs-toc__item"><a href="#0-4-0-2026-11-01">0.4.0 (2026-11-01)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#breaking-2">Breaking</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#what-changed-2">What changed</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#steps-2">Steps</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#how-to-verify-2">How to verify</a></li><li class="docs-toc__item"><a href="#0-3-x-0-3-0-to-0-3-4">0.3.x (0.3.0 to 0.3.4)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#breaking-3">Breaking</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#what-changed-3">What changed</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#steps-3">Steps</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#how-to-verify-3">How to verify</a></li></ul></nav>
+  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item"><a href="#the-two-checks">The two checks</a></li><li class="docs-toc__item"><a href="#0-6-0-2026-11-07">0.6.0 (2026-11-07)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#breaking">Breaking</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#what-changed">What changed</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#steps">Steps</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#how-to-verify">How to verify</a></li><li class="docs-toc__item"><a href="#0-5-0-2026-11-03">0.5.0 (2026-11-03)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#breaking-1">Breaking</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#what-changed-1">What changed</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#steps-1">Steps</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#how-to-verify-1">How to verify</a></li><li class="docs-toc__item"><a href="#0-4-0-2026-11-01">0.4.0 (2026-11-01)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#breaking-2">Breaking</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#what-changed-2">What changed</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#steps-2">Steps</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#how-to-verify-2">How to verify</a></li><li class="docs-toc__item"><a href="#0-3-x-0-3-0-to-0-3-4">0.3.x (0.3.0 to 0.3.4)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#breaking-3">Breaking</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#what-changed-3">What changed</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#steps-3">Steps</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#how-to-verify-3">How to verify</a></li></ul></nav>
 </div>
 <footer class="docs-footer">
-  <span>Documents Squire <span data-docs-version>0.5.0</span></span>
+  <span>Documents Squire <span data-docs-version>0.6.0</span></span>
   <span><a rel="noopener" href="https://github.com/waynestate/squire">Source</a> <a href="upgrading.md">Markdown</a></span>
 </footer>
 </body>
