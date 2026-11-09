@@ -12,6 +12,9 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ## Unreleased[#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+- Docs: MAINTAINING.md records the Code Quality check (SQUIRE-33): the pipeline uploads PROCTOR's findings as a `codequality` report artifact and never uses GitLab's deprecated CodeClimate template, so its planned removal changes nothing; OPEN_QUESTIONS.md names the 0.4.0 Preflight pin and the queue worker that is still missing on Citadel.
+- Changed: the GitHub workflows pin every action by its commit SHA with the version in a comment (`actions/checkout` v4.4.0, `shivammathur/setup-php` 2.40.0, `docker/setup-qemu-action` v3.7.0, `docker/setup-buildx-action` v3.12.0, the same code their moving tags ran), so a moved tag cannot change what CI runs; a test fails on any tag pin.
+
 ## 0.9.0 (2026-11-08)[#](https://squire.apps.wayne.edu/docs/changelog.html#0-9-0-2026-11-08)
 
 - Changed: the release script refuses a Laravel release when APP_KEY is unset or APP_DEBUG is true in production, and warns when APP_ENV is not production (Sourdough practice 4.14).
