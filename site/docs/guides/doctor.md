@@ -6,11 +6,11 @@ llms: https://squire.apps.wayne.edu/llms.txt
 generator: Squire agent-ready
 ---
 
-# Doctor[#](https://squire.apps.wayne.edu/docs/guides/doctor.html#doctor)
+# Doctor [#](https://squire.apps.wayne.edu/docs/guides/doctor.html#doctor)
 
 This page explains what `squire doctor` checks (the S-rules), how it hands off to PROCTOR, and how to read its output and exit codes. Next, read [Update and drift](https://squire.apps.wayne.edu/docs/guides/update-and-drift.html) to fix the template drift doctor reports.
 
-## What it checks[#](https://squire.apps.wayne.edu/docs/guides/doctor.html#what-it-checks)
+## What it checks [#](https://squire.apps.wayne.edu/docs/guides/doctor.html#what-it-checks)
 
 `squire doctor` checks an app against the best practices a machine can decide. It decides the rules below by reading the files in your repository. It never runs your app and never touches a server. A **fail** makes `doctor` exit 1; a **warn** or **info** does not. The numbers (S1 and so on) are the rule numbers from the WELD Citadel best-practices list; the list has more rules than a machine can decide, and those are not here.
 
@@ -18,7 +18,7 @@ Note
 
 `squire doctor` checks deploy setup only; standards checks are PROCTOR's.
 
-## The S-rules[#](https://squire.apps.wayne.edu/docs/guides/doctor.html#the-s-rules)
+## The S-rules [#](https://squire.apps.wayne.edu/docs/guides/doctor.html#the-s-rules)
 
 | Rule | Level | What it checks | Why |
 | --- | --- | --- | --- |
@@ -49,7 +49,7 @@ Note
 | S71 | warn | The local health check uses Citadel's timing (5 minutes, 15 seconds). | A slow `/up` shows up before it ships. |
 | S78 | warn | A Vue app does not track `node_modules/` in git. | Dependencies are rebuilt from the lock file; the tree is not source. |
 
-## Handoff to PROCTOR (S50)[#](https://squire.apps.wayne.edu/docs/guides/doctor.html#handoff-to-proctor-s50)
+## Handoff to PROCTOR (S50) [#](https://squire.apps.wayne.edu/docs/guides/doctor.html#handoff-to-proctor-s50)
 
 The lock file (S13), composer audit and MySQL 5.6 safety (S18) are owned by PROCTOR; `doctor` no longer repeats them and hands off instead (S50). Each check has one owner; PROCTOR owns those, and `doctor` may run where PROCTOR is not installed.
 
@@ -57,7 +57,7 @@ Drift from the Squire templates is reported as a warning under S9, never as a fa
 
 `doctor` is a lint, not a gate. Wire it into CI if you want it to block; Squire does not decide that for you.
 
-## Output[#](https://squire.apps.wayne.edu/docs/guides/doctor.html#output)
+## Output [#](https://squire.apps.wayne.edu/docs/guides/doctor.html#output)
 
 `doctor` prints a text report by default, or a machine-readable one with `--format=json`.
 
@@ -65,6 +65,6 @@ Drift from the Squire templates is reported as a warning under S9, never as a fa
 vendor/bin/squire doctor [--path=.] [--format=text|json]
 ```
 
-## Exit codes[#](https://squire.apps.wayne.edu/docs/guides/doctor.html#exit-codes)
+## Exit codes [#](https://squire.apps.wayne.edu/docs/guides/doctor.html#exit-codes)
 
 Exit codes: `0` pass, `1` findings (`init --check`: drift; `update`: an edited file still differs from the template; `doctor`: a failed rule), `2` the tool itself could not run.

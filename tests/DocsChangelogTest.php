@@ -109,7 +109,7 @@ final class DocsChangelogTest extends SquireTestCase
         self::assertSame(0, $result['code'], $result['stderr']);
         $html = (string) file_get_contents($dir . '/site/docs/changelog.html');
         self::assertSame(1, substr_count($html, '<h1'));
-        self::assertMatchesRegularExpression('#<h1 id="changelog">Changelog#', $html);
+        self::assertStringContainsString('<h1 id="changelog"><span class="docs-heading-tail"><span>Changelog</span><a ', $html);
     }
 
     public function testGeneratedPageIsBuiltIntoTheSite(): void

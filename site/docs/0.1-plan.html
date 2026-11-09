@@ -38,13 +38,13 @@
   <nav class="docs-nav docs-nav--sidebar" aria-label="Documentation"><ul class="docs-nav__list"><li><a href="../docs/index.html">Overview</a></li><li><a href="../docs/install.html">Install</a></li><li class="docs-nav__group"><span class="docs-nav__label">Guides</span><ul><li><a href="../docs/guides/update-and-drift.html">Update and drift</a></li><li><a href="../docs/guides/theming.html">Theming</a></li><li><a href="../docs/guides/quick-start.html">Quick start</a></li><li><a href="../docs/guides/doctor.html">Doctor</a></li><li><a href="../docs/guides/citadel-setup.html">Citadel setup</a></li><li><a href="../docs/guides/queue-workers.html">Queue workers</a></li><li><a href="../docs/guides/local-parity.html">Local parity</a></li><li><a href="../docs/guides/portable-image.html">The portable image</a></li><li><a href="../docs/guides/image-hardening.html">Image hardening</a></li><li><a href="../docs/guides/oracle.html">Oracle</a></li><li><a href="../docs/guides/raw-php-app.html">Raw PHP app</a></li><li><a href="../docs/guides/static-site.html">Static site</a></li><li><a href="../docs/guides/release-script.html">The release script</a></li><li><a href="../docs/guides/agent-ready-kit.html">The agent-ready kit</a></li><li><a href="../docs/guides/advisor.html">Use Squire from your coding agent (ADVISOR)</a></li><li><a href="../docs/guides/docs-builder.html">The docs builder</a></li></ul></li><li class="docs-nav__group"><span class="docs-nav__label">Reference</span><ul><li><a href="../docs/reference/commands.html">Commands</a></li><li><a href="../docs/reference/configuration.html">Configuration</a></li><li><a href="../docs/reference/files.html">Files</a></li><li><a href="../docs/reference/proof.html">Proof</a></li></ul></li><li><a href="../docs/troubleshooting.html">Troubleshooting</a></li><li><a href="../docs/upgrading.html">Upgrading</a></li><li><a href="../docs/contributing.html">Contributing</a></li><li><a href="../docs/0.1-plan.html" aria-current="page">Squire 0.1 plan</a></li><li><a href="../docs/changelog.html">Changelog</a></li></ul></nav>
   <div class="docs-content">
     <main id="main">
-      <article class="docs-article"><h1 id="squire-0-1-plan">Squire 0.1 plan<a class="docs-heading-link" aria-label="Link to this section" href="#squire-0-1-plan">#</a></h1>
+      <article class="docs-article"><h1 id="squire-0-1-plan">Squire 0.1 <span class="docs-heading-tail"><span>plan</span><a class="docs-heading-link" aria-label="Link to this section" href="#squire-0-1-plan">#</a></span></h1>
 <p>Sources: the Squire best-practice rules (S1 to S78), the Citadel facts gathered from a read-only clone of Citadel, and the
 WELD portfolio entry for Squire. This is the plan the 0.1 build followed; <code>OPEN_QUESTIONS.md</code> records where it had to guess.</p>
-<h2 id="goal">Goal<a class="docs-heading-link" aria-label="Link to this section" href="#goal">#</a></h2>
+<h2 id="goal"><span class="docs-heading-tail"><span>Goal</span><a class="docs-heading-link" aria-label="Link to this section" href="#goal">#</a></span></h2>
 <p>A WSU developer with a PHP app (raw PHP or Laravel) runs <code>vendor/bin/squire init</code> and gets the files Citadel needs, plus a
 local setup that behaves like Citadel. <code>vendor/bin/squire doctor</code> tells them which best practices the app breaks.</p>
-<h2 id="shape">Shape<a class="docs-heading-link" aria-label="Link to this section" href="#shape">#</a></h2>
+<h2 id="shape"><span class="docs-heading-tail"><span>Shape</span><a class="docs-heading-link" aria-label="Link to this section" href="#shape">#</a></span></h2>
 <ol>
 <li><strong>A Composer package</strong>, <code>waynestate/squire</code>, PHP <code>^8.3</code>, tested on 8.3, 8.4 and 8.5, with a Symfony Console CLI.</li>
 <li><strong><code>squire init</code></strong> writes the scripts from templates and records a SHA-256 of each file in <code>.squire.json</code>.
@@ -62,7 +62,7 @@ image), <code>scripts/parity.sh</code>, <code>scripts/parity.ps1</code>, <code>.
 <li><strong>Platform proposals.</strong> Squire's maintainers send platform improvement proposals to the platform team privately;
 nothing in this repository touches a server.</li>
 </ol>
-<h2 id="constraints-that-shaped-the-templates">Constraints that shaped the templates<a class="docs-heading-link" aria-label="Link to this section" href="#constraints-that-shaped-the-templates">#</a></h2>
+<h2 id="constraints-that-shaped-the-templates">Constraints that shaped the <span class="docs-heading-tail"><span>templates</span><a class="docs-heading-link" aria-label="Link to this section" href="#constraints-that-shaped-the-templates">#</a></span></h2>
 <ul>
 <li>Citadel runs <code>build.sh</code> with <code>/bin/sh</code> as root, with only that file copied in. So <code>build.sh</code> is POSIX sh and installs
 system packages only. Composer and npm never run there (S1).</li>
@@ -74,7 +74,7 @@ smoke test is on.</li>
 HTTP request and never boots the framework (S55).</li>
 <li>The shared MySQL is 5.6. So the Laravel template and <code>doctor</code> warn about JSON columns and 191 character indexes (S18).</li>
 </ul>
-<h2 id="build-order">Build order<a class="docs-heading-link" aria-label="Link to this section" href="#build-order">#</a></h2>
+<h2 id="build-order">Build <span class="docs-heading-tail"><span>order</span><a class="docs-heading-link" aria-label="Link to this section" href="#build-order">#</a></span></h2>
 <ol>
 <li>Scaffold and CI files (GitLab and GitHub), Pint, PHPStan level 8, PHPUnit.</li>
 <li>Template catalog, manifest, <code>init</code> and <code>--check</code>.</li>
@@ -84,7 +84,7 @@ HTTP request and never boots the framework (S55).</li>
 <li>Shell and PowerShell linting in Docker (shellcheck, PSScriptAnalyzer).</li>
 <li>README, best practices, changelog, open questions.</li>
 </ol>
-<h2 id="done-means">Done means<a class="docs-heading-link" aria-label="Link to this section" href="#done-means">#</a></h2>
+<h2 id="done-means">Done <span class="docs-heading-tail"><span>means</span><a class="docs-heading-link" aria-label="Link to this section" href="#done-means">#</a></span></h2>
 <p><code>composer ci</code> passes in Docker, the shell templates pass shellcheck, the PowerShell passes PSScriptAnalyzer, the parity kit
 has been brought up once with a healthy app behind the proxy, and every guess is in <code>OPEN_QUESTIONS.md</code>.</p>
 </article>

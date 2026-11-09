@@ -38,10 +38,10 @@
   <nav class="docs-nav docs-nav--sidebar" aria-label="Documentation"><ul class="docs-nav__list"><li><a href="../../docs/index.html">Overview</a></li><li><a href="../../docs/install.html">Install</a></li><li class="docs-nav__group"><span class="docs-nav__label">Guides</span><ul><li><a href="../../docs/guides/update-and-drift.html">Update and drift</a></li><li><a href="../../docs/guides/theming.html" aria-current="page">Theming</a></li><li><a href="../../docs/guides/quick-start.html">Quick start</a></li><li><a href="../../docs/guides/doctor.html">Doctor</a></li><li><a href="../../docs/guides/citadel-setup.html">Citadel setup</a></li><li><a href="../../docs/guides/queue-workers.html">Queue workers</a></li><li><a href="../../docs/guides/local-parity.html">Local parity</a></li><li><a href="../../docs/guides/portable-image.html">The portable image</a></li><li><a href="../../docs/guides/image-hardening.html">Image hardening</a></li><li><a href="../../docs/guides/oracle.html">Oracle</a></li><li><a href="../../docs/guides/raw-php-app.html">Raw PHP app</a></li><li><a href="../../docs/guides/static-site.html">Static site</a></li><li><a href="../../docs/guides/release-script.html">The release script</a></li><li><a href="../../docs/guides/agent-ready-kit.html">The agent-ready kit</a></li><li><a href="../../docs/guides/advisor.html">Use Squire from your coding agent (ADVISOR)</a></li><li><a href="../../docs/guides/docs-builder.html">The docs builder</a></li></ul></li><li class="docs-nav__group"><span class="docs-nav__label">Reference</span><ul><li><a href="../../docs/reference/commands.html">Commands</a></li><li><a href="../../docs/reference/configuration.html">Configuration</a></li><li><a href="../../docs/reference/files.html">Files</a></li><li><a href="../../docs/reference/proof.html">Proof</a></li></ul></li><li><a href="../../docs/troubleshooting.html">Troubleshooting</a></li><li><a href="../../docs/upgrading.html">Upgrading</a></li><li><a href="../../docs/contributing.html">Contributing</a></li><li><a href="../../docs/0.1-plan.html">Squire 0.1 plan</a></li><li><a href="../../docs/changelog.html">Changelog</a></li></ul></nav>
   <div class="docs-content">
     <main id="main">
-      <article class="docs-article"><h1 id="theming-your-docs">Theming your docs<a class="docs-heading-link" aria-label="Link to this section" href="#theming-your-docs">#</a></h1>
+      <article class="docs-article"><h1 id="theming-your-docs">Theming your <span class="docs-heading-tail"><span>docs</span><a class="docs-heading-link" aria-label="Link to this section" href="#theming-your-docs">#</a></span></h1>
 <p>A squire swaps the livery without touching the armor: this page shows how to point the docs builder at your own CSS and header. Read <a href="docs-builder.html">Building the docs</a> first if you have not met the builder, then add the two files below.</p>
 <aside class="docs-callout docs-callout--note" role="note"><p class="docs-callout__label">Note</p><p>The <code>theme</code> key is on a branch and not in a release yet. It is coming in the next release.</p></aside>
-<h2 id="the-theme-key">The theme key<a class="docs-heading-link" aria-label="Link to this section" href="#the-theme-key">#</a></h2>
+<h2 id="the-theme-key">The theme <span class="docs-heading-tail"><span>key</span><a class="docs-heading-link" aria-label="Link to this section" href="#the-theme-key">#</a></span></h2>
 <p>Add a <code>theme</code> key to <code>docs/docs.json</code> with two paths, <code>css</code> and <code>header</code>. Both paths are relative to the folder that holds <code>docs.json</code>.</p>
 <pre tabindex="0"><code class="language-json">{
     &quot;theme&quot;: {
@@ -50,12 +50,12 @@
     }
 }
 </code></pre>
-<h2 id="what-the-builder-does">What the builder does<a class="docs-heading-link" aria-label="Link to this section" href="#what-the-builder-does">#</a></h2>
+<h2 id="what-the-builder-does">What the builder <span class="docs-heading-tail"><span>does</span><a class="docs-heading-link" aria-label="Link to this section" href="#what-the-builder-does">#</a></span></h2>
 <p>The builder copies your CSS file to <code>site/docs/theme/</code>. Dark mode, fonts and colors live in that theme CSS, and the kit's <code>docs.css</code> is never edited.</p>
-<h2 id="placeholders-and-links">Placeholders and links<a class="docs-heading-link" aria-label="Link to this section" href="#placeholders-and-links">#</a></h2>
+<h2 id="placeholders-and-links">Placeholders and <span class="docs-heading-tail"><span>links</span><a class="docs-heading-link" aria-label="Link to this section" href="#placeholders-and-links">#</a></span></h2>
 <p>The header file takes exactly two placeholders, <code>{{project}}</code> and <code>{{version}}</code>. Any other placeholder fails the build with exit 2. Write header links relative to <code>site/</code>, not relative to <code>docs/</code>.</p>
 <p>The front page can carry the same version. Put <code>data-docs-version</code> on the element that holds it, in any top-level <code>site/*.html</code> page, and leave only the version text inside: <code>&lt;span class=&quot;brand__version&quot; data-docs-version&gt;0.6.0&lt;/span&gt;</code>. A plain build writes the docs stamp there, and <code>--check</code> reports the page stale after a release until you rebuild. Words around the number (Rev, Sheet, v) stay outside the element.</p>
-<h2 id="checklist">Checklist<a class="docs-heading-link" aria-label="Link to this section" href="#checklist">#</a></h2>
+<h2 id="checklist"><span class="docs-heading-tail"><span>Checklist</span><a class="docs-heading-link" aria-label="Link to this section" href="#checklist">#</a></span></h2>
 <ul>
 <li><label class="docs-task"><input disabled="" type="checkbox"> <code>docs/docs.json</code> has a <code>theme</code> key with <code>css</code> and <code>header</code>.</label></li>
 <li><label class="docs-task"><input disabled="" type="checkbox"> Both paths are relative to the folder that holds <code>docs.json</code>.</label></li>
@@ -64,7 +64,7 @@
 <li><label class="docs-task"><input disabled="" type="checkbox"> Header links are relative to <code>site/</code>.</label></li>
 <li><label class="docs-task"><input disabled="" type="checkbox"> The front page's version chip carries <code>data-docs-version</code>, so it matches the docs.</label></li>
 </ul>
-<h2 id="a-worked-example">A worked example<a class="docs-heading-link" aria-label="Link to this section" href="#a-worked-example">#</a></h2>
+<h2 id="a-worked-example">A worked <span class="docs-heading-tail"><span>example</span><a class="docs-heading-link" aria-label="Link to this section" href="#a-worked-example">#</a></span></h2>
 <p>These pages are one. Squire's <code>docs/docs.json</code> names <code>theme/squire.css</code> and <code>_header.html</code>: the header is the front page's masthead, and the CSS maps the front page's canvas, leather and gold onto the kit's <code>--dk-*</code> tokens, then adds the luggage tags, the stitched seams and a derived dark set. Read those two files in the repository for a theme that passes the accessibility gate in light and dark.</p>
 <p>The rest of the builder is in <a href="docs-builder.html">Building the docs</a>.</p>
 </article>

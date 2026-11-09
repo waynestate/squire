@@ -6,7 +6,7 @@ llms: https://squire.apps.wayne.edu/llms.txt
 generator: Squire agent-ready
 ---
 
-# Configuration reference[#](https://squire.apps.wayne.edu/docs/reference/configuration.html#configuration-reference)
+# Configuration reference [#](https://squire.apps.wayne.edu/docs/reference/configuration.html#configuration-reference)
 
 Every `SQUIRE_*` setting Squire reads, grouped by the script that reads it, with the file each group lives in and its default. All settings are optional. Next, see [Commands](https://squire.apps.wayne.edu/docs/reference/commands.html) for the CLI flags and [Files](https://squire.apps.wayne.edu/docs/reference/files.html) for what Squire writes.
 
@@ -14,7 +14,7 @@ Warning
 
 A real environment variable wins. `release.sh` reads the release options from the file, but a variable already in the environment wins. Locally, the same file holds the parity settings.
 
-## Where the settings live[#](https://squire.apps.wayne.edu/docs/reference/configuration.html#where-the-settings-live)
+## Where the settings live [#](https://squire.apps.wayne.edu/docs/reference/configuration.html#where-the-settings-live)
 
 All optional. On Citadel, add `./.env.squire` as a configuration file (the configuration-files step after the wizard; the wizard has no environment field) and keep it out of git. `release.sh` reads the release options from it, and a variable already in the environment wins. Locally, the same file holds the parity settings.
 
@@ -26,7 +26,7 @@ All optional. On Citadel, add `./.env.squire` as a configuration file (the confi
 | Local parity | the parity compose file | `.env.squire` (see `.env.squire.example`; it holds placeholders only) |
 | Portable image | `.squire/portable/squire-entrypoint.sh`, `docker build` | the container's environment, and build arguments |
 
-## Release script (`scripts/release.sh`)[#](https://squire.apps.wayne.edu/docs/reference/configuration.html#release-script-scripts-release-sh)
+## Release script (`scripts/release.sh`) [#](https://squire.apps.wayne.edu/docs/reference/configuration.html#release-script-scripts-release-sh)
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
@@ -55,14 +55,14 @@ All optional. On Citadel, add `./.env.squire` as a configuration file (the confi
 | `SQUIRE_SMOKE_DELAY` | `2` | Seconds between attempts. |
 | `SQUIRE_SECRETS_DIR` | `/run/secrets` | A folder of secret files, read before the first step: each regular file named like a variable (`DB_PASSWORD`) becomes that variable, unless the environment already sets it. Only names are printed. The fallback entrypoint reads the same folder for Apache. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html). |
 
-## Front controller[#](https://squire.apps.wayne.edu/docs/reference/configuration.html#front-controller)
+## Front controller [#](https://squire.apps.wayne.edu/docs/reference/configuration.html#front-controller)
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
 | `SQUIRE_APP_ENTRY` | `app.php` | Front controller (raw `public/index.php`): the app's entry, relative to the app directory. |
 | `SQUIRE_STATIC_ROOT` | `../../site` | Static `public/index.php`: the site folder. |
 
-## Health check (`health.php`)[#](https://squire.apps.wayne.edu/docs/reference/configuration.html#health-check-health-php)
+## Health check (`health.php`) [#](https://squire.apps.wayne.edu/docs/reference/configuration.html#health-check-health-php)
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
@@ -72,7 +72,7 @@ All optional. On Citadel, add `./.env.squire` as a configuration file (the confi
 | `SQUIRE_HEALTH_VENDOR` | `1` also requires `vendor/autoload.php` | Whether the health check also requires the autoloader. |
 | `SQUIRE_APP_DIR` | the folder `health.php` is in | The app root the check reads (`artisan`, `vendor/`). The portable image sets `/citadel/src`, so a kit in a subfolder checks the app it serves. |
 
-## Portable image (`.squire/portable.Dockerfile`)[#](https://squire.apps.wayne.edu/docs/reference/configuration.html#portable-image-squire-portable-dockerfile)
+## Portable image (`.squire/portable.Dockerfile`) [#](https://squire.apps.wayne.edu/docs/reference/configuration.html#portable-image-squire-portable-dockerfile)
 
 The entrypoint reads these when a container starts; the build arguments are read at `docker build`. Citadel never reads either. See [The portable image](https://squire.apps.wayne.edu/docs/guides/portable-image.html).
 
@@ -90,7 +90,7 @@ The entrypoint reads these when a container starts; the build arguments are read
 | `SQUIRE_WRITABLE_DIRS` (build argument) | Laravel: `storage bootstrap/cache` | Folders handed to group 0 and made group-writable, separated by spaces. |
 | `SQUIRE_OPCACHE_VALIDATE` (build argument) | `0` | Baked code: opcache never checks files. A run-time `1` still wins. |
 
-## PHP in the image (`.squire/php.ini`)[#](https://squire.apps.wayne.edu/docs/reference/configuration.html#php-in-the-image-squire-php-ini)
+## PHP in the image (`.squire/php.ini`) [#](https://squire.apps.wayne.edu/docs/reference/configuration.html#php-in-the-image-squire-php-ini)
 
 PHP reads these from the container's environment when it starts (PHP 8.3 and later). The parity compose file passes `SQUIRE_OPCACHE_VALIDATE` and `SQUIRE_PHP_DISABLE_FUNCTIONS` from `.env.squire`; on Citadel the platform's own `php.ini` decides. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html).
 
@@ -101,7 +101,7 @@ PHP reads these from the container's environment when it starts (PHP 8.3 and lat
 | `SQUIRE_OPCACHE_MAX_FILES` | `20000` | How many scripts opcache keeps. |
 | `SQUIRE_PHP_DISABLE_FUNCTIONS` | `exec,passthru,shell_exec,system,pcntl_exec,phpinfo,show_source,highlight_file` | The web's `disable_functions` list (`.squire/php-web.ini`; the CLI disables nothing). It replaces the list; `none` disables nothing. Leave it unset for the default: an empty value disables nothing too. |
 
-## Local parity (`.env.squire`)[#](https://squire.apps.wayne.edu/docs/reference/configuration.html#local-parity-env-squire)
+## Local parity (`.env.squire`) [#](https://squire.apps.wayne.edu/docs/reference/configuration.html#local-parity-env-squire)
 
 | Variable | Default | Meaning |
 | --- | --- | --- |

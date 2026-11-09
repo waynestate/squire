@@ -6,11 +6,11 @@ llms: https://squire.apps.wayne.edu/llms.txt
 generator: Squire agent-ready
 ---
 
-# Update and drift[#](https://squire.apps.wayne.edu/docs/guides/update-and-drift.html#update-and-drift)
+# Update and drift [#](https://squire.apps.wayne.edu/docs/guides/update-and-drift.html#update-and-drift)
 
 This page explains how Squire tracks the files it writes (the `.squire.json` SHA-256 record), how `init --check` reports drift, how `squire update` moves your copies forward, and how Sourdough keeps its copy of the templates in step. Next, read [Commands](https://squire.apps.wayne.edu/docs/reference/commands.html) for the full flag reference.
 
-## The `.squire.json` record[#](https://squire.apps.wayne.edu/docs/guides/update-and-drift.html#the-squire-json-record)
+## The `.squire.json` record [#](https://squire.apps.wayne.edu/docs/guides/update-and-drift.html#the-squire-json-record)
 
 `init` records a SHA-256 of each file it writes in `.squire.json`; commit that file. The record is what lets Squire tell the files you never edited from the ones you did.
 
@@ -33,7 +33,7 @@ vendor/bin/squire update [--path=.] [--target=raw|laravel|static] [--only=releas
 
 `init` never overwrites a file you edited, or a file it did not write, unless you pass `--force`. An app that already has its own `public/index.php` or `public/.htaccess` keeps it: `init` reports the file as `app-owned`, never records or overwrites it (not even with `--force`), and `init --check` does not count it as drift. Delete your copy and run `init` to take Squire's. A front controller Squire wrote is tracked like any other file.
 
-## Sourdough's copy of the templates[#](https://squire.apps.wayne.edu/docs/guides/update-and-drift.html#sourdough-s-copy-of-the-templates)
+## Sourdough's copy of the templates [#](https://squire.apps.wayne.edu/docs/guides/update-and-drift.html#sourdough-s-copy-of-the-templates)
 
 Sourdough carries a generated copy of Squire's deploy templates instead of writing its own. The copy began when its apps could not `composer require` Squire from an internal repository (no internal URLs may be committed). Squire is on Packagist now, and Sourdough requires it as a dev dependency and regenerates its copy from the package. Squire owns the templates; the copy is checked in and verified, never hand-edited.
 

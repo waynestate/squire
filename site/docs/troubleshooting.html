@@ -38,10 +38,10 @@
   <nav class="docs-nav docs-nav--sidebar" aria-label="Documentation"><ul class="docs-nav__list"><li><a href="../docs/index.html">Overview</a></li><li><a href="../docs/install.html">Install</a></li><li class="docs-nav__group"><span class="docs-nav__label">Guides</span><ul><li><a href="../docs/guides/update-and-drift.html">Update and drift</a></li><li><a href="../docs/guides/theming.html">Theming</a></li><li><a href="../docs/guides/quick-start.html">Quick start</a></li><li><a href="../docs/guides/doctor.html">Doctor</a></li><li><a href="../docs/guides/citadel-setup.html">Citadel setup</a></li><li><a href="../docs/guides/queue-workers.html">Queue workers</a></li><li><a href="../docs/guides/local-parity.html">Local parity</a></li><li><a href="../docs/guides/portable-image.html">The portable image</a></li><li><a href="../docs/guides/image-hardening.html">Image hardening</a></li><li><a href="../docs/guides/oracle.html">Oracle</a></li><li><a href="../docs/guides/raw-php-app.html">Raw PHP app</a></li><li><a href="../docs/guides/static-site.html">Static site</a></li><li><a href="../docs/guides/release-script.html">The release script</a></li><li><a href="../docs/guides/agent-ready-kit.html">The agent-ready kit</a></li><li><a href="../docs/guides/advisor.html">Use Squire from your coding agent (ADVISOR)</a></li><li><a href="../docs/guides/docs-builder.html">The docs builder</a></li></ul></li><li class="docs-nav__group"><span class="docs-nav__label">Reference</span><ul><li><a href="../docs/reference/commands.html">Commands</a></li><li><a href="../docs/reference/configuration.html">Configuration</a></li><li><a href="../docs/reference/files.html">Files</a></li><li><a href="../docs/reference/proof.html">Proof</a></li></ul></li><li><a href="../docs/troubleshooting.html" aria-current="page">Troubleshooting</a></li><li><a href="../docs/upgrading.html">Upgrading</a></li><li><a href="../docs/contributing.html">Contributing</a></li><li><a href="../docs/0.1-plan.html">Squire 0.1 plan</a></li><li><a href="../docs/changelog.html">Changelog</a></li></ul></nav>
   <div class="docs-content">
     <main id="main">
-      <article class="docs-article"><h1 id="troubleshooting">Troubleshooting<a class="docs-heading-link" aria-label="Link to this section" href="#troubleshooting">#</a></h1>
+      <article class="docs-article"><h1 id="troubleshooting"><span class="docs-heading-tail"><span>Troubleshooting</span><a class="docs-heading-link" aria-label="Link to this section" href="#troubleshooting">#</a></span></h1>
 <p>Symptoms you may meet setting up a Squire app, each with its cause, a fix and a check command. Only what the README and the open questions ground is listed here. Next, see <a href="guides/doctor.html">Doctor</a> for the full rule list and <a href="guides/local-parity.html">Local parity</a> for the parity setup.</p>
-<h2 id="symptoms">Symptoms<a class="docs-heading-link" aria-label="Link to this section" href="#symptoms">#</a></h2>
-<h3 id="the-first-release-stops-at-step-1-composer-json-not-found">The first release stops at step 1: composer.json not found<a class="docs-heading-link" aria-label="Link to this section" href="#the-first-release-stops-at-step-1-composer-json-not-found">#</a></h3>
+<h2 id="symptoms"><span class="docs-heading-tail"><span>Symptoms</span><a class="docs-heading-link" aria-label="Link to this section" href="#symptoms">#</a></span></h2>
+<h3 id="the-first-release-stops-at-step-1-composer-json-not-found">The first release stops at step 1: composer.json not <span class="docs-heading-tail"><span>found</span><a class="docs-heading-link" aria-label="Link to this section" href="#the-first-release-stops-at-step-1-composer-json-not-found">#</a></span></h3>
 <p>Cause: <code>scripts/release.sh</code> installs from the lock file, so it requires <code>composer.json</code> and <code>composer.lock</code> in the app root and stops at step 1 (check preconditions) without them. A raw PHP app that never used Composer has neither. <code>squire init</code> prints a &quot;Heads up&quot; line when it writes the release into such an app.</p>
 <p>Fix: give the app the two files, even with no dependencies, and commit both: <code>composer init</code> writes <code>composer.json</code>, then <code>composer update</code> writes <code>composer.lock</code>.</p>
 <p>Check:</p>
@@ -49,7 +49,7 @@
 <pre tabindex="0"><code class="language-sh">ls composer.json composer.lock
 vendor/bin/squire init --check
 </code></pre>
-<h3 id="permission-error-writing-vendor">Permission error writing vendor/<a class="docs-heading-link" aria-label="Link to this section" href="#permission-error-writing-vendor">#</a></h3>
+<h3 id="permission-error-writing-vendor">Permission error writing <span class="docs-heading-tail"><span>vendor/</span><a class="docs-heading-link" aria-label="Link to this section" href="#permission-error-writing-vendor">#</a></span></h3>
 <p>Cause: on the first end-to-end run, the release hook failed with <code>Permission denied</code> writing <code>vendor/composer/installed.json</code> because the source folder (created on the host by another tool, owned by root) was not writable by the container's <code>citadel</code> user (OPEN_QUESTIONS 15). If the build step fails with a permission error writing <code>vendor/</code>, the source folder is not writable by the container's <code>citadel</code> user (uid 1000 by default).</p>
 <p>Fix: on Linux set <code>SQUIRE_SOURCE_UID</code> and <code>SQUIRE_SOURCE_GID</code> to yours. After making it writable the hook ran, the app became healthy and the proxy answered. Not solved for Docker Desktop folders that are root-owned.</p>
 <p>Check:</p>
@@ -57,7 +57,7 @@ vendor/bin/squire init --check
 <pre tabindex="0"><code class="language-sh">ls -ld &lt;your-source-folder&gt;
 scripts/parity.sh status
 </code></pre>
-<h3 id="uid-or-gid-mismatch-between-host-and-container">uid or gid mismatch between host and container<a class="docs-heading-link" aria-label="Link to this section" href="#uid-or-gid-mismatch-between-host-and-container">#</a></h3>
+<h3 id="uid-or-gid-mismatch-between-host-and-container">uid or gid mismatch between host and <span class="docs-heading-tail"><span>container</span><a class="docs-heading-link" aria-label="Link to this section" href="#uid-or-gid-mismatch-between-host-and-container">#</a></span></h3>
 <p>Cause: the parity container runs as the <code>citadel</code> user, uid 1000 by default. When your host user does not match, the mounted source is not writable and the release hook fails with <code>Permission denied</code> (OPEN_QUESTIONS 15).</p>
 <p>Fix: set <code>SQUIRE_SOURCE_UID</code> and <code>SQUIRE_SOURCE_GID</code> in <code>.env.squire</code> to your host uid and gid, then bring the stack back up.</p>
 <p>Check:</p>
@@ -66,14 +66,14 @@ scripts/parity.sh status
 id -g
 scripts/parity.sh status
 </code></pre>
-<h3 id="init-refuses-to-overwrite-a-file">init refuses to overwrite a file<a class="docs-heading-link" aria-label="Link to this section" href="#init-refuses-to-overwrite-a-file">#</a></h3>
+<h3 id="init-refuses-to-overwrite-a-file">init refuses to overwrite a <span class="docs-heading-tail"><span>file</span><a class="docs-heading-link" aria-label="Link to this section" href="#init-refuses-to-overwrite-a-file">#</a></span></h3>
 <p>Cause: <code>init</code> never overwrites a file you edited, or a file it did not write, unless you pass <code>--force</code>. An app-owned <code>public/index.php</code> or <code>public/.htaccess</code> is reported as <code>app-owned</code>, never recorded or overwritten (not even with <code>--force</code>).</p>
 <p>Fix: delete your copy and run <code>init</code> to take Squire's, or pass <code>--force</code> for a file Squire wrote.</p>
 <p>Check:</p>
 <!-- docs-test: skip needs a real project -->
 <pre tabindex="0"><code class="language-sh">vendor/bin/squire init --check
 </code></pre>
-<h3 id="doctor-exit-codes">doctor exit codes<a class="docs-heading-link" aria-label="Link to this section" href="#doctor-exit-codes">#</a></h3>
+<h3 id="doctor-exit-codes">doctor exit <span class="docs-heading-tail"><span>codes</span><a class="docs-heading-link" aria-label="Link to this section" href="#doctor-exit-codes">#</a></span></h3>
 <p>Cause: <code>doctor</code> ends with <code>0</code> pass, <code>1</code> findings (a failed rule), <code>2</code> the tool itself could not run.</p>
 <p>Fix: for <code>1</code>, read the findings and fix the failed rules. For <code>2</code>, the tool could not run at all, so check your PHP setup before anything else.</p>
 <p>Check:</p>
@@ -81,21 +81,21 @@ scripts/parity.sh status
 <pre tabindex="0"><code class="language-sh">vendor/bin/squire doctor --format=json
 echo $?
 </code></pre>
-<h3 id="bind-mounts-on-windows">Bind mounts on Windows<a class="docs-heading-link" aria-label="Link to this section" href="#bind-mounts-on-windows">#</a></h3>
+<h3 id="bind-mounts-on-windows">Bind mounts on <span class="docs-heading-tail"><span>Windows</span><a class="docs-heading-link" aria-label="Link to this section" href="#bind-mounts-on-windows">#</a></span></h3>
 <p>Cause: bind mounts from the Windows side are much slower (Composer and npm installs feel it most), and file ownership and permissions do not map cleanly; that is the cause of the <code>Permission denied</code> failure described under the bind-mount question (OPEN_QUESTIONS 15).</p>
 <p>Fix: keep the app's source tree inside the WSL 2 Linux filesystem (for example under <code>~/src</code> in your WSL distribution) and run <code>scripts/parity.sh</code> from there, not from a Windows folder such as <code>C:\Users\you\...</code> reached through <code>/mnt/c</code>. Advice, not a requirement. The PowerShell <code>scripts\parity.ps1</code> still works from a Windows folder, only slower.</p>
 <p>Check:</p>
 <!-- docs-test: skip needs a real project -->
 <pre tabindex="0"><code class="language-sh">scripts/parity.sh status
 </code></pre>
-<h3 id="no-access-to-the-real-image">No access to the real image<a class="docs-heading-link" aria-label="Link to this section" href="#no-access-to-the-real-image">#</a></h3>
+<h3 id="no-access-to-the-real-image">No access to the real <span class="docs-heading-tail"><span>image</span><a class="docs-heading-link" aria-label="Link to this section" href="#no-access-to-the-real-image">#</a></span></h3>
 <p>Cause: the real Citadel image is internal and has no pullable digest to pin (OPEN_QUESTIONS 19 and the missing configuration list).</p>
 <p>Fix: <code>--fallback</code> builds an approximation from the official <code>php</code> image plus Citadel's extensions. It is good for trying Squire out and not for proving parity.</p>
 <p>Check:</p>
 <!-- docs-test: skip needs a real project -->
 <pre tabindex="0"><code class="language-sh">scripts/parity.sh up --fallback
 </code></pre>
-<h3 id="scripts-lose-their-executable-bit-on-windows">Scripts lose their executable bit on Windows<a class="docs-heading-link" aria-label="Link to this section" href="#scripts-lose-their-executable-bit-on-windows">#</a></h3>
+<h3 id="scripts-lose-their-executable-bit-on-windows">Scripts lose their executable bit on <span class="docs-heading-tail"><span>Windows</span><a class="docs-heading-link" aria-label="Link to this section" href="#scripts-lose-their-executable-bit-on-windows">#</a></span></h3>
 <p>Cause: Git on Windows does not keep the executable bit (OPEN_QUESTIONS 11).</p>
 <p>Fix: mark the scripts executable in git.</p>
 <!-- docs-test: skip needs a real project -->
@@ -105,7 +105,7 @@ echo $?
 <!-- docs-test: skip needs a real project -->
 <pre tabindex="0"><code class="language-sh">git ls-files -s build.sh scripts/*.sh deployments/*.sh
 </code></pre>
-<h3 id="parity-compose-refuses-to-start">Parity compose refuses to start<a class="docs-heading-link" aria-label="Link to this section" href="#parity-compose-refuses-to-start">#</a></h3>
+<h3 id="parity-compose-refuses-to-start">Parity compose refuses to <span class="docs-heading-tail"><span>start</span><a class="docs-heading-link" aria-label="Link to this section" href="#parity-compose-refuses-to-start">#</a></span></h3>
 <p>Cause: <code>.env.squire.example</code> holds <code>change-me-local-only</code> placeholders, and the compose file refuses to start without the two passwords.</p>
 <p>Fix: copy the example to <code>.env.squire</code> and set the passwords.</p>
 <!-- docs-test: skip needs a real project -->
@@ -115,7 +115,7 @@ echo $?
 <!-- docs-test: skip needs a real project -->
 <pre tabindex="0"><code class="language-sh">scripts/parity.sh status
 </code></pre>
-<h3 id="a-full-update-does-not-refresh-vendor">A full Update does not refresh vendor/<a class="docs-heading-link" aria-label="Link to this section" href="#a-full-update-does-not-refresh-vendor">#</a></h3>
+<h3 id="a-full-update-does-not-refresh-vendor">A full Update does not refresh <span class="docs-heading-tail"><span>vendor/</span><a class="docs-heading-link" aria-label="Link to this section" href="#a-full-update-does-not-refresh-vendor">#</a></span></h3>
 <p>Cause: deployment hooks run once per app lifetime, so a changed <code>composer.lock</code> on a full Update has no install step (OPEN_QUESTIONS 2).</p>
 <p>Fix: tell teams to also use <code>scripts/release.sh</code> as the Quick Update post-script. Needs a Citadel maintainer's answer.</p>
 <p>Check:</p>

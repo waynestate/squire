@@ -6,11 +6,11 @@ llms: https://squire.apps.wayne.edu/llms.txt
 generator: Squire agent-ready
 ---
 
-# Oracle[#](https://squire.apps.wayne.edu/docs/guides/oracle.html#oracle)
+# Oracle [#](https://squire.apps.wayne.edu/docs/guides/oracle.html#oracle)
 
 This page covers the plain-language Oracle connection check that `release.sh` runs on Citadel and that `squire doctor oracle` runs from your terminal, and the two opt-in Oracle-ready Docker images Squire ships for local work. Next, read [Citadel setup](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html) to wire the release script into the dashboard, or [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html) to run the app on the real images.
 
-## The connection check[#](https://squire.apps.wayne.edu/docs/guides/oracle.html#the-connection-check)
+## The connection check [#](https://squire.apps.wayne.edu/docs/guides/oracle.html#the-connection-check)
 
 The release runs an Oracle connection check (`oracle-check.php`) after PROCTOR and before the smoke test. It is a report, never a gate: a finding prints in the deployment log and the release goes on. When the app does not use Oracle (no `ORACLE_*` settings) it prints nothing.
 
@@ -30,7 +30,7 @@ Settings: `ORACLE_USERNAME`, `ORACLE_PASSWORD`, and either `ORACLE_TNS` (Easy Co
 
 `vendor/bin/squire doctor oracle` runs the same plain-language Oracle connection check that `release.sh` runs on Citadel, from your terminal or `sail php vendor/bin/squire doctor oracle`. It reads the `ORACLE_*` settings from the environment and the app's `.env`, prints setting names and never values, and stays silent when the app has no Oracle settings. Add `-v` for the client version.
 
-## Oracle-ready images (local)[#](https://squire.apps.wayne.edu/docs/guides/oracle.html#oracle-ready-images-local)
+## Oracle-ready images (local) [#](https://squire.apps.wayne.edu/docs/guides/oracle.html#oracle-ready-images-local)
 
 Apps that talk to Oracle need the Instant Client and the `oci8` extension. Squire ships two opt-in Docker recipes that carry both, so nobody compiles them by hand:
 

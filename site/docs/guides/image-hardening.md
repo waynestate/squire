@@ -6,13 +6,13 @@ llms: https://squire.apps.wayne.edu/llms.txt
 generator: Squire agent-ready
 ---
 
-# Image hardening[#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#image-hardening)
+# Image hardening [#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#image-hardening)
 
 This page lists what the kit's images harden, where each setting lives, and the switch that turns it down when an app needs that. Every item has a test that reads the file, and the [image contract suite](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#the-image-contract-suite) checks it again inside the built image. Read [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html) first for the images themselves.
 
 Two kinds of file carry the hardening. The **base** (`.squire/base-fallback.Dockerfile`) stands in for the Citadel image; what it sets is what Squire asks the real image to set, and the real image keeps deciding on Citadel. The **app image** (`.squire/Dockerfile`) is the local copy of the Dockerfile Citadel generates, and runs on either base.
 
-## Apache: a quieter banner, no TRACE[#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#apache-a-quieter-banner-no-trace)
+## Apache: a quieter banner, no TRACE [#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#apache-a-quieter-banner-no-trace)
 
 The base enables `.squire/apache-hardening.conf` as `zz-squire-hardening.conf`, so it loads after Debian's `security.conf`, which ships `ServerTokens OS` and `ServerSignature On`:
 
@@ -24,7 +24,7 @@ The base enables `.squire/apache-hardening.conf` as `zz-squire-hardening.conf`, 
 
 These live in the base, never in the app image: locally the app image also runs on the real Citadel image, and hardening it there would show a parity the platform does not have.
 
-## opcache: set by how your code arrives[#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#opcache-set-by-how-your-code-arrives)
+## opcache: set by how your code arrives [#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#opcache-set-by-how-your-code-arrives)
 
 `.squire/php.ini` turns opcache on for the web (`opcache.enable = 1`, `opcache.enable_cli = 0`), and the fallback base loads the extension when its image does not already. Whether opcache looks at your files again depends on how the code gets into the container, so there are two cases and one switch, `SQUIRE_OPCACHE_VALIDATE`:
 
@@ -49,7 +49,7 @@ Note
 
 On Citadel the platform's own `php.ini` decides, not this file. Ask for the same as the kit's default: `validate_timestamps` on, `revalidate_freq` 2, because a Quick Update pulls code into the running container.
 
-## disable_functions: the web loses the shell[#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#disable-functions-the-web-loses-the-shell)
+## disable_functions: the web loses the shell [#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#disable-functions-the-web-loses-the-shell)
 
 A web request should never shell out. `.squire/php-web.ini` holds the settings only the web server gets, and the app image appends it to `php.ini` as `php-apache2handler.ini`, the file mod_php reads instead of `php.ini`. The CLI reads `php.ini` alone, so Composer and its scripts, artisan, queue workers, the health check and the release script keep every function.
 
@@ -69,7 +69,7 @@ Note
 
 Like opcache, this is the kit's request: on Citadel the platform's own `php.ini` decides. A local run is stricter than Citadel until the platform adopts the list, which is the safe direction: an app that works locally works there.
 
-## Secrets: files at run time, never in a layer[#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#secrets-files-at-run-time-never-in-a-layer)
+## Secrets: files at run time, never in a layer [#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#secrets-files-at-run-time-never-in-a-layer)
 
 An image layer is readable by anyone who can pull the image, and `docker history` shows every build argument. So no secret is ever a build argument, an `ENV` line, a copied file, or something `build.sh` fetches. Tests hold the kit to it: the Dockerfiles carry no `ARG` or `ENV` named like a password, key, token or secret, the build context is `build.sh` and `.squire/` only (the `.dockerignore` starts with `*` and never lets an env file back in), and `build.sh` never reads `.env`.
 
@@ -101,7 +101,7 @@ Note
 
 The real Citadel image's entrypoint does not read `/run/secrets`; on Citadel, `./.env` is the secret path. Keep `./.env` and any `secrets/` folder out of git.
 
-## npm: no install scripts, no day-old versions[#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#npm-no-install-scripts-no-day-old-versions)
+## npm: no install scripts, no day-old versions [#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#npm-no-install-scripts-no-day-old-versions)
 
 A package's install script runs with the release's rights, and a hijacked version is usually caught and pulled within hours. So the release does two things:
 
@@ -114,7 +114,7 @@ A package's install script runs with the release's rights, and a hijacked versio
 npm install --min-release-age=0 some-package@1.2.3
 ```
 
-## Base images: pinned by digest[#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#base-images-pinned-by-digest)
+## Base images: pinned by digest [#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#base-images-pinned-by-digest)
 
 A tag such as `php:8.4-apache` moves: two builds of the same commit a week apart can get different bytes. Every image the kit's files pull is pinned by the digest of its multi-arch list instead, `php:8.4.27-apache@sha256:...`, which names the same bytes on an arm64 laptop or CI runner and on an amd64 server: the fallback base's PHP, Node and Composer, the Vue layer's Node service, HA-Proxy and MySQL in the compose files, and the Oracle parity bases. A test fails on any reference without a digest.
 
@@ -126,7 +126,7 @@ docker buildx imagetools inspect php:8.4.28-apache
 
 Look for the `Digest:` line, and for `linux/amd64` and `linux/arm64/v8` under Manifests. Then run the tests and the image contract suite on both platforms. Maintainers have the full procedure in `MAINTAINING.md`. Two references are yours, not the kit's: the real Citadel image (`SQUIRE_BASE_IMAGE`, pin it once you have its digest) and any `SQUIRE_NODE_IMAGE`, `SQUIRE_PROXY_IMAGE` or `SQUIRE_MYSQL_IMAGE` override.
 
-## The image contract suite[#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#the-image-contract-suite)
+## The image contract suite [#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#the-image-contract-suite)
 
 A file can promise anything; the running image is what counts. `scripts/contract-image.sh` (in Squire's repository) builds the fallback base and the app image for a platform, runs the container with a throwaway raw PHP app mounted at `/citadel/src` and a throwaway secret mounted at `/run/secrets`, runs the release as `citadel`, and then pipes `scripts/contract-image-checks.php` to `php` inside the container. One PASS or FAIL line per check:
 

@@ -38,14 +38,14 @@
   <nav class="docs-nav docs-nav--sidebar" aria-label="Documentation"><ul class="docs-nav__list"><li><a href="../../docs/index.html">Overview</a></li><li><a href="../../docs/install.html">Install</a></li><li class="docs-nav__group"><span class="docs-nav__label">Guides</span><ul><li><a href="../../docs/guides/update-and-drift.html">Update and drift</a></li><li><a href="../../docs/guides/theming.html">Theming</a></li><li><a href="../../docs/guides/quick-start.html" aria-current="page">Quick start</a></li><li><a href="../../docs/guides/doctor.html">Doctor</a></li><li><a href="../../docs/guides/citadel-setup.html">Citadel setup</a></li><li><a href="../../docs/guides/queue-workers.html">Queue workers</a></li><li><a href="../../docs/guides/local-parity.html">Local parity</a></li><li><a href="../../docs/guides/portable-image.html">The portable image</a></li><li><a href="../../docs/guides/image-hardening.html">Image hardening</a></li><li><a href="../../docs/guides/oracle.html">Oracle</a></li><li><a href="../../docs/guides/raw-php-app.html">Raw PHP app</a></li><li><a href="../../docs/guides/static-site.html">Static site</a></li><li><a href="../../docs/guides/release-script.html">The release script</a></li><li><a href="../../docs/guides/agent-ready-kit.html">The agent-ready kit</a></li><li><a href="../../docs/guides/advisor.html">Use Squire from your coding agent (ADVISOR)</a></li><li><a href="../../docs/guides/docs-builder.html">The docs builder</a></li></ul></li><li class="docs-nav__group"><span class="docs-nav__label">Reference</span><ul><li><a href="../../docs/reference/commands.html">Commands</a></li><li><a href="../../docs/reference/configuration.html">Configuration</a></li><li><a href="../../docs/reference/files.html">Files</a></li><li><a href="../../docs/reference/proof.html">Proof</a></li></ul></li><li><a href="../../docs/troubleshooting.html">Troubleshooting</a></li><li><a href="../../docs/upgrading.html">Upgrading</a></li><li><a href="../../docs/contributing.html">Contributing</a></li><li><a href="../../docs/0.1-plan.html">Squire 0.1 plan</a></li><li><a href="../../docs/changelog.html">Changelog</a></li></ul></nav>
   <div class="docs-content">
     <main id="main">
-      <article class="docs-article"><h1 id="quick-start">Quick start<a class="docs-heading-link" aria-label="Link to this section" href="#quick-start">#</a></h1>
+      <article class="docs-article"><h1 id="quick-start">Quick <span class="docs-heading-tail"><span>start</span><a class="docs-heading-link" aria-label="Link to this section" href="#quick-start">#</a></span></h1>
 <p>A squire carries the kit and readies the armor before the knight charges, and this page is that ride. Four numbered steps take a new app from <code>composer require</code> to a checked, deploy-ready setup; do them in order, then follow a next link.</p>
-<h2 id="1-install-squire">1. Install Squire<a class="docs-heading-link" aria-label="Link to this section" href="#1-install-squire">#</a></h2>
+<h2 id="1-install-squire">1. Install <span class="docs-heading-tail"><span>Squire</span><a class="docs-heading-link" aria-label="Link to this section" href="#1-install-squire">#</a></span></h2>
 <p>Squire is a dev dependency. It runs on your machine or in CI, not on Citadel; what lands on Citadel is the scripts it writes. PHP <code>^8.3</code>, tested on 8.3, 8.4 and 8.5.</p>
 <!-- docs-test: skip needs a real project -->
 <pre tabindex="0"><code class="language-bash">composer require waynestate/squire --dev
 </code></pre>
-<h2 id="2-run-squire-init">2. Run squire init<a class="docs-heading-link" aria-label="Link to this section" href="#2-run-squire-init">#</a></h2>
+<h2 id="2-run-squire-init">2. Run squire <span class="docs-heading-tail"><span>init</span><a class="docs-heading-link" aria-label="Link to this section" href="#2-run-squire-init">#</a></span></h2>
 <p><code>init</code> picks the target from your app: <code>laravel</code> when there is an <code>artisan</code> file, <code>raw</code> without one, or set it yourself with <code>--target</code>. It detects a Vue/Inertia layer from <code>package.json</code> and adds the layer's release script and Node 22 parity service.</p>
 <!-- docs-test: skip needs a real project -->
 <pre tabindex="0"><code class="language-bash">vendor/bin/squire init
@@ -54,15 +54,15 @@
 <pre tabindex="0"><code class="language-text">vendor/bin/squire init   [--path=.] [--target=auto|raw|laravel|static] [--only=release|parity] [--check] [--force]
 </code></pre>
 <p><code>init</code> never overwrites a file you edited, or a file it did not write, unless you pass <code>--force</code>. It records a SHA-256 of each file in <code>.squire.json</code>. <code>--only=release</code> writes just the Citadel scripts, <code>--only=parity</code> just the local setup. The release installs from the lock file, so when the app has no <code>composer.json</code> or no <code>composer.lock</code>, <code>init</code> ends with a &quot;Heads up&quot; line: commit both before the first deploy (<code>composer init</code>, then <code>composer update</code>), or the release stops at step 1.</p>
-<h2 id="3-run-squire-doctor">3. Run squire doctor<a class="docs-heading-link" aria-label="Link to this section" href="#3-run-squire-doctor">#</a></h2>
+<h2 id="3-run-squire-doctor">3. Run squire <span class="docs-heading-tail"><span>doctor</span><a class="docs-heading-link" aria-label="Link to this section" href="#3-run-squire-doctor">#</a></span></h2>
 <!-- docs-test: skip needs a real project -->
 <pre tabindex="0"><code class="language-bash">vendor/bin/squire doctor
 </code></pre>
 <p><code>doctor</code> checks an app against the best practices a machine can decide. The lock file, composer audit and MySQL 5.6 checks are owned by PROCTOR; <code>doctor</code> hands off to it (S50) instead of repeating them.</p>
 <p>Exit codes: <code>0</code> pass, <code>1</code> findings (<code>init --check</code>: drift; <code>update</code>: an edited file still differs from the template; <code>doctor</code>: a failed rule), <code>2</code> the tool itself could not run.</p>
-<h2 id="4-commit-squire-json">4. Commit .squire.json<a class="docs-heading-link" aria-label="Link to this section" href="#4-commit-squire-json">#</a></h2>
+<h2 id="4-commit-squire-json">4. Commit <span class="docs-heading-tail"><span>.squire.json</span><a class="docs-heading-link" aria-label="Link to this section" href="#4-commit-squire-json">#</a></span></h2>
 <p>Commit the <code>.squire.json</code> record file. <code>update</code> reads it to know which files Squire wrote, and <code>init --check</code> reports when your copies have drifted from the templates (depend, do not copy).</p>
-<h2 id="what-you-built">What you built<a class="docs-heading-link" aria-label="Link to this section" href="#what-you-built">#</a></h2>
+<h2 id="what-you-built">What you <span class="docs-heading-tail"><span>built</span><a class="docs-heading-link" aria-label="Link to this section" href="#what-you-built">#</a></span></h2>
 <div class="docs-table" role="region" aria-label="Table" tabindex="0"><table>
 <thead>
 <tr>
@@ -118,7 +118,7 @@
 </tbody>
 </table></div>
 <p>Every shell script uses <code>set -euo pipefail</code> (<code>build.sh</code> uses <code>set -eu</code>, because Citadel runs it with <code>/bin/sh</code>), prints a <code>[squire] ==&gt; step N: ...</code> marker for each step, and can be run twice with the same result.</p>
-<h2 id="next-steps">Next steps<a class="docs-heading-link" aria-label="Link to this section" href="#next-steps">#</a></h2>
+<h2 id="next-steps">Next <span class="docs-heading-tail"><span>steps</span><a class="docs-heading-link" aria-label="Link to this section" href="#next-steps">#</a></span></h2>
 <ul>
 <li><a href="raw-php-app.html">Raw PHP app</a></li>
 <li><a href="static-site.html">Static site</a></li>

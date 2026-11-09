@@ -6,15 +6,15 @@ llms: https://squire.apps.wayne.edu/llms.txt
 generator: Squire agent-ready
 ---
 
-# The agent-ready kit[#](https://squire.apps.wayne.edu/docs/guides/agent-ready-kit.html#the-agent-ready-kit)
+# The agent-ready kit [#](https://squire.apps.wayne.edu/docs/guides/agent-ready-kit.html#the-agent-ready-kit)
 
 Every stack repo carries the same bytes so that agents and crawlers find the same material as people do. This page lists what the kit ships, how a site takes a new version, and the export-ignore lines a library package adds. Next, see [The docs builder](https://squire.apps.wayne.edu/docs/guides/docs-builder.html) for the pages the kit styles.
 
-## What the kit carries[#](https://squire.apps.wayne.edu/docs/guides/agent-ready-kit.html#what-the-kit-carries)
+## What the kit carries [#](https://squire.apps.wayne.edu/docs/guides/agent-ready-kit.html#what-the-kit-carries)
 
 Every stack repo carries the same bytes: a Markdown twin beside every page in the site folder, plus `llms.txt`, `llms-full.txt`, `robots.txt` and `sitemap.xml`, styled by the kit's `agent-ready.css` and `agent-ready.js` in the site's `assets/` folder. Squire owns the kit.
 
-## Taking a new version of the kit[#](https://squire.apps.wayne.edu/docs/guides/agent-ready-kit.html#taking-a-new-version-of-the-kit)
+## Taking a new version of the kit [#](https://squire.apps.wayne.edu/docs/guides/agent-ready-kit.html#taking-a-new-version-of-the-kit)
 
 A site takes a new version from a Squire checkout with `php bin/agent-ready.php --sync-to=<repo>`, which copies the kit and the tool itself. The site then regenerates its files with `php bin/agent-ready.php` and commits them, and runs `--check` in CI to stay honest.
 
@@ -24,7 +24,7 @@ php bin/agent-ready.php                    # regenerate the files
 php bin/agent-ready.php --check            # verify in CI; fail on drift
 ```
 
-## Keeping the kit out of library packages[#](https://squire.apps.wayne.edu/docs/guides/agent-ready-kit.html#keeping-the-kit-out-of-library-packages)
+## Keeping the kit out of library packages [#](https://squire.apps.wayne.edu/docs/guides/agent-ready-kit.html#keeping-the-kit-out-of-library-packages)
 
 A library package that carries the kit should keep it out of Composer downloads: add to its `.gitattributes`
 

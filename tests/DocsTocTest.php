@@ -91,4 +91,27 @@ final class DocsTocTest extends SquireTestCase
         self::assertStringContainsString('<li class="docs-toc__item"><a href="#second">Second</a></li>', $html);
         self::assertStringNotContainsString('<li class="docs-toc__item--sub">', $html);
     }
+
+    /** The "#" permalink shares a span with the heading's last word, so the kit can keep the pair on one line. */
+    public function testPermalinkRidesWithTheLastWord(): void
+    {
+        $dir = $this->repo();
+        $this->guidePage(
+            $dir,
+            'guides/tail',
+            'Tail',
+            "# Tail\n\n## Two words here\n\nText.\n\n## Run `composer ci`\n\nText.\n\n## Ends in *some emphasis*\n\nText.\n\n## Raw <sup>new</sup>\n\nText.\n",
+        );
+        $html = $this->page($dir, 'guides/tail');
+        $link = static fn(string $id): string => '<a class="docs-heading-link" aria-label="Link to this section" href="#' . $id . '">#</a>';
+
+        self::assertStringContainsString('<h1 id="tail"><span class="docs-heading-tail"><span>Tail</span>' . $link('tail') . '</span></h1>', $html);
+        self::assertStringContainsString('<h2 id="two-words-here">Two words <span class="docs-heading-tail"><span>here</span>' . $link('two-words-here') . '</span></h2>', $html);
+        self::assertStringContainsString('<h2 id="run-composer-ci">Run <span class="docs-heading-tail"><code>composer ci</code>' . $link('run-composer-ci') . '</span></h2>', $html);
+        self::assertStringContainsString('<h2 id="ends-in-some-emphasis">Ends in <span class="docs-heading-tail"><em>some emphasis</em>' . $link('ends-in-some-emphasis') . '</span></h2>', $html);
+        // A heading that ends in raw HTML keeps the plain append: a span there could straddle a closing tag.
+        self::assertStringContainsString('<sup>new</sup><a class="docs-heading-link"', $html);
+        // The "On this page" text stays the heading's own words.
+        self::assertStringContainsString('<a href="#two-words-here">Two words here</a>', $html);
+    }
 }

@@ -6,11 +6,11 @@ llms: https://squire.apps.wayne.edu/llms.txt
 generator: Squire agent-ready
 ---
 
-# The release script[#](https://squire.apps.wayne.edu/docs/guides/release-script.html#the-release-script)
+# The release script [#](https://squire.apps.wayne.edu/docs/guides/release-script.html#the-release-script)
 
 This page walks through `scripts/release.sh`, the one common script every app gets, in the order its steps run. It is the artifact that lands on Citadel; read [Citadel setup](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html) first if you have not wired the dashboard yet.
 
-## What it is[#](https://squire.apps.wayne.edu/docs/guides/release-script.html#what-it-is)
+## What it is [#](https://squire.apps.wayne.edu/docs/guides/release-script.html#what-it-is)
 
 `scripts/release.sh` is the idempotent release: preconditions, `composer install --no-dev` from the lock file, audit, PROCTOR's deploy gate (a report by default, a stop with `SQUIRE_PROCTOR=enforce`), frontend build, Laravel `migrate --force`, `optimize` and the restart of the long-lived processes, an Oracle connection check (a report, never a gate), and a `/up` smoke test. It runs from the first-release hook and from the Quick Update post-script (user `citadel`, script `./scripts/release.sh`).
 
@@ -25,11 +25,11 @@ Its neighbors in the kit:
 
 Every shell script uses `set -euo pipefail` (`build.sh` uses `set -eu`, because Citadel runs it with `/bin/sh`), prints a `[squire] ==> step N: ...` marker for each step, and can be run twice with the same result.
 
-## Idempotence and step markers[#](https://squire.apps.wayne.edu/docs/guides/release-script.html#idempotence-and-step-markers)
+## Idempotence and step markers [#](https://squire.apps.wayne.edu/docs/guides/release-script.html#idempotence-and-step-markers)
 
 Safe to run twice: every step repeats with the same result (S10). Each step prints a marker such as `[squire] ==> step 4: composer install from the lock file, without dev packages`, and a failure names the step: `[squire] FAILED at step N (name): reason` with the exit code and line number. A release script that is not idempotent is just a rehearsal that happens to ship.
 
-## Step by step[#](https://squire.apps.wayne.edu/docs/guides/release-script.html#step-by-step)
+## Step by step [#](https://squire.apps.wayne.edu/docs/guides/release-script.html#step-by-step)
 
 1. **check preconditions**: refuses to run as root unless `SQUIRE_ALLOW_ROOT=1` (files it creates could not be written by the web process); requires `composer.json` and `composer.lock` in the app root (the lock file is the release, S13); requires `php` and `composer` on PATH; resolves the framework (`auto` detects Laravel from `artisan`, otherwise `raw`); requires `.env` when `SQUIRE_REQUIRE_ENV` resolves to `1` (Laravel always does); picks the smoke URL (`http://127.0.0.1:80/up` for Laravel, `http://127.0.0.1:80/up.php` for raw PHP).
 2. **create writable directories**: creates the `SQUIRE_WRITABLE_DIRS` entries, or `storage bootstrap/cache` for Laravel by default.
@@ -45,7 +45,7 @@ Safe to run twice: every step repeats with the same result (S10). Each step prin
 12. **check opcache (never fails the release)**: reports whether the web server sees changed files by itself. With the kit's default (`SQUIRE_OPCACHE_VALIDATE=1`, files checked every 2 seconds) it is a note. With `0`, meant for an image that bakes its code in, Apache keeps serving the PHP it compiled before this release until it restarts, so after a release with Apache running this is a warning naming `SQUIRE_OPCACHE_VALIDATE=1`; in the first-release hook, before Apache starts, it is a note. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html).
 13. **smoke test the health endpoint**: skipped when `SQUIRE_SMOKE=0` (Apache is not running inside the first-release hook). Otherwise it requests `SQUIRE_SMOKE_URL` up to `SQUIRE_SMOKE_RETRIES` attempts (default 5), sleeping `SQUIRE_SMOKE_DELAY` seconds (default 2) between them, and fails unless the answer is HTTP 200.
 
-## PROCTOR: the deploy gate[#](https://squire.apps.wayne.edu/docs/guides/release-script.html#proctor-the-deploy-gate)
+## PROCTOR: the deploy gate [#](https://squire.apps.wayne.edu/docs/guides/release-script.html#proctor-the-deploy-gate)
 
 The release asks PROCTOR's deploy gate, `proctor gate`, for a go or no-go on this commit. The gate runs the deploy-time checks (the PHP floor and runtime, the Laravel line and its PHP range, the lock file, known advisories and the overrides) and ratchets them against a baseline: a failure the running release already had is held, and only a new failure, a first release that fails, or an expired override blocks. The squire holds the gate; the proctor says who may pass.
 
@@ -56,11 +56,11 @@ The release asks PROCTOR's deploy gate, `proctor gate`, for a go or no-go on thi
 - The binary is `vendor/bin/proctor`, then `proctor` on PATH, or `SQUIRE_PROCTOR_BIN`. It is a dev dependency, so `--no-dev` removes it: point `SQUIRE_PROCTOR_BIN` at a copy.
 - The policy is `SQUIRE_PROCTOR_POLICY` when set; otherwise the policy the CREED package ships (`vendor/waynestate/creed/policy/policy.json`, when installed); otherwise PROCTOR runs on its own default policy with a notice. An explicit value always wins.
 
-## The Oracle check[#](https://squire.apps.wayne.edu/docs/guides/release-script.html#the-oracle-check)
+## The Oracle check [#](https://squire.apps.wayne.edu/docs/guides/release-script.html#the-oracle-check)
 
 The release also runs an Oracle connection check (`oracle-check.php`) after the migrations and before the smoke test. It is a report, never a gate: a finding prints in the deployment log and the release goes on. When the app does not use Oracle (no `ORACLE_*` settings) it prints nothing. It checks, in order, that the settings are present, that the host resolves, that the port answers within 3 seconds, that the `oci8` driver is loaded, and that the login works, stopping at the first failure so a bad port never costs a login attempt. Settings: `ORACLE_USERNAME`, `ORACLE_PASSWORD`, and either `ORACLE_TNS` (Easy Connect `host:port/service`, or a full `(DESCRIPTION=...)` descriptor) or `ORACLE_HOST`, `ORACLE_PORT` and `ORACLE_SERVICE_NAME`. Only setting names are ever printed, never values.
 
-## Configuration[#](https://squire.apps.wayne.edu/docs/guides/release-script.html#configuration)
+## Configuration [#](https://squire.apps.wayne.edu/docs/guides/release-script.html#configuration)
 
 Before the first step the script reads two sources: `./.env.squire` (the release options) and the secrets folder, `SQUIRE_SECRETS_DIR` (default `/run/secrets`), where each file named like a variable becomes that variable unless the environment already sets it. Only names are printed. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#secrets-files-at-run-time-never-in-a-layer).
 
@@ -70,6 +70,6 @@ Warning
 
 PROCTOR is a dev dependency and the release installs with `--no-dev`, so `vendor/bin/proctor` is gone by the time the PROCTOR step runs. Set `SQUIRE_PROCTOR_BIN` to a copy that survives, or the step reports itself missing.
 
-## Next[#](https://squire.apps.wayne.edu/docs/guides/release-script.html#next)
+## Next [#](https://squire.apps.wayne.edu/docs/guides/release-script.html#next)
 
 Read [Citadel setup](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html) for the dashboard steps that make this script run, or [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html) to watch the same pipeline on your machine.

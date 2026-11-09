@@ -6,11 +6,11 @@ llms: https://squire.apps.wayne.edu/llms.txt
 generator: Squire agent-ready
 ---
 
-# Queue workers on Citadel[#](https://squire.apps.wayne.edu/docs/guides/queue-workers.html#queue-workers-on-citadel)
+# Queue workers on Citadel [#](https://squire.apps.wayne.edu/docs/guides/queue-workers.html#queue-workers-on-citadel)
 
 Laravel apps on Citadel dispatch jobs to a queue, but the platform runs no queue worker: one container per app, Apache in front, and nothing that keeps a long-lived `php artisan queue:work` alive. A queue with no worker is a promise with no keeper. This page covers what works today (a short worker driven by the scheduler), how a release restarts workers, what has not been tested yet, and the request text for the supervised worker we want from the Citadel team. Finish [Citadel setup](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html) first if the app is not wired up yet.
 
-## What works today[#](https://squire.apps.wayne.edu/docs/guides/queue-workers.html#what-works-today)
+## What works today [#](https://squire.apps.wayne.edu/docs/guides/queue-workers.html#what-works-today)
 
 Laravel's own guidance is that a permanent `queue:work` needs a process monitor to keep it running ([queues](https://laravel.com/docs/13.x/queues#supervisor-configuration)), and Citadel has none. So the worker rides the one thing every app already runs: the scheduler's single cron entry, which runs as the app user each minute ([scheduling](https://laravel.com/docs/13.x/scheduling#running-the-scheduler)). An app that already schedules tasks has this entry; the worker reuses it, so nothing new runs on the server.
 
@@ -45,7 +45,7 @@ Keep every job's timeout below its connection's `retry_after`, at least several 
 
 With the `database` driver the jobs live in a table that Laravel's default migration creates (`0001_01_01_000002_create_jobs_table`); an app without it generates one with `php artisan make:queue-table` ([queues](https://laravel.com/docs/13.x/queues)).
 
-## Deploys[#](https://squire.apps.wayne.edu/docs/guides/queue-workers.html#deploys)
+## Deploys [#](https://squire.apps.wayne.edu/docs/guides/queue-workers.html#deploys)
 
 Workers do not notice new code until they restart, so a release restarts them ([queue workers and deployment](https://laravel.com/docs/13.x/queues#queue-workers-and-deployment)). Laravel documents two commands, and the current release has both:
 
@@ -56,15 +56,15 @@ For the short worker above, the restart is mostly belt-and-braces: a run started
 
 Squire's `scripts/release.sh` does this for you in its Laravel block, after `laravel migrate` and `laravel optimize` and before the Oracle check and the smoke test: the code is checked out and optimized, the smoke test has not run yet, and a worker restarted here comes up on the new code before the release declares success. The step runs `php artisan reload` where Laravel has it, and otherwise `queue:restart` and `schedule:interrupt`, each only when that command exists. It is report only (a failed restart is a warning), and `SQUIRE_ARTISAN_RESTART=0` turns it off. See [The release script](https://squire.apps.wayne.edu/docs/guides/release-script.html) for the step order.
 
-## Off Citadel: a worker process type[#](https://squire.apps.wayne.edu/docs/guides/queue-workers.html#off-citadel-a-worker-process-type)
+## Off Citadel: a worker process type [#](https://squire.apps.wayne.edu/docs/guides/queue-workers.html#off-citadel-a-worker-process-type)
 
 On a platform that runs more than one process per app (OpenShift, Coolify, raw Docker), the worker is its own container from the same image: [The portable image](https://squire.apps.wayne.edu/docs/guides/portable-image.html) runs as `worker` (`php artisan queue:work --tries=3 --max-time=3600 --sleep=3`, the command the request below asks Citadel for) and as `scheduler` (`php artisan schedule:work`), picked by `SQUIRE_ROLE`. The scheduler there sets `QUEUE_WORKER_MODE=none`, so the short worker above is not scheduled beside the real one. A deploy replaces the containers, so no restart signal is needed, and the timeout rule above holds on both paths.
 
-## Not yet tested on Citadel[#](https://squire.apps.wayne.edu/docs/guides/queue-workers.html#not-yet-tested-on-citadel)
+## Not yet tested on Citadel [#](https://squire.apps.wayne.edu/docs/guides/queue-workers.html#not-yet-tested-on-citadel)
 
 The short worker is the stack's plan, not a measured fact: the combination of `--stop-when-empty`, `--max-time` and `withoutOverlapping` puts three documented features together, and it has not been run on Citadel yet. How fast a queue actually drains, how the cron entry behaves on the platform, and what the logs look like are all unmeasured, and the Citadel test is tracked separately; this page will say what it found when it lands.
 
-## The supervised worker we are asking for[#](https://squire.apps.wayne.edu/docs/guides/queue-workers.html#the-supervised-worker-we-are-asking-for)
+## The supervised worker we are asking for [#](https://squire.apps.wayne.edu/docs/guides/queue-workers.html#the-supervised-worker-we-are-asking-for)
 
 The text below is ready to send to the Citadel team. It asks for the long-lived worker Laravel expects, with the restart hook that makes deploys safe.
 
@@ -90,6 +90,6 @@ Logs: worker output where the app's other logs are, viewable in the dashboard, s
 Cache: the restart signal is stored in the application cache, so the app's cache store must survive the restart (the file store does, inside one container).
 ```
 
-## Next[#](https://squire.apps.wayne.edu/docs/guides/queue-workers.html#next)
+## Next [#](https://squire.apps.wayne.edu/docs/guides/queue-workers.html#next)
 
 Read [The release script](https://squire.apps.wayne.edu/docs/guides/release-script.html) for the step order a restart fits into, or [Citadel setup](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html) for the dashboard steps that make the cron entry exist.

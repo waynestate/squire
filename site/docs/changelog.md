@@ -6,38 +6,40 @@ llms: https://squire.apps.wayne.edu/llms.txt
 generator: Squire agent-ready
 ---
 
-# Changelog[#](https://squire.apps.wayne.edu/docs/changelog.html#changelog)
+# Changelog [#](https://squire.apps.wayne.edu/docs/changelog.html#changelog)
 
 All notable changes to Squire are recorded here. The format follows Keep a Changelog; the project follows Semantic Versioning once 1.0 is out.
 
-## Unreleased[#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
+## Unreleased [#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
 - Docs: MAINTAINING.md records the Code Quality check (SQUIRE-33): the pipeline uploads PROCTOR's findings as a `codequality` report artifact and never uses GitLab's deprecated CodeClimate template, so its planned removal changes nothing; OPEN_QUESTIONS.md names the 0.4.0 Preflight pin and the queue worker that is still missing on Citadel.
 - Changed: the GitHub workflows pin every action by its commit SHA with the version in a comment (`actions/checkout` v4.4.0, `shivammathur/setup-php` 2.40.0, `docker/setup-qemu-action` v3.7.0, `docker/setup-buildx-action` v3.12.0, the same code their moving tags ran), so a moved tag cannot change what CI runs; a test fails on any tag pin.
 - Fixed: the generated changelog page links relative paths with GitHub's blob path when the source is GitHub, and leaves links inside code spans and fenced code alone.
+- Fixed: the docs kit keeps a heading's "#" permalink on the line of its last word (the builder wraps the pair in `.docs-heading-tail`), so it never wraps onto a line of its own. On phones, narrow windows and touch screens, and for the page title at every width, the "#" takes no room and no tap area and shows on keyboard focus. A heading word too long for its line breaks or hyphenates instead of widening the page.
+- Added: the docs kit's "On this page" list marks the section in view with `aria-current="true"` and `is-current` (an accent bar on the list's rule, light and dark); a clicked entry stays marked through a smooth jump instead of flashing every section it passes. It is a docs.js enhancement that never scrolls, so without JavaScript the page reads as before. Resync the kit and builder with `--sync-to` to take both.
 
-## 0.9.0 (2026-11-08)[#](https://squire.apps.wayne.edu/docs/changelog.html#0-9-0-2026-11-08)
+## 0.9.0 (2026-11-08) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-9-0-2026-11-08)
 
 - Changed: the release script refuses a Laravel release when APP_KEY is unset or APP_DEBUG is true in production, and warns when APP_ENV is not production (Sourdough practice 4.14).
 - Changed: CI pins the Preflight components to 0.4.0 (the proctor job clones the full history, so the override-approver check can read git blame).
 - Changed: the release gate passes `--php-runtime` (SQUIRE_PHP_RUNTIME, default `auto`: the php that runs release.sh, which is the one serving the app), so the deploy path grades the runtime for PROCTOR's unpatched check.
 - Changed: the GitHub workflow's arm64 image leg and pwsh parity leg block the run (no `continue-on-error`): both passed in five pushes in a row on 2026-11-08.
 
-## 0.8.0 (2026-11-08)[#](https://squire.apps.wayne.edu/docs/changelog.html#0-8-0-2026-11-08)
+## 0.8.0 (2026-11-08) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-8-0-2026-11-08)
 
 - Added: the portable image (`.squire/portable.Dockerfile`, ADR-0010), for OpenShift, Coolify and raw Docker. One image with the code baked in runs as `web`, `worker` (`queue:work --tries=3 --max-time=3600 --sleep=3`), `scheduler` (`schedule:work`) or `migrate`, picked by argument or `SQUIRE_ROLE`, as `USER 10001:0` with group-0 writable folders (any arbitrary UID in group 0 runs it), Apache on 8080 (`SQUIRE_PORT`, else `PORT`), logs to stdout and stderr, and a graceful stop on `SIGTERM` (WELD W8, W13). The compose file's new `portable` profile runs the four roles; a plain `up` is unchanged. The Citadel mirror (`.squire/Dockerfile`, port 80) does not change. Run `squire update` to take the five new files.
 - Added: `health.php` reads `SQUIRE_APP_DIR` for the app root, so a kit kept in a subfolder (WELD's `deploy/`) checks the app it serves.
 - Fixed: the front page and the README's packing list count the parity kit as it ships (19 files; they still said 12).
 - Added: release.sh keeps Composer's and npm's download caches in .cache/squire inside the app folder (SQUIRE_CACHE_DIR, off to disable), so a Citadel Update no longer downloads every package again, and npm ci prefers the cache.
 
-## 0.7.1 (2026-11-08)[#](https://squire.apps.wayne.edu/docs/changelog.html#0-7-1-2026-11-08)
+## 0.7.1 (2026-11-08) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-7-1-2026-11-08)
 
 - Fixed: Squire's own deploy/.squire.json records the release.sh it ships (it kept the 0.6.0 hash after the W22 restart step), so squire update no longer refuses it; a test now checks every recorded hash.
 - Docs: the queue-workers guide names the QUEUE_WORKER_MODE switch (scheduler or none) that Sourdough's Laravel shapes ship, with --tries=3 and the test that covers both modes.
 - Fixed: the kit's php.ini no longer sets session.sid_length or session.sid_bits_per_character, so PHP 8.4 and later raise no deprecation notices and session IDs use PHP's default (32 hex characters, 128 bits), as HELMET and SESAME S45 say. Run squire update to take it.
 - Changed: the local a11y scripts run Preflight's own checker (vendored from 0.3.1 and pinned by a test), so they check what CI checks: axe-core 4.14.0, 320 and 1280 px, and the reflow check.
 
-## 0.7.0 (2026-11-08)[#](https://squire.apps.wayne.edu/docs/changelog.html#0-7-0-2026-11-08)
+## 0.7.0 (2026-11-08) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-7-0-2026-11-08)
 
 - Added: the release script restarts Laravel's long-lived processes after optimize (reload, or queue:restart and schedule:interrupt), report only; SQUIRE_ARTISAN_RESTART=0 turns it off (WELD W22).
 - Added: CI runs Preflight's a11y component (0.3.1) on site/, every page in light and dark at 320 and 1280 px with the WCAG 1.4.10 reflow check, blocking.
@@ -73,7 +75,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 - Added: the fallback base says less about itself (SQUIRE-9): the new parity file `.squire/apache-hardening.conf` sets `ServerTokens Prod`, `ServerSignature Off` and `TraceEnable Off`, and the base enables it as `zz-squire-hardening.conf`, after Debian's `security.conf` (which ships `ServerTokens OS` and `ServerSignature On`), so the `Server` header reads `Apache` and Apache's own error pages carry no version footer. The app image is unchanged, so a run on the real Citadel image still shows what that image says. New docs page: Guides, Image hardening.
 - Changed: CI caches Composer and npm downloads per lock file (`.composer-cache`, keyed on `composer.lock` and `deploy/composer.lock`, and `.npm-cache`), so a pipeline stops fetching every package from Packagist and npm on every run. Images already come through the Dependency Proxy.
 
-## 0.6.0 (2026-11-07)[#](https://squire.apps.wayne.edu/docs/changelog.html#0-6-0-2026-11-07)
+## 0.6.0 (2026-11-07) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-6-0-2026-11-07)
 
 - Changed: the release script asks PROCTOR's deploy gate, `proctor gate`, for a go or no-go instead of running `proctor check`, and runs it right after `composer audit`, before the frontend build and the migrations, so an enforced no-go stops the release before it touches the database. The verdict is written to `storage/squire/proctor-gate.json` (new setting `SQUIRE_PROCTOR_RECORD_DIR`, in the settings-file allow list and the `.env.squire.example` files); when the release goes on, the verdict becomes the baseline the next release is ratcheted against, so a failure that is already live is held and only a new one blocks. `SQUIRE_PROCTOR=auto` still only reports a no-go, and `enforce` stops on it. With a PROCTOR that has no `gate` command the step warns, names the PROCTOR version, and runs `proctor check` as before. Needs a PROCTOR release with `proctor gate` to take effect.
 - Changed: `doctor` S14 passes when the release runs `proctor gate` as well as `proctor check`, and the S50 hand-off names `proctor gate`.
@@ -126,7 +128,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 - Fixed: the oracle image jobs pin the Buildah image to the v1.43.5-immutable tag and its manifest list digest, because the previous digest was removed upstream.
 - Fixed: a directory asked for without its trailing slash (for example `/docs`) now redirects to `/docs/`, so the page's relative images and links resolve.
 
-## 0.5.0 (2026-11-03)[#](https://squire.apps.wayne.edu/docs/changelog.html#0-5-0-2026-11-03)
+## 0.5.0 (2026-11-03) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-5-0-2026-11-03)
 
 - GitHub CI now pins the PREFLIGHT reusable workflow to the 0.1.3 tag instead of a commit SHA.
 - Added: an ADVISOR module (waynestate/advisor) with squire_doctor and squire_drift.
@@ -155,7 +157,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 - Added: the docs builder's generated blocks: docs/docs.json defines blocks that own marked regions in docs/\*\*/\*.md, the json-table type renders a Markdown table from a command's JSON output, and --check reports a stale block instead of writing.
 - Added: the docs builder's symfony-commands block type runs list --format=json and renders the command reference (overview table, per-command headings with usage, argument and option tables, application options listed once), and its env block type scans the scan folders for prefixed environment variable names and renders them with describe meanings and defaults; a read variable without a describe entry, or a described variable no scanned file reads, is a finding.
 
-## 0.4.0 (2026-11-01)[#](https://squire.apps.wayne.edu/docs/changelog.html#0-4-0-2026-11-01)
+## 0.4.0 (2026-11-01) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-4-0-2026-11-01)
 
 - Added: oracle-check.php, a plain-language Oracle connection check (settings, host, port, driver, login) shipped in the kit's deploy scripts. release.sh runs it after PROCTOR and before the smoke test; it is a report, never a gate, and stays silent when the app has no ORACLE\_\* settings.
 - Added: opt-in Oracle-ready Docker images, a Laravel Sail flavour (squire/oracle-sail) and a parity flavour (squire/oracle-parity), with scripts/oracle-image-build.sh and scripts/oracle-image-test.sh. Oracle Instant Client 21.7 on amd64 and 19.32 on arm64 is downloaded at build time and checksum-pinned; nothing from Oracle is committed.
@@ -163,61 +165,61 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 - Changed: the readme art check allows the word Citadel.
 - Changed: the deploy layer's Squire kit is refreshed to 0.3.4 (the local .env.squire file is now git-ignored).
 
-## 0.3.4 (2026-10-29)[#](https://squire.apps.wayne.edu/docs/changelog.html#0-3-4-2026-10-29)
+## 0.3.4 (2026-10-29) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-3-4-2026-10-29)
 
 - Changed: the deploy layer's Squire kit is refreshed to 0.3.3 (release options can now live in ./.env.squire).
 - Fixed: squire init now adds .env and .env.squire to the target .gitignore, so the local deploy secrets file is never committed.
 
-## 0.3.3 (2026-10-29)[#](https://squire.apps.wayne.edu/docs/changelog.html#0-3-3-2026-10-29)
+## 0.3.3 (2026-10-29) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-3-3-2026-10-29)
 
 - Fixed: docs say app settings go in a ./.env configuration file; Citadel has no dashboard environment field.
 - Fixed: the .env.squire template says to add it as a Citadel configuration file; Citadel has no dashboard environment field.
 - Added: release.sh reads release options from ./.env.squire (parsed, never sourced; allow-listed keys; the environment wins), so they can be set on Citadel.
 
-## 0.3.2 (2026-10-29)[#](https://squire.apps.wayne.edu/docs/changelog.html#0-3-2-2026-10-29)
+## 0.3.2 (2026-10-29) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-3-2-2026-10-29)
 
 - Added: collapsed prompt blocks show a "Show the whole prompt" button; the fade stays inside the panel.
 - Changed: a long command in the "Run it in" panel folds the same way, behind a "Show the whole command" button, instead of a scroll box with no cue.
 
-## 0.3.1 (2026-10-29)[#](https://squire.apps.wayne.edu/docs/changelog.html#0-3-1-2026-10-29)
+## 0.3.1 (2026-10-29) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-3-1-2026-10-29)
 
 - Changed: README, site and open questions match 0.3.0 (Sourdough requires Squire, the policy default, the Preflight pin, the static target).
 - Fixed: the agent-ready tool's messages write Squire as a word; the static template's SQUIRE_STATIC_ROOT comment matches the code.
 - Changed: bin/agent-ready.php is clean under Pint's laravel preset (CI checks it); the README says how consumers keep the kit out of Composer downloads.
 
-## 0.3.0 (2026-10-29)[#](https://squire.apps.wayne.edu/docs/changelog.html#0-3-0-2026-10-29)
+## 0.3.0 (2026-10-29) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-3-0-2026-10-29)
 
 - Added: the raw target ships a front controller.
 
-## 0.2.2 (2026-10-29)[#](https://squire.apps.wayne.edu/docs/changelog.html#0-2-2-2026-10-29)
+## 0.2.2 (2026-10-29) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-2-2-2026-10-29)
 
 - Fixed: stale capability claims in the site and README.
 - Changed: project names written as words except acronyms.
 - Changed: templates and the agent-ready label write Squire as a word; older labels are still recognised.
 - Changed: CI uses Preflight 0.1.1.
 
-## 0.2.1 (2026-10-29)[#](https://squire.apps.wayne.edu/docs/changelog.html#0-2-1-2026-10-29)
+## 0.2.1 (2026-10-29) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-2-1-2026-10-29)
 
-### Fixed[#](https://squire.apps.wayne.edu/docs/changelog.html#fixed)
+### Fixed [#](https://squire.apps.wayne.edu/docs/changelog.html#fixed)
 
 - Fixed: SQUIRE reported 0.1.0 after the 0.2.0 release.
 
-## 0.2.0 (2026-10-29)[#](https://squire.apps.wayne.edu/docs/changelog.html#0-2-0-2026-10-29)
+## 0.2.0 (2026-10-29) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-2-0-2026-10-29)
 
-### Added[#](https://squire.apps.wayne.edu/docs/changelog.html#added)
+### Added [#](https://squire.apps.wayne.edu/docs/changelog.html#added)
 
 - `--target=static`: writes everything the `raw` target writes plus a front controller (`public/index.php`) and an `.htaccess` that serve a committed static site behind HELMET. The site folder is `../../site` by default; point `SQUIRE_STATIC_ROOT` at another. `squire init --check` and `squire update` cover the new files, and the template export carries them under `static/`.
 - `SQUIRE_PROCTOR=enforce`: a failed PROCTOR check now stops the release. The default stays report-only, so existing apps are unaffected.
 - `SQUIRE_PROCTOR_POLICY` defaults to `vendor/waynestate/creed/policy/policy.json` when unset and present, so a static site needs no environment variables in the deploy wizard. When CREED is not installed, PROCTOR runs on its own default policy with a notice instead of the release failing. An explicit value always wins.
 
-### Changed[#](https://squire.apps.wayne.edu/docs/changelog.html#changed)
+### Changed [#](https://squire.apps.wayne.edu/docs/changelog.html#changed)
 
 - PHPStan now includes Pinstripe's raw PHP preset (`waynestate/pinstripe` 0.1) instead of carrying a hand copy of the settings; `phpstan.neon` keeps only SQUIRE's own paths and PHP version range, and the preset's deprecation checks come along with it.
 - `symfony/console` floor raised to `^7.4`: `Application::add()` is deprecated since 7.4, and the CLI now calls `addCommand()`.
 
-## 0.1.0 (2026-10-29)[#](https://squire.apps.wayne.edu/docs/changelog.html#0-1-0-2026-10-29)
+## 0.1.0 (2026-10-29) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-1-0-2026-10-29)
 
-### Added[#](https://squire.apps.wayne.edu/docs/changelog.html#added-1)
+### Added [#](https://squire.apps.wayne.edu/docs/changelog.html#added-1)
 
 - `squire init` with `--target`, `--only`, `--check` and `--force`; a `.squire.json` manifest of SHA-256 hashes.
 - `squire doctor` with text and JSON output, checking 26 rules (see `BEST_PRACTICES.md`).
@@ -227,4 +229,4 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 - CI for GitLab and GitHub: `composer ci`, shellcheck and PSScriptAnalyzer, run in Docker.
 - `bin/export-templates.php`: export a generated copy of SQUIRE's templates (for Sourdough and other projects that cannot `composer require` SQUIRE), with a `catalog.json` and a `manifest.json`; `--check` verifies the copy and exits 1 on drift.
 
-### Changed[#](https://squire.apps.wayne.edu/docs/changelog.html#changed-1)
+### Changed [#](https://squire.apps.wayne.edu/docs/changelog.html#changed-1)

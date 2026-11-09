@@ -6,11 +6,11 @@ llms: https://squire.apps.wayne.edu/llms.txt
 generator: Squire agent-ready
 ---
 
-# Files Squire writes[#](https://squire.apps.wayne.edu/docs/reference/files.html#files-squire-writes)
+# Files Squire writes [#](https://squire.apps.wayne.edu/docs/reference/files.html#files-squire-writes)
 
 What `squire init` writes into your app, which target or layer each file belongs to, and the `.gitignore` lines `init` keeps honest. Next, see [Quick start](https://squire.apps.wayne.edu/docs/guides/quick-start.html) to write your first set of files and [Configuration](https://squire.apps.wayne.edu/docs/reference/configuration.html) for the settings they read.
 
-## What lands in your app[#](https://squire.apps.wayne.edu/docs/reference/files.html#what-lands-in-your-app)
+## What lands in your app [#](https://squire.apps.wayne.edu/docs/reference/files.html#what-lands-in-your-app)
 
 | File | What it is | Target or layer |
 | --- | --- | --- |
@@ -31,11 +31,11 @@ What `squire init` writes into your app, which target or layer each file belongs
 | `.squire/portable/ports.conf`, `.squire/portable/vhost.conf` | Apache for the portable image: `Listen ${SQUIRE_PORT}`, the same document root as Citadel's vhost, logs to stdout and stderr. | Local parity kit |
 | `.squire/php-web.ini` | The web's own settings: the `disable_functions` list. The app image appends it to `php.ini` as `php-apache2handler.ini`, so the CLI keeps every function. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html). | Local parity kit |
 
-## The .gitignore lines init keeps[#](https://squire.apps.wayne.edu/docs/reference/files.html#the-gitignore-lines-init-keeps)
+## The .gitignore lines init keeps [#](https://squire.apps.wayne.edu/docs/reference/files.html#the-gitignore-lines-init-keeps)
 
 In a directory below the repository root (a `deploy/` layer, say), `init` also keeps the `.gitignore` honest: it appends `/vendor/`, `.env` and `.env.squire` when they are missing, never touches a line the app added, and leaves the repository root's `.gitignore` to the app.
 
-## Conventions[#](https://squire.apps.wayne.edu/docs/reference/files.html#conventions)
+## Conventions [#](https://squire.apps.wayne.edu/docs/reference/files.html#conventions)
 
 Every shell script uses `set -euo pipefail` (`build.sh` uses `set -eu`, because Citadel runs it with `/bin/sh`), prints a `[squire] ==> step N: ...` marker for each step, and can be run twice with the same result.
 

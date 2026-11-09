@@ -38,10 +38,10 @@
   <nav class="docs-nav docs-nav--sidebar" aria-label="Documentation"><ul class="docs-nav__list"><li><a href="../../docs/index.html">Overview</a></li><li><a href="../../docs/install.html">Install</a></li><li class="docs-nav__group"><span class="docs-nav__label">Guides</span><ul><li><a href="../../docs/guides/update-and-drift.html">Update and drift</a></li><li><a href="../../docs/guides/theming.html">Theming</a></li><li><a href="../../docs/guides/quick-start.html">Quick start</a></li><li><a href="../../docs/guides/doctor.html">Doctor</a></li><li><a href="../../docs/guides/citadel-setup.html">Citadel setup</a></li><li><a href="../../docs/guides/queue-workers.html">Queue workers</a></li><li><a href="../../docs/guides/local-parity.html">Local parity</a></li><li><a href="../../docs/guides/portable-image.html">The portable image</a></li><li><a href="../../docs/guides/image-hardening.html">Image hardening</a></li><li><a href="../../docs/guides/oracle.html">Oracle</a></li><li><a href="../../docs/guides/raw-php-app.html">Raw PHP app</a></li><li><a href="../../docs/guides/static-site.html">Static site</a></li><li><a href="../../docs/guides/release-script.html">The release script</a></li><li><a href="../../docs/guides/agent-ready-kit.html">The agent-ready kit</a></li><li><a href="../../docs/guides/advisor.html">Use Squire from your coding agent (ADVISOR)</a></li><li><a href="../../docs/guides/docs-builder.html">The docs builder</a></li></ul></li><li class="docs-nav__group"><span class="docs-nav__label">Reference</span><ul><li><a href="../../docs/reference/commands.html">Commands</a></li><li><a href="../../docs/reference/configuration.html" aria-current="page">Configuration</a></li><li><a href="../../docs/reference/files.html">Files</a></li><li><a href="../../docs/reference/proof.html">Proof</a></li></ul></li><li><a href="../../docs/troubleshooting.html">Troubleshooting</a></li><li><a href="../../docs/upgrading.html">Upgrading</a></li><li><a href="../../docs/contributing.html">Contributing</a></li><li><a href="../../docs/0.1-plan.html">Squire 0.1 plan</a></li><li><a href="../../docs/changelog.html">Changelog</a></li></ul></nav>
   <div class="docs-content">
     <main id="main">
-      <article class="docs-article"><h1 id="configuration-reference">Configuration reference<a class="docs-heading-link" aria-label="Link to this section" href="#configuration-reference">#</a></h1>
+      <article class="docs-article"><h1 id="configuration-reference">Configuration <span class="docs-heading-tail"><span>reference</span><a class="docs-heading-link" aria-label="Link to this section" href="#configuration-reference">#</a></span></h1>
 <p>Every <code>SQUIRE_*</code> setting Squire reads, grouped by the script that reads it, with the file each group lives in and its default. All settings are optional. Next, see <a href="commands.html">Commands</a> for the CLI flags and <a href="files.html">Files</a> for what Squire writes.</p>
 <aside class="docs-callout docs-callout--warning" role="note"><p class="docs-callout__label">Warning</p><p>A real environment variable wins. <code>release.sh</code> reads the release options from the file, but a variable already in the environment wins. Locally, the same file holds the parity settings.</p></aside>
-<h2 id="where-the-settings-live">Where the settings live<a class="docs-heading-link" aria-label="Link to this section" href="#where-the-settings-live">#</a></h2>
+<h2 id="where-the-settings-live">Where the settings <span class="docs-heading-tail"><span>live</span><a class="docs-heading-link" aria-label="Link to this section" href="#where-the-settings-live">#</a></span></h2>
 <p>All optional. On Citadel, add <code>./.env.squire</code> as a configuration file (the configuration-files step after the wizard; the wizard has no environment field) and keep it out of git. <code>release.sh</code> reads the release options from it, and a variable already in the environment wins. Locally, the same file holds the parity settings.</p>
 <div class="docs-table" role="region" aria-label="Table" tabindex="0"><table>
 <thead>
@@ -79,7 +79,7 @@
 </tr>
 </tbody>
 </table></div>
-<h2 id="release-script-scripts-release-sh">Release script (<code>scripts/release.sh</code>)<a class="docs-heading-link" aria-label="Link to this section" href="#release-script-scripts-release-sh">#</a></h2>
+<h2 id="release-script-scripts-release-sh">Release script (<code>scripts/release.sh</code><span class="docs-heading-tail"><span>)</span><a class="docs-heading-link" aria-label="Link to this section" href="#release-script-scripts-release-sh">#</a></span></h2>
 <div class="docs-table" role="region" aria-label="Table" tabindex="0"><table>
 <thead>
 <tr>
@@ -211,7 +211,7 @@
 </tr>
 </tbody>
 </table></div>
-<h2 id="front-controller">Front controller<a class="docs-heading-link" aria-label="Link to this section" href="#front-controller">#</a></h2>
+<h2 id="front-controller">Front <span class="docs-heading-tail"><span>controller</span><a class="docs-heading-link" aria-label="Link to this section" href="#front-controller">#</a></span></h2>
 <div class="docs-table" role="region" aria-label="Table" tabindex="0"><table>
 <thead>
 <tr>
@@ -233,7 +233,7 @@
 </tr>
 </tbody>
 </table></div>
-<h2 id="health-check-health-php">Health check (<code>health.php</code>)<a class="docs-heading-link" aria-label="Link to this section" href="#health-check-health-php">#</a></h2>
+<h2 id="health-check-health-php">Health check (<code>health.php</code><span class="docs-heading-tail"><span>)</span><a class="docs-heading-link" aria-label="Link to this section" href="#health-check-health-php">#</a></span></h2>
 <div class="docs-table" role="region" aria-label="Table" tabindex="0"><table>
 <thead>
 <tr>
@@ -270,7 +270,7 @@
 </tr>
 </tbody>
 </table></div>
-<h2 id="portable-image-squire-portable-dockerfile">Portable image (<code>.squire/portable.Dockerfile</code>)<a class="docs-heading-link" aria-label="Link to this section" href="#portable-image-squire-portable-dockerfile">#</a></h2>
+<h2 id="portable-image-squire-portable-dockerfile">Portable image (<code>.squire/portable.Dockerfile</code><span class="docs-heading-tail"><span>)</span><a class="docs-heading-link" aria-label="Link to this section" href="#portable-image-squire-portable-dockerfile">#</a></span></h2>
 <p>The entrypoint reads these when a container starts; the build arguments are read at <code>docker build</code>. Citadel never reads either. See <a href="../guides/portable-image.html">The portable image</a>.</p>
 <div class="docs-table" role="region" aria-label="Table" tabindex="0"><table>
 <thead>
@@ -338,7 +338,7 @@
 </tr>
 </tbody>
 </table></div>
-<h2 id="php-in-the-image-squire-php-ini">PHP in the image (<code>.squire/php.ini</code>)<a class="docs-heading-link" aria-label="Link to this section" href="#php-in-the-image-squire-php-ini">#</a></h2>
+<h2 id="php-in-the-image-squire-php-ini">PHP in the image (<code>.squire/php.ini</code><span class="docs-heading-tail"><span>)</span><a class="docs-heading-link" aria-label="Link to this section" href="#php-in-the-image-squire-php-ini">#</a></span></h2>
 <p>PHP reads these from the container's environment when it starts (PHP 8.3 and later). The parity compose file passes <code>SQUIRE_OPCACHE_VALIDATE</code> and <code>SQUIRE_PHP_DISABLE_FUNCTIONS</code> from <code>.env.squire</code>; on Citadel the platform's own <code>php.ini</code> decides. See <a href="../guides/image-hardening.html">Image hardening</a>.</p>
 <div class="docs-table" role="region" aria-label="Table" tabindex="0"><table>
 <thead>
@@ -371,7 +371,7 @@
 </tr>
 </tbody>
 </table></div>
-<h2 id="local-parity-env-squire">Local parity (<code>.env.squire</code>)<a class="docs-heading-link" aria-label="Link to this section" href="#local-parity-env-squire">#</a></h2>
+<h2 id="local-parity-env-squire">Local parity (<code>.env.squire</code><span class="docs-heading-tail"><span>)</span><a class="docs-heading-link" aria-label="Link to this section" href="#local-parity-env-squire">#</a></span></h2>
 <div class="docs-table" role="region" aria-label="Table" tabindex="0"><table>
 <thead>
 <tr>

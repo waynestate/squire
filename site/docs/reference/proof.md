@@ -6,13 +6,13 @@ llms: https://squire.apps.wayne.edu/llms.txt
 generator: Squire agent-ready
 ---
 
-# Proof[#](https://squire.apps.wayne.edu/docs/reference/proof.html#proof)
+# Proof [#](https://squire.apps.wayne.edu/docs/reference/proof.html#proof)
 
 This page says how Squire was proven on real Wayne State applications: what ran, what held, what the run caught in Squire itself, and what it does not prove yet. Next, see [Doctor](https://squire.apps.wayne.edu/docs/guides/doctor.html) for the rules the run checked and [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html) for the setup the boots used.
 
 A squire is judged on the field, not in the tent. So on 2026-11-05 Squire went out to every PHP application in the stack's shared proof corpus, the same set PROCTOR and Preflight are measured on.
 
-## Last run[#](https://squire.apps.wayne.edu/docs/reference/proof.html#last-run)
+## Last run [#](https://squire.apps.wayne.edu/docs/reference/proof.html#last-run)
 
 The table below records the most recent time the checks on this page were run against Squire itself, so a reader can see when the page was last verified and what the run found.
 
@@ -23,7 +23,7 @@ The table below records the most recent time the checks on this page were run ag
 
 To refresh this section, rerun `composer ci` and the local parity rig from [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html), then rewrite the table. The 82-app corpus run and the four real-app boots were not rerun: they need the shared proof corpus and the internal app repositories, which are not available on this machine, so the parity row uses the synthetic fixture that `squire init` writes, the same way CI does.
 
-## What ran[#](https://squire.apps.wayne.edu/docs/reference/proof.html#what-ran)
+## What ran [#](https://squire.apps.wayne.edu/docs/reference/proof.html#what-ran)
 
 Squire 0.5.0 from `main`, plus the `init` notice described below, in `php:8.4-cli` with no network. The 82 applications are 64 raw PHP apps (33 with a `composer.json`, 31 without one), 17 Laravel apps from 5.8 to 13, and 1 Slim 2 app. Six libraries, one template and six test sites ran too and are counted on their own line.
 
@@ -39,7 +39,7 @@ Each app was a throwaway copy of its default branch, checked out with Linux line
 
 An app **passes** when every step does what it should and `doctor` ends with exit 0. It is **flagged** when Squire did its job and still has something to tell the app (a fail or an untracked file the app wrote itself). A **tool error** is Squire breaking: a crash, an exit 2, invalid JSON, drift in its own output, a second `init` that changes something, or a written file that fails its lint.
 
-## Results[#](https://squire.apps.wayne.edu/docs/reference/proof.html#results)
+## Results [#](https://squire.apps.wayne.edu/docs/reference/proof.html#results)
 
 | Units | Pass | Flagged | Tool error |
 | --- | --- | --- | --- |
@@ -58,7 +58,7 @@ An app **passes** when every step does what it should and `doctor` ends with exi
 - The six flagged apps had their own `build.sh` or `health.php`. `init` skipped those files without `--force`, `init --check` named them as untracked, and in one of them `doctor` failed S1: its own `build.sh` runs `composer require`, which cannot work at image build time.
 - The median app took 3 seconds for all seven steps.
 
-## Four apps on local parity[#](https://squire.apps.wayne.edu/docs/reference/proof.html#four-apps-on-local-parity)
+## Four apps on local parity [#](https://squire.apps.wayne.edu/docs/reference/proof.html#four-apps-on-local-parity)
 
 Doctor reads files; it never runs an app. To see whether the kit actually brings an app up, four apps of different shapes were booted on [local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html) with the fallback base image, HAProxy in front and MySQL 5.6.51 behind, with every Wayne State host mapped to `127.0.0.1` so no app could reach a real service.
 
@@ -69,7 +69,7 @@ Doctor reads files; it never runs an app. To see whether the kit actually brings
 | Slim 2 | The release stopped at step 3: the lock file installs one package from Subversion, and the image has no `svn`. The message named the step and the cause. |
 | Laravel 13 | Without a `.env`, step 1 refused, as documented. With one made from `.env.example`, as the Citadel dashboard would, the release ran all ten steps in 106 seconds, including the migrations on MySQL 5.6. The app's own `.htaccess` then redirects every plain HTTP request to HTTPS, so `/up` answered 307 and the health check said unhealthy. That is the trusted-proxy class of problem parity exists to show before Citadel does. |
 
-## What it caught in Squire[#](https://squire.apps.wayne.edu/docs/reference/proof.html#what-it-caught-in-squire)
+## What it caught in Squire [#](https://squire.apps.wayne.edu/docs/reference/proof.html#what-it-caught-in-squire)
 
 A run that only finds praise was not looking hard enough. This one found these, and every finding is about Squire, not the apps:
 
@@ -78,14 +78,14 @@ A run that only finds praise was not looking hard enough. This one found these, 
 - **Open: fresh output that warns about itself.** Right after `init`, `doctor` warns on every app that `.env.squire` is not ignored at the repository root (`init` only edits `.gitignore` in a folder below the root) and that the Citadel image in the compose file is not pinned by digest (S67). Both warnings are true and both have a documented fix, but a kit should not hand its owner homework on day one.
 - **Windows checkouts.** The first pass used clones made on Windows, where Git had turned the line endings of existing deploy scripts into CRLF. `doctor` failed S8 on 11 apps that are LF in their repositories, exactly the trap the rule describes. The numbers above are from the Linux checkout Citadel sees.
 
-## What this does not prove[#](https://squire.apps.wayne.edu/docs/reference/proof.html#what-this-does-not-prove)
+## What this does not prove [#](https://squire.apps.wayne.edu/docs/reference/proof.html#what-this-does-not-prove)
 
 - No app was deployed to Citadel and no Quick Update ran. The boots used the fallback base image, an approximation of Citadel's image, and only four apps were booted.
 - No real configuration, database contents, Oracle, CAS or Entra were used, so an app's own pages are only shown to start, not to work.
 - `doctor` decides only the rules a machine can read from files; the rest of the best practices are not checked here.
 - The per-app record names the applications and stays in the stack's internal notes.
 
-## Run it on your app[#](https://squire.apps.wayne.edu/docs/reference/proof.html#run-it-on-your-app)
+## Run it on your app [#](https://squire.apps.wayne.edu/docs/reference/proof.html#run-it-on-your-app)
 
 The same steps on your own app, from its root:
 
@@ -111,7 +111,7 @@ Windows
 scripts\parity.ps1 up -Fallback
 ```
 
-## Related[#](https://squire.apps.wayne.edu/docs/reference/proof.html#related)
+## Related [#](https://squire.apps.wayne.edu/docs/reference/proof.html#related)
 
 - [Doctor](https://squire.apps.wayne.edu/docs/guides/doctor.html)
 - [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html)
