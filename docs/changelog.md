@@ -12,6 +12,8 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+## 0.10.3 (2026-11-09)
+
 - Changed: the `wayneui-copies` and `composer-ci` CI jobs pin `composer:2.11.1` by its multi-arch list digest (`sha256:8de2184c...`), as the kit already does, instead of the bare tag.
 - Changed: the deploy layer requires CREED ^0.1.8, HELMET ^1.3 and PROCTOR ^0.11 (locked 0.1.8, 1.3.0 and 0.11.1; were ^0.1, ^1.0 and ^0.8), and the Pinstripe dev dependency is ^0.1.4 (locked 0.1.4, was 0.1.0). `proctor check` on `deploy/` still passes.
 - Changed: CI pins the Preflight components to 0.5.0 (was 0.4.0). The composer-audit job drops its own image input, since 0.5.0's default is `composer:2.11.1` by digest, and the PROCTOR job now keeps `proctor.json` for Rollcall. The a11y checker is the same at 0.5.0, so `tools/a11y/` does not change.

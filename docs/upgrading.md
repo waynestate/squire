@@ -1,6 +1,6 @@
 ---
 title: "Upgrading"
-description: "What changed in each released minor of Squire (0.10.2, 0.10.1, 0.10.0, 0.9.0, 0.8.0, 0.7.1, 0.7.0, 0.6.0, 0.5.0, 0.4.0 and the 0.3.x line), the steps to move an app to them, and how to verify the upgrade held."
+description: "What changed in each released minor of Squire (0.10.3, 0.10.2, 0.10.1, 0.10.0, 0.9.0, 0.8.0, 0.7.1, 0.7.0, 0.6.0, 0.5.0, 0.4.0 and the 0.3.x line), the steps to move an app to them, and how to verify the upgrade held."
 ---
 
 # Upgrading
@@ -16,6 +16,21 @@ vendor/bin/squire init --check
 vendor/bin/squire update --dry-run
 
 `squire init --check` reports when your copies have drifted from the templates; it exits `0` when they match and `1` when they have. `squire update --dry-run` prints the plan and writes nothing; it exits `1` when an edited file still differs from the template. Exit `2` means the tool itself could not run. For the full command reference, see [Commands](reference/commands.md).
+
+## 0.10.3 (2026-11-09)
+
+No breaks: a patch on 0.10.2, and comments only. The kit files every app copies stop citing Squire's internal item IDs and say in plain words what each comment meant (the opcache switch, the web's `disable_functions` list, secrets as files, the digest pins, the npm install-script escape hatch, the Oracle check). No setting, default or behavior changes. The files that change: `.squire/Dockerfile`, `.squire/apache-hardening.conf`, `.squire/base-fallback.Dockerfile`, `.squire/fallback/citadel-apache-entrypoint`, `.squire/php-web.ini`, `.squire/php.ini`, `.squire/portable.Dockerfile`, `.squire/portable.Dockerfile.dockerignore`, `.squire/portable/squire-entrypoint.sh`, `docker-compose.squire.yml`, `oracle-check.php` and `scripts/release.sh`.
+
+### Steps
+
+1. Update the `waynestate/squire` dev dependency: `composer update waynestate/squire` when the app already requires `^0.10`, otherwise `composer require --dev waynestate/squire:^0.10.3`.
+2. Run `vendor/bin/squire update`: it takes the reworded files the app never edited, and shows a diff for any it did.
+3. Commit the changed kit files and `.squire.json`.
+4. Stack repos: refresh `deploy/` the same way. Sourdough: refresh its generated copy with `php bin/export-templates.php --to=templates/squire`.
+
+### How to verify
+
+Run the two checks at the top of this page; both exit `0`.
 
 ## 0.10.2 (2026-11-09)
 
