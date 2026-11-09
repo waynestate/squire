@@ -146,13 +146,20 @@ runner-probe:
   rules:
     - if: $SQUIRE_RUNNER_PROBE == "1"
   script:
-    - uname -a
-    - grep -E 'CapEff|CapBnd|Seccomp|NoNewPrivs' /proc/self/status
-    - id; cat /proc/self/uid_map
-    - cat /proc/sys/user/max_user_namespaces || true
-    - ls -la /proc/sys/fs/binfmt_misc/ || true
-    - cat /proc/sys/fs/binfmt_misc/status || echo "binfmt_misc not mounted in the job container"
-    - grep -E 'binfmt|^proc ' /proc/self/mounts || true
-    - mkdir -p /tmp/bm-host && (mount -t binfmt_misc binfmt_misc /tmp/bm-host && echo "binfmt_misc mount in job: yes" && ls /tmp/bm-host && cat /tmp/bm-host/status && (test -w /tmp/bm-host/register && echo "register writable" || echo "register read-only")) || echo "binfmt_misc mount in job: no"
-    - unshare --user --map-root-user --mount sh -c 'mkdir -p /tmp/bm && mount -t binfmt_misc binfmt_misc /tmp/bm && echo "sandboxed binfmt_misc in a user namespace: yes" && ls /tmp/bm' || echo "sandboxed binfmt_misc in a user namespace: no"
-    - buildah --version
+    - |
+      uname -a
+      grep -E 'CapEff|CapBnd|Seccomp|NoNewPrivs' /proc/self/status
+      id; cat /proc/self/uid_map
+      cat /proc/sys/user/max_user_namespaces || true
+      ls -la /proc/sys/fs/binfmt_misc/ || true
+      cat /proc/sys/fs/binfmt_misc/status || echo "binfmt_misc not mounted in the job container"
+      grep -E 'binfmt|^proc ' /proc/self/mounts || true
+      mkdir -p /tmp/bm-host
+      if mount -t binfmt_misc binfmt_misc /tmp/bm-host; then
+        echo "binfmt_misc mount in job = yes"; ls /tmp/bm-host; cat /tmp/bm-host/status
+        if [ -w /tmp/bm-host/register ]; then echo "register writable"; else echo "register read-only"; fi
+      else
+        echo "binfmt_misc mount in job = no"
+      fi
+      unshare --user --map-root-user --mount sh -c 'mkdir -p /tmp/bm && mount -t binfmt_misc binfmt_misc /tmp/bm && echo "sandboxed binfmt_misc in a user namespace = yes" && ls /tmp/bm' || echo "sandboxed binfmt_misc in a user namespace = no"
+      buildah --version
