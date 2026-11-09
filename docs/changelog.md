@@ -12,6 +12,8 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+- Fixed: scripts/a11y.ps1 works on a Windows checkout with CRLF line endings; it strips the carriage returns from the shell command it hands to Docker, which sh rejected with a syntax error.
+
 ## 0.10.0 (2026-11-09)
 
 - Added: the MySQL upgrade path guide (`docs/guides/mysql-upgrade-path.md`): 5.6.51 to 5.7 to 8.0 to 8.4 LTS one series at a time, with the checker to run, the backup (a dump made with the source's own client) and the driver and Laravel floor for each hop, and a rollback for each hop, since MySQL cannot downgrade in place across series. With it, `scripts/mysql-preupgrade-checks.sql`, a read-only script for a copy of the data that lists old temporal columns, names of 64 characters or more, tables not on `utf8mb4_unicode_ci`, and what 8.4 rejects (foreign keys on a non-unique or partial key, `AUTO_INCREMENT` on `FLOAT` or `DOUBLE`); a test refuses any statement that is not a `SELECT` or `SET SESSION`.
