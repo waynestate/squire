@@ -289,6 +289,22 @@ final class ImageHardeningTest extends SquireTestCase
         }
     }
 
+    public function testPhpIniSendsTheSessionCookieHttpOnlySecureAndSameSiteLax(): void
+    {
+        // A raw PHP app that never calls helmet_boot() still gets a safe session cookie, and SESAME has nothing to
+        // warn about. Lax, not Strict: a CAS ticket comes back as a top-level GET from the IdP's site and needs it.
+        $ini = $this->directives('common/.squire/php.ini', ';');
+        self::assertContains('session.cookie_httponly = 1', $ini);
+        self::assertContains('session.cookie_secure = 1', $ini);
+        self::assertContains('session.cookie_samesite = Lax', $ini);
+        foreach ($this->directives('common/.squire/php-web.ini', ';') as $line) {
+            self::assertStringStartsNotWith('session.cookie_', $line, 'the web ini never overrides the session cookie');
+        }
+
+        $out = $this->underIni($this->webIni(), 'echo ini_get("session.cookie_samesite"), "|", ini_get("session.cookie_httponly"), "|", ini_get("session.cookie_secure");');
+        self::assertSame('Lax|1|1', $out, 'PHP itself reads the three settings from the web ini the image builds');
+    }
+
     public function testThePhpWebIniHoldsTheListAndTheComposeFilesPassTheSwitch(): void
     {
         self::assertContains('disable_functions = ${SQUIRE_PHP_DISABLE_FUNCTIONS:-' . self::WEB_DISABLED . '}', $this->directives('common/.squire/php-web.ini', ';'));

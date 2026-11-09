@@ -64,6 +64,12 @@ A web request should never shell out. `.squire/php-web.ini` holds the settings o
 > [!NOTE]
 > Like opcache, this is the kit's request: on Citadel the platform's own `php.ini` decides. A local run is stricter than Citadel until the platform adopts the list, which is the safe direction: an app that works locally works there.
 
+## Session cookie: HttpOnly, Secure, SameSite=Lax
+
+PHP's own session cookie gets all three flags from `.squire/php.ini`, so a raw PHP app that never calls `helmet_boot()` still sends a safe one, and SESAME has nothing to warn about: `session.cookie_httponly = 1` (scripts cannot read it), `session.cookie_secure = 1` (https only; TLS ends at the proxy in front of the container, so the browser always sees https) and `session.cookie_samesite = Lax`.
+
+Lax sends the cookie on a top-level GET from another site, which is how a CAS ticket and an OIDC code come back, and never on a cross-site POST, image or frame, which blunts CSRF. A SAML ACS receives a cross-site POST without the cookie; SESAME parks the response and finishes on a GET for that reason. An app whose session must ride some other cross-site POST sets `session.cookie_samesite` for that app instead. Laravel apps set their own cookie in `config/session.php` and are not affected. On Citadel, as above, the platform's `php.ini` decides.
+
 ## Secrets: files at run time, never in a layer
 
 An image layer is readable by anyone who can pull the image, and `docker history` shows every build argument. So no secret is ever a build argument, an `ENV` line, a copied file, or something `build.sh` fetches. Tests hold the kit to it: the Dockerfiles carry no `ARG` or `ENV` named like a password, key, token or secret, the build context is `build.sh` and `.squire/` only (the `.dockerignore` starts with `*` and never lets an env file back in), and `build.sh` never reads `.env`.

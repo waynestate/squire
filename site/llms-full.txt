@@ -1061,6 +1061,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 - Fixed: the kit's Dockerfiles name every image in full (`docker.io/library/php:...`, `docker.io/library/node:...`, `docker.io/library/composer:...`, tags and digests unchanged), so Buildah and Podman build them with short-name mode enforcing; Buildah refused the fallback base's `COPY --from=composer:2.11.1@sha256:...` outright. The fallback base's Composer now comes from a `FROM ${COMPOSER_IMAGE} AS composer` stage, so all three images (`PHP_IMAGE`, `NODE_IMAGE`, `COMPOSER_IMAGE`) are build arguments a proxy or mirror can swap; Image hardening in the docs has the Dependency Proxy recipe. The Oracle parity image's bases in `images/oracle/php-images.txt` are named in full too. A test fails on a short name in any of the kit's Dockerfiles.
 - Changed: the portable image drops `node_modules/` after the frontend build, in the same step, so no layer keeps it; the image ships the built assets and no role runs Node. `--build-arg SQUIRE_KEEP_NODE_MODULES=1` keeps it for an app that reads it at run time.
+- Changed: raw PHP apps get SameSite=Lax session cookies. The kit's `php.ini` sets `session.cookie_samesite = Lax` (it was empty), next to the `session.cookie_httponly = 1` and `session.cookie_secure = 1` it already set, so an app that never calls `helmet_boot()` sends a session cookie SESAME 0.7.0 does not warn about. Lax still sends the cookie on a top-level GET from another site (a CAS ticket, an OIDC code), not on a cross-site POST. Applies wherever the kit's `php.ini` is used (local parity, the portable image); on Citadel the platform's `php.ini` decides. A test pins the three settings and reads them back through PHP.
 
 ### 0.10.1 (2026-11-09) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-10-1-2026-11-09)
 
@@ -1758,6 +1759,12 @@ A web request should never shell out. `.squire/php-web.ini` holds the settings o
 Note
 
 Like opcache, this is the kit's request: on Citadel the platform's own `php.ini` decides. A local run is stricter than Citadel until the platform adopts the list, which is the safe direction: an app that works locally works there.
+
+### Session cookie: HttpOnly, Secure, SameSite=Lax [#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#session-cookie-httponly-secure-samesite-lax)
+
+PHP's own session cookie gets all three flags from `.squire/php.ini`, so a raw PHP app that never calls `helmet_boot()` still sends a safe one, and SESAME has nothing to warn about: `session.cookie_httponly = 1` (scripts cannot read it), `session.cookie_secure = 1` (https only; TLS ends at the proxy in front of the container, so the browser always sees https) and `session.cookie_samesite = Lax`.
+
+Lax sends the cookie on a top-level GET from another site, which is how a CAS ticket and an OIDC code come back, and never on a cross-site POST, image or frame, which blunts CSRF. A SAML ACS receives a cross-site POST without the cookie; SESAME parks the response and finishes on a GET for that reason. An app whose session must ride some other cross-site POST sets `session.cookie_samesite` for that app instead. Laravel apps set their own cookie in `config/session.php` and are not affected. On Citadel, as above, the platform's `php.ini` decides.
 
 ### Secrets: files at run time, never in a layer [#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#secrets-files-at-run-time-never-in-a-layer)
 
