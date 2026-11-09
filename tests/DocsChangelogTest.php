@@ -218,6 +218,46 @@ final class DocsChangelogTest extends SquireTestCase
         self::assertStringContainsString('[the guide](https://git.example.com/acme/demo/-/blob/main/guides/start.md#setup)', $page);
     }
 
+    public function testGithubSourceUsesGithubBlobPath(): void
+    {
+        $changelog = "# Changelog\n\n## Unreleased\n\n- See [the readme](README.md).\n";
+        $dir = $this->repo();
+        $this->withChangelog($dir, $changelog);
+        /** @var array<string, mixed> $nav */
+        $nav = json_decode((string) file_get_contents($dir . '/docs/nav.json'), true);
+        $nav['source'] = 'https://github.com/acme/demo';
+        $this->put($dir, 'docs/nav.json', json_encode($nav, JSON_PRETTY_PRINT) . "\n");
+        $result = $this->invoke(['--root=' . $dir]);
+        self::assertSame(0, $result['code'], $result['stderr']);
+        $page = (string) file_get_contents($dir . '/docs/changelog.md');
+        self::assertStringContainsString('[the readme](https://github.com/acme/demo/blob/main/README.md)', $page);
+        self::assertStringNotContainsString('/-/blob/', $page);
+    }
+
+    public function testCodeSpansAndFencesAreNotRewritten(): void
+    {
+        $changelog = "# Changelog\n\n## Unreleased\n\n"
+            . "- An example: `[x](docs/a.md)` stays as written.\n"
+            . "\n"
+            . "```\n[y](docs/b.md)\n```\n"
+            . "\n"
+            . "- Plain [z](docs/c.md) moves.\n";
+        $dir = $this->repo();
+        $this->withChangelog($dir, $changelog);
+        /** @var array<string, mixed> $nav */
+        $nav = json_decode((string) file_get_contents($dir . '/docs/nav.json'), true);
+        $nav['source'] = 'https://git.example.com/acme/demo';
+        $this->put($dir, 'docs/nav.json', json_encode($nav, JSON_PRETTY_PRINT) . "\n");
+        $result = $this->invoke(['--root=' . $dir]);
+        self::assertSame(0, $result['code'], $result['stderr']);
+        $page = (string) file_get_contents($dir . '/docs/changelog.md');
+        self::assertStringContainsString('`[x](docs/a.md)`', $page);
+        self::assertStringContainsString("```\n[y](docs/b.md)\n```\n", $page);
+        self::assertStringContainsString('[z](https://git.example.com/acme/demo/-/blob/main/docs/c.md)', $page);
+        self::assertStringNotContainsString('/blob/main/docs/a.md', $page);
+        self::assertStringNotContainsString('/blob/main/docs/b.md', $page);
+    }
+
     public function testGenerationIsByteStable(): void
     {
         $dir = $this->repo();

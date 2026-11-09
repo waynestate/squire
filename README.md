@@ -338,8 +338,11 @@ it from the repo's `CHANGELOG.md` before building, and `--check` never writes. T
 top-level heading dropped, so every version heading stays as written: `## Unreleased`, `## [Unreleased]`,
 `## 0.5.0 (2026-11-03)` and `## [0.1.9] - 2026-11-03` all keep their shape and get the page's usual anchors. Links
 follow the site's rules: an `http(s)` link stays, a relative link becomes a blob link under the nav.json `source`
-(`https://repo.example.com/acme/app/-/blob/main/README.md`) when there is one, and loses its link, keeping its label,
-when there is not. A nav entry without a `CHANGELOG.md` is a finding, and a changed `CHANGELOG.md` or a missing
+when there is one, and loses its link, keeping its label, when there is not. The blob path follows the source's
+host: a GitHub source (`github.com` or `www.github.com`) gets `/blob/main/`
+(`https://github.com/acme/app/blob/main/README.md`) and any other host keeps GitLab's `/-/blob/main/`
+(`https://repo.example.com/acme/app/-/blob/main/README.md`). Links inside a code span or a fenced code block are
+left as written. A nav entry without a `CHANGELOG.md` is a finding, and a changed `CHANGELOG.md` or a missing
 `docs/changelog.md` is drift.
 
 ### Callouts

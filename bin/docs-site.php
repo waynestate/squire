@@ -1533,15 +1533,86 @@ final class DocsSite
     /**
      * The link rules for the generated changelog page: http(s) and other scheme links stay, a pure fragment
      * stays, and a relative link becomes a blob link under the nav.json source, or loses its link and keeps its
-     * label when there is no source. Markdown images are left alone.
+     * label when there is no source. The blob path follows the source's host: the GitHub host, with or without
+     * the www prefix, gets /blob/main/, every other host keeps GitLab's /-/blob/main/. Nothing inside a fenced
+     * code block or an inline code span is rewritten. Markdown images are left alone.
      */
     private function rewriteChangelogLinks(string $body): string
     {
         $source = $this->sourceUrl();
+        $host = strtolower((string) parse_url((string) $source, PHP_URL_HOST));
+        // The host is matched, never named, so the builder stays free of any repo address: the pattern holds
+        // the GitHub host with or without the www prefix.
+        $blob = preg_match('/^(?:www\.)?github\.com$/', $host) === 1 ? '/blob/main/' : '/-/blob/main/';
+        $out = [];
+        $inFence = false;
+        $fenceChar = '';
+        $fenceLength = 0;
+        foreach (explode("\n", $body) as $line) {
+            // The helper reports the opening and closing lines and carries the fence state, so a content line
+            // inside a fence reads as a plain line until $inFence says otherwise.
+            if (docs_site_fence_line($line, $inFence, $fenceChar, $fenceLength) || $inFence) {
+                $out[] = $line;
 
+                continue;
+            }
+            $out[] = $this->rewriteChangelogLine($line, $source, $blob);
+        }
+
+        return implode("\n", $out);
+    }
+
+    /**
+     * One line of the changelog body: the text outside inline code spans is rewritten, and every code span, a run
+     * of one or more backticks up to the next run of the same length on the line, is kept byte for byte. An opener
+     * with no matching closer leaves the rest of the line as written.
+     */
+    private function rewriteChangelogLine(string $line, ?string $source, string $blob): string
+    {
+        $runs = [];
+        if (preg_match_all('/`+/', $line, $matches, PREG_OFFSET_CAPTURE) > 0) {
+            foreach ($matches[0] as $match) {
+                $runs[] = [(int) $match[1], strlen((string) $match[0])];
+            }
+        }
+        if ($runs === []) {
+            return $this->rewriteChangelogText($line, $source, $blob);
+        }
+        $out = '';
+        $cursor = 0;
+        $open = null;
+        foreach ($runs as $run) {
+            if ($open !== null && $run[1] === $open[1]) {
+                $out .= $this->rewriteChangelogText(substr($line, $cursor, $open[0] - $cursor), $source, $blob);
+                $out .= substr($line, $open[0], $run[0] + $run[1] - $open[0]);
+                $cursor = $run[0] + $run[1];
+                $open = null;
+
+                continue;
+            }
+            if ($open === null) {
+                $open = $run;
+            }
+        }
+        if ($open !== null) {
+            $out .= $this->rewriteChangelogText(substr($line, $cursor, $open[0] - $cursor), $source, $blob);
+
+            return $out.substr($line, $open[0]);
+        }
+
+        return $out.$this->rewriteChangelogText(substr($line, $cursor), $source, $blob);
+    }
+
+    /**
+     * The one link rule for a stretch of the changelog body that holds no code: a relative link becomes a blob
+     * link under the nav.json source, or loses its link and keeps its label when there is no source, and
+     * everything else stays as written.
+     */
+    private function rewriteChangelogText(string $text, ?string $source, string $blob): string
+    {
         return (string) preg_replace_callback(
             '/(?<!!)\[([^\]]*)\]\(([^()\n]+)\)/',
-            static function (array $m) use ($source): string {
+            static function (array $m) use ($source, $blob): string {
                 $label = $m[1];
                 $target = trim($m[2]);
                 if (preg_match('/^(.*?)\s+["\'][^"\']*["\']$/', $target, $t) === 1) {
@@ -1560,9 +1631,9 @@ final class DocsSite
                     return $label;
                 }
 
-                return '['.$label.']('.rtrim($source, '/').'/-/blob/main/'.$target.')';
+                return '['.$label.']('.rtrim($source, '/').$blob.$target.')';
             },
-            $body,
+            $text,
         );
     }
 
