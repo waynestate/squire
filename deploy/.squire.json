@@ -1,6 +1,6 @@
 {
     "squire": "Written by Squire. Commit this file: `vendor/bin/squire init --check` reads it to report drift.",
-    "version": "0.8.0",
+    "version": "0.10.0",
     "target": "raw",
     "groups": [
         "release",
@@ -31,6 +31,6 @@
         "public/up.php": "84d1b3d8823fcd5519fbe92988f822ce68cdc05eff2c889814deb3f33982600a",
         "scripts/parity.ps1": "da69deebe08280a5054a4b3724ceaeb61aa22b73febb9bcc2cdc913177414736",
         "scripts/parity.sh": "f0fb6a963277bde29b77e8b7869a1775acd517ea8d4f2774567469bf77235eae",
-        "scripts/release.sh": "40e27bade75cbf456ad7d54496b2033b46baac2f2291e92c04e431697c3a55b6"
+        "scripts/release.sh": "f2f6339a20257aadb80d0969fcd139a03638eab15b9e18dc5a11d85d2e8d1773"
     }
 }
