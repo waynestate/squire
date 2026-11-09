@@ -1,6 +1,6 @@
 ---
 title: "Upgrading"
-description: "What changed in each released minor of Squire (0.8.0, 0.7.0, 0.6.0, 0.5.0, 0.4.0 and the 0.3.x line), the steps to move an app to them, and how to verify the upgrade held."
+description: "What changed in each released minor of Squire (0.10.1, 0.10.0, 0.9.0, 0.8.0, 0.7.1, 0.7.0, 0.6.0, 0.5.0, 0.4.0 and the 0.3.x line), the steps to move an app to them, and how to verify the upgrade held."
 ---
 
 # Upgrading
@@ -16,6 +16,49 @@ vendor/bin/squire init --check
 vendor/bin/squire update --dry-run
 
 `squire init --check` reports when your copies have drifted from the templates; it exits `0` when they match and `1` when they have. `squire update --dry-run` prints the plan and writes nothing; it exits `1` when an edited file still differs from the template. Exit `2` means the tool itself could not run. For the full command reference, see [Commands](reference/commands.md).
+
+## 0.10.1 (2026-11-09)
+
+No breaks: a patch on 0.10.0. The kit's fallback base (`.squire/base-fallback.Dockerfile`) moves Composer from 2.10.3 to 2.11.1. 2.10 is no longer maintained, and 2.11.0 fixed GHSA-c968-33g3-wh7p (package names in `installed.json` could escape the vendor directory) and GHSA-fm2w-xgf2-f9fh (inline repository HTTP headers could be written into `composer.lock`). 2.11 drops the `source-fallback` setting, which Squire never used, and its new `policy.cooldown` stays off by default. The other two changes are Squire's own: its `deploy/` copy is on the 0.10.0 kit, and `scripts/a11y.ps1` works on a Windows checkout with CRLF line endings.
+
+### Steps
+
+1. Update the `waynestate/squire` dev dependency: `composer update waynestate/squire` when the app already requires `^0.10`, otherwise `composer require --dev waynestate/squire:^0.10.1`.
+2. Run `vendor/bin/squire update`: it takes the new `.squire/base-fallback.Dockerfile` when the app never edited it, and shows a diff when it did.
+3. Commit the changed kit files (`.squire/base-fallback.Dockerfile` and `.squire.json`). The fallback image takes the new Composer the next time it builds.
+4. Stack repos: refresh `deploy/` the same way. Sourdough: refresh its generated copy with `php bin/export-templates.php --to=templates/squire`.
+
+### How to verify
+
+Run the two checks at the top of this page; both exit `0`. `.squire/base-fallback.Dockerfile` names `composer:2.11.1`.
+
+## 0.10.0 (2026-11-09)
+
+No breaks, and no kit file changes: an app that takes 0.10.0 gets the same files as 0.9.0. The release adds the MySQL upgrade path guide ([MySQL upgrade path](guides/mysql-upgrade-path.md)) with a read-only pre-upgrade check script, and docs kit fixes for sites built with Squire's docs builder: the heading "#" stays on the line of its last word, and "On this page" marks the section in view. A site takes those by resyncing the kit and builder with `--sync-to` (see [Docs builder](guides/docs-builder.md)).
+
+### Steps
+
+1. Update the `waynestate/squire` dev dependency: `composer require --dev waynestate/squire:^0.10`.
+2. Run `vendor/bin/squire update`; it records the new release in `.squire.json`.
+
+### How to verify
+
+Run the two checks at the top of this page; both exit `0`.
+
+## 0.9.0 (2026-11-08)
+
+One behavior change for Laravel apps: the release script now checks the app's environment before anything installs. A release stops when `APP_KEY` is unset, or when `APP_DEBUG` is true in production, and an `APP_ENV` that is not `production` earns a warning (Sourdough practice 4.14). The release gate also passes `--php-runtime` to PROCTOR, so the deploy path grades the PHP that serves the app for PROCTOR's unpatched check; `SQUIRE_PHP_RUNTIME` (`auto` by default, `skip`, or an `X.Y.Z` version) changes what it grades.
+
+### Steps
+
+1. Before you deploy, make sure the Citadel environment sets `APP_KEY` (in `.env` or as a masked variable in the Citadel dashboard) and sets `APP_DEBUG` to false.
+2. Update the `waynestate/squire` dev dependency: `composer require --dev waynestate/squire:^0.9`.
+3. Run `vendor/bin/squire update`: it takes the new `scripts/release.sh` and `.env.squire.example` when the app never edited them, and shows a diff when it did.
+4. Stack repos: refresh `deploy/` the same way. Sourdough: refresh its generated copy with `php bin/export-templates.php --to=templates/squire`.
+
+### How to verify
+
+Run the two checks at the top of this page; both exit `0`. `scripts/release.sh` checks `APP_KEY` and `APP_DEBUG` (search it for `Sourdough practice 4.14`).
 
 ## 0.8.0 (2026-11-08)
 
