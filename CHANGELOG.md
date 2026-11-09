@@ -6,6 +6,7 @@ Versioning once 1.0 is out.
 ## Unreleased
 
 - Changed: the `wayneui-copies` and `composer-ci` CI jobs pin `composer:2.11.1` by its multi-arch list digest (`sha256:8de2184c...`), as the kit already does, instead of the bare tag.
+- Changed: the deploy layer requires CREED ^0.1.8, HELMET ^1.3 and PROCTOR ^0.11 (locked 0.1.8, 1.3.0 and 0.11.1; were ^0.1, ^1.0 and ^0.8), and the Pinstripe dev dependency is ^0.1.4 (locked 0.1.4, was 0.1.0). `proctor check` on `deploy/` still passes.
 
 ## 0.10.2 (2026-11-09)
 
