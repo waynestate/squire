@@ -554,7 +554,7 @@ final class ReleaseScriptTest extends SquireTestCase
     public function testLaravelRunsMigrateThenOptimizeAndSmokeTestsUp(): void
     {
         $app = $this->initializedApp(true);
-        $this->put($app, '.env', "APP_ENV=testing\n");
+        $this->put($app, '.env', "APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\nAPP_ENV=testing\n");
         $this->artisanStub($app);
 
         $result = $this->exec($app, 'scripts/release.sh');
@@ -592,7 +592,7 @@ final class ReleaseScriptTest extends SquireTestCase
     public function testWithoutReloadTheReleaseFallsBackToQueueRestartAndScheduleInterrupt(): void
     {
         $app = $this->initializedApp(true);
-        $this->put($app, '.env', "APP_ENV=testing\n");
+        $this->put($app, '.env', "APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\nAPP_ENV=testing\n");
         $this->artisanStub($app);
 
         $result = $this->exec($app, 'scripts/release.sh', ['STUB_RELOAD_HELP_EXIT' => '1']);
@@ -613,7 +613,7 @@ final class ReleaseScriptTest extends SquireTestCase
     public function testAFailingQueueRestartIsAWarningAndTheReleaseGoesOn(): void
     {
         $app = $this->initializedApp(true);
-        $this->put($app, '.env', "APP_ENV=testing\n");
+        $this->put($app, '.env', "APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\nAPP_ENV=testing\n");
         $this->artisanStub($app);
 
         $result = $this->exec($app, 'scripts/release.sh', ['STUB_RELOAD_HELP_EXIT' => '1', 'STUB_QUEUE_RESTART_EXIT' => '3']);
@@ -632,7 +632,7 @@ final class ReleaseScriptTest extends SquireTestCase
     public function testTurningOffTheRestartSkipsEveryRestartCommand(): void
     {
         $app = $this->initializedApp(true);
-        $this->put($app, '.env', "APP_ENV=testing\n");
+        $this->put($app, '.env', "APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\nAPP_ENV=testing\n");
         $this->artisanStub($app);
 
         $result = $this->exec($app, 'scripts/release.sh', ['SQUIRE_ARTISAN_RESTART' => '0']);
@@ -645,7 +645,7 @@ final class ReleaseScriptTest extends SquireTestCase
     public function testARestartSettingThatIsNotZeroOrOneStopsBeforeAnythingInstalls(): void
     {
         $app = $this->initializedApp(true);
-        $this->put($app, '.env', "APP_ENV=testing\n");
+        $this->put($app, '.env', "APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\nAPP_ENV=testing\n");
         $this->artisanStub($app);
 
         $result = $this->exec($app, 'scripts/release.sh', ['SQUIRE_ARTISAN_RESTART' => '2']);
@@ -713,6 +713,88 @@ final class ReleaseScriptTest extends SquireTestCase
         self::assertSame(1, $result['exit']);
         self::assertStringContainsString('.env not found', $result['stderr']);
         self::assertNotContains('artisan migrate --force', $this->calls());
+    }
+
+    // --- the environment guard (Sourdough practice 4.14) -------------------------------------------------------------
+
+    public function testALaravelReleaseWithoutAnAppKeyStopsBeforeAnythingInstalls(): void
+    {
+        $app = $this->initializedApp(true);
+        $this->put($app, '.env', "APP_ENV=production\n");
+        $this->artisanStub($app);
+
+        $result = $this->exec($app, 'scripts/release.sh');
+
+        self::assertSame(1, $result['exit']);
+        self::assertStringContainsString('APP_KEY is not set', $result['stderr']);
+        self::assertStringNotContainsString('frontend install and build', $result['stdout'], 'the guard stops the release before any step installs');
+        self::assertNotContains('composer install --no-dev --optimize-autoloader --no-interaction --no-progress --prefer-dist', $this->calls());
+    }
+
+    public function testAnAppKeyInTheProcessEnvironmentPassesTheGuard(): void
+    {
+        $app = $this->initializedApp(true);
+        $this->put($app, '.env', "APP_ENV=testing\n");
+        $this->artisanStub($app);
+
+        $result = $this->exec($app, 'scripts/release.sh', ['APP_KEY' => 'base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=']);
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertStringNotContainsString('APP_KEY is not set', $result['stderr']);
+        self::assertStringContainsString('[squire] release ok', $result['stdout']);
+    }
+
+    public function testDebugLeftOnInProductionStopsTheRelease(): void
+    {
+        $app = $this->initializedApp(true);
+        $this->put($app, '.env', "APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\nAPP_ENV=production\nAPP_DEBUG=true\n");
+        $this->artisanStub($app);
+
+        $result = $this->exec($app, 'scripts/release.sh');
+
+        self::assertSame(1, $result['exit']);
+        self::assertStringContainsString("APP_DEBUG must be false in production (got 'true')", $result['stderr']);
+        self::assertStringNotContainsString('frontend install and build', $result['stdout']);
+        self::assertNotContains('artisan migrate --force', $this->calls());
+    }
+
+    public function testDebugOnOutsideProductionIsOnlyAWarning(): void
+    {
+        $app = $this->initializedApp(true);
+        $this->put($app, '.env', "APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\nAPP_ENV=staging\nAPP_DEBUG=true\n");
+        $this->artisanStub($app);
+
+        $result = $this->exec($app, 'scripts/release.sh');
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertStringContainsString("APP_ENV is 'staging', not production; the release goes on", $result['stderr']);
+        self::assertStringNotContainsString('APP_DEBUG must be false', $result['stderr']);
+        self::assertStringContainsString('[squire] release ok', $result['stdout']);
+    }
+
+    public function testQuotedEnvValuesAreStrippedByTheGuard(): void
+    {
+        $app = $this->initializedApp(true);
+        $this->put($app, '.env', "APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\nAPP_DEBUG=\"true\"\n");
+        $this->artisanStub($app);
+
+        $result = $this->exec($app, 'scripts/release.sh');
+
+        self::assertSame(1, $result['exit']);
+        self::assertStringContainsString("APP_DEBUG must be false in production (got 'true')", $result['stderr']);
+    }
+
+    public function testARawReleaseNeverRunsTheEnvironmentGuard(): void
+    {
+        $app = $this->initializedApp();
+
+        $result = $this->exec($app, 'scripts/release.sh', ['APP_DEBUG' => 'true']);
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertStringNotContainsString('APP_KEY is not set', $result['stderr']);
+        self::assertStringNotContainsString('APP_DEBUG must be false', $result['stderr']);
+        self::assertStringNotContainsString('not production', $result['stderr']);
+        self::assertStringContainsString('[squire] release ok', $result['stdout']);
     }
 
     public function testFrontendPackagesInstallFromTheLockFileWithoutInstallScripts(): void
@@ -910,7 +992,8 @@ final class ReleaseScriptTest extends SquireTestCase
     public function testALaravelAppWithoutVueStillGetsTheFrontendBuild(): void
     {
         $app = $this->initializedApp(true);
-        $this->put($app, '.env', "APP_ENV=testing
+        $this->put($app, '.env', "APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+APP_ENV=testing
 ");
         $this->put($app, 'package.json', '{"devDependencies":{"vite":"^6.0.0"},"scripts":{"build":"vite build"}}');
         $this->put($app, 'package-lock.json', '{}');

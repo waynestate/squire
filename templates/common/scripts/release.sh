@@ -9,6 +9,7 @@
 # Steps: preconditions, composer install from the lock file without dev packages, composer audit (report),
 # PROCTOR's deploy gate, frontend install and build, Laravel migrate, optimize and the restart of the long-lived
 # processes, an Oracle connection check (report only), an opcache report, and a smoke test of /up.
+# A Laravel release also checks its environment before anything installs: APP_KEY must be set, APP_DEBUG must be false in production, and an APP_ENV that is not production earns a warning (Sourdough practice 4.14).
 # PROCTOR runs `proctor gate` (or `proctor check` on a PROCTOR without the gate): a go or no-go for this commit,
 # ratcheted against the verdict of the last release that went on, so only a new failure blocks. The verdict is kept in
 # SQUIRE_PROCTOR_RECORD_DIR. By default a no-go is a report here, never a stop: a failing post-script cannot undo a
@@ -204,6 +205,35 @@ http_status() {
     fi
 }
 
+# Read one variable for the environment guard: the process environment wins when it is set (it already holds the
+# mounted secrets), otherwise the first KEY=value line in ./.env, parsed the way squire_load_settings parses
+# ./.env.squire: never sourced, no expansion, one pair of surrounding single or double quotes stripped, a trailing
+# CR stripped. Prints nothing when the variable is nowhere to be found.
+squire_env_value() {
+    local name="$1" line value
+    if [ -n "${!name+x}" ]; then
+        printf '%s' "${!name}"
+        return 0
+    fi
+    [ -f ./.env ] || return 0
+    while IFS= read -r line || [ -n "$line" ]; do
+        line="${line%"$(printf '\r')"}"
+        case "$line" in
+            '' | '#'* | *=*) ;;
+            *) continue ;;
+        esac
+        [ "${line%%=*}" = "$name" ] || continue
+        value="${line#*=}"
+        case "$value" in
+            \"*\") value="${value#\"}"; value="${value%\"}" ;;
+            \'*\') value="${value#\'}"; value="${value%\'}" ;;
+        esac
+        printf '%s' "$value"
+        return 0
+    done <./.env
+    return 0
+}
+
 # --- start ----------------------------------------------------------------------------------------------------------
 
 echo "[squire] release starting in $SQUIRE_APP_DIR at $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
@@ -237,6 +267,25 @@ if [ "$require_env" = "auto" ]; then
 fi
 if [ "$require_env" = "1" ] && [ ! -f .env ]; then
     fail ".env not found; create it from .env.example in the Citadel dashboard before the first release"
+fi
+if [ "$require_env" = "1" ]; then
+    # Sourdough practice 4.14: the environment a Laravel release is about to cache into config must be sane.
+    app_key="$(squire_env_value APP_KEY)"
+    if [ -z "$app_key" ]; then
+        fail "APP_KEY is not set; set it in .env or as a masked variable in the Citadel dashboard before releasing"
+    fi
+    app_env="$(squire_env_value APP_ENV)"
+    if [ -n "$app_env" ] && [ "$app_env" != "production" ]; then
+        warn "APP_ENV is '$app_env', not production; the release goes on"
+    fi
+    app_debug="$(squire_env_value APP_DEBUG)"
+    case "$app_debug" in
+        true | True | TRUE | 1 | '(true)')
+            if [ -z "$app_env" ] || [ "$app_env" = "production" ]; then
+                fail "APP_DEBUG must be false in production (got '$app_debug')"
+            fi
+            ;;
+    esac
 fi
 
 if [ -z "$SQUIRE_SMOKE_URL" ]; then
