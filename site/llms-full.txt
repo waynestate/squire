@@ -1059,6 +1059,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ### Unreleased [#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+- Changed: the deploy kit is Squire 0.10.0 (was 0.8.0): release.sh gains the release env guard (a Laravel release stops when APP_KEY is unset or APP_DEBUG is on in production).
 - Fixed: scripts/a11y.ps1 works on a Windows checkout with CRLF line endings; it strips the carriage returns from the shell command it hands to Docker, which sh rejected with a syntax error.
 
 ### 0.10.0 (2026-11-09) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-10-0-2026-11-09)

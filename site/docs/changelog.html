@@ -44,6 +44,7 @@
 Versioning once 1.0 is out.</p>
 <h2 id="unreleased"><span class="docs-heading-tail"><span>Unreleased</span><a class="docs-heading-link" aria-label="Link to this section" href="#unreleased">#</a></span></h2>
 <ul>
+<li>Changed: the deploy kit is Squire 0.10.0 (was 0.8.0): release.sh gains the release env guard (a Laravel release stops when APP_KEY is unset or APP_DEBUG is on in production).</li>
 <li>Fixed: scripts/a11y.ps1 works on a Windows checkout with CRLF line endings; it strips the carriage returns from the shell command it hands to Docker, which sh rejected with a syntax error.</li>
 </ul>
 <h2 id="0-10-0-2026-11-09">0.10.0 <span class="docs-heading-tail"><span>(2026-11-09)</span><a class="docs-heading-link" aria-label="Link to this section" href="#0-10-0-2026-11-09">#</a></span></h2>
