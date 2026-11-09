@@ -88,7 +88,7 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
   set. After building: `scripts/parity.sh pin`.
 - **PROCTOR policy file.** `SQUIRE_PROCTOR_POLICY` defaults to the policy in `vendor/waynestate/creed`, when CREED is installed. Without CREED, PROCTOR runs on its own default policy with a notice.
 - **PROCTOR phar.** PROCTOR 0.7.0 and later ship `proctor gate`, and the release script uses it when the installed PROCTOR has it. The phar is built from source but not yet published.
-- **Preflight tag pin on GitHub.** The GitLab pipeline pins the Preflight components to the 0.4.0 release tag. The GitHub workflow stays on Preflight 0.1.4, pinned by commit, because GitHub's copy of Preflight has no later tag yet (D-069); move it when one appears.
+- **Preflight tag pin on GitHub.** The GitLab pipeline pins the Preflight components to the 0.5.0 release tag. The GitHub workflow stays on Preflight 0.1.4, pinned by commit, because GitHub's copy of Preflight has no later tag yet (D-069); move it when one appears.
 - **Database passwords.** `.env.squire.example` holds `change-me-local-only` placeholders. The compose file refuses to start
   without real values.
 - **The platform's actual PHP settings.** `.squire/php.ini` holds safe defaults, not the platform's file. See question 9.
