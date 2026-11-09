@@ -118,6 +118,8 @@ npm install --min-release-age=0 some-package@1.2.3
 
 A tag such as `php:8.4-apache` moves: two builds of the same commit a week apart can get different bytes. Every image the kit's files pull is pinned by the digest of its multi-arch list instead, `php:8.4.27-apache@sha256:...`, which names the same bytes on an arm64 laptop or CI runner and on an amd64 server: the fallback base's PHP, Node and Composer, the Vue layer's Node service, HA-Proxy and MySQL in the compose files, and the Oracle parity bases. A test fails on any reference without a digest.
 
+The kit's Composer (the fallback base and the Oracle parity image) is 2.11.1, `composer:2.11.1@sha256:8de2184c...`; 2.10 is no longer maintained. Composer 2.11's `policy.cooldown` is off by default, and the kit does not turn it on.
+
 To bump one, read the new list's digest and check it lists both platforms, then replace the whole reference:
 
 ```sh

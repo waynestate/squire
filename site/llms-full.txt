@@ -720,7 +720,7 @@ excludes.
 Run it in Docker the same way CI does:
 
 ```
-docker run --rm -v "$PWD:/app" -w /app composer:2.10.3 sh -c "composer install --no-interaction && composer ci"
+docker run --rm -v "$PWD:/app" -w /app composer:2.11.1 sh -c "composer install --no-interaction && composer ci"
 ```
 
 The shell templates are linted with shellcheck in Docker (`scripts/lint-shell.sh`, or `scripts/lint-shell.ps1` on
@@ -1059,6 +1059,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ### Unreleased [#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+- Changed: the kit's Composer moves from 2.10.3 to 2.11.1 (`composer:2.11.1@sha256:8de2184c6de224f4689e8f80ed5f5edaf0030b6b8b7839a22a2bcb6722ac87d0`, the multi-arch list) in the fallback base, the Oracle parity image, the contract and Oracle build scripts, CI and the Docker-only commands in the docs. 2.10 is no longer maintained, and 2.11.0 fixed GHSA-c968-33g3-wh7p (package names in `installed.json` could escape the vendor directory) and GHSA-fm2w-xgf2-f9fh (inline repository HTTP headers could be written into `composer.lock`). 2.11 drops the `source-fallback` setting, which Squire never used, and the new `policy.cooldown` stays off by default. Run `squire update` to take the new fallback base.
 - Changed: the deploy kit is Squire 0.10.0 (was 0.8.0): release.sh gains the release env guard (a Laravel release stops when APP_KEY is unset or APP_DEBUG is on in production).
 - Fixed: scripts/a11y.ps1 works on a Windows checkout with CRLF line endings; it strips the carriage returns from the shell command it hands to Docker, which sh rejected with a syntax error.
 
@@ -1305,7 +1306,7 @@ composer install composer ci
 
 `composer ci` runs `composer validate --strict`, PHPUnit, Pint, PHPStan and `composer audit`. With only Docker, run it the same way CI does:
 
-docker run --rm -v "$PWD:/app" -w /app composer:2.10.3 sh -c "composer install --no-interaction && composer ci"
+docker run --rm -v "$PWD:/app" -w /app composer:2.11.1 sh -c "composer install --no-interaction && composer ci"
 
 The other gates, by platform:
 
@@ -1801,6 +1802,8 @@ npm install --min-release-age=0 some-package@1.2.3
 ### Base images: pinned by digest [#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#base-images-pinned-by-digest)
 
 A tag such as `php:8.4-apache` moves: two builds of the same commit a week apart can get different bytes. Every image the kit's files pull is pinned by the digest of its multi-arch list instead, `php:8.4.27-apache@sha256:...`, which names the same bytes on an arm64 laptop or CI runner and on an amd64 server: the fallback base's PHP, Node and Composer, the Vue layer's Node service, HA-Proxy and MySQL in the compose files, and the Oracle parity bases. A test fails on any reference without a digest.
+
+The kit's Composer (the fallback base and the Oracle parity image) is 2.11.1, `composer:2.11.1@sha256:8de2184c...`; 2.10 is no longer maintained. Composer 2.11's `policy.cooldown` is off by default, and the kit does not turn it on.
 
 To bump one, read the new list's digest and check it lists both platforms, then replace the whole reference:
 

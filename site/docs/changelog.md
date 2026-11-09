@@ -12,6 +12,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ## Unreleased [#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+- Changed: the kit's Composer moves from 2.10.3 to 2.11.1 (`composer:2.11.1@sha256:8de2184c6de224f4689e8f80ed5f5edaf0030b6b8b7839a22a2bcb6722ac87d0`, the multi-arch list) in the fallback base, the Oracle parity image, the contract and Oracle build scripts, CI and the Docker-only commands in the docs. 2.10 is no longer maintained, and 2.11.0 fixed GHSA-c968-33g3-wh7p (package names in `installed.json` could escape the vendor directory) and GHSA-fm2w-xgf2-f9fh (inline repository HTTP headers could be written into `composer.lock`). 2.11 drops the `source-fallback` setting, which Squire never used, and the new `policy.cooldown` stays off by default. Run `squire update` to take the new fallback base.
 - Changed: the deploy kit is Squire 0.10.0 (was 0.8.0): release.sh gains the release env guard (a Laravel release stops when APP_KEY is unset or APP_DEBUG is on in production).
 - Fixed: scripts/a11y.ps1 works on a Windows checkout with CRLF line endings; it strips the carriage returns from the shell command it hands to Docker, which sh rejected with a syntax error.
 

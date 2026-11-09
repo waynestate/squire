@@ -49,7 +49,7 @@
 composer ci</p>
 <p><code>composer ci</code> runs <code>composer validate --strict</code>, PHPUnit, Pint, PHPStan and <code>composer audit</code>. With only Docker, run it the same way CI does:</p>
 <!-- docs-test: skip needs a real project -->
-<p>docker run --rm -v &quot;$PWD:/app&quot; -w /app composer:2.10.3 sh -c &quot;composer install --no-interaction &amp;&amp; composer ci&quot;</p>
+<p>docker run --rm -v &quot;$PWD:/app&quot; -w /app composer:2.11.1 sh -c &quot;composer install --no-interaction &amp;&amp; composer ci&quot;</p>
 <p>The other gates, by platform:</p>
 <div class="docs-table" role="region" aria-label="Table" tabindex="0"><table>
 <thead>

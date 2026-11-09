@@ -22,7 +22,7 @@ composer install composer ci
 
 `composer ci` runs `composer validate --strict`, PHPUnit, Pint, PHPStan and `composer audit`. With only Docker, run it the same way CI does:
 
-docker run --rm -v "$PWD:/app" -w /app composer:2.10.3 sh -c "composer install --no-interaction && composer ci"
+docker run --rm -v "$PWD:/app" -w /app composer:2.11.1 sh -c "composer install --no-interaction && composer ci"
 
 The other gates, by platform:
 
