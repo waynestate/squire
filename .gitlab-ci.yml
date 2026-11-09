@@ -53,14 +53,14 @@ variables:
 # The setting extra.proctor."wayneui.copies" = "fail" in composer.json makes a stale copy fail.
 wayneui-copies:
   extends: .composer-cache
-  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/composer:2.10.3
+  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/composer:2.11.1
   script:
     - composer install --working-dir=deploy --no-interaction --no-progress --prefer-dist
     - deploy/vendor/bin/proctor check --path=.
 
 composer-ci:
   extends: .composer-cache
-  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/composer:2.10.3
+  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/composer:2.11.1
   script:
     - composer install --no-interaction --no-progress --prefer-dist
     - composer ci

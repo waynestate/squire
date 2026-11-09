@@ -36,7 +36,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends git \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=docker.io/library/composer:2.10.3@sha256:2cf275428757e5435a667bfc0d038b14520ca02be2b1b70d44a05c8c19e2de48 /usr/bin/composer /usr/local/bin/composer
+COPY --from=docker.io/library/composer:2.11.1@sha256:8de2184c6de224f4689e8f80ed5f5edaf0030b6b8b7839a22a2bcb6722ac87d0 /usr/bin/composer /usr/local/bin/composer
 
 COPY images/oracle/install-oracle.sh /tmp/install-oracle.sh
 RUN sh /tmp/install-oracle.sh && rm -f /tmp/install-oracle.sh

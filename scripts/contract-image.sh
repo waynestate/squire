@@ -134,7 +134,7 @@ make_fixture() {
             -v "$(win_path "$TMPROOT"):/work" \
             -v squire-vendor:/app/vendor \
             -w /app \
-            composer:2.10.3@sha256:2cf275428757e5435a667bfc0d038b14520ca02be2b1b70d44a05c8c19e2de48 \
+            composer:2.11.1@sha256:8de2184c6de224f4689e8f80ed5f5edaf0030b6b8b7839a22a2bcb6722ac87d0 \
             sh -c 'if [ ! -f vendor/autoload.php ]; then composer install --no-interaction --quiet; fi; php bin/squire init --path=/work/app --target=raw'
     fi
     # public/index.php and public/up.php come from the raw template; init writes them, but make sure they are here.

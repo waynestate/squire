@@ -97,7 +97,7 @@ sail)
     trap 'rm -rf "$workdir"' EXIT
     echo "[squire] ==> step 1: fetch laravel/sail into a throwaway project"
     docker run --rm -v "$(host_path "$workdir"):/app" -w /app \
-        composer:2.10.3@sha256:2cf275428757e5435a667bfc0d038b14520ca02be2b1b70d44a05c8c19e2de48 require laravel/sail --no-interaction --quiet
+        composer:2.11.1@sha256:8de2184c6de224f4689e8f80ed5f5edaf0030b6b8b7839a22a2bcb6722ac87d0 require laravel/sail --no-interaction --quiet
     echo "[squire] ==> step 2: build the Sail runtime (vendor/laravel/sail/runtimes/${php_line})"
     docker build "${platform_args[@]}" -t sail-base \
         "$(host_path "${workdir}/vendor/laravel/sail/runtimes/${php_line}")" \

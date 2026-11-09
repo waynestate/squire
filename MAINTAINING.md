@@ -37,7 +37,7 @@ it: `main` and tags are copied automatically, Packagist reads from it, and nobod
 With only Docker:
 
 ```
-docker run --rm -v "${PWD}:/app" -w /app composer:2.10.3 sh -c "composer install --no-interaction && composer ci"
+docker run --rm -v "${PWD}:/app" -w /app composer:2.11.1 sh -c "composer install --no-interaction && composer ci"
 ```
 
 `composer ci` runs `composer validate --strict`, PHPUnit, Pint, PHPStan and `composer audit`.
@@ -69,7 +69,7 @@ and `popen`, the CLI disables nothing, and a Composer `post-install-cmd` that sh
 throwaway secret is mounted at `/run/secrets/SQUIRE_CONTRACT_SECRET`: the web must see it (compared as an md5), the
 release must name it, and its value must be in no log, no `docker history` line and no image config. The exit
 code is 1 on any FAIL. It needs Docker with buildx and network access (the fixture installs its Composer
-dependencies); without PHP on the PATH it runs the initializer in a `composer:2.10.3` container.
+dependencies); without PHP on the PATH it runs the initializer in a `composer:2.11.1` container.
 
 **What it proves and what it does not.** It proves the release mechanics end to end on the public stand-in: the
 fallback base builds for the platform, the app image builds on top of it, the first-release hook runs at container

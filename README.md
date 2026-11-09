@@ -744,7 +744,7 @@ excludes.
 Run it in Docker the same way CI does:
 
 ```
-docker run --rm -v "$PWD:/app" -w /app composer:2.10.3 sh -c "composer install --no-interaction && composer ci"
+docker run --rm -v "$PWD:/app" -w /app composer:2.11.1 sh -c "composer install --no-interaction && composer ci"
 ```
 
 The shell templates are linted with shellcheck in Docker (`scripts/lint-shell.sh`, or `scripts/lint-shell.ps1` on
