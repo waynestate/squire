@@ -5,6 +5,8 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+- Changed: the GitHub workflows pin every action by its commit SHA with the version in a comment (`actions/checkout` v4.4.0, `shivammathur/setup-php` 2.40.0, `docker/setup-qemu-action` v3.7.0, `docker/setup-buildx-action` v3.12.0, the same code their moving tags ran), so a moved tag cannot change what CI runs; a test fails on any tag pin.
+
 ## 0.9.0 (2026-11-08)
 
 - Changed: the release script refuses a Laravel release when APP_KEY is unset or APP_DEBUG is true in production, and warns when APP_ENV is not production (Sourdough practice 4.14).

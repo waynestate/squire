@@ -19,7 +19,7 @@ jobs:
   shellcheck:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: ShellCheck the shell templates (pinned image)
         run: >
           docker run --rm -v "$PWD:/mnt" -w /mnt koalaman/shellcheck-alpine:v0.11.0
@@ -36,7 +36,7 @@ jobs:
       # the export-ignored package files. With git it clones, and npm ci finds the lock.
       - name: Install git so checkout clones
         run: apk add --no-cache git
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Install the pinned dependencies
         run: npm ci
       - name: Run the docs kit JavaScript tests
@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Run the front page accessibility gate
         run: sh scripts/a11y.sh
 
@@ -63,20 +63,17 @@ jobs:
         platform: [linux/amd64, linux/arm64]
     # emulated builds are slow; the arm64 leg blocks the run now that it passed on 2026-11-08
     steps:
-      - uses: actions/checkout@v4
-      # pin by SHA at the first release, the same way the preflight line above does
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Set up PHP 8.4
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version: '8.4'
       - name: Install the Composer dependencies
         run: composer install --no-interaction
-      # pin by SHA at the first release, the same way the preflight line above does
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      # pin by SHA at the first release, the same way the preflight line above does
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
         with:
           # the docker driver builds from the local image store, so the second build can use the fallback base the first one loaded
           driver: docker
@@ -90,10 +87,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
-      # pin by SHA at the first release, the same way the preflight line above does
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Set up PHP 8.4
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version: '8.4'
       - name: Install the Composer dependencies
@@ -148,10 +144,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
-      # pin by SHA at the first release, the same way the preflight line above does
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Set up PHP 8.4
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version: '8.4'
       - name: Install the Composer dependencies

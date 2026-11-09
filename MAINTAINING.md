@@ -94,6 +94,13 @@ runner can run a container with a port.
 - **GitHub:** `.github/workflows/ci.yml` calls Preflight's reusable workflow with `composer ci`, plus `shellcheck`
   and `js-tests` (the same two commands, `npm ci` and `npm test`, in the same pinned Node image as a container job).
   PowerShell lint runs on GitLab only.
+- **GitHub actions are pinned by commit SHA**, never by a tag: `actions/checkout@<40-character SHA> # v4.4.0`. A
+  tag can be moved to other code by whoever controls the action's repository; a commit cannot. The trailing comment
+  names the tag the SHA stands for, and Renovate's `helpers:pinGitHubActionDigests` (in the Preflight preset) moves
+  both together. To bump one by hand, read the tag's commit with
+  `git ls-remote https://github.com/actions/checkout.git refs/tags/v4.4.0 'refs/tags/v4.4.0^{}'` (an annotated tag
+  lists its commit on the `^{}` line) and replace every copy at once. `GitHubActionsPinTest` fails on a tag pin, a
+  missing version comment, or one action at two SHAs.
 - Green means all of those pass.
 
 GitLab runs lint and unit tests only; the contract suite runs on the GitHub mirror (see
