@@ -17,7 +17,7 @@ Squire is the Citadel kit: build.sh, the release script, the health check, and l
 Front page: [`site/index.html`](https://github.com/waynestate/squire/blob/HEAD/site/index.html), a static page you can serve from anywhere.
 On Citadel it is served by the raw-PHP deploy layer in [`deploy/`](https://github.com/waynestate/squire/blob/HEAD/deploy/): a Squire kit whose front controller serves `site/` behind HELMET's security headers. For local development, keep serving `site/` directly.
 
-Status: 0.8.0, tagged and on Packagist.
+Status: 0.10.1, tagged and on Packagist.
 
 Every page below is Markdown. The HTML pages send the same Markdown to a client that asks for `text/markdown`. Written by Squire's agent-ready kit from the README and the pages; do not edit.
 
@@ -51,7 +51,7 @@ Every page below is Markdown. The HTML pages send the same Markdown to a client 
 - [Files Squire writes | Squire docs](https://squire.apps.wayne.edu/docs/reference/files.md): The table of files Squire writes into an app, which target or layer each belongs to, and the .gitignore lines init keeps.
 - [Proof | Squire docs](https://squire.apps.wayne.edu/docs/reference/proof.md): Squire run against 82 Wayne State applications on 2026-11-05: what ran, what held, what it caught in Squire itself, what it does not prove, and how to run the same on your app.
 - [Troubleshooting | Squire docs](https://squire.apps.wayne.edu/docs/troubleshooting.md): Symptoms, causes and fixes for the Squire setup, from permission errors to doctor exit codes.
-- [Upgrading | Squire docs](https://squire.apps.wayne.edu/docs/upgrading.md): What changed in each released minor of Squire (0.8.0, 0.7.0, 0.6.0, 0.5.0, 0.4.0 and the 0.3.x line), the steps to move an app to them, and how to verify the upgrade held.
+- [Upgrading | Squire docs](https://squire.apps.wayne.edu/docs/upgrading.md): What changed in each released minor of Squire (0.10.1, 0.10.0, 0.9.0, 0.8.0, 0.7.1, 0.7.0, 0.6.0, 0.5.0, 0.4.0 and the 0.3.x line), the steps to move an app to them, and how to verify the upgrade held.
 
 ## Prompts
 

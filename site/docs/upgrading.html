@@ -5,8 +5,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Upgrading | Squire docs</title>
-<meta name="description" content="What changed in each released minor of Squire (0.8.0, 0.7.0, 0.6.0, 0.5.0, 0.4.0 and the 0.3.x line), the steps to move an app to them, and how to verify the upgrade held.">
-<meta name="docs-version" content="0.10.0">
+<meta name="description" content="What changed in each released minor of Squire (0.10.1, 0.10.0, 0.9.0, 0.8.0, 0.7.1, 0.7.0, 0.6.0, 0.5.0, 0.4.0 and the 0.3.x line), the steps to move an app to them, and how to verify the upgrade held.">
+<meta name="docs-version" content="0.10.1">
 <link rel="stylesheet" href="../assets/wayne-ui/wayne-ui.css">
 <link rel="stylesheet" href="../assets/docs.css">
 <link rel="stylesheet" href="../docs/theme/squire.css">
@@ -28,7 +28,7 @@
       <a href="../index.html#party">The party</a>
       <a href="../docs/index.html" aria-current="page">Documentation</a>
     </nav>
-    <span class="brand__version">v0.10.0</span>
+    <span class="brand__version">v0.10.1</span>
   </div>
 </header><div class="docs-layout docs-layout--toc">
   <details class="docs-menu">
@@ -46,25 +46,56 @@
 <p>vendor/bin/squire init --check
 vendor/bin/squire update --dry-run</p>
 <p><code>squire init --check</code> reports when your copies have drifted from the templates; it exits <code>0</code> when they match and <code>1</code> when they have. <code>squire update --dry-run</code> prints the plan and writes nothing; it exits <code>1</code> when an edited file still differs from the template. Exit <code>2</code> means the tool itself could not run. For the full command reference, see <a href="reference/commands.html">Commands</a>.</p>
+<h2 id="0-10-1-2026-11-09">0.10.1 <span class="docs-heading-tail"><span>(2026-11-09)</span><a class="docs-heading-link" aria-label="Link to this section" href="#0-10-1-2026-11-09">#</a></span></h2>
+<p>No breaks: a patch on 0.10.0. The kit's fallback base (<code>.squire/base-fallback.Dockerfile</code>) moves Composer from 2.10.3 to 2.11.1. 2.10 is no longer maintained, and 2.11.0 fixed GHSA-c968-33g3-wh7p (package names in <code>installed.json</code> could escape the vendor directory) and GHSA-fm2w-xgf2-f9fh (inline repository HTTP headers could be written into <code>composer.lock</code>). 2.11 drops the <code>source-fallback</code> setting, which Squire never used, and its new <code>policy.cooldown</code> stays off by default. The other two changes are Squire's own: its <code>deploy/</code> copy is on the 0.10.0 kit, and <code>scripts/a11y.ps1</code> works on a Windows checkout with CRLF line endings.</p>
+<h3 id="steps"><span class="docs-heading-tail"><span>Steps</span><a class="docs-heading-link" aria-label="Link to this section" href="#steps">#</a></span></h3>
+<ol>
+<li>Update the <code>waynestate/squire</code> dev dependency: <code>composer update waynestate/squire</code> when the app already requires <code>^0.10</code>, otherwise <code>composer require --dev waynestate/squire:^0.10.1</code>.</li>
+<li>Run <code>vendor/bin/squire update</code>: it takes the new <code>.squire/base-fallback.Dockerfile</code> when the app never edited it, and shows a diff when it did.</li>
+<li>Commit the changed kit files (<code>.squire/base-fallback.Dockerfile</code> and <code>.squire.json</code>). The fallback image takes the new Composer the next time it builds.</li>
+<li>Stack repos: refresh <code>deploy/</code> the same way. Sourdough: refresh its generated copy with <code>php bin/export-templates.php --to=templates/squire</code>.</li>
+</ol>
+<h3 id="how-to-verify">How to <span class="docs-heading-tail"><span>verify</span><a class="docs-heading-link" aria-label="Link to this section" href="#how-to-verify">#</a></span></h3>
+<p>Run the two checks at the top of this page; both exit <code>0</code>. <code>.squire/base-fallback.Dockerfile</code> names <code>composer:2.11.1</code>.</p>
+<h2 id="0-10-0-2026-11-09">0.10.0 <span class="docs-heading-tail"><span>(2026-11-09)</span><a class="docs-heading-link" aria-label="Link to this section" href="#0-10-0-2026-11-09">#</a></span></h2>
+<p>No breaks, and no kit file changes: an app that takes 0.10.0 gets the same files as 0.9.0. The release adds the MySQL upgrade path guide (<a href="guides/mysql-upgrade-path.html">MySQL upgrade path</a>) with a read-only pre-upgrade check script, and docs kit fixes for sites built with Squire's docs builder: the heading &quot;#&quot; stays on the line of its last word, and &quot;On this page&quot; marks the section in view. A site takes those by resyncing the kit and builder with <code>--sync-to</code> (see <a href="guides/docs-builder.html">Docs builder</a>).</p>
+<h3 id="steps-1"><span class="docs-heading-tail"><span>Steps</span><a class="docs-heading-link" aria-label="Link to this section" href="#steps-1">#</a></span></h3>
+<ol>
+<li>Update the <code>waynestate/squire</code> dev dependency: <code>composer require --dev waynestate/squire:^0.10</code>.</li>
+<li>Run <code>vendor/bin/squire update</code>; it records the new release in <code>.squire.json</code>.</li>
+</ol>
+<h3 id="how-to-verify-1">How to <span class="docs-heading-tail"><span>verify</span><a class="docs-heading-link" aria-label="Link to this section" href="#how-to-verify-1">#</a></span></h3>
+<p>Run the two checks at the top of this page; both exit <code>0</code>.</p>
+<h2 id="0-9-0-2026-11-08">0.9.0 <span class="docs-heading-tail"><span>(2026-11-08)</span><a class="docs-heading-link" aria-label="Link to this section" href="#0-9-0-2026-11-08">#</a></span></h2>
+<p>One behavior change for Laravel apps: the release script now checks the app's environment before anything installs. A release stops when <code>APP_KEY</code> is unset, or when <code>APP_DEBUG</code> is true in production, and an <code>APP_ENV</code> that is not <code>production</code> earns a warning (Sourdough practice 4.14). The release gate also passes <code>--php-runtime</code> to PROCTOR, so the deploy path grades the PHP that serves the app for PROCTOR's unpatched check; <code>SQUIRE_PHP_RUNTIME</code> (<code>auto</code> by default, <code>skip</code>, or an <code>X.Y.Z</code> version) changes what it grades.</p>
+<h3 id="steps-2"><span class="docs-heading-tail"><span>Steps</span><a class="docs-heading-link" aria-label="Link to this section" href="#steps-2">#</a></span></h3>
+<ol>
+<li>Before you deploy, make sure the Citadel environment sets <code>APP_KEY</code> (in <code>.env</code> or as a masked variable in the Citadel dashboard) and sets <code>APP_DEBUG</code> to false.</li>
+<li>Update the <code>waynestate/squire</code> dev dependency: <code>composer require --dev waynestate/squire:^0.9</code>.</li>
+<li>Run <code>vendor/bin/squire update</code>: it takes the new <code>scripts/release.sh</code> and <code>.env.squire.example</code> when the app never edited them, and shows a diff when it did.</li>
+<li>Stack repos: refresh <code>deploy/</code> the same way. Sourdough: refresh its generated copy with <code>php bin/export-templates.php --to=templates/squire</code>.</li>
+</ol>
+<h3 id="how-to-verify-2">How to <span class="docs-heading-tail"><span>verify</span><a class="docs-heading-link" aria-label="Link to this section" href="#how-to-verify-2">#</a></span></h3>
+<p>Run the two checks at the top of this page; both exit <code>0</code>. <code>scripts/release.sh</code> checks <code>APP_KEY</code> and <code>APP_DEBUG</code> (search it for <code>Sourdough practice 4.14</code>).</p>
 <h2 id="0-8-0-2026-11-08">0.8.0 <span class="docs-heading-tail"><span>(2026-11-08)</span><a class="docs-heading-link" aria-label="Link to this section" href="#0-8-0-2026-11-08">#</a></span></h2>
 <p>No breaks. The portable image (<code>.squire/portable.Dockerfile</code>, ADR-0010) bakes the code in and runs as <code>web</code>, <code>worker</code>, <code>scheduler</code> or <code>migrate</code>, picked by argument or <code>SQUIRE_ROLE</code>, as a non-root user in group 0 with Apache on 8080, for OpenShift, Coolify and raw Docker. <code>health.php</code> reads <code>SQUIRE_APP_DIR</code> for the app root, so a kit kept in a subfolder checks the app it serves. The release script keeps Composer's and npm's download caches in <code>.cache/squire</code> inside the app folder, so a Citadel Update no longer downloads every package again. The Citadel path is unchanged.</p>
-<h3 id="steps"><span class="docs-heading-tail"><span>Steps</span><a class="docs-heading-link" aria-label="Link to this section" href="#steps">#</a></span></h3>
+<h3 id="steps-3"><span class="docs-heading-tail"><span>Steps</span><a class="docs-heading-link" aria-label="Link to this section" href="#steps-3">#</a></span></h3>
 <ol>
 <li>Update the <code>waynestate/squire</code> dev dependency: <code>composer require --dev waynestate/squire:^0.8</code>.</li>
 <li>Run <code>vendor/bin/squire update</code>: it adds the portable files and shows a diff for any kit file the app edited.</li>
 <li>Stack repos: refresh <code>deploy/</code> the same way. Sourdough: refresh its generated copy with <code>php bin/export-templates.php --to=templates/squire</code>.</li>
 </ol>
-<h3 id="how-to-verify">How to <span class="docs-heading-tail"><span>verify</span><a class="docs-heading-link" aria-label="Link to this section" href="#how-to-verify">#</a></span></h3>
+<h3 id="how-to-verify-3">How to <span class="docs-heading-tail"><span>verify</span><a class="docs-heading-link" aria-label="Link to this section" href="#how-to-verify-3">#</a></span></h3>
 <p>Run the two checks at the top of this page; both exit <code>0</code>. The app now carries the five new portable files, led by <code>.squire/portable.Dockerfile</code>.</p>
 <h2 id="0-7-1-2026-11-08">0.7.1 <span class="docs-heading-tail"><span>(2026-11-08)</span><a class="docs-heading-link" aria-label="Link to this section" href="#0-7-1-2026-11-08">#</a></span></h2>
 <p>No breaks: a patch on 0.7.0. The kit's <code>php.ini</code> no longer sets <code>session.sid_length</code> or <code>session.sid_bits_per_character</code>. PHP 8.4 deprecated both and raises a notice for each, and leaving them out gives PHP's default session ID (32 hex characters, 128 bits), which is what HELMET and SESAME's S45 expect. Squire's own <code>deploy/.squire.json</code> also records the <code>release.sh</code> it ships, so <code>squire update</code> on Squire itself no longer refuses that file.</p>
-<h3 id="steps-1"><span class="docs-heading-tail"><span>Steps</span><a class="docs-heading-link" aria-label="Link to this section" href="#steps-1">#</a></span></h3>
+<h3 id="steps-4"><span class="docs-heading-tail"><span>Steps</span><a class="docs-heading-link" aria-label="Link to this section" href="#steps-4">#</a></span></h3>
 <ol>
 <li>Update the <code>waynestate/squire</code> dev dependency: <code>composer require --dev waynestate/squire:^0.7.1</code>.</li>
 <li>Run <code>vendor/bin/squire update</code>: it takes the new <code>.squire/php.ini</code> when the app never edited it, and shows a diff when it did. Keep your edits and drop the two <code>session.sid_</code> lines.</li>
 <li>Stack repos: refresh <code>deploy/</code> the same way. Sourdough: refresh its generated copy with <code>php bin/export-templates.php --to=templates/squire</code>.</li>
 </ol>
-<h3 id="how-to-verify-1">How to <span class="docs-heading-tail"><span>verify</span><a class="docs-heading-link" aria-label="Link to this section" href="#how-to-verify-1">#</a></span></h3>
+<h3 id="how-to-verify-4">How to <span class="docs-heading-tail"><span>verify</span><a class="docs-heading-link" aria-label="Link to this section" href="#how-to-verify-4">#</a></span></h3>
 <p>Run the two checks at the top of this page; both exit <code>0</code>. <code>.squire/php.ini</code> has no <code>session.sid_length</code> or <code>session.sid_bits_per_character</code> line.</p>
 <h2 id="0-7-0-2026-11-08">0.7.0 <span class="docs-heading-tail"><span>(2026-11-08)</span><a class="docs-heading-link" aria-label="Link to this section" href="#0-7-0-2026-11-08">#</a></span></h2>
 <h3 id="breaking"><span class="docs-heading-tail"><span>Breaking</span><a class="docs-heading-link" aria-label="Link to this section" href="#breaking">#</a></span></h3>
@@ -74,7 +105,7 @@ vendor/bin/squire update --dry-run</p>
 <p><strong>Release script.</strong> After <code>laravel optimize</code>, a new report-only step restarts Laravel's long-lived processes: <code>php artisan reload</code> where Laravel has it, otherwise <code>queue:restart</code> and <code>schedule:interrupt</code>, each only when that command exists. <code>SQUIRE_ARTISAN_RESTART=0</code> turns it off (WELD W22). A new &quot;check opcache&quot; step never fails.</p>
 <p><strong>Fixed.</strong> <code>squire update</code> records the current release in <code>.squire.json</code> even when every file already matches it. The pipeline's PROCTOR jobs no longer pass <code>--policy</code>. The docs kit's copy button and mobile menu, and the front page's quick start and Get started prompt, are fixed (see the CHANGELOG).</p>
 <p><strong>CI and deploy layer.</strong> CI pins the Preflight components to 0.3.1 and runs its a11y component on <code>site/</code>, blocking. Squire's own deploy layer requires HELMET <code>^1.0</code> and PROCTOR <code>^0.8</code>.</p>
-<h3 id="steps-2"><span class="docs-heading-tail"><span>Steps</span><a class="docs-heading-link" aria-label="Link to this section" href="#steps-2">#</a></span></h3>
+<h3 id="steps-5"><span class="docs-heading-tail"><span>Steps</span><a class="docs-heading-link" aria-label="Link to this section" href="#steps-5">#</a></span></h3>
 <ol>
 <li>Update the <code>waynestate/squire</code> dev dependency: <code>composer require --dev waynestate/squire:^0.7</code>.</li>
 <li>Run <code>vendor/bin/squire update</code>: it takes the new template versions for the files you never edited and shows a diff for the ones you did.</li>
@@ -82,20 +113,20 @@ vendor/bin/squire update --dry-run</p>
 <li>An app that bakes its code into the image (OpenShift, Coolify, raw Docker) sets <code>SQUIRE_OPCACHE_VALIDATE=0</code>. Citadel apps keep the default.</li>
 <li>Stack repos: regenerate the <code>deploy/</code> folder with <code>squire init</code> and check it with <code>squire init --check</code>. Sourdough: refresh its generated copy with <code>php bin/export-templates.php --to=templates/squire</code> and verify it with <code>--check</code>.</li>
 </ol>
-<h3 id="how-to-verify-2">How to <span class="docs-heading-tail"><span>verify</span><a class="docs-heading-link" aria-label="Link to this section" href="#how-to-verify-2">#</a></span></h3>
+<h3 id="how-to-verify-5">How to <span class="docs-heading-tail"><span>verify</span><a class="docs-heading-link" aria-label="Link to this section" href="#how-to-verify-5">#</a></span></h3>
 <p>Run <code>squire init --check</code> and <code>squire update --dry-run</code> (the two checks at the top of this page); both exit <code>0</code> once the kit is at the new release. After the next release on the server, the release log shows the &quot;laravel restart long-lived processes&quot; and &quot;check opcache&quot; steps.</p>
 <h2 id="0-6-0-2026-11-07">0.6.0 <span class="docs-heading-tail"><span>(2026-11-07)</span><a class="docs-heading-link" aria-label="Link to this section" href="#0-6-0-2026-11-07">#</a></span></h2>
 <h3 id="breaking-1"><span class="docs-heading-tail"><span>Breaking</span><a class="docs-heading-link" aria-label="Link to this section" href="#breaking-1">#</a></span></h3>
 <p>None: the CHANGELOG records no breaking change for 0.6.0.</p>
 <h3 id="what-changed-1">What <span class="docs-heading-tail"><span>changed</span><a class="docs-heading-link" aria-label="Link to this section" href="#what-changed-1">#</a></span></h3>
 <p><strong>Fixed.</strong> <code>squire update</code> writes the template files a newer release added to a group the kit records: a file the target release has that <code>.squire.json</code> does not list is written from the template, recorded, and printed as added, so one <code>update</code> converges the kit instead of leaving the new files to <code>squire init</code>. A file the app already has is still left alone, and an edited file is still refused and shown as a diff. <code>squire init</code> without <code>--only</code> defaults to the groups the <code>.squire.json</code> records instead of <code>release,parity</code>, so a bare <code>init</code> completes an existing kit without dropping its groups; with no manifest it still writes <code>release,parity</code>, and <code>--only</code> still wins.</p>
-<h3 id="steps-3"><span class="docs-heading-tail"><span>Steps</span><a class="docs-heading-link" aria-label="Link to this section" href="#steps-3">#</a></span></h3>
+<h3 id="steps-6"><span class="docs-heading-tail"><span>Steps</span><a class="docs-heading-link" aria-label="Link to this section" href="#steps-6">#</a></span></h3>
 <ol>
 <li>Update the <code>waynestate/squire</code> dev dependency to the next release.</li>
 <li>Run <code>vendor/bin/squire update</code>: it takes the new template versions for the files you never edited, writes the files the release added, and shows a diff for the ones you did.</li>
 <li>Stack repos: regenerate the <code>deploy/</code> folder with <code>squire init</code> and check it with <code>squire init --check</code>. Sourdough: refresh its generated copy with <code>php bin/export-templates.php --to=templates/squire</code> and verify it with <code>--check</code>.</li>
 </ol>
-<h3 id="how-to-verify-3">How to <span class="docs-heading-tail"><span>verify</span><a class="docs-heading-link" aria-label="Link to this section" href="#how-to-verify-3">#</a></span></h3>
+<h3 id="how-to-verify-6">How to <span class="docs-heading-tail"><span>verify</span><a class="docs-heading-link" aria-label="Link to this section" href="#how-to-verify-6">#</a></span></h3>
 <p>Run <code>squire init --check</code> and <code>squire update --dry-run</code> (the two checks at the top of this page); both exit <code>0</code> once the kit is at the new release.</p>
 <h2 id="0-5-0-2026-11-03">0.5.0 <span class="docs-heading-tail"><span>(2026-11-03)</span><a class="docs-heading-link" aria-label="Link to this section" href="#0-5-0-2026-11-03">#</a></span></h2>
 <h3 id="breaking-2"><span class="docs-heading-tail"><span>Breaking</span><a class="docs-heading-link" aria-label="Link to this section" href="#breaking-2">#</a></span></h3>
@@ -106,13 +137,13 @@ vendor/bin/squire update --dry-run</p>
 <p><strong>Changed.</strong> The deploy layer's Squire kit is refreshed to 0.4.0 (the Oracle check script and the updated build and release scripts). The Oracle image recipes use fully qualified <code>COPY --from</code> names so buildah can resolve them; the CI dry run shows amd64 builds need qemu binfmt on the runner (see OPEN_QUESTIONS). The docs and package metadata name nougat as the canonical repository, with git.wayne.edu and GitHub as read-only mirrors, until git.wayne.edu has CI runners.</p>
 <p><strong>Fixed.</strong> The fallback base image builds when the host's uid or gid already exists in the image (GitHub runners use 1001). The PowerShell parity script passes the host's uid and gid to the fallback base image build (1000 on Windows, the current user's ids on Linux and macOS) instead of hard-coded 1000, so the app container starts when the bind-mounted source is owned by another user. The contract-image CI job installs PHP and the Composer dependencies before running <code>scripts/contract-image.sh</code>, so it no longer stops on the missing <code>vendor/autoload.php</code>. The contract-image job builds with the docker buildx driver so the app image finds the freshly built fallback base. <code>scripts/a11y.sh</code> and <code>scripts/a11y.ps1</code> create <code>tools/a11y/node_modules</code> on the host before <code>docker run</code>, so the named volume's mount point exists when the repo is mounted read-only. The front page shows the current version.</p>
 <p><strong>Docs.</strong> WSL 2 file-location advice and an engines and licenses note for local parity. The contract suite gap on GitLab and the real image is recorded as an open question. The docs name the real image path instead of placeholders.</p>
-<h3 id="steps-4"><span class="docs-heading-tail"><span>Steps</span><a class="docs-heading-link" aria-label="Link to this section" href="#steps-4">#</a></span></h3>
+<h3 id="steps-7"><span class="docs-heading-tail"><span>Steps</span><a class="docs-heading-link" aria-label="Link to this section" href="#steps-7">#</a></span></h3>
 <ol>
 <li>Update the <code>waynestate/squire</code> dev dependency to 0.5.0 (it is on Packagist).</li>
 <li>Run <code>vendor/bin/squire update</code> to take the new template versions for the files you never edited; it shows a diff for the ones you did and never overwrites your edits.</li>
 <li>Stack repos: regenerate the <code>deploy/</code> folder with <code>squire init</code> and check it with <code>squire init --check</code>. Sourdough: refresh its generated copy with <code>php bin/export-templates.php --to=templates/squire</code> and verify it with <code>--check</code>.</li>
 </ol>
-<h3 id="how-to-verify-4">How to <span class="docs-heading-tail"><span>verify</span><a class="docs-heading-link" aria-label="Link to this section" href="#how-to-verify-4">#</a></span></h3>
+<h3 id="how-to-verify-7">How to <span class="docs-heading-tail"><span>verify</span><a class="docs-heading-link" aria-label="Link to this section" href="#how-to-verify-7">#</a></span></h3>
 <p>Run <code>squire init --check</code> and <code>squire update --dry-run</code> (the two checks at the top of this page); both exit <code>0</code> once the kit is at 0.5.0. New in this version: <code>squire doctor oracle</code> answers from your terminal, and a coding agent that runs ADVISOR sees the <code>squire_doctor</code> and <code>squire_drift</code> tools.</p>
 <h2 id="0-4-0-2026-11-01">0.4.0 <span class="docs-heading-tail"><span>(2026-11-01)</span><a class="docs-heading-link" aria-label="Link to this section" href="#0-4-0-2026-11-01">#</a></span></h2>
 <h3 id="breaking-3"><span class="docs-heading-tail"><span>Breaking</span><a class="docs-heading-link" aria-label="Link to this section" href="#breaking-3">#</a></span></h3>
@@ -125,13 +156,13 @@ vendor/bin/squire update --dry-run</p>
 <li>The readme art check allows the word Citadel.</li>
 <li>The deploy layer's Squire kit is refreshed to 0.3.4 (the local <code>.env.squire</code> file is now git-ignored).</li>
 </ul>
-<h3 id="steps-5"><span class="docs-heading-tail"><span>Steps</span><a class="docs-heading-link" aria-label="Link to this section" href="#steps-5">#</a></span></h3>
+<h3 id="steps-8"><span class="docs-heading-tail"><span>Steps</span><a class="docs-heading-link" aria-label="Link to this section" href="#steps-8">#</a></span></h3>
 <ol>
 <li>Update the <code>waynestate/squire</code> dev dependency to 0.4.0.</li>
 <li>Run <code>vendor/bin/squire update</code> to take the updated build and release scripts, then <code>vendor/bin/squire init</code> to write <code>oracle-check.php</code> (this release's <code>update</code> refreshed only the files the kit already recorded; <code>update</code> writes new files from the next release on).</li>
 <li>Apps that talk to Oracle: optionally build the Oracle-ready images with <code>scripts/oracle-image-build.sh</code> (flavors <code>sail</code> and <code>parity</code>).</li>
 </ol>
-<h3 id="how-to-verify-5">How to <span class="docs-heading-tail"><span>verify</span><a class="docs-heading-link" aria-label="Link to this section" href="#how-to-verify-5">#</a></span></h3>
+<h3 id="how-to-verify-8">How to <span class="docs-heading-tail"><span>verify</span><a class="docs-heading-link" aria-label="Link to this section" href="#how-to-verify-8">#</a></span></h3>
 <p>Run <code>squire init --check</code> and <code>squire update --dry-run</code>. Once the kit is at 0.4.0, the app has <code>oracle-check.php</code>, and a release log shows the Oracle check after PROCTOR and before the smoke test, printing nothing when the app has no <code>ORACLE_*</code> settings.</p>
 <h2 id="0-3-x-0-3-0-to-0-3-4">0.3.x (0.3.0 to <span class="docs-heading-tail"><span>0.3.4)</span><a class="docs-heading-link" aria-label="Link to this section" href="#0-3-x-0-3-0-to-0-3-4">#</a></span></h2>
 <h3 id="breaking-4"><span class="docs-heading-tail"><span>Breaking</span><a class="docs-heading-link" aria-label="Link to this section" href="#breaking-4">#</a></span></h3>
@@ -144,24 +175,24 @@ vendor/bin/squire update --dry-run</p>
 <li><strong>0.3.1 (2026-10-29).</strong> README, site and open questions match 0.3.0 (Sourdough requires Squire, the policy default, the Preflight pin, the static target). The agent-ready tool's messages write Squire as a word, and the static template's <code>SQUIRE_STATIC_ROOT</code> comment matches the code. <code>bin/agent-ready.php</code> is clean under Pint's laravel preset (CI checks it), and the README says how consumers keep the kit out of Composer downloads.</li>
 <li><strong>0.3.0 (2026-10-29).</strong> The raw target ships a front controller.</li>
 </ul>
-<h3 id="steps-6"><span class="docs-heading-tail"><span>Steps</span><a class="docs-heading-link" aria-label="Link to this section" href="#steps-6">#</a></span></h3>
+<h3 id="steps-9"><span class="docs-heading-tail"><span>Steps</span><a class="docs-heading-link" aria-label="Link to this section" href="#steps-9">#</a></span></h3>
 <ol>
 <li>Update the <code>waynestate/squire</code> dev dependency to 0.3.4, the latest of the line.</li>
 <li>Run <code>vendor/bin/squire update</code> to take the new template versions for the files you never edited.</li>
 <li>If your app predates the line, run <code>vendor/bin/squire init</code> so the new template files land (for example the raw target's front controller from 0.3.0); <code>init</code> never overwrites a file you edited.</li>
 <li>On Citadel, set the release options in the app's <code>./.env.squire</code> configuration file, which <code>release.sh</code> reads from 0.3.3 on.</li>
 </ol>
-<h3 id="how-to-verify-6">How to <span class="docs-heading-tail"><span>verify</span><a class="docs-heading-link" aria-label="Link to this section" href="#how-to-verify-6">#</a></span></h3>
+<h3 id="how-to-verify-9">How to <span class="docs-heading-tail"><span>verify</span><a class="docs-heading-link" aria-label="Link to this section" href="#how-to-verify-9">#</a></span></h3>
 <p>Run <code>squire init --check</code> and <code>squire update --dry-run</code>. Check the version-specific results: 0.3.4 appends <code>.env</code> and <code>.env.squire</code> to the target <code>.gitignore</code> when they are missing; 0.3.3 reads release options from <code>./.env.squire</code>; 0.3.0 gives a raw PHP app the front controller <code>public/index.php</code>.</p>
 <p>Releases before 0.3.0 (0.2.x and 0.1.0) predate this page; their entries are in <a href="changelog.html">Changelog</a>.</p>
 </article>
     </main>
     <nav class="docs-pager" aria-label="Pages"><a class="docs-pager__link" href="../docs/troubleshooting.html"><span class="docs-pager__dir">Previous</span><span class="docs-pager__title">Troubleshooting</span></a><a class="docs-pager__link docs-pager__link--next" href="../docs/contributing.html"><span class="docs-pager__dir">Next</span><span class="docs-pager__title">Contributing</span></a></nav>
   </div>
-  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item"><a href="#the-two-checks">The two checks</a></li><li class="docs-toc__item"><a href="#0-8-0-2026-11-08">0.8.0 (2026-11-08)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#steps">Steps</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#how-to-verify">How to verify</a></li><li class="docs-toc__item"><a href="#0-7-1-2026-11-08">0.7.1 (2026-11-08)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#steps-1">Steps</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#how-to-verify-1">How to verify</a></li><li class="docs-toc__item"><a href="#0-7-0-2026-11-08">0.7.0 (2026-11-08)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#breaking">Breaking</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#what-changed">What changed</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#steps-2">Steps</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#how-to-verify-2">How to verify</a></li><li class="docs-toc__item"><a href="#0-6-0-2026-11-07">0.6.0 (2026-11-07)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#breaking-1">Breaking</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#what-changed-1">What changed</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#steps-3">Steps</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#how-to-verify-3">How to verify</a></li><li class="docs-toc__item"><a href="#0-5-0-2026-11-03">0.5.0 (2026-11-03)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#breaking-2">Breaking</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#what-changed-2">What changed</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#steps-4">Steps</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#how-to-verify-4">How to verify</a></li><li class="docs-toc__item"><a href="#0-4-0-2026-11-01">0.4.0 (2026-11-01)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#breaking-3">Breaking</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#what-changed-3">What changed</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#steps-5">Steps</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#how-to-verify-5">How to verify</a></li><li class="docs-toc__item"><a href="#0-3-x-0-3-0-to-0-3-4">0.3.x (0.3.0 to 0.3.4)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#breaking-4">Breaking</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#what-changed-4">What changed</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#steps-6">Steps</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#how-to-verify-6">How to verify</a></li></ul></nav>
+  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item"><a href="#the-two-checks">The two checks</a></li><li class="docs-toc__item"><a href="#0-10-1-2026-11-09">0.10.1 (2026-11-09)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#steps">Steps</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#how-to-verify">How to verify</a></li><li class="docs-toc__item"><a href="#0-10-0-2026-11-09">0.10.0 (2026-11-09)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#steps-1">Steps</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#how-to-verify-1">How to verify</a></li><li class="docs-toc__item"><a href="#0-9-0-2026-11-08">0.9.0 (2026-11-08)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#steps-2">Steps</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#how-to-verify-2">How to verify</a></li><li class="docs-toc__item"><a href="#0-8-0-2026-11-08">0.8.0 (2026-11-08)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#steps-3">Steps</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#how-to-verify-3">How to verify</a></li><li class="docs-toc__item"><a href="#0-7-1-2026-11-08">0.7.1 (2026-11-08)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#steps-4">Steps</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#how-to-verify-4">How to verify</a></li><li class="docs-toc__item"><a href="#0-7-0-2026-11-08">0.7.0 (2026-11-08)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#breaking">Breaking</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#what-changed">What changed</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#steps-5">Steps</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#how-to-verify-5">How to verify</a></li><li class="docs-toc__item"><a href="#0-6-0-2026-11-07">0.6.0 (2026-11-07)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#breaking-1">Breaking</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#what-changed-1">What changed</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#steps-6">Steps</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#how-to-verify-6">How to verify</a></li><li class="docs-toc__item"><a href="#0-5-0-2026-11-03">0.5.0 (2026-11-03)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#breaking-2">Breaking</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#what-changed-2">What changed</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#steps-7">Steps</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#how-to-verify-7">How to verify</a></li><li class="docs-toc__item"><a href="#0-4-0-2026-11-01">0.4.0 (2026-11-01)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#breaking-3">Breaking</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#what-changed-3">What changed</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#steps-8">Steps</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#how-to-verify-8">How to verify</a></li><li class="docs-toc__item"><a href="#0-3-x-0-3-0-to-0-3-4">0.3.x (0.3.0 to 0.3.4)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#breaking-4">Breaking</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#what-changed-4">What changed</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#steps-9">Steps</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#how-to-verify-9">How to verify</a></li></ul></nav>
 </div>
 <footer class="docs-footer">
-  <span>Documents Squire <span data-docs-version>0.10.0</span></span>
+  <span>Documents Squire <span data-docs-version>0.10.1</span></span>
   <span><a rel="noopener" href="https://github.com/waynestate/squire">Source</a> <a href="upgrading.md">Markdown</a></span>
 </footer>
 </body>

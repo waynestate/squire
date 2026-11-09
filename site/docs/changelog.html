@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Changelog | Squire docs</title>
 <meta name="description" content="All notable changes to this project.">
-<meta name="docs-version" content="0.10.0">
+<meta name="docs-version" content="0.10.1">
 <link rel="stylesheet" href="../assets/wayne-ui/wayne-ui.css">
 <link rel="stylesheet" href="../assets/docs.css">
 <link rel="stylesheet" href="../docs/theme/squire.css">
@@ -28,7 +28,7 @@
       <a href="../index.html#party">The party</a>
       <a href="../docs/index.html" aria-current="page">Documentation</a>
     </nav>
-    <span class="brand__version">v0.10.0</span>
+    <span class="brand__version">v0.10.1</span>
   </div>
 </header><div class="docs-layout docs-layout--toc">
   <details class="docs-menu">
@@ -43,6 +43,7 @@
 <p>All notable changes to Squire are recorded here. The format follows Keep a Changelog; the project follows Semantic
 Versioning once 1.0 is out.</p>
 <h2 id="unreleased"><span class="docs-heading-tail"><span>Unreleased</span><a class="docs-heading-link" aria-label="Link to this section" href="#unreleased">#</a></span></h2>
+<h2 id="0-10-1-2026-11-09">0.10.1 <span class="docs-heading-tail"><span>(2026-11-09)</span><a class="docs-heading-link" aria-label="Link to this section" href="#0-10-1-2026-11-09">#</a></span></h2>
 <ul>
 <li>Changed: the kit's Composer moves from 2.10.3 to 2.11.1 (<code>composer:2.11.1@sha256:8de2184c6de224f4689e8f80ed5f5edaf0030b6b8b7839a22a2bcb6722ac87d0</code>, the multi-arch list) in the fallback base, the Oracle parity image, the contract and Oracle build scripts, CI and the Docker-only commands in the docs. 2.10 is no longer maintained, and 2.11.0 fixed GHSA-c968-33g3-wh7p (package names in <code>installed.json</code> could escape the vendor directory) and GHSA-fm2w-xgf2-f9fh (inline repository HTTP headers could be written into <code>composer.lock</code>). 2.11 drops the <code>source-fallback</code> setting, which Squire never used, and the new <code>policy.cooldown</code> stays off by default. Run <code>squire update</code> to take the new fallback base.</li>
 <li>Changed: the deploy kit is Squire 0.10.0 (was 0.8.0): release.sh gains the release env guard (a Laravel release stops when APP_KEY is unset or APP_DEBUG is on in production).</li>
@@ -394,10 +395,10 @@ base image, <code>scripts/parity.sh</code> and <code>scripts/parity.ps1</code>.<
     </main>
     <nav class="docs-pager" aria-label="Pages"><a class="docs-pager__link" href="../docs/0.1-plan.html"><span class="docs-pager__dir">Previous</span><span class="docs-pager__title">Squire 0.1 plan</span></a></nav>
   </div>
-  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item"><a href="#unreleased">Unreleased</a></li><li class="docs-toc__item"><a href="#0-10-0-2026-11-09">0.10.0 (2026-11-09)</a></li><li class="docs-toc__item"><a href="#0-9-0-2026-11-08">0.9.0 (2026-11-08)</a></li><li class="docs-toc__item"><a href="#0-8-0-2026-11-08">0.8.0 (2026-11-08)</a></li><li class="docs-toc__item"><a href="#0-7-1-2026-11-08">0.7.1 (2026-11-08)</a></li><li class="docs-toc__item"><a href="#0-7-0-2026-11-08">0.7.0 (2026-11-08)</a></li><li class="docs-toc__item"><a href="#0-6-0-2026-11-07">0.6.0 (2026-11-07)</a></li><li class="docs-toc__item"><a href="#0-5-0-2026-11-03">0.5.0 (2026-11-03)</a></li><li class="docs-toc__item"><a href="#0-4-0-2026-11-01">0.4.0 (2026-11-01)</a></li><li class="docs-toc__item"><a href="#0-3-4-2026-10-29">0.3.4 (2026-10-29)</a></li><li class="docs-toc__item"><a href="#0-3-3-2026-10-29">0.3.3 (2026-10-29)</a></li><li class="docs-toc__item"><a href="#0-3-2-2026-10-29">0.3.2 (2026-10-29)</a></li><li class="docs-toc__item"><a href="#0-3-1-2026-10-29">0.3.1 (2026-10-29)</a></li><li class="docs-toc__item"><a href="#0-3-0-2026-10-29">0.3.0 (2026-10-29)</a></li><li class="docs-toc__item"><a href="#0-2-2-2026-10-29">0.2.2 (2026-10-29)</a></li><li class="docs-toc__item"><a href="#0-2-1-2026-10-29">0.2.1 (2026-10-29)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#fixed">Fixed</a></li><li class="docs-toc__item"><a href="#0-2-0-2026-10-29">0.2.0 (2026-10-29)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#added">Added</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#changed">Changed</a></li><li class="docs-toc__item"><a href="#0-1-0-2026-10-29">0.1.0 (2026-10-29)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#added-1">Added</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#changed-1">Changed</a></li></ul></nav>
+  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item"><a href="#unreleased">Unreleased</a></li><li class="docs-toc__item"><a href="#0-10-1-2026-11-09">0.10.1 (2026-11-09)</a></li><li class="docs-toc__item"><a href="#0-10-0-2026-11-09">0.10.0 (2026-11-09)</a></li><li class="docs-toc__item"><a href="#0-9-0-2026-11-08">0.9.0 (2026-11-08)</a></li><li class="docs-toc__item"><a href="#0-8-0-2026-11-08">0.8.0 (2026-11-08)</a></li><li class="docs-toc__item"><a href="#0-7-1-2026-11-08">0.7.1 (2026-11-08)</a></li><li class="docs-toc__item"><a href="#0-7-0-2026-11-08">0.7.0 (2026-11-08)</a></li><li class="docs-toc__item"><a href="#0-6-0-2026-11-07">0.6.0 (2026-11-07)</a></li><li class="docs-toc__item"><a href="#0-5-0-2026-11-03">0.5.0 (2026-11-03)</a></li><li class="docs-toc__item"><a href="#0-4-0-2026-11-01">0.4.0 (2026-11-01)</a></li><li class="docs-toc__item"><a href="#0-3-4-2026-10-29">0.3.4 (2026-10-29)</a></li><li class="docs-toc__item"><a href="#0-3-3-2026-10-29">0.3.3 (2026-10-29)</a></li><li class="docs-toc__item"><a href="#0-3-2-2026-10-29">0.3.2 (2026-10-29)</a></li><li class="docs-toc__item"><a href="#0-3-1-2026-10-29">0.3.1 (2026-10-29)</a></li><li class="docs-toc__item"><a href="#0-3-0-2026-10-29">0.3.0 (2026-10-29)</a></li><li class="docs-toc__item"><a href="#0-2-2-2026-10-29">0.2.2 (2026-10-29)</a></li><li class="docs-toc__item"><a href="#0-2-1-2026-10-29">0.2.1 (2026-10-29)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#fixed">Fixed</a></li><li class="docs-toc__item"><a href="#0-2-0-2026-10-29">0.2.0 (2026-10-29)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#added">Added</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#changed">Changed</a></li><li class="docs-toc__item"><a href="#0-1-0-2026-10-29">0.1.0 (2026-10-29)</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#added-1">Added</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#changed-1">Changed</a></li></ul></nav>
 </div>
 <footer class="docs-footer">
-  <span>Documents Squire <span data-docs-version>0.10.0</span></span>
+  <span>Documents Squire <span data-docs-version>0.10.1</span></span>
   <span><a rel="noopener" href="https://github.com/waynestate/squire">Source</a> <a href="changelog.md">Markdown</a></span>
 </footer>
 </body>
