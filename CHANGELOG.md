@@ -5,6 +5,8 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+## 0.9.0 (2026-11-08)
+
 - Changed: the release script refuses a Laravel release when APP_KEY is unset or APP_DEBUG is true in production, and warns when APP_ENV is not production (Sourdough practice 4.14).
 - Changed: CI pins the Preflight components to 0.4.0 (the proctor job clones the full history, so the override-approver check can read git blame).
 - Changed: the release gate passes `--php-runtime` (SQUIRE_PHP_RUNTIME, default `auto`: the php that runs release.sh, which is the one serving the app), so the deploy path grades the runtime for PROCTOR's unpatched check.
