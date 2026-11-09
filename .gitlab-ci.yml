@@ -137,3 +137,22 @@ oracle-images-dry-run:
       allow_failure: true
   script:
     - scripts/oracle-image-publish.sh --flavour "$FLAVOUR" --php "$PHP" --registry-image "$CI_PROJECT_NAMESPACE/images/$CI_PROJECT_NAME" --dry-run
+
+# Temporary: report what the runner allows for emulation (kernel, capabilities, binfmt_misc). Read-only: it
+# registers nothing. Runs only when SQUIRE_RUNNER_PROBE=1 is passed to a manually created pipeline.
+runner-probe:
+  stage: deploy
+  image: quay.io/buildah/stable:v1.43.5-immutable@sha256:7c2b605262748ace2c5c57c5550942d0adad57aec82ede3070927722306c0ffb
+  rules:
+    - if: $SQUIRE_RUNNER_PROBE == "1"
+  script:
+    - uname -a
+    - grep -E 'CapEff|CapBnd|Seccomp|NoNewPrivs' /proc/self/status
+    - id; cat /proc/self/uid_map
+    - cat /proc/sys/user/max_user_namespaces || true
+    - ls -la /proc/sys/fs/binfmt_misc/ || true
+    - cat /proc/sys/fs/binfmt_misc/status || echo "binfmt_misc not mounted in the job container"
+    - grep -E 'binfmt|^proc ' /proc/self/mounts || true
+    - mkdir -p /tmp/bm-host && (mount -t binfmt_misc binfmt_misc /tmp/bm-host && echo "binfmt_misc mount in job: yes" && ls /tmp/bm-host && cat /tmp/bm-host/status && (test -w /tmp/bm-host/register && echo "register writable" || echo "register read-only")) || echo "binfmt_misc mount in job: no"
+    - unshare --user --map-root-user --mount sh -c 'mkdir -p /tmp/bm && mount -t binfmt_misc binfmt_misc /tmp/bm && echo "sandboxed binfmt_misc in a user namespace: yes" && ls /tmp/bm' || echo "sandboxed binfmt_misc in a user namespace: no"
+    - buildah --version
