@@ -314,8 +314,11 @@ it from the repo's `CHANGELOG.md` before building, and `--check` never writes. T
 top-level heading dropped, so every version heading stays as written: `## Unreleased`, `## [Unreleased]`,
 `## 0.5.0 (2026-11-03)` and `## [0.1.9] - 2026-11-03` all keep their shape and get the page's usual anchors. Links
 follow the site's rules: an `http(s)` link stays, a relative link becomes a blob link under the nav.json `source`
-(`https://repo.example.com/acme/app/-/blob/main/README.md`) when there is one, and loses its link, keeping its label,
-when there is not. A nav entry without a `CHANGELOG.md` is a finding, and a changed `CHANGELOG.md` or a missing
+when there is one, and loses its link, keeping its label, when there is not. The blob path follows the source's
+host: a GitHub source (`github.com` or `www.github.com`) gets `/blob/main/`
+(`https://github.com/acme/app/blob/main/README.md`) and any other host keeps GitLab's `/-/blob/main/`
+(`https://repo.example.com/acme/app/-/blob/main/README.md`). Links inside a code span or a fenced code block are
+left as written. A nav entry without a `CHANGELOG.md` is a finding, and a changed `CHANGELOG.md` or a missing
 `docs/changelog.md` is drift.
 
 #### Callouts
@@ -1058,6 +1061,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 - Docs: MAINTAINING.md records the Code Quality check (SQUIRE-33): the pipeline uploads PROCTOR's findings as a `codequality` report artifact and never uses GitLab's deprecated CodeClimate template, so its planned removal changes nothing; OPEN_QUESTIONS.md names the 0.4.0 Preflight pin and the queue worker that is still missing on Citadel.
 - Changed: the GitHub workflows pin every action by its commit SHA with the version in a comment (`actions/checkout` v4.4.0, `shivammathur/setup-php` 2.40.0, `docker/setup-qemu-action` v3.7.0, `docker/setup-buildx-action` v3.12.0, the same code their moving tags ran), so a moved tag cannot change what CI runs; a test fails on any tag pin.
+- Fixed: the generated changelog page links relative paths with GitHub's blob path when the source is GitHub, and leaves links inside code spans and fenced code alone.
 
 ### 0.9.0 (2026-11-08)[#](https://squire.apps.wayne.edu/docs/changelog.html#0-9-0-2026-11-08)
 
@@ -1548,7 +1552,7 @@ A plain run rewrites stale regions in the sources and then builds; `--check` rep
 
 ### Changelog page[#](https://squire.apps.wayne.edu/docs/guides/docs-builder.html#changelog-page)
 
-When `docs/nav.json` lists a page whose path is `changelog`, the builder owns `docs/changelog.md`: a plain run writes it from the repo's `CHANGELOG.md` before building, and `--check` never writes. The page takes the usual front matter (`title: "Changelog"` and a description), a marker comment naming its source, and the changelog's body with its top-level heading dropped, so every version heading stays as written: `## Unreleased`, `## [Unreleased]`, `## 0.5.0 (2026-11-03)` and `## [0.1.9] - 2026-11-03` all keep their shape and get the page's usual anchors. Links follow the site's rules: an `http(s)` link stays, a relative link becomes a blob link under the nav.json `source` (`https://repo.example.com/acme/app/-/blob/main/README.md`) when there is one, and loses its link, keeping its label, when there is not. A nav entry without a `CHANGELOG.md` is a finding, and a changed `CHANGELOG.md` or a missing `docs/changelog.md` is drift.
+When `docs/nav.json` lists a page whose path is `changelog`, the builder owns `docs/changelog.md`: a plain run writes it from the repo's `CHANGELOG.md` before building, and `--check` never writes. The page takes the usual front matter (`title: "Changelog"` and a description), a marker comment naming its source, and the changelog's body with its top-level heading dropped, so every version heading stays as written: `## Unreleased`, `## [Unreleased]`, `## 0.5.0 (2026-11-03)` and `## [0.1.9] - 2026-11-03` all keep their shape and get the page's usual anchors. Links follow the site's rules: an `http(s)` link stays, a relative link becomes a blob link under the nav.json `source` when there is one, and loses its link, keeping its label, when there is not. The blob path follows the source's host: a GitHub source (`github.com` or `www.github.com`) gets `/blob/main/` (`https://github.com/acme/app/blob/main/README.md`) and any other host keeps GitLab's `/-/blob/main/` (`https://repo.example.com/acme/app/-/blob/main/README.md`). Links inside a code span or a fenced code block are left as written. A nav entry without a `CHANGELOG.md` is a finding, and a changed `CHANGELOG.md` or a missing `docs/changelog.md` is drift.
 
 ### Callouts[#](https://squire.apps.wayne.edu/docs/guides/docs-builder.html#callouts)
 
