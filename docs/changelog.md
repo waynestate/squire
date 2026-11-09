@@ -12,6 +12,8 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+- Changed: the `wayneui-copies` and `composer-ci` CI jobs pin `composer:2.11.1` by its multi-arch list digest (`sha256:8de2184c...`), as the kit already does, instead of the bare tag.
+
 ## 0.10.2 (2026-11-09)
 
 - Fixed: the kit's Dockerfiles name every image in full (`docker.io/library/php:...`, `docker.io/library/node:...`, `docker.io/library/composer:...`, tags and digests unchanged), so Buildah and Podman build them with short-name mode enforcing; Buildah refused the fallback base's `COPY --from=composer:2.11.1@sha256:...` outright. The fallback base's Composer now comes from a `FROM ${COMPOSER_IMAGE} AS composer` stage, so all three images (`PHP_IMAGE`, `NODE_IMAGE`, `COMPOSER_IMAGE`) are build arguments a proxy or mirror can swap; Image hardening in the docs has the Dependency Proxy recipe. The Oracle parity image's bases in `images/oracle/php-images.txt` are named in full too. A test fails on a short name in any of the kit's Dockerfiles.

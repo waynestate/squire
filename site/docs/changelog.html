@@ -43,6 +43,9 @@
 <p>All notable changes to Squire are recorded here. The format follows Keep a Changelog; the project follows Semantic
 Versioning once 1.0 is out.</p>
 <h2 id="unreleased"><span class="docs-heading-tail"><span>Unreleased</span><a class="docs-heading-link" aria-label="Link to this section" href="#unreleased">#</a></span></h2>
+<ul>
+<li>Changed: the <code>wayneui-copies</code> and <code>composer-ci</code> CI jobs pin <code>composer:2.11.1</code> by its multi-arch list digest (<code>sha256:8de2184c...</code>), as the kit already does, instead of the bare tag.</li>
+</ul>
 <h2 id="0-10-2-2026-11-09">0.10.2 <span class="docs-heading-tail"><span>(2026-11-09)</span><a class="docs-heading-link" aria-label="Link to this section" href="#0-10-2-2026-11-09">#</a></span></h2>
 <ul>
 <li>Fixed: the kit's Dockerfiles name every image in full (<code>docker.io/library/php:...</code>, <code>docker.io/library/node:...</code>, <code>docker.io/library/composer:...</code>, tags and digests unchanged), so Buildah and Podman build them with short-name mode enforcing; Buildah refused the fallback base's <code>COPY --from=composer:2.11.1@sha256:...</code> outright. The fallback base's Composer now comes from a <code>FROM ${COMPOSER_IMAGE} AS composer</code> stage, so all three images (<code>PHP_IMAGE</code>, <code>NODE_IMAGE</code>, <code>COMPOSER_IMAGE</code>) are build arguments a proxy or mirror can swap; Image hardening in the docs has the Dependency Proxy recipe. The Oracle parity image's bases in <code>images/oracle/php-images.txt</code> are named in full too. A test fails on a short name in any of the kit's Dockerfiles.</li>
