@@ -88,9 +88,17 @@ runner can run a container with a port.
 
 ## CI
 
-- **GitLab:** Preflight's `php-test` (PHP 8.3, 8.4, 8.5) and `composer-audit` components, a `composer-ci` job,
-  `shellcheck`, `psscriptanalyzer` (PowerShell lint in a pinned multi-arch image), and `js-tests` (the docs kit's
-  JavaScript, node:test and jsdom in a pinned multi-arch Node 22 image).
+- **GitLab:** Preflight's `php-test` (PHP 8.3, 8.4, 8.5), `composer-audit`, `proctor` (on `deploy/`) and `a11y`
+  components, a `composer-ci` job, `wayneui-copies`, `shellcheck`, `psscriptanalyzer` (PowerShell lint in a pinned
+  multi-arch image), and `js-tests` (the docs kit's JavaScript, node:test and jsdom in a pinned multi-arch Node 22
+  image).
+- **Code Quality on GitLab (SQUIRE-33, checked 2026-11-08).** The `proctor` component runs
+  `proctor check --format=codequality` and uploads the result as a `codequality` report artifact, the import path
+  GitLab documents for every tier. Squire never includes GitLab's CodeClimate-based Code Quality template, which
+  GitLab deprecated in 17.3 and still plans to remove (the docs page says 19.0; the deprecation issue now expects
+  19.5), so that removal changes nothing here. On Community Edition the findings show in the merge request's
+  reports; the pipeline's Code Quality tab needs Premium and the inline diff view needs Ultimate. Check again if a
+  Code Quality job of Squire's own is ever added.
 - **GitHub:** `.github/workflows/ci.yml` calls Preflight's reusable workflow with `composer ci`, plus `shellcheck`
   and `js-tests` (the same two commands, `npm ci` and `npm test`, in the same pinned Node image as a container job).
   PowerShell lint runs on GitLab only.
