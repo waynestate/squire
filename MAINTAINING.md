@@ -203,5 +203,6 @@ repo makes. Squire dogfoods Squire.
 
 ## Who maintains it
 
-Adam Perkins, Wayne State University Enterprise Applications. Internal runbook (accounts, tokens, mirrors, Citadel
-access): ask Enterprise Applications.
+The stack maintainer (a role, not a named person), Wayne State University Enterprise Applications. To reach them,
+open an issue on git.wayne.edu. Internal runbook (accounts, tokens, mirrors, Citadel access): ask Enterprise
+Applications.
