@@ -351,7 +351,7 @@ final class ImageHardeningTest extends SquireTestCase
                 $found[] = $ref;
             }
         }
-        preg_match_all('#(?:docker://|\s)(composer:[\w.]+\S*)#', $text, $m);
+        preg_match_all('#(?:docker://|\s)((?:docker\.io/library/)?composer:[\w.]+\S*)#', $text, $m);
         $found = [...$found, ...$m[1]];
 
         return array_values(array_filter(
@@ -460,6 +460,20 @@ final class ImageHardeningTest extends SquireTestCase
             self::assertStringContainsString('PHP_IMAGE=', $text, $script . ' passes the pin');
             self::assertStringNotContainsString('PHP_LINE=', $text, $script . ' no longer builds from a moving tag');
         }
+    }
+
+    public function testTheOracleScriptsNeverPairATagAndADigestWithBuildahsDockerTransport(): void
+    {
+        // buildah from docker://name:tag@sha256:... fails with "invalid reference format" before anything is pulled,
+        // which kept every Sail flavor of the oracle-images job from building. A plain full name pulls by the digest.
+        foreach (['scripts/oracle-image-build.sh', 'scripts/oracle-image-publish.sh'] as $script) {
+            self::assertDoesNotMatchRegularExpression('#docker://[^\s"]+:[^\s"@]+@sha256:#', $this->repoFile($script), $script);
+        }
+        self::assertStringContainsString(
+            'from docker.io/library/composer:2.',
+            $this->repoFile('scripts/oracle-image-publish.sh'),
+            'the publish script names the Composer image in full',
+        );
     }
 
     // --- PHP 8.4: the session ID length stays at PHP's defaults ------------------------------------------------------

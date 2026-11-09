@@ -101,7 +101,9 @@ js-tests:
 # any of them is empty. Only safe variables appear here (the repository is mirrored publicly): the registry host
 # is never written down.
 # Pinned to the manifest list digest: the image is multi-arch (linux/amd64, linux/arm64). The runner must be able
-# to build linux/amd64 (qemu binfmt); the script says so plainly when it cannot. The -immutable tag is used
+# to run the architecture it is not (qemu binfmt registered on its host: the job is not privileged, so it cannot
+# register it itself). The script builds the runner's own architecture first and says so plainly when it cannot
+# build the other; see MAINTAINING.md, Publishing the Oracle images. The -immutable tag is used
 # because the plain version tag is re-pushed upstream, which garbage-collects old digests.
 oracle-images:
   stage: deploy
@@ -137,29 +139,3 @@ oracle-images-dry-run:
       allow_failure: true
   script:
     - scripts/oracle-image-publish.sh --flavour "$FLAVOUR" --php "$PHP" --registry-image "$CI_PROJECT_NAMESPACE/images/$CI_PROJECT_NAME" --dry-run
-
-# Temporary: report what the runner allows for emulation (kernel, capabilities, binfmt_misc). Read-only: it
-# registers nothing. Runs only when SQUIRE_RUNNER_PROBE=1 is passed to a manually created pipeline.
-runner-probe:
-  stage: deploy
-  image: quay.io/buildah/stable:v1.43.5-immutable@sha256:7c2b605262748ace2c5c57c5550942d0adad57aec82ede3070927722306c0ffb
-  rules:
-    - if: $SQUIRE_RUNNER_PROBE == "1"
-  script:
-    - |
-      uname -a
-      grep -E 'CapEff|CapBnd|Seccomp|NoNewPrivs' /proc/self/status
-      id; cat /proc/self/uid_map
-      cat /proc/sys/user/max_user_namespaces || true
-      ls -la /proc/sys/fs/binfmt_misc/ || true
-      cat /proc/sys/fs/binfmt_misc/status || echo "binfmt_misc not mounted in the job container"
-      grep -E 'binfmt|^proc ' /proc/self/mounts || true
-      mkdir -p /tmp/bm-host
-      if mount -t binfmt_misc binfmt_misc /tmp/bm-host; then
-        echo "binfmt_misc mount in job = yes"; ls /tmp/bm-host; cat /tmp/bm-host/status
-        if [ -w /tmp/bm-host/register ]; then echo "register writable"; else echo "register read-only"; fi
-      else
-        echo "binfmt_misc mount in job = no"
-      fi
-      unshare --user --map-root-user --mount sh -c 'mkdir -p /tmp/bm && mount -t binfmt_misc binfmt_misc /tmp/bm && echo "sandboxed binfmt_misc in a user namespace = yes" && ls /tmp/bm' || echo "sandboxed binfmt_misc in a user namespace = no"
-      buildah --version

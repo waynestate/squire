@@ -64,10 +64,15 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
     build dies at the first `RUN` step with an `exec format error` (`process exited with error: exec: not
     started`): the runner has no qemu-user binfmt emulation, so an amd64 image cannot be built there today. The
     arm64 half builds without complaint; the amd64 half does not survive its first `RUN`, which is either dramatic
-    or efficient. Three ways out: (a) the runner host gets qemu-user-static binfmt registered (the GitLab
-    administrator's call); (b) an amd64 runner builds the amd64 half and the arm64 runner merges the manifest list;
-    (c) the tag job publishes arm64 now and amd64 is built by hand with `scripts/oracle-image-build.sh` until (a) or
-    (b) lands.
+    or efficient. The job cannot register emulation itself: a probe on 2026-11-09 found Docker's default
+    capabilities (no `CAP_SYS_ADMIN`), seccomp on, `/proc/sys` read-only and binfmt_misc not mountable, and the
+    host kernel (5.14) predates Linux 6.7's private binfmt_misc mounts. Three ways out: (a) the runner host gets
+    qemu-user-static binfmt registered, persistent across reboots (the GitLab administrator's call; it is
+    host-wide, so every job on that host can then run amd64 images under emulation); (b) an amd64 runner builds the
+    amd64 half and the arm64 runner merges the manifest list (none exists today); (c) the tag job publishes arm64
+    only and amd64 is built by hand with `scripts/oracle-image-build.sh` until (a) or (b) lands (amd64 users get no
+    published image: a product call). Default until one is chosen: nothing is published, and the tag jobs fail
+    plainly.
 19. **Contract suite on the real image and on GitLab.** What runs today: the three GitHub jobs in
     `.github/workflows/ci.yml` (`contract-image` on linux/amd64 and linux/arm64, the arm64 leg under QEMU and blocking
     now that it passed on 2026-11-08; `contract-parity-sh`; and `contract-parity-pwsh`, pwsh 7 on Linux, also blocking

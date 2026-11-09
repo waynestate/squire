@@ -156,14 +156,25 @@ fetches it, not that base. The real Citadel image (`citadel/php-apache:8.4r5`) i
   images project shown on its Container Registry page elsewhere.
 - `oracle-images-dry-run` is manual and runs on branches (never on tags): it builds everything and prints what would
   be pushed, without logging in or pushing. Run it to prove the runner can build both architectures before you tag.
-- The runner must be able to build linux/amd64 (qemu binfmt emulation) and run buildah inside a container. If the
-  amd64 build dies with an exec format error, the job says so plainly: ask the runner's owner to enable amd64
-  emulation. Until a dry run passes, nothing is pushed.
+- The runner must be able to run the architecture it is not (qemu binfmt emulation registered on its host) and run
+  buildah inside a container. The script builds the runner's own architecture first, so a dry run always proves
+  that half; if the other build dies with an exec format error, the job says so plainly and stops. Until a dry run
+  passes, nothing is pushed.
 
-**Known limit.** The runner is linux/arm64 and has no qemu-user binfmt emulation. A manual dry run of
-`oracle-images-dry-run` (parity, PHP 8.4) pulls the images and gets through the arm64 build, but the amd64 build
-dies at the first `RUN` step with an `exec format error` (`process exited with error: exec: not started`): an
-amd64 image cannot be built there today. See OPEN_QUESTIONS.md, "Oracle images: amd64 on an arm64 runner".
+**Known limit: no tag has published the images yet.** Every tag pipeline since this GitLab became the home (0.6.0
+to 0.10.3) failed all six `oracle-images` jobs. Two causes, one fixed:
+
+- Fixed (Unreleased): the Sail flavor never reached a build. The script ran `buildah from
+  docker://composer:<tag>@sha256:...`, and buildah's `docker://` transport refuses a tag and a digest together
+  (`invalid reference format`). It now names the image in full without the prefix.
+- Open: the only runner is linux/arm64 and cannot run linux/amd64 binaries, so every amd64 build dies at its
+  first `RUN` step (`fork/exec /bin/sh: exec format error`). The job cannot fix that itself. A probe job on
+  2026-11-09 found Docker's default capabilities (no `CAP_SYS_ADMIN`), seccomp on, `/proc/sys` read-only and
+  binfmt_misc not mountable, so `tonistiigi/binfmt --install` and any other in-job registration fail; the kernel
+  (5.14) also predates the private binfmt_misc mounts of Linux 6.7, which would have scoped emulation to the job.
+  There is no amd64 runner to build that half natively and stitch the list. The ways out are on the runner host
+  or are a product call: see OPEN_QUESTIONS.md, "Oracle images: amd64 on an arm64 runner". Until then, build the
+  images locally with `scripts/oracle-image-build.sh`.
 
 ## Changing a template
 

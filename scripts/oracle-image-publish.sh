@@ -119,14 +119,31 @@ bud() {
     buildah "${STORAGE[@]}" bud --isolation=chroot "$@"
 }
 
-# Run one build, keeping its log for diagnosis. An amd64 build on a runner
-# without qemu binfmt dies with "Exec format error"; say so plainly.
+# The runner's own architecture builds without emulation, so it goes first: a
+# runner that cannot run the other one still proves its own half before the
+# script stops.
+case "$(uname -m)" in
+x86_64 | amd64) native=amd64 ;;
+aarch64 | arm64) native=arm64 ;;
+*) native="" ;;
+esac
+if [ "$native" = arm64 ]; then
+    build_order=(arm64 amd64)
+else
+    build_order=(amd64 arm64)
+fi
+
+# Run one build, keeping its log for diagnosis. A build for an architecture the
+# runner cannot run dies at its first RUN step with "exec format error" (buildah
+# prints it in lower case); say so plainly. The job cannot fix that itself: it
+# is not privileged, so it cannot register qemu binfmt handlers, and only the
+# runner host can.
 run_bud() {
-    local log="$1"
-    shift
+    local log="$1" arch="$2"
+    shift 2
     if ! bud "$@" >"$log" 2>&1; then
-        if grep -q "Exec format error" "$log"; then
-            echo "oracle-image-publish: the amd64 build failed because this runner has no amd64 emulation (qemu binfmt); ask the runner's owner to enable it." >&2
+        if grep -qi "exec format error" "$log"; then
+            echo "oracle-image-publish: the linux/${arch} build failed: this ${native:-$(uname -m)} runner cannot run linux/${arch} binaries (no qemu binfmt emulation on its host). The runner's owner can register it on the host (qemu-user-static); see MAINTAINING.md, Publishing the Oracle images." >&2
         else
             echo "oracle-image-publish: the build failed; the last lines of its log follow." >&2
             tail -n 20 "$log" >&2
@@ -139,8 +156,12 @@ if [ "$flavour" = sail ]; then
     # Sail's runtime Dockerfiles ship inside the laravel/sail package, so fetch
     # the package into a throwaway working container the way
     # scripts/oracle-image-build.sh does with a throwaway Composer project.
+    # The image is named in full without a transport prefix: buildah's
+    # docker:// transport refuses a reference with both a tag and a digest
+    # ("invalid reference format"), while a plain name keeps the tag readable
+    # and pulls by the digest.
     echo "[squire] ==> fetching laravel/sail into a throwaway container"
-    sail_ctr="$(buildah "${STORAGE[@]}" from docker://composer:2.11.1@sha256:8de2184c6de224f4689e8f80ed5f5edaf0030b6b8b7839a22a2bcb6722ac87d0)"
+    sail_ctr="$(buildah "${STORAGE[@]}" from docker.io/library/composer:2.11.1@sha256:8de2184c6de224f4689e8f80ed5f5edaf0030b6b8b7839a22a2bcb6722ac87d0)"
     buildah "${STORAGE[@]}" run --isolation=chroot --workingdir /app "$sail_ctr" \
         composer require laravel/sail --no-interaction --quiet
     sail_mp="$(buildah "${STORAGE[@]}" mount "$sail_ctr")"
@@ -150,20 +171,20 @@ if [ "$flavour" = sail ]; then
     buildah "${STORAGE[@]}" rm "$sail_ctr"
 fi
 
-for arch in amd64 arm64; do
+for arch in "${build_order[@]}"; do
     platform="linux/${arch}"
     echo "[squire] ==> building ${flavour} ${php_line} for ${platform}"
     case "$flavour" in
     sail)
         runtime_dir="$workdir/sail-runtime/sail/runtimes/${php_line}"
         base_image="squire/sail-base:${php_line}-${arch}"
-        run_bud "$workdir/sail-base-${arch}.log" \
+        run_bud "$workdir/sail-base-${arch}.log" "$arch" \
             --platform "$platform" \
             --build-arg WWWGROUP=1000 \
             -f "$runtime_dir/Dockerfile" \
             -t "$base_image" \
             "$runtime_dir"
-        run_bud "$workdir/oracle-sail-${arch}.log" \
+        run_bud "$workdir/oracle-sail-${arch}.log" "$arch" \
             --platform "$platform" \
             --build-arg "SAIL_BASE=${base_image}" \
             -f "$repo_root/images/oracle/sail.Dockerfile" \
@@ -171,7 +192,7 @@ for arch in amd64 arm64; do
             "$repo_root"
         ;;
     parity)
-        run_bud "$workdir/oracle-parity-${arch}.log" \
+        run_bud "$workdir/oracle-parity-${arch}.log" "$arch" \
             --platform "$platform" \
             --build-arg "PHP_IMAGE=${php_image}" \
             -f "$repo_root/images/oracle/parity.Dockerfile" \

@@ -662,8 +662,10 @@ The names above are the local names of scripts/oracle-image-build.sh. The publis
 `images` project (the stack's shared image registry; Squire's own GitLab has no container registry), at
 `<registry>/enterprise-apps/images/squire-oracle-parity:8.4` and `<registry>/enterprise-apps/images/squire-oracle-sail:8.4`
 (`<registry>` is the registry address of the images project shown on its Container Registry page), plus
-`:8.4-<squire version>` for a fixed one. CI publishes them when a Squire version is tagged, multi-arch
-(linux/amd64 and linux/arm64); a Sail app swaps `build:` for `image:` with that path.
+`:8.4-<squire version>` for a fixed one. CI is set to publish them when a Squire version is tagged, multi-arch
+(linux/amd64 and linux/arm64); a Sail app swaps `build:` for `image:` with that path. Not yet, though: the CI
+runner cannot build linux/amd64, so no tag has published them so far (MAINTAINING.md, Publishing the Oracle
+images). Until it can, build them locally with scripts/oracle-image-build.sh.
 
 Both flavours download Oracle's Instant Client Basic Light at build time under Oracle's license and never commit
 it: the install script pins the exact SHA-256 of each zip. Oracle does not publish a 21.x client for arm64, so the

@@ -43,6 +43,11 @@
 <p>All notable changes to Squire are recorded here. The format follows Keep a Changelog; the project follows Semantic
 Versioning once 1.0 is out.</p>
 <h2 id="unreleased"><span class="docs-heading-tail"><span>Unreleased</span><a class="docs-heading-link" aria-label="Link to this section" href="#unreleased">#</a></span></h2>
+<ul>
+<li>Fixed: the Sail flavor of the <code>oracle-images</code> CI jobs failed before it built anything, on every tag since 0.6.0: <code>scripts/oracle-image-publish.sh</code> ran <code>buildah from docker://composer:2.11.1@sha256:...</code>, and buildah's <code>docker://</code> transport refuses a tag and a digest together (<code>invalid reference format</code>). The script now names the image in full without the prefix (<code>docker.io/library/composer:2.11.1@sha256:...</code>, same digest), and a test fails on a tag and a digest after <code>docker://</code> in either Oracle script.</li>
+<li>Fixed: when a build dies because the runner cannot run the other architecture, the publish script now says so plainly; it looked for <code>Exec format error</code>, but buildah prints it in lower case, so the job showed only a raw log tail. It also builds the runner's own architecture first, so a dry run proves that half before it stops.</li>
+<li>Docs: MAINTAINING.md, OPEN_QUESTIONS.md, the README and the Oracle guide say what is true today: no tag has published the Oracle images yet, because the only CI runner is linux/arm64, cannot run linux/amd64 binaries, and its jobs are not privileged to register qemu emulation themselves. Build the images locally with <code>scripts/oracle-image-build.sh</code> until the runner host gets emulation or an amd64 runner joins.</li>
+</ul>
 <h2 id="0-10-3-2026-11-09">0.10.3 <span class="docs-heading-tail"><span>(2026-11-09)</span><a class="docs-heading-link" aria-label="Link to this section" href="#0-10-3-2026-11-09">#</a></span></h2>
 <ul>
 <li>Changed: the <code>wayneui-copies</code> and <code>composer-ci</code> CI jobs pin <code>composer:2.11.1</code> by its multi-arch list digest (<code>sha256:8de2184c...</code>), as the kit already does, instead of the bare tag.</li>
