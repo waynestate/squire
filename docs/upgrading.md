@@ -1,6 +1,6 @@
 ---
 title: "Upgrading"
-description: "What changed in each released minor of Squire (0.10.1, 0.10.0, 0.9.0, 0.8.0, 0.7.1, 0.7.0, 0.6.0, 0.5.0, 0.4.0 and the 0.3.x line), the steps to move an app to them, and how to verify the upgrade held."
+description: "What changed in each released minor of Squire (0.10.2, 0.10.1, 0.10.0, 0.9.0, 0.8.0, 0.7.1, 0.7.0, 0.6.0, 0.5.0, 0.4.0 and the 0.3.x line), the steps to move an app to them, and how to verify the upgrade held."
 ---
 
 # Upgrading
@@ -16,6 +16,23 @@ vendor/bin/squire init --check
 vendor/bin/squire update --dry-run
 
 `squire init --check` reports when your copies have drifted from the templates; it exits `0` when they match and `1` when they have. `squire update --dry-run` prints the plan and writes nothing; it exits `1` when an edited file still differs from the template. Exit `2` means the tool itself could not run. For the full command reference, see [Commands](reference/commands.md).
+
+## 0.10.2 (2026-11-09)
+
+No breaks for an app that builds with Docker: a patch on 0.10.1. Three kit files change. Raw PHP apps get SameSite=Lax session cookies: the kit's `php.ini` sets `session.cookie_samesite = Lax` (it was empty), next to the `session.cookie_httponly = 1` and `session.cookie_secure = 1` it already set, so an app that never calls `helmet_boot()` sends a session cookie SESAME has nothing to warn about (wherever the kit's `php.ini` is used: local parity and the portable image; on Citadel the platform's `php.ini` decides). The kit's Dockerfiles name every image in full (`docker.io/library/php:...`), so Buildah and Podman build them with short-name mode enforcing, and the fallback base takes its Composer image as a build argument (`COMPOSER_IMAGE`) like PHP and Node. The portable image drops `node_modules/` after the frontend build.
+
+### Steps
+
+1. Update the `waynestate/squire` dev dependency: `composer update waynestate/squire` when the app already requires `^0.10`, otherwise `composer require --dev waynestate/squire:^0.10.2`.
+2. Run `vendor/bin/squire update`: it takes the new `.squire/php.ini`, `.squire/base-fallback.Dockerfile` and `.squire/portable.Dockerfile` when the app never edited them, and shows a diff when it did.
+3. Commit the changed kit files and `.squire.json`.
+4. A CI job that builds the fallback base through a pull-through proxy and prefixes the `ARG` defaults itself: the defaults now start with `docker.io/library/`, so strip that before adding the proxy prefix, and pass `COMPOSER_IMAGE` the same way instead of rewriting `COPY --from` (the loop is in [Image hardening](guides/image-hardening.md#through-a-proxy-or-a-mirror)). A job that passes no build arguments needs no change.
+5. An app whose session must survive a cross-site POST (a form another site posts to, or a SAML ACS that reads the session on the POST itself) sets `session.cookie_samesite` back for that app, or parks the POST and finishes on a GET the way SESAME's SAML driver does. A CAS ticket and an OIDC code come back on a top-level GET, which still carries a Lax cookie.
+6. Stack repos: refresh `deploy/` the same way. Sourdough: refresh its generated copy with `php bin/export-templates.php --to=templates/squire`.
+
+### How to verify
+
+Run the two checks at the top of this page; both exit `0`. `.squire/php.ini` sets `session.cookie_samesite = Lax`, `.squire/base-fallback.Dockerfile` has an `ARG COMPOSER_IMAGE=docker.io/library/composer:2.11.1@sha256:...` line, and a built portable image has no `/citadel/src/node_modules`.
 
 ## 0.10.1 (2026-11-09)
 
