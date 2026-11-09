@@ -94,6 +94,19 @@ final class AgentReadyTest extends SquireTestCase
         return $dir;
     }
 
+    /** A repo for title tests: the given README, a one-page site, the kit and this generator. */
+    private function titledSite(string $readme, string $composer = '{"name":"test/demo","homepage":"https://demo.apps.wayne.edu/","support":{"source":"https://github.com/waynestate/demo"}}'): string
+    {
+        $dir = $this->tempDir();
+        $this->put($dir, 'composer.json', $composer);
+        $this->put($dir, 'README.md', $readme);
+        $this->put($dir, 'site/index.html', $this->page());
+        $result = $this->generate('--sync-to=' . $dir);
+        self::assertSame(0, $result['code'], $result['stderr']);
+
+        return $dir;
+    }
+
     public function testTheRecordedHashesAreTheKitsBytes(): void
     {
         $source = (string) file_get_contents(self::generator());
@@ -147,6 +160,30 @@ final class AgentReadyTest extends SquireTestCase
         self::assertStringContainsString('[the site](https://github.com/waynestate/demo/blob/HEAD/site/index.html)', $llms);
         self::assertStringContainsString('https://advisor.apps.wayne.edu/llms.txt', $llms);
         self::assertStringNotContainsString('<img', (string) file_get_contents($dir . '/site/llms-full.txt'));
+    }
+
+    public function testTheTitleComesFromAHeadingInsideACenteredBlock(): void
+    {
+        $dir = $this->titledSite("<div align=\"center\">\n\n# Sourdough\n\n</div>\n\nA starter.\n");
+        self::assertSame(0, $this->generate('--root=' . $dir)['code']);
+        $llms = (string) file_get_contents($dir . '/site/llms.txt');
+        self::assertStringStartsWith("# Sourdough\n", $llms);
+    }
+
+    public function testTheTitleComesFromAnHtmlHeading(): void
+    {
+        $dir = $this->titledSite("<div align=\"center\">\n<h1>Pin<em>stripe</em> &amp; co</h1>\n</div>\n\nText.\n");
+        self::assertSame(0, $this->generate('--root=' . $dir)['code']);
+        $llms = (string) file_get_contents($dir . '/site/llms.txt');
+        self::assertStringStartsWith("# Pinstripe & co\n", $llms);
+    }
+
+    public function testTheTitleFallsBackToThePackageName(): void
+    {
+        $dir = $this->titledSite("Just text, no heading.\n");
+        self::assertSame(0, $this->generate('--root=' . $dir)['code']);
+        $llms = (string) file_get_contents($dir . '/site/llms.txt');
+        self::assertStringStartsWith("# demo\n", $llms);
     }
 
     public function testChecklistLabelTextIsKept(): void

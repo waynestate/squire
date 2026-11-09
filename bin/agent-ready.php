@@ -673,6 +673,8 @@ final class AgentReady
 
     private string $source;
 
+    private readonly string $package;
+
     /** @var list<string> */
     private array $exclude;
 
@@ -686,6 +688,9 @@ final class AgentReady
         }
         $config = $this->json($root.'/agent-ready.json', false);
         $composer = $this->json($root.'/composer.json', false);
+        $name = is_string($composer['name'] ?? null) ? $composer['name'] : '';
+        $slash = strrpos($name, '/');
+        $this->package = $slash === false ? $name : substr($name, $slash + 1);
         $site = is_string($config['site'] ?? null) ? $config['site'] : 'site';
         $this->site = rtrim($root.'/'.$site, '/');
         if (! is_dir($this->site)) {
@@ -1113,13 +1118,48 @@ final class AgentReady
     {
         $raw = $this->normalise((string) file_get_contents($this->readme));
         $clean = $this->cleanReadme($raw);
-        $name = preg_match('/^# (.+)$/m', $clean, $m) ? trim($m[1]) : basename($this->root);
+        $name = $this->projectName($raw, $clean);
         $intro = '';
         if (preg_match('/^# [^\n]+\n(.*?)(?=^## |\z)/ms', $clean, $m)) {
             $intro = trim($m[1]);
         }
 
         return ['name' => $name, 'intro' => $intro, 'body' => trim($clean)];
+    }
+
+    /** The project name for the agent files: a cleaned H1, a raw <h1>, a raw H1 before any fence, the Composer package, then the folder. */
+    private function projectName(string $raw, string $clean): string
+    {
+        $candidates = [];
+        if (preg_match('/^# (.+)$/m', $clean, $m)) {
+            $candidates[] = trim($m[1]);
+        }
+        if (preg_match('/<h1\b[^>]*>(.*?)<\/h1>/is', $raw, $m)) {
+            $title = html_entity_decode((string) preg_replace('/<[^>]+>/', '', $m[1]), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $candidates[] = trim((string) preg_replace('/\s+/', ' ', $title));
+        }
+        foreach (explode("\n", $raw) as $line) {
+            if (preg_match('/^\s*(```|~~~)/', $line)) {
+                break;
+            }
+            if (preg_match('/^# (.+)$/', $line, $m)) {
+                $candidates[] = trim($m[1]);
+
+                break;
+            }
+        }
+        $candidates[] = $this->package;
+        $folder = basename((string) realpath($this->root));
+        if ($folder !== '' && $folder !== '.') {
+            $candidates[] = $folder;
+        }
+        foreach ($candidates as $candidate) {
+            if ($candidate !== '') {
+                return $candidate;
+            }
+        }
+
+        return 'Project';
     }
 
     /** The README without its pictures and HTML: badges, galleries and the cast are for people. */

@@ -10,6 +10,7 @@ Versioning once 1.0 is out.
 - Fixed: the generated changelog page links relative paths with GitHub's blob path when the source is GitHub, and leaves links inside code spans and fenced code alone.
 - Fixed: the docs kit keeps a heading's "#" permalink on the line of its last word (the builder wraps the pair in `.docs-heading-tail`), so it never wraps onto a line of its own. On phones, narrow windows and touch screens, and for the page title at every width, the "#" takes no room and no tap area and shows on keyboard focus. A heading word too long for its line breaks or hyphenates instead of widening the page.
 - Added: the docs kit's "On this page" list marks the section in view with `aria-current="true"` and `is-current` (an accent bar on the list's rule, light and dark); a clicked entry stays marked through a smooth jump instead of flashing every section it passes. It is a docs.js enhancement that never scrolls, so without JavaScript the page reads as before. Resync the kit and builder with `--sync-to` to take both.
+- Fixed: agent-ready reads the project name from a README title inside a centered block or an `<h1>`, then the Composer package name, so a site built in place is no longer titled "# ." (Sourdough's was).
 
 ## 0.9.0 (2026-11-08)
 
