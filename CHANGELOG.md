@@ -5,6 +5,8 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+- Added: the MySQL upgrade path guide (`docs/guides/mysql-upgrade-path.md`): 5.6.51 to 5.7 to 8.0 to 8.4 LTS one series at a time, with the checker to run, the backup (a dump made with the source's own client) and the driver and Laravel floor for each hop, and a rollback for each hop, since MySQL cannot downgrade in place across series. With it, `scripts/mysql-preupgrade-checks.sql`, a read-only script for a copy of the data that lists old temporal columns, names of 64 characters or more, tables not on `utf8mb4_unicode_ci`, and what 8.4 rejects (foreign keys on a non-unique or partial key, `AUTO_INCREMENT` on `FLOAT` or `DOUBLE`); a test refuses any statement that is not a `SELECT` or `SET SESSION`.
+
 ## 0.10.0 (2026-11-09)
 
 - Docs: MAINTAINING.md records the Code Quality check (SQUIRE-33): the pipeline uploads PROCTOR's findings as a `codequality` report artifact and never uses GitLab's deprecated CodeClimate template, so its planned removal changes nothing; OPEN_QUESTIONS.md names the 0.4.0 Preflight pin and the queue worker that is still missing on Citadel.

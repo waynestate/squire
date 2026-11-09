@@ -38,6 +38,10 @@
                     "path": "guides/queue-workers"
                 },
                 {
+                    "title": "MySQL upgrade path",
+                    "path": "guides/mysql-upgrade-path"
+                },
+                {
                     "title": "Local parity",
                     "path": "guides/local-parity"
                 },
