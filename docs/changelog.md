@@ -12,6 +12,9 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+- Fixed: the kit's Dockerfiles name every image in full (`docker.io/library/php:...`, `docker.io/library/node:...`, `docker.io/library/composer:...`, tags and digests unchanged), so Buildah and Podman build them with short-name mode enforcing; Buildah refused the fallback base's `COPY --from=composer:2.11.1@sha256:...` outright. The fallback base's Composer now comes from a `FROM ${COMPOSER_IMAGE} AS composer` stage, so all three images (`PHP_IMAGE`, `NODE_IMAGE`, `COMPOSER_IMAGE`) are build arguments a proxy or mirror can swap; Image hardening in the docs has the Dependency Proxy recipe. The Oracle parity image's bases in `images/oracle/php-images.txt` are named in full too. A test fails on a short name in any of the kit's Dockerfiles.
+- Changed: the portable image drops `node_modules/` after the frontend build, in the same step, so no layer keeps it; the image ships the built assets and no role runs Node. `--build-arg SQUIRE_KEEP_NODE_MODULES=1` keeps it for an app that reads it at run time.
+
 ## 0.10.1 (2026-11-09)
 
 - Changed: the kit's Composer moves from 2.10.3 to 2.11.1 (`composer:2.11.1@sha256:8de2184c6de224f4689e8f80ed5f5edaf0030b6b8b7839a22a2bcb6722ac87d0`, the multi-arch list) in the fallback base, the Oracle parity image, the contract and Oracle build scripts, CI and the Docker-only commands in the docs. 2.10 is no longer maintained, and 2.11.0 fixed GHSA-c968-33g3-wh7p (package names in `installed.json` could escape the vendor directory) and GHSA-fm2w-xgf2-f9fh (inline repository HTTP headers could be written into `composer.lock`). 2.11 drops the `source-fallback` setting, which Squire never used, and the new `policy.cooldown` stays off by default. Run `squire update` to take the new fallback base.

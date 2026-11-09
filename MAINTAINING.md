@@ -117,7 +117,7 @@ GitLab runs lint and unit tests only; the contract suite runs on the GitHub mirr
 ## Bumping a pinned image
 
 Every image Squire's files pull is pinned by the digest of its multi-arch list, not a tag (SQUIRE-30): the fallback
-base's `PHP_IMAGE` and `NODE_IMAGE` and its Composer stage, the Vue layer's Node service, HA-Proxy and MySQL in the
+base's `PHP_IMAGE`, `NODE_IMAGE` and `COMPOSER_IMAGE`, the Vue layer's Node service, HA-Proxy and MySQL in the
 compose files, the Oracle parity bases (one row per PHP line in `images/oracle/php-images.txt`) and the Composer
 image the Oracle build scripts run. A list digest names the same bytes on an arm64 runner or laptop and on an amd64
 server; a tag can move between two builds of the same commit. `ImageHardeningTest` fails on any reference without
@@ -128,7 +128,8 @@ To bump one:
 1. Read the new list's digest, and check that it lists both platforms:
    `docker buildx imagetools inspect php:8.4.28-apache` (the `Digest:` line, and `linux/amd64` and `linux/arm64/v8`
    under Manifests).
-2. Replace the whole reference, tag and digest together (`php:8.4.28-apache@sha256:...`), in every file that has it:
+2. Replace the whole reference, tag and digest together (`docker.io/library/php:8.4.28-apache@sha256:...`, named in
+   full for Buildah), in every file that has it:
    `git grep -n 'php:8.4.27-apache'`. For an Oracle parity line, edit its row in `images/oracle/php-images.txt`, and
    for 8.4 the `ARG PHP_IMAGE` default in `images/oracle/parity.Dockerfile` too (a test keeps the two equal).
 3. Run `composer ci`, then `sh scripts/contract-image.sh --platform=linux/amd64` and, where you can,

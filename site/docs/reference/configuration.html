@@ -336,6 +336,11 @@
 <td><code>0</code></td>
 <td>Baked code: opcache never checks files. A run-time <code>1</code> still wins.</td>
 </tr>
+<tr>
+<td><code>SQUIRE_KEEP_NODE_MODULES</code> (build argument)</td>
+<td><code>0</code></td>
+<td><code>1</code> keeps <code>node_modules/</code> in the image after the frontend build. By default it is removed in the same step, because no role runs Node.</td>
+</tr>
 </tbody>
 </table></div>
 <h2 id="php-in-the-image-squire-php-ini">PHP in the image (<code>.squire/php.ini</code><span class="docs-heading-tail"><span>)</span><a class="docs-heading-link" aria-label="Link to this section" href="#php-in-the-image-squire-php-ini">#</a></span></h2>

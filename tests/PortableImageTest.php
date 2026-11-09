@@ -214,6 +214,18 @@ final class PortableImageTest extends SquireTestCase
         self::assertStringContainsString('SQUIRE_APP_DIR=/citadel/src', $dockerfile, 'the release and health.php find the app even when the kit is in a subfolder');
     }
 
+    public function testTheFrontendBuildsNodeModulesNeverReachALayer(): void
+    {
+        $dockerfile = $this->read(self::DOCKERFILE);
+        $run = substr($dockerfile, (int) strpos($dockerfile, 'RUN --mount=type=cache,target=/tmp/squire-cache'));
+        $run = substr($run, 0, (int) strpos($run, "\n\n"));
+
+        // Removed in the RUN that made it: a later RUN would only hide the folder under a layer that still holds it.
+        self::assertStringContainsString('rm -rf /citadel/src/node_modules', $run, 'the release RUN drops node_modules/ after the build');
+        self::assertStringContainsString('if [ "$SQUIRE_KEEP_NODE_MODULES" != "1" ]', $run, 'only SQUIRE_KEEP_NODE_MODULES=1 keeps it');
+        self::assertStringContainsString("ARG SQUIRE_KEEP_NODE_MODULES=0\nRUN --mount=type=cache", $dockerfile, 'off by default, declared for the release RUN');
+    }
+
     public function testThePortableBuildContextKeepsSecretsAndRebuiltFoldersOut(): void
     {
         $ignore = $this->read('common/.squire/portable.Dockerfile.dockerignore');

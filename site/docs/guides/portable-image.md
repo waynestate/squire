@@ -45,6 +45,8 @@ docker build -f deploy/.squire/portable.Dockerfile --build-arg SQUIRE_KIT_DIR=de
 
 `BASE_IMAGE` is the real Citadel image or the fallback base (`.squire/base-fallback.Dockerfile`), pushed to a registry the platform can pull from. The build runs `scripts/release.sh` with the run-time steps off: Composer without dev packages, the frontend build, the writable folders, and nothing that needs the app's settings (no migrate, no optimize, no restart, no smoke test, and PROCTOR's gate belongs in CI on this path). Composer's and npm's downloads go through a BuildKit cache mount, so a rebuild fetches only what changed.
 
+`node_modules/` goes once the frontend build is done, in the same build step, so no layer keeps it: the image ships the built assets (`public/build/` for a Vite app), and none of the four roles runs Node. The kit has no server-side rendering role, so nothing at run time needs those packages. An app that does read `node_modules/` at run time (a page that serves a file straight out of it, say) keeps it with `--build-arg SQUIRE_KEEP_NODE_MODULES=1`; better still, copy that file into `public/` in the build script.
+
 `portable.Dockerfile.dockerignore` sits next to the Dockerfile, so Docker reads it for this build only: `.env` files, `auth.json`, `secrets`, keys, `.git`, `vendor/` and `node_modules/` never reach the build context, let alone a layer.
 
 ## Run it as an arbitrary UID [#](https://squire.apps.wayne.edu/docs/guides/portable-image.html#run-it-as-an-arbitrary-uid)

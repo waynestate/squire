@@ -205,6 +205,20 @@ secrets:
 <h2 id="base-images-pinned-by-digest">Base images: pinned by <span class="docs-heading-tail"><span>digest</span><a class="docs-heading-link" aria-label="Link to this section" href="#base-images-pinned-by-digest">#</a></span></h2>
 <p>A tag such as <code>php:8.4-apache</code> moves: two builds of the same commit a week apart can get different bytes. Every image the kit's files pull is pinned by the digest of its multi-arch list instead, <code>php:8.4.27-apache@sha256:...</code>, which names the same bytes on an arm64 laptop or CI runner and on an amd64 server: the fallback base's PHP, Node and Composer, the Vue layer's Node service, HA-Proxy and MySQL in the compose files, and the Oracle parity bases. A test fails on any reference without a digest.</p>
 <p>The kit's Composer (the fallback base and the Oracle parity image) is 2.11.1, <code>composer:2.11.1@sha256:8de2184c...</code>; 2.10 is no longer maintained. Composer 2.11's <code>policy.cooldown</code> is off by default, and the kit does not turn it on.</p>
+<p>The kit's Dockerfiles write each name in full, registry and namespace included: <code>docker.io/library/php:8.4.27-apache@sha256:...</code>, not <code>php:8.4.27-apache@sha256:...</code>. Docker reads both the same way, but Buildah and Podman refuse a short name where their short-name mode is enforcing (a <code>COPY --from=composer:2</code> fails outright), so a CI job that builds with Buildah needs the full name. A test fails on a short name in any of the kit's Dockerfiles.</p>
+<h3 id="through-a-proxy-or-a-mirror">Through a proxy or a <span class="docs-heading-tail"><span>mirror</span><a class="docs-heading-link" aria-label="Link to this section" href="#through-a-proxy-or-a-mirror">#</a></span></h3>
+<p>The fallback base takes its three images as build arguments, <code>PHP_IMAGE</code>, <code>NODE_IMAGE</code> and <code>COMPOSER_IMAGE</code>, and Composer comes from a <code>FROM ${COMPOSER_IMAGE} AS composer</code> stage, so nothing has to be edited in the file. To pull through a proxy or a mirror, keep each default's tag and digest and swap the registry part. GitLab's Dependency Proxy takes the Docker Hub name without <code>docker.io/library/</code> after its group prefix:</p>
+<!-- docs-test: skip needs Docker -->
+<pre tabindex="0"><code class="language-sh">base=.squire/base-fallback.Dockerfile
+prefix=&quot;$CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX&quot;
+args=&quot;&quot;
+for arg in PHP_IMAGE NODE_IMAGE COMPOSER_IMAGE; do
+  ref=$(sed -n &quot;s/^ARG $arg=//p&quot; &quot;$base&quot;)
+  args=&quot;$args --build-arg $arg=$prefix/${ref#docker.io/library/}&quot;
+done
+docker build -f &quot;$base&quot; $args -t squire/php-parity-base:8.4 .squire   # or: buildah bud ...
+</code></pre>
+<p>A registry mirror that keeps Docker Hub's paths takes the same loop with <code>$mirror/library/${ref#docker.io/library/}</code>. The digest still decides the bytes, so a proxy cannot hand back a different image under the same name.</p>
 <p>To bump one, read the new list's digest and check it lists both platforms, then replace the whole reference:</p>
 <pre tabindex="0"><code class="language-sh">docker buildx imagetools inspect php:8.4.28-apache
 </code></pre>
@@ -245,7 +259,7 @@ sh scripts/contract-image.sh --platform=linux/arm64   # needs qemu emulation on 
     </main>
     <nav class="docs-pager" aria-label="Pages"><a class="docs-pager__link" href="../../docs/guides/portable-image.html"><span class="docs-pager__dir">Previous</span><span class="docs-pager__title">The portable image</span></a><a class="docs-pager__link docs-pager__link--next" href="../../docs/guides/oracle.html"><span class="docs-pager__dir">Next</span><span class="docs-pager__title">Oracle</span></a></nav>
   </div>
-  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item"><a href="#apache-a-quieter-banner-no-trace">Apache: a quieter banner, no TRACE</a></li><li class="docs-toc__item"><a href="#opcache-set-by-how-your-code-arrives">opcache: set by how your code arrives</a></li><li class="docs-toc__item"><a href="#disable-functions-the-web-loses-the-shell">disable_functions: the web loses the shell</a></li><li class="docs-toc__item"><a href="#secrets-files-at-run-time-never-in-a-layer">Secrets: files at run time, never in a layer</a></li><li class="docs-toc__item"><a href="#npm-no-install-scripts-no-day-old-versions">npm: no install scripts, no day-old versions</a></li><li class="docs-toc__item"><a href="#base-images-pinned-by-digest">Base images: pinned by digest</a></li><li class="docs-toc__item"><a href="#the-image-contract-suite">The image contract suite</a></li></ul></nav>
+  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item"><a href="#apache-a-quieter-banner-no-trace">Apache: a quieter banner, no TRACE</a></li><li class="docs-toc__item"><a href="#opcache-set-by-how-your-code-arrives">opcache: set by how your code arrives</a></li><li class="docs-toc__item"><a href="#disable-functions-the-web-loses-the-shell">disable_functions: the web loses the shell</a></li><li class="docs-toc__item"><a href="#secrets-files-at-run-time-never-in-a-layer">Secrets: files at run time, never in a layer</a></li><li class="docs-toc__item"><a href="#npm-no-install-scripts-no-day-old-versions">npm: no install scripts, no day-old versions</a></li><li class="docs-toc__item"><a href="#base-images-pinned-by-digest">Base images: pinned by digest</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#through-a-proxy-or-a-mirror">Through a proxy or a mirror</a></li><li class="docs-toc__item"><a href="#the-image-contract-suite">The image contract suite</a></li></ul></nav>
 </div>
 <footer class="docs-footer">
   <span>Documents Squire <span data-docs-version>0.10.1</span></span>

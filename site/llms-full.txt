@@ -1059,6 +1059,9 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ### Unreleased [#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+- Fixed: the kit's Dockerfiles name every image in full (`docker.io/library/php:...`, `docker.io/library/node:...`, `docker.io/library/composer:...`, tags and digests unchanged), so Buildah and Podman build them with short-name mode enforcing; Buildah refused the fallback base's `COPY --from=composer:2.11.1@sha256:...` outright. The fallback base's Composer now comes from a `FROM ${COMPOSER_IMAGE} AS composer` stage, so all three images (`PHP_IMAGE`, `NODE_IMAGE`, `COMPOSER_IMAGE`) are build arguments a proxy or mirror can swap; Image hardening in the docs has the Dependency Proxy recipe. The Oracle parity image's bases in `images/oracle/php-images.txt` are named in full too. A test fails on a short name in any of the kit's Dockerfiles.
+- Changed: the portable image drops `node_modules/` after the frontend build, in the same step, so no layer keeps it; the image ships the built assets and no role runs Node. `--build-arg SQUIRE_KEEP_NODE_MODULES=1` keeps it for an app that reads it at run time.
+
 ### 0.10.1 (2026-11-09) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-10-1-2026-11-09)
 
 - Changed: the kit's Composer moves from 2.10.3 to 2.11.1 (`composer:2.11.1@sha256:8de2184c6de224f4689e8f80ed5f5edaf0030b6b8b7839a22a2bcb6722ac87d0`, the multi-arch list) in the fallback base, the Oracle parity image, the contract and Oracle build scripts, CI and the Docker-only commands in the docs. 2.10 is no longer maintained, and 2.11.0 fixed GHSA-c968-33g3-wh7p (package names in `installed.json` could escape the vendor directory) and GHSA-fm2w-xgf2-f9fh (inline repository HTTP headers could be written into `composer.lock`). 2.11 drops the `source-fallback` setting, which Squire never used, and the new `policy.cooldown` stays off by default. Run `squire update` to take the new fallback base.
@@ -1807,6 +1810,25 @@ A tag such as `php:8.4-apache` moves: two builds of the same commit a week apart
 
 The kit's Composer (the fallback base and the Oracle parity image) is 2.11.1, `composer:2.11.1@sha256:8de2184c...`; 2.10 is no longer maintained. Composer 2.11's `policy.cooldown` is off by default, and the kit does not turn it on.
 
+The kit's Dockerfiles write each name in full, registry and namespace included: `docker.io/library/php:8.4.27-apache@sha256:...`, not `php:8.4.27-apache@sha256:...`. Docker reads both the same way, but Buildah and Podman refuse a short name where their short-name mode is enforcing (a `COPY --from=composer:2` fails outright), so a CI job that builds with Buildah needs the full name. A test fails on a short name in any of the kit's Dockerfiles.
+
+#### Through a proxy or a mirror [#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#through-a-proxy-or-a-mirror)
+
+The fallback base takes its three images as build arguments, `PHP_IMAGE`, `NODE_IMAGE` and `COMPOSER_IMAGE`, and Composer comes from a `FROM ${COMPOSER_IMAGE} AS composer` stage, so nothing has to be edited in the file. To pull through a proxy or a mirror, keep each default's tag and digest and swap the registry part. GitLab's Dependency Proxy takes the Docker Hub name without `docker.io/library/` after its group prefix:
+
+```sh
+base=.squire/base-fallback.Dockerfile
+prefix="$CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX"
+args=""
+for arg in PHP_IMAGE NODE_IMAGE COMPOSER_IMAGE; do
+  ref=$(sed -n "s/^ARG $arg=//p" "$base")
+  args="$args --build-arg $arg=$prefix/${ref#docker.io/library/}"
+done
+docker build -f "$base" $args -t squire/php-parity-base:8.4 .squire   # or: buildah bud ...
+```
+
+A registry mirror that keeps Docker Hub's paths takes the same loop with `$mirror/library/${ref#docker.io/library/}`. The digest still decides the bytes, so a proxy cannot hand back a different image under the same name.
+
 To bump one, read the new list's digest and check it lists both platforms, then replace the whole reference:
 
 ```sh
@@ -2184,6 +2206,8 @@ docker build -f deploy/.squire/portable.Dockerfile --build-arg SQUIRE_KIT_DIR=de
 ```
 
 `BASE_IMAGE` is the real Citadel image or the fallback base (`.squire/base-fallback.Dockerfile`), pushed to a registry the platform can pull from. The build runs `scripts/release.sh` with the run-time steps off: Composer without dev packages, the frontend build, the writable folders, and nothing that needs the app's settings (no migrate, no optimize, no restart, no smoke test, and PROCTOR's gate belongs in CI on this path). Composer's and npm's downloads go through a BuildKit cache mount, so a rebuild fetches only what changed.
+
+`node_modules/` goes once the frontend build is done, in the same build step, so no layer keeps it: the image ships the built assets (`public/build/` for a Vite app), and none of the four roles runs Node. The kit has no server-side rendering role, so nothing at run time needs those packages. An app that does read `node_modules/` at run time (a page that serves a file straight out of it, say) keeps it with `--build-arg SQUIRE_KEEP_NODE_MODULES=1`; better still, copy that file into `public/` in the build script.
 
 `portable.Dockerfile.dockerignore` sits next to the Dockerfile, so Docker reads it for this build only: `.env` files, `auth.json`, `secrets`, keys, `.git`, `vendor/` and `node_modules/` never reach the build context, let alone a layer.
 
@@ -2859,6 +2883,7 @@ The entrypoint reads these when a container starts; the build arguments are read
 | `SQUIRE_KIT_DIR` (build argument) | `.` | Where the kit sits in the build context (`deploy` for WELD). |
 | `SQUIRE_WRITABLE_DIRS` (build argument) | Laravel: `storage bootstrap/cache` | Folders handed to group 0 and made group-writable, separated by spaces. |
 | `SQUIRE_OPCACHE_VALIDATE` (build argument) | `0` | Baked code: opcache never checks files. A run-time `1` still wins. |
+| `SQUIRE_KEEP_NODE_MODULES` (build argument) | `0` | `1` keeps `node_modules/` in the image after the frontend build. By default it is removed in the same step, because no role runs Node. |
 
 ### PHP in the image (`.squire/php.ini`) [#](https://squire.apps.wayne.edu/docs/reference/configuration.html#php-in-the-image-squire-php-ini)
 

@@ -14,7 +14,7 @@
 
 # The base is pinned by its multi-arch list digest (SQUIRE-30). The build scripts pass the pin for the PHP line they
 # build from images/oracle/php-images.txt; the default here is that file's 8.4 row, so a plain docker build gets it.
-ARG PHP_IMAGE=php:8.4.27-cli-bookworm@sha256:b3e907a1108629c562c4bb313ce3449e34d49991f6bb2487913f6146f47200fe
+ARG PHP_IMAGE=docker.io/library/php:8.4.27-cli-bookworm@sha256:b3e907a1108629c562c4bb313ce3449e34d49991f6bb2487913f6146f47200fe
 FROM ${PHP_IMAGE}
 
 # BuildKit's predefined argument: the architecture being built (amd64 or

@@ -85,6 +85,7 @@ The entrypoint reads these when a container starts; the build arguments are read
 | `SQUIRE_KIT_DIR` (build argument) | `.` | Where the kit sits in the build context (`deploy` for WELD). |
 | `SQUIRE_WRITABLE_DIRS` (build argument) | Laravel: `storage bootstrap/cache` | Folders handed to group 0 and made group-writable, separated by spaces. |
 | `SQUIRE_OPCACHE_VALIDATE` (build argument) | `0` | Baked code: opcache never checks files. A run-time `1` still wins. |
+| `SQUIRE_KEEP_NODE_MODULES` (build argument) | `0` | `1` keeps `node_modules/` in the image after the frontend build. By default it is removed in the same step, because no role runs Node. |
 
 ## PHP in the image (`.squire/php.ini`)
 

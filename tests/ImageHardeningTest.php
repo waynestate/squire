@@ -376,9 +376,50 @@ final class ImageHardeningTest extends SquireTestCase
     {
         $images = $this->pulledImages($this->read('common/.squire/base-fallback.Dockerfile'));
 
-        foreach (['php:8.4.', 'node:22.', 'composer:2.'] as $prefix) {
+        foreach (['docker.io/library/php:8.4.', 'docker.io/library/node:22.', 'docker.io/library/composer:2.'] as $prefix) {
             self::assertNotEmpty(array_filter($images, static fn(string $r): bool => str_starts_with($r, $prefix)), $prefix . ' is pinned in the fallback base');
         }
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function dockerfilesThatPullImages(): iterable
+    {
+        foreach ([
+            'templates/common/.squire/base-fallback.Dockerfile',
+            'templates/common/.squire/Dockerfile',
+            'templates/common/.squire/portable.Dockerfile',
+            'deploy/.squire/base-fallback.Dockerfile',
+            'deploy/.squire/portable.Dockerfile',
+            'images/oracle/parity.Dockerfile',
+            'images/oracle/sail.Dockerfile',
+        ] as $path) {
+            yield $path => [$path];
+        }
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('dockerfilesThatPullImages')]
+    public function testEveryImageADockerfilePullsIsNamedInFull(string $path): void
+    {
+        // Buildah and Podman refuse a short name such as composer:2 in COPY --from (and in FROM, unless an alias
+        // happens to exist) where their short-name mode is enforcing. A full name works for Docker too.
+        $text = $this->repoFile($path);
+        $this->addToAssertionCount(1);
+        foreach ($this->pulledImages($text) as $ref) {
+            self::assertMatchesRegularExpression('#^[a-z0-9.-]+\.[a-z]+(:\d+)?/#', $ref, $path . ': ' . $ref . ' is a short name; write its registry too');
+        }
+    }
+
+    public function testTheFallbackBaseTakesEveryImageAsABuildArgument(): void
+    {
+        // A pull-through proxy or mirror swaps the registry part with a build argument; an image named inline in
+        // COPY --from could not be swapped without editing the file.
+        $base = $this->read('common/.squire/base-fallback.Dockerfile');
+        foreach (['PHP_IMAGE', 'NODE_IMAGE', 'COMPOSER_IMAGE'] as $arg) {
+            self::assertMatchesRegularExpression('#^ARG ' . $arg . '=docker\.io/library/\S+@sha256:[0-9a-f]{64}$#m', $base, $arg . ' defaults to a full, pinned name');
+        }
+        self::assertStringContainsString('FROM ${COMPOSER_IMAGE} AS composer', $base);
+        self::assertStringContainsString('COPY --from=composer /usr/bin/composer /usr/local/bin/composer', $base);
+        self::assertDoesNotMatchRegularExpression('/--from=\S*:/', $base, 'COPY --from names a stage, never an image');
     }
 
     public function testTheOracleParityLinesArePinnedAndTheDefaultIsThe84Row(): void
@@ -392,7 +433,7 @@ final class ImageHardeningTest extends SquireTestCase
 
         self::assertSame(['8.3', '8.4', '8.5'], array_keys($rows));
         foreach ($rows as $line => $image) {
-            self::assertStringStartsWith('php:' . $line . '.', $image);
+            self::assertStringStartsWith('docker.io/library/php:' . $line . '.', $image, 'named in full, for Buildah');
             self::assertStringContainsString('-cli-bookworm@', $image, 'the parity image is built on the CLI bookworm base');
             self::assertMatchesRegularExpression(self::PINNED, $image);
         }

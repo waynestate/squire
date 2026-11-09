@@ -2,6 +2,6 @@
 # (linux/amd64 and linux/arm64). scripts/oracle-image-build.sh and scripts/oracle-image-publish.sh read this file;
 # a line that is missing here cannot be built. Bump procedure: Image hardening in the docs, and MAINTAINING.md.
 # line  image
-8.3 php:8.3.36-cli-bookworm@sha256:232331112d3a7c5b98edeeddc3b85f610172f99352c0635fe6b3e166e47062cb
-8.4 php:8.4.27-cli-bookworm@sha256:b3e907a1108629c562c4bb313ce3449e34d49991f6bb2487913f6146f47200fe
-8.5 php:8.5.12-cli-bookworm@sha256:050713ce008e2360ea9dc96e1f9a075690132388d917fc3552806f7a7be6f2a0
+8.3 docker.io/library/php:8.3.36-cli-bookworm@sha256:232331112d3a7c5b98edeeddc3b85f610172f99352c0635fe6b3e166e47062cb
+8.4 docker.io/library/php:8.4.27-cli-bookworm@sha256:b3e907a1108629c562c4bb313ce3449e34d49991f6bb2487913f6146f47200fe
+8.5 docker.io/library/php:8.5.12-cli-bookworm@sha256:050713ce008e2360ea9dc96e1f9a075690132388d917fc3552806f7a7be6f2a0

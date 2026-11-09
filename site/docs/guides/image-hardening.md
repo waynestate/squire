@@ -120,6 +120,25 @@ A tag such as `php:8.4-apache` moves: two builds of the same commit a week apart
 
 The kit's Composer (the fallback base and the Oracle parity image) is 2.11.1, `composer:2.11.1@sha256:8de2184c...`; 2.10 is no longer maintained. Composer 2.11's `policy.cooldown` is off by default, and the kit does not turn it on.
 
+The kit's Dockerfiles write each name in full, registry and namespace included: `docker.io/library/php:8.4.27-apache@sha256:...`, not `php:8.4.27-apache@sha256:...`. Docker reads both the same way, but Buildah and Podman refuse a short name where their short-name mode is enforcing (a `COPY --from=composer:2` fails outright), so a CI job that builds with Buildah needs the full name. A test fails on a short name in any of the kit's Dockerfiles.
+
+### Through a proxy or a mirror [#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#through-a-proxy-or-a-mirror)
+
+The fallback base takes its three images as build arguments, `PHP_IMAGE`, `NODE_IMAGE` and `COMPOSER_IMAGE`, and Composer comes from a `FROM ${COMPOSER_IMAGE} AS composer` stage, so nothing has to be edited in the file. To pull through a proxy or a mirror, keep each default's tag and digest and swap the registry part. GitLab's Dependency Proxy takes the Docker Hub name without `docker.io/library/` after its group prefix:
+
+```sh
+base=.squire/base-fallback.Dockerfile
+prefix="$CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX"
+args=""
+for arg in PHP_IMAGE NODE_IMAGE COMPOSER_IMAGE; do
+  ref=$(sed -n "s/^ARG $arg=//p" "$base")
+  args="$args --build-arg $arg=$prefix/${ref#docker.io/library/}"
+done
+docker build -f "$base" $args -t squire/php-parity-base:8.4 .squire   # or: buildah bud ...
+```
+
+A registry mirror that keeps Docker Hub's paths takes the same loop with `$mirror/library/${ref#docker.io/library/}`. The digest still decides the bytes, so a proxy cannot hand back a different image under the same name.
+
 To bump one, read the new list's digest and check it lists both platforms, then replace the whole reference:
 
 ```sh
