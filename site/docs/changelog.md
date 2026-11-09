@@ -12,6 +12,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ## Unreleased[#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+- Changed: CI pins the Preflight components to 0.4.0 (the proctor job clones the full history, so the override-approver check can read git blame).
 - Changed: the release gate passes `--php-runtime` (SQUIRE_PHP_RUNTIME, default `auto`: the php that runs release.sh, which is the one serving the app), so the deploy path grades the runtime for PROCTOR's unpatched check.
 - Changed: the GitHub workflow's arm64 image leg and pwsh parity leg block the run (no `continue-on-error`): both passed in five pushes in a row on 2026-11-08.
 
