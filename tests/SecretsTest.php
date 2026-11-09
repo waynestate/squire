@@ -7,7 +7,7 @@ namespace Waynestate\Squire\Tests;
 use Waynestate\Squire\Squire;
 
 /**
- * SQUIRE-18: secrets reach the app as files at run time and never sit in an image layer. The loader is one block,
+ * Secrets reach the app as files at run time and never sit in an image layer. The loader is one block,
  * the same in the release script and the fallback entrypoint; these tests run it in bash and read the image files.
  */
 final class SecretsTest extends SquireTestCase

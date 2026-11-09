@@ -15,6 +15,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 - Changed: the `wayneui-copies` and `composer-ci` CI jobs pin `composer:2.11.1` by its multi-arch list digest (`sha256:8de2184c...`), as the kit already does, instead of the bare tag.
 - Changed: the deploy layer requires CREED ^0.1.8, HELMET ^1.3 and PROCTOR ^0.11 (locked 0.1.8, 1.3.0 and 0.11.1; were ^0.1, ^1.0 and ^0.8), and the Pinstripe dev dependency is ^0.1.4 (locked 0.1.4, was 0.1.0). `proctor check` on `deploy/` still passes.
 - Changed: CI pins the Preflight components to 0.5.0 (was 0.4.0). The composer-audit job drops its own image input, since 0.5.0's default is `composer:2.11.1` by digest, and the PROCTOR job now keeps `proctor.json` for Rollcall. The a11y checker is the same at 0.5.0, so `tools/a11y/` does not change.
+- Changed: the kit's templates say in plain words what each comment used to point at with an internal item ID (the opcache switch, the web's `disable_functions` list, secrets as files, the digest pins, the npm install-script escape hatch, the Oracle check), so an app's copied files no longer cite numbers it cannot look up. Comments only: no setting, default or behavior changes. Run `squire update` to take them; until then `init --check` reports those files as outdated, as it does for any kit change. Squire's own `deploy/` takes them in this release, and the docs, tests, scripts and CI comments drop the same IDs.
 
 ## 0.10.2 (2026-11-09) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-10-2-2026-11-09)
 

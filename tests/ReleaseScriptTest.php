@@ -863,7 +863,7 @@ final class ReleaseScriptTest extends SquireTestCase
         self::assertContains('npm ci --prefer-offline --no-audit --no-fund --ignore-scripts', $this->calls());
     }
 
-    // --- SQUIRE-26: the install-script escape hatch and the release-age note -----------------------------------------
+    // --- the install-script escape hatch and the release-age note ----------------------------------------------------
 
     private function npmApp(): string
     {

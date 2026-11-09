@@ -7,7 +7,7 @@ namespace Waynestate\Squire\Tests;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
- * SQUIRE-40: the image contract checks the hardening in the running image, not only in the files. These tests keep
+ * The image contract checks the hardening in the running image, not only in the files. These tests keep
  * the driver (scripts/contract-image.sh) and the in-image checks (scripts/contract-image-checks.php) honest; the run
  * itself needs Docker and happens in CI and on a maintainer's machine.
  */
@@ -48,17 +48,17 @@ final class ContractImageTest extends SquireTestCase
     /** @return iterable<string, array{string}> */
     public static function promises(): iterable
     {
-        yield 'SQUIRE-9 Server header' => ["\$server === 'Apache'"];
-        yield 'SQUIRE-9 TRACE' => ["\$request('TRACE'"];
-        yield 'SQUIRE-9 signature' => ["'<address>'"];
+        yield 'Apache Server header' => ["\$server === 'Apache'"];
+        yield 'Apache TRACE' => ["\$request('TRACE'"];
+        yield 'Apache signature' => ["'<address>'"];
         yield 'expose_php' => ["'x-powered-by'"];
-        yield 'SQUIRE-10 opcache on' => ["\$web['opcache']"];
-        yield 'SQUIRE-10 validate_timestamps' => ["\$web['validate_timestamps']"];
-        yield 'SQUIRE-10 revalidate_freq' => ["\$web['revalidate_freq']"];
-        yield 'SQUIRE-29 web list' => ["'exec', 'passthru', 'shell_exec', 'system', 'pcntl_exec', 'phpinfo', 'show_source', 'highlight_file'"];
-        yield 'SQUIRE-29 proc_open stays' => ["\$web['proc_open']"];
-        yield 'SQUIRE-29 CLI keeps all' => ["ini_get('disable_functions')"];
-        yield 'SQUIRE-18 secret on the web' => ["\$web['secret_md5']"];
+        yield 'opcache on' => ["\$web['opcache']"];
+        yield 'opcache validate_timestamps' => ["\$web['validate_timestamps']"];
+        yield 'opcache revalidate_freq' => ["\$web['revalidate_freq']"];
+        yield 'web disable_functions list' => ["'exec', 'passthru', 'shell_exec', 'system', 'pcntl_exec', 'phpinfo', 'show_source', 'highlight_file'"];
+        yield 'web keeps proc_open' => ["\$web['proc_open']"];
+        yield 'CLI keeps every function' => ["ini_get('disable_functions')"];
+        yield 'secret on the web' => ["\$web['secret_md5']"];
         yield 'Composer script' => ['.contract-composer-script'];
     }
 

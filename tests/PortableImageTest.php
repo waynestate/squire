@@ -195,9 +195,9 @@ final class PortableImageTest extends SquireTestCase
             $kitLine = preg_replace('/^COPY (\S)/', 'COPY ${SQUIRE_KIT_DIR}/$1', $line);
             self::assertStringContainsString((string) $kitLine, $portable, 'the portable image repeats: ' . $line);
         }
-        self::assertStringContainsString('ARG SQUIRE_OPCACHE_VALIDATE=0', $portable, 'baked code: opcache never checks files (SQUIRE-10)');
+        self::assertStringContainsString('ARG SQUIRE_OPCACHE_VALIDATE=0', $portable, 'baked code: opcache never checks files');
         self::assertStringContainsString('FROM ${BASE_IMAGE}', $portable, 'the same base as the Citadel mirror');
-        self::assertDoesNotMatchRegularExpression('/^# *syntax=/m', $portable, 'a frontend image would be one more unpinned pull (SQUIRE-30)');
+        self::assertDoesNotMatchRegularExpression('/^# *syntax=/m', $portable, 'a frontend image would be one more unpinned pull');
     }
 
     public function testTheImageBuildRunsTheReleaseWithoutItsRunTimeSteps(): void

@@ -9,7 +9,7 @@ use Waynestate\Squire\Template\Catalog;
 
 /**
  * The hardening the image files promise, checked in the files themselves. scripts/contract-image.sh checks the same
- * promises again inside the built image (SQUIRE-40), where a file can no longer lie about what it does.
+ * promises again inside the built image, where a file can no longer lie about what it does.
  */
 final class ImageHardeningTest extends SquireTestCase
 {
@@ -43,7 +43,7 @@ final class ImageHardeningTest extends SquireTestCase
         return false;
     }
 
-    // --- SQUIRE-9: Apache says less about itself ---------------------------------------------------------------------
+    // --- Apache says less about itself -------------------------------------------------------------------------------
 
     public function testTheApacheHardeningSetsTheThreeDirectives(): void
     {
@@ -70,7 +70,7 @@ final class ImageHardeningTest extends SquireTestCase
         self::assertStringNotContainsString('apache-hardening', $this->read('common/.squire/Dockerfile'));
     }
 
-    // --- SQUIRE-10: production opcache, with a dev override ----------------------------------------------------------
+    // --- production opcache, with a dev override ---------------------------------------------------------------------
 
     /** The value php.ini gives a setting, read by PHP itself. @param array<string, string> $env */
     private function iniValue(string $iniFile, string $setting, array $env = []): string
@@ -194,7 +194,7 @@ final class ImageHardeningTest extends SquireTestCase
         }
     }
 
-    // --- SQUIRE-29: the web loses the shell, the CLI keeps it --------------------------------------------------------
+    // --- the web loses the shell, the CLI keeps it -------------------------------------------------------------------
 
     private const WEB_DISABLED = 'exec,passthru,shell_exec,system,pcntl_exec,phpinfo,show_source,highlight_file';
 
@@ -316,7 +316,7 @@ final class ImageHardeningTest extends SquireTestCase
         }
     }
 
-    // --- SQUIRE-30: every base is pinned by its multi-arch list digest ----------------------------------------------
+    // --- every base is pinned by its multi-arch list digest ---------------------------------------------------------
 
     private const PINNED = '/@sha256:[0-9a-f]{64}$/';
 

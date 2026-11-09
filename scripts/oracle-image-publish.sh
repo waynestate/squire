@@ -97,7 +97,7 @@ command -v buildah >/dev/null 2>&1 || {
 
 repo_root="$(cd "$(dirname "$0")/.." && pwd)"
 
-# The pinned base for this PHP line (SQUIRE-30): one row per line in images/oracle/php-images.txt.
+# The pinned base for this PHP line: one row per line in images/oracle/php-images.txt.
 php_image="$(awk -v line="$php_line" '$1 == line { print $2 }' "$repo_root/images/oracle/php-images.txt")"
 if [ -z "$php_image" ]; then
     echo "no pinned base for PHP ${php_line} in images/oracle/php-images.txt; add a row (see MAINTAINING.md)" >&2

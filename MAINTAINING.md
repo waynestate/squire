@@ -59,7 +59,7 @@ It makes a throwaway fixture app (`squire init --target=raw`, with `composer.jso
 at `/citadel/src` the way the kit's compose file mounts it, runs `release.sh` as the `citadel` user with the smoke
 test on, and prints one PASS or FAIL line per assertion: the release.sh exit code, HTTP 200 from `/up.php` on the
 host, `php health.php` inside the container, and the first-release deployment log with no failed sibling. Then it
-checks the hardening in the running image (SQUIRE-40): `scripts/contract-image-checks.php` is piped to `php` in the
+checks the hardening in the running image: `scripts/contract-image-checks.php` is piped to `php` in the
 container and asks Apache for the fixture's probe page (`scripts/contract-image-probe.php`, copied in as `app.php`).
 It checks that the `Server` header is exactly `Apache`, there is no `X-Powered-By`, `TRACE` answers 405 with no
 version footer, the web's opcache is on and checks files (`validate_timestamps` 1, `revalidate_freq` 2) for the
@@ -92,7 +92,7 @@ runner can run a container with a port.
   components, a `composer-ci` job, `wayneui-copies`, `shellcheck`, `psscriptanalyzer` (PowerShell lint in a pinned
   multi-arch image), and `js-tests` (the docs kit's JavaScript, node:test and jsdom in a pinned multi-arch Node 22
   image).
-- **Code Quality on GitLab (SQUIRE-33, checked 2026-11-08).** The `proctor` component runs
+- **Code Quality on GitLab (checked 2026-11-08).** The `proctor` component runs
   `proctor check --format=codequality` and uploads the result as a `codequality` report artifact, the import path
   GitLab documents for every tier. Squire never includes GitLab's CodeClimate-based Code Quality template, which
   GitLab deprecated in 17.3 and still plans to remove (the docs page says 19.0; the deprecation issue now expects
@@ -116,7 +116,7 @@ GitLab runs lint and unit tests only; the contract suite runs on the GitHub mirr
 
 ## Bumping a pinned image
 
-Every image Squire's files pull is pinned by the digest of its multi-arch list, not a tag (SQUIRE-30): the fallback
+Every image Squire's files pull is pinned by the digest of its multi-arch list, not a tag: the fallback
 base's `PHP_IMAGE`, `NODE_IMAGE` and `COMPOSER_IMAGE`, the Vue layer's Node service, HA-Proxy and MySQL in the
 compose files, the Oracle parity bases (one row per PHP line in `images/oracle/php-images.txt`) and the Composer
 image the Oracle build scripts run. A list digest names the same bytes on an arm64 runner or laptop and on an amd64

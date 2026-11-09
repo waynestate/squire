@@ -71,7 +71,7 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
 19. **Contract suite on the real image and on GitLab.** What runs today: the three GitHub jobs in
     `.github/workflows/ci.yml` (`contract-image` on linux/amd64 and linux/arm64, the arm64 leg under QEMU and blocking
     now that it passed on 2026-11-08; `contract-parity-sh`; and `contract-parity-pwsh`, pwsh 7 on Linux, also blocking
-    now that it passed on 2026-11-08), all on the fallback image, not the real Citadel image. Since SQUIRE-40 the `contract-image` job also checks the
+    now that it passed on 2026-11-08), all on the fallback image, not the real Citadel image. The `contract-image` job also checks the
     hardening inside the running image (Apache's banner and TRACE, opcache, the web's disable_functions, a mounted
     secret, a Composer script), with the checks in `scripts/contract-image-checks.php` so another driver can reuse
     them. What is
@@ -88,7 +88,7 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
   set. After building: `scripts/parity.sh pin`.
 - **PROCTOR policy file.** `SQUIRE_PROCTOR_POLICY` defaults to the policy in `vendor/waynestate/creed`, when CREED is installed. Without CREED, PROCTOR runs on its own default policy with a notice.
 - **PROCTOR phar.** PROCTOR 0.7.0 and later ship `proctor gate`, and the release script uses it when the installed PROCTOR has it. The phar is built from source but not yet published.
-- **Preflight tag pin on GitHub.** The GitLab pipeline pins the Preflight components to the 0.5.0 release tag. The GitHub workflow stays on Preflight 0.1.4, pinned by commit, because GitHub's copy of Preflight has no later tag yet (D-069); move it when one appears.
+- **Preflight tag pin on GitHub.** The GitLab pipeline pins the Preflight components to the 0.5.0 release tag. The GitHub workflow stays on Preflight 0.1.4, pinned by commit, because GitHub's copy of Preflight has no later tag yet; move it when one appears.
 - **Database passwords.** `.env.squire.example` holds `change-me-local-only` placeholders. The compose file refuses to start
   without real values.
 - **The platform's actual PHP settings.** `.squire/php.ini` holds safe defaults, not the platform's file. See question 9.

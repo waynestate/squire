@@ -1,7 +1,7 @@
 <?php
 
 /*
- * scripts/contract-image-checks.php: the hardening half of the image contract (SQUIRE-40), run INSIDE the built
+ * scripts/contract-image-checks.php: the hardening half of the image contract, run INSIDE the built
  * app image, so a file can no longer promise what the running image does not do.
  *
  * scripts/contract-image.sh pipes this file to `php` in the running container (as the citadel user) once the
@@ -43,7 +43,7 @@ $request = static function (string $method, string $path): array {
     return ['status' => $status, 'headers' => $headers, 'body' => $body === false ? '' : $body];
 };
 
-// --- SQUIRE-9: Apache says less about itself ------------------------------------------------------------------------
+// --- Apache says less about itself ----------------------------------------------------------------------------------
 
 $up = $request('GET', '/up.php');
 $report($up['status'] === 200, 'GET /up.php answers 200 inside the container (got ' . $up['status'] . ')');
@@ -63,14 +63,14 @@ $web = json_decode($probe['body'], true);
 $report(is_array($web) && ($web['sapi'] ?? '') === 'apache2handler', 'the probe page runs under mod_php (got status ' . $probe['status'] . ', sapi ' . (string) (is_array($web) ? ($web['sapi'] ?? '?') : '?') . ')');
 $web = is_array($web) ? $web : [];
 
-// SQUIRE-10
+// opcache, by how the code arrives
 $report(($web['opcache'] ?? false) === true, 'opcache is on for the web');
 // The code here is mounted and pulled in place, so the web must check files again (validate_timestamps 1, every 2 s).
 // contract-image.sh checks the baked case (an app image built with SQUIRE_OPCACHE_VALIDATE=0) on its own.
 $report(($web['validate_timestamps'] ?? null) === '1' && ($web['revalidate_freq'] ?? null) === '2', 'code pulled in place: the web checks files every 2 seconds (got validate_timestamps ' . var_export($web['validate_timestamps'] ?? null, true) . ', revalidate_freq ' . var_export($web['revalidate_freq'] ?? null, true) . ')');
 $report(($web['max_files'] ?? null) === '20000', 'opcache.max_accelerated_files is 20000 for the web');
 
-// SQUIRE-29
+// The web loses the shell functions; the CLI keeps them
 $disabled = array_map('trim', explode(',', (string) ($web['disabled'] ?? '')));
 $missing = array_diff(['exec', 'passthru', 'shell_exec', 'system', 'pcntl_exec', 'phpinfo', 'show_source', 'highlight_file'], $disabled);
 $report($missing === [], 'the web disables the shell functions' . ($missing === [] ? '' : ' (missing: ' . implode(', ', $missing) . ')'));
@@ -80,7 +80,7 @@ $report(($web['proc_open'] ?? false) === true && ($web['popen'] ?? false) === tr
 $cliDisabled = (string) ini_get('disable_functions');
 $report($cliDisabled === '' && function_exists('exec') && function_exists('proc_open'), 'the CLI disables nothing (Composer scripts, artisan, the health check)');
 
-// SQUIRE-18
+// A secret mounted as a file reaches the web
 $secretName = (string) getenv('CONTRACT_SECRET_NAME');
 $secretMd5 = (string) getenv('CONTRACT_SECRET_MD5');
 if ($secretName !== '' && $secretMd5 !== '') {

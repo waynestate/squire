@@ -1,5 +1,5 @@
 #!/bin/sh
-# scripts/contract-image.sh: prove that release.sh runs inside an image, on the fallback base (SQUIRE-40).
+# scripts/contract-image.sh: prove that release.sh runs inside an image, on the fallback base.
 #
 # The real Citadel image is internal, so the stand-in is the fallback base Squire already builds
 # (.squire/base-fallback.Dockerfile, tag squire/php-parity-base:8.4): php:8.4-apache plus Node 22, multi-arch.
@@ -18,14 +18,14 @@
 #
 # and then the hardening, inside the running image (scripts/contract-image-checks.php, piped to php in the container):
 #
-#   - Apache: Server is exactly "Apache", no X-Powered-By, TRACE answers 405 without a version footer (SQUIRE-9)
-#   - opcache by how code arrives (SQUIRE-10): the mounted code is checked every 2 seconds and the release notes it;
+#   - Apache: Server is exactly "Apache", no X-Powered-By, TRACE answers 405 without a version footer
+#   - opcache by how code arrives: the mounted code is checked every 2 seconds and the release notes it;
 #     a second app image built with SQUIRE_OPCACHE_VALIDATE=0 (code baked in) never checks, and a release in place
 #     there warns that Apache needs a restart
 #   - the web disables exec and the rest, keeps proc_open and popen; the CLI disables nothing, and a Composer script
-#     that shells out runs in the release (SQUIRE-29)
+#     that shells out runs in the release
 #   - a secret mounted at /run/secrets reaches the web and the release by name, and its value is in no log, no layer
-#     and no image config (SQUIRE-18)
+#     and no image config
 #
 # One line per assertion, PASS or FAIL; exit 1 on any FAIL. Unless --keep, the container, the app image, the logs
 # volume and the temp dir are removed (the shared base image stays, like any pulled image).
@@ -49,10 +49,10 @@ BASE_TAG="squire/php-parity-base:8.4"
 APP_TAG="squire/contract-app:$$"
 CID="squire-contract-$$"
 LOGVOL="squire-contract-logs-$$"
-# The baked case of SQUIRE-10: the same app image built with SQUIRE_OPCACHE_VALIDATE=0.
+# The baked opcache case: the same app image built with SQUIRE_OPCACHE_VALIDATE=0.
 BAKED_TAG="squire/contract-app-baked:$$"
 BAKED_CID="squire-contract-baked-$$"
-# A throwaway secret, mounted as a file the way Docker, Compose and Kubernetes mount one (SQUIRE-18).
+# A throwaway secret, mounted as a file the way Docker, Compose and Kubernetes mount one.
 SECRET_NAME="SQUIRE_CONTRACT_SECRET"
 SECRET_VALUE="contract-secret-$$-$(date +%s)"
 KEEP=0
@@ -253,7 +253,7 @@ build_images
 run_container
 wait_for_apache
 
-# A Composer script that shells out, so the release proves the CLI keeps what the web loses (SQUIRE-29).
+# A Composer script that shells out, so the release proves the CLI keeps what the web loses.
 docker exec -u citadel -w /citadel/src "$CID" composer config scripts.post-install-cmd \
     "@php -r \"file_put_contents('.contract-composer-script', shell_exec('echo ok'));\""
 
@@ -282,7 +282,7 @@ rc=0
 docker exec -u citadel "$CID" sh -c '[ -f /citadel/logs/deployments/001-first-release.sh.log ] && [ ! -e /citadel/logs/deployments/001-first-release.sh.failed.log ]' || rc=1
 report "$rc" "the first-release deployment log exists with no failed sibling"
 
-# --- the hardening, checked in the running image (SQUIRE-40) ------------------------------------------------------
+# --- the hardening, checked in the running image ------------------------------------------------------------------
 
 rc=0
 grep -q "secrets from /run/secrets: $SECRET_NAME" "$TMPROOT/release.log" || rc=1
@@ -316,7 +316,7 @@ if [ "$rc" != "0" ] && ! grep -q '^FAIL: ' "$TMPROOT/checks.log"; then
     report 1 "contract-image-checks.php ran to the end (exit $rc)"
 fi
 
-# --- SQUIRE-10, the baked case: the app image built with SQUIRE_OPCACHE_VALIDATE=0 --------------------------------
+# --- opcache, the baked case: the app image built with SQUIRE_OPCACHE_VALIDATE=0 --------------------------------
 
 printf 'building the baked-code app image %s for %s\n' "$BAKED_TAG" "$PLATFORM" >&2
 rc=0
