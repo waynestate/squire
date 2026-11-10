@@ -143,9 +143,17 @@ fetches it, not that base. The real Citadel image (`citadel/php-apache:8.4r5`) i
 ## Publishing the Oracle images
 
 - The `oracle-images` job runs when a Squire version is tagged. It builds both flavours (`sail` and `parity`) for
-  PHP 8.3, 8.4 and 8.5, each for linux/amd64 and linux/arm64, with buildah (the runner has no Docker daemon), and
-  pushes a manifest list to the group's `images` project (the stack's shared image registry; this GitLab has no
-  container registry of its own).
+  PHP 8.3, 8.4 and 8.5 with buildah (the runner has no Docker daemon), and pushes a manifest list to the group's
+  `images` project (the stack's shared image registry; this GitLab has no container registry of its own).
+- **linux/arm64 only, for now (decided 2026-11-09).** The CI variable `SQUIRE_BUILD_AMD64` is the one switch.
+  It defaults to `"0"` in `.gitlab-ci.yml` (the `.oracle-platforms` block both Oracle jobs extend), and the jobs
+  build and publish linux/arm64 only, so the amd64 legs cannot fail the pipeline. Once the runner host has
+  qemu-user-static binfmt registered, run `oracle-images-dry-run` on a branch with `SQUIRE_BUILD_AMD64=1`; when it
+  passes, set `SQUIRE_BUILD_AMD64` to `1` as a project CI/CD variable (it wins over the file's default) or in the
+  file, and the next tag publishes linux/amd64 and linux/arm64 in one list again. Until then, amd64 users,
+  Citadel-shaped hosts included, build locally with `scripts/oracle-image-build.sh`. With the switch on and no
+  emulation, the job fails and says why in plain words; it was a deliberate choice over detecting the missing
+  emulation and skipping, so a tag never publishes less than the switch says.
 - The destination host, user and token are the protected CI variables `NOUGAT_REGISTRY`, `NOUGAT_REGISTRY_USER`
   and `NOUGAT_REGISTRY_TOKEN` (a deploy token with read and write on the images project), readable only in tag
   pipelines; the job fails plainly when any of them is empty, and the host is never written down in the pipeline or
@@ -154,15 +162,16 @@ fetches it, not that base. The real Citadel image (`citadel/php-apache:8.4r5`) i
   `<registry>/enterprise-apps/images/squire-oracle-parity:<php>`, each with a floating `<php>` tag and a fixed
   `<php>-<squire version>` tag, where `<registry>` is `NOUGAT_REGISTRY` in CI and the registry address of the
   images project shown on its Container Registry page elsewhere.
-- `oracle-images-dry-run` is manual and runs on branches (never on tags): it builds everything and prints what would
-  be pushed, without logging in or pushing. Run it to prove the runner can build both architectures before you tag.
-- The runner must be able to run the architecture it is not (qemu binfmt emulation registered on its host) and run
-  buildah inside a container. The script builds the runner's own architecture first, so a dry run always proves
-  that half; if the other build dies with an exec format error, the job says so plainly and stops. Until a dry run
-  passes, nothing is pushed.
+- `oracle-images-dry-run` is manual and runs on branches (never on tags): it builds what a tag would publish and
+  prints what would be pushed, without logging in or pushing. Run it before you tag.
+- Building the architecture the runner is not needs qemu binfmt emulation registered on its host, and buildah runs
+  inside a container. The script builds the runner's own architecture first, so a dry run always proves that half;
+  if the other build dies with an exec format error, the job says so plainly and stops.
+- Each job prints `Pushed <reference> (<platforms>) digest: sha256:...` for the fixed and the floating tag; the
+  digest is the manifest list's. Record each tag's digests in the table below.
 
-**Known limit: no tag has published the images yet.** Every tag pipeline since this GitLab became the home (0.6.0
-to 0.10.4) failed all six `oracle-images` jobs. Four causes, three fixed:
+**History: no tag published the images before 0.10.5.** Every tag pipeline since this GitLab became the home (0.6.0
+to 0.10.4) failed all six `oracle-images` jobs. Four causes, all handled:
 
 - Fixed in 0.10.4: the Sail flavor never reached a build. The script ran `buildah from
   docker://composer:<tag>@sha256:...`, and buildah's `docker://` transport refuses a tag and a digest together
@@ -171,17 +180,24 @@ to 0.10.4) failed all six `oracle-images` jobs. Four causes, three fixed:
   their `META-INF/` signing files, and the second `unzip` stopped to ask about replacing them, which fails with no
   terminal. The SDK now unpacks with `unzip -n`. The 0.10.4 tag pipeline built PHP 8.3 and 8.4 of both flavors
   for linux/arm64.
-- Fixed (Unreleased): every PHP 8.5 build failed in `install-oracle.sh`. PHP 8.5's `php --ini` prints the ini scan
+- Fixed in 0.10.5: every PHP 8.5 build failed in `install-oracle.sh`. PHP 8.5's `php --ini` prints the ini scan
   directory in double quotes, and the script wrote `zz-oci8.ini` into a path with the quotes in it. It strips them
   now and fails by name if the folder is missing.
-- Open: the only runner is linux/arm64 and cannot run linux/amd64 binaries, so every amd64 build dies at its
+- Worked around in 0.10.5 (linux/arm64 only behind `SQUIRE_BUILD_AMD64`, above): the only runner is linux/arm64
+  and cannot run linux/amd64 binaries, so every amd64 build dies at its
   first `RUN` step (`fork/exec /bin/sh: exec format error`). The job cannot fix that itself. A probe job on
   2026-11-09 found Docker's default capabilities (no `CAP_SYS_ADMIN`), seccomp on, `/proc/sys` read-only and
   binfmt_misc not mountable, so `tonistiigi/binfmt --install` and any other in-job registration fail; the kernel
   (5.14) also predates the private binfmt_misc mounts of Linux 6.7, which would have scoped emulation to the job.
-  There is no amd64 runner to build that half natively and stitch the list. The ways out are on the runner host
-  or are a product call: see OPEN_QUESTIONS.md, "Oracle images: amd64 on an arm64 runner". Until then, build the
-  images locally with `scripts/oracle-image-build.sh`.
+  There is no amd64 runner to build that half natively and stitch the list. The decision was (c), then (a), from
+  OPEN_QUESTIONS.md, "Oracle images: amd64 on an arm64 runner": publish arm64 now, and the runner host's
+  administrator installs qemu-user-static later, when `SQUIRE_BUILD_AMD64=1` turns amd64 back on.
+
+### What each tag published
+
+| Tag | Platforms | Images and list digests |
+|---|---|---|
+| 0.10.5 | linux/arm64 | Recorded after the tag pipeline finishes. |
 
 ## Changing a template
 

@@ -2,14 +2,19 @@
 # oracle-image-publish.sh: builds Squire's Oracle-ready images and publishes them.
 #
 # For GitLab CI only (a Linux runner without a Docker daemon): it drives buildah
-# with --storage-driver=vfs --isolation=chroot, builds both platforms
-# (linux/amd64 and linux/arm64) from the same Dockerfiles and build args that
-# scripts/oracle-image-build.sh uses, assembles a manifest list, and pushes it to
-# the group's images project as <registry image>-oracle-<flavour>:<php>-<tag>
-# (immutable) and <registry image>-oracle-<flavour>:<php> (floating). Usage:
+# with --storage-driver=vfs --isolation=chroot, builds the platforms it is given
+# (linux/amd64 and linux/arm64 unless --platforms says otherwise) from the same
+# Dockerfiles and build args that scripts/oracle-image-build.sh uses, assembles a
+# manifest list, and pushes it to the group's images project as
+# <registry image>-oracle-<flavour>:<php>-<tag> (immutable) and
+# <registry image>-oracle-<flavour>:<php> (floating). Usage:
 #
 #   scripts/oracle-image-publish.sh --flavour sail|parity --php 8.4 \
-#       --tag 0.4.1 --registry-image <path> [--dry-run]
+#       --tag 0.4.1 --registry-image <path> [--platforms arm64|amd64|amd64,arm64] [--dry-run]
+#
+# The CI jobs pass --platforms arm64 until SQUIRE_BUILD_AMD64=1 (see .gitlab-ci.yml
+# and MAINTAINING.md, Publishing the Oracle images): the only runner is arm64 and
+# cannot run amd64 binaries yet.
 #
 # In CI, --registry-image is the images project path inside the destination
 # registry; before pushing, the script logs in to that registry's host with
@@ -24,10 +29,11 @@ flavour=""
 php_line="8.4"
 tag=""
 registry_image=""
+platforms="amd64,arm64"
 dry_run=0
 
 usage() {
-    printf 'usage: %s --flavour sail|parity --php 8.3|8.4|8.5 --tag <squire tag> --registry-image <path> [--dry-run]\n' "$0" >&2
+    printf 'usage: %s --flavour sail|parity --php 8.3|8.4|8.5 --tag <squire tag> --registry-image <path> [--platforms amd64,arm64] [--dry-run]\n' "$0" >&2
 }
 
 while [ $# -gt 0 ]; do
@@ -46,6 +52,10 @@ while [ $# -gt 0 ]; do
         ;;
     --registry-image)
         registry_image="${2:?--registry-image needs a value}"
+        shift 2
+        ;;
+    --platforms)
+        platforms="${2:?--platforms needs a value}"
         shift 2
         ;;
     --dry-run)
@@ -79,6 +89,25 @@ case "$php_line" in
     exit 2
     ;;
 esac
+
+# The platforms to build: amd64, arm64 or both, comma separated, each once.
+want_amd64=0
+want_arm64=0
+IFS=',' read -r -a platform_list <<<"$platforms"
+for p in "${platform_list[@]}"; do
+    case "$p" in
+    amd64) want_amd64=1 ;;
+    arm64) want_arm64=1 ;;
+    *)
+        echo "oracle-image-publish: --platforms takes amd64, arm64 or amd64,arm64 (got '${platforms}')" >&2
+        exit 2
+        ;;
+    esac
+done
+if [ "$want_amd64" -eq 0 ] && [ "$want_arm64" -eq 0 ]; then
+    echo "oracle-image-publish: --platforms takes amd64, arm64 or amd64,arm64 (got '${platforms}')" >&2
+    exit 2
+fi
 
 if [ -z "$registry_image" ]; then
     echo "oracle-image-publish: --registry-image is required" >&2
@@ -128,10 +157,17 @@ aarch64 | arm64) native=arm64 ;;
 *) native="" ;;
 esac
 if [ "$native" = arm64 ]; then
-    build_order=(arm64 amd64)
+    candidates=(arm64 amd64)
 else
-    build_order=(amd64 arm64)
+    candidates=(amd64 arm64)
 fi
+build_order=()
+for arch in "${candidates[@]}"; do
+    if { [ "$arch" = amd64 ] && [ "$want_amd64" -eq 1 ]; } || { [ "$arch" = arm64 ] && [ "$want_arm64" -eq 1 ]; }; then
+        build_order+=("$arch")
+    fi
+done
+echo "[squire] ==> platforms: $(printf 'linux/%s ' "${build_order[@]}")"
 
 # Run one build, keeping its log for diagnosis. A build for an architecture the
 # runner cannot run dies at its first RUN step with "exec format error" (buildah
@@ -143,7 +179,7 @@ run_bud() {
     shift 2
     if ! bud "$@" >"$log" 2>&1; then
         if grep -qi "exec format error" "$log"; then
-            echo "oracle-image-publish: the linux/${arch} build failed: this ${native:-$(uname -m)} runner cannot run linux/${arch} binaries (no qemu binfmt emulation on its host). The runner's owner can register it on the host (qemu-user-static); see MAINTAINING.md, Publishing the Oracle images." >&2
+            echo "oracle-image-publish: the linux/${arch} build failed: this ${native:-$(uname -m)} runner cannot run linux/${arch} binaries (no qemu binfmt emulation on its host). The runner's owner can register it on the host (qemu-user-static); until then leave SQUIRE_BUILD_AMD64 unset so CI builds linux/arm64 only. See MAINTAINING.md, Publishing the Oracle images." >&2
         else
             echo "oracle-image-publish: the build failed; the last lines of its log follow." >&2
             tail -n 20 "$log" >&2
@@ -205,7 +241,7 @@ done
 echo "[squire] ==> assembling the manifest list"
 list_name="squire-oracle-${flavour}-${php_line}"
 buildah "${STORAGE[@]}" manifest create "$list_name"
-for arch in amd64 arm64; do
+for arch in "${build_order[@]}"; do
     buildah "${STORAGE[@]}" manifest add "$list_name" "squire/oracle-${flavour}:${php_line}-${arch}"
 done
 
@@ -221,7 +257,7 @@ if [ -z "$list_digest" ]; then
 fi
 
 if [ "$dry_run" -eq 1 ]; then
-    echo "[squire] dry run: built ${flavour} ${php_line} for linux/amd64 and linux/arm64 and assembled the list."
+    echo "[squire] dry run: built ${flavour} ${php_line} for $(printf 'linux/%s ' "${build_order[@]}")and assembled the list."
     echo "Would push ${registry_image}-oracle-${flavour}:${php_line}-<tag> (and :${php_line}) digest: ${list_digest}"
     exit 0
 fi
@@ -240,5 +276,5 @@ for reference_suffix in "${php_line}-${tag}" "${php_line}"; do
     reference="${registry_image}-oracle-${flavour}:${reference_suffix}"
     echo "[squire] ==> pushing ${reference}"
     buildah "${STORAGE[@]}" manifest push --all "${push_args[@]}" "$list_name" "docker://${reference}"
-    echo "Pushed ${reference} digest: ${list_digest}"
+    echo "Pushed ${reference} ($(printf 'linux/%s ' "${build_order[@]}" | sed 's/ $//')) digest: ${list_digest}"
 done

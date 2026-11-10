@@ -100,12 +100,30 @@ js-tests:
 # token with read and write on the images project) that only tag pipelines can read; the job fails plainly when
 # any of them is empty. Only safe variables appear here (the repository is mirrored publicly): the registry host
 # is never written down.
-# Pinned to the manifest list digest: the image is multi-arch (linux/amd64, linux/arm64). The runner must be able
-# to run the architecture it is not (qemu binfmt registered on its host: the job is not privileged, so it cannot
-# register it itself). The script builds the runner's own architecture first and says so plainly when it cannot
-# build the other; see MAINTAINING.md, Publishing the Oracle images. The -immutable tag is used
+# Pinned to the manifest list digest: the image is multi-arch (linux/amd64, linux/arm64). The -immutable tag is used
 # because the plain version tag is re-pushed upstream, which garbage-collects old digests.
+#
+# linux/arm64 only, for now. The only runner is arm64 and its host has no qemu binfmt emulation (the job is not
+# privileged, so it cannot register it itself), so a linux/amd64 build dies at its first RUN step. SQUIRE_BUILD_AMD64
+# is the one switch: "0" (here) builds and publishes linux/arm64 only; set it to "1" (a project CI/CD variable wins
+# over this default, or change it here) once the runner host has qemu-user-static, and both jobs build linux/amd64
+# and linux/arm64 into one manifest list again. With it on and no emulation, the job fails and says why in plain
+# words. See MAINTAINING.md, Publishing the Oracle images.
+.oracle-platforms:
+  variables:
+    SQUIRE_BUILD_AMD64: "0"
+  before_script:
+    - |
+      if [ "$SQUIRE_BUILD_AMD64" = "1" ]; then
+        ORACLE_PLATFORMS="amd64,arm64"
+      else
+        ORACLE_PLATFORMS="arm64"
+        echo "SQUIRE_BUILD_AMD64 is not 1: building linux/arm64 only (the runner cannot run linux/amd64 yet)."
+      fi
+      export ORACLE_PLATFORMS
+
 oracle-images:
+  extends: .oracle-platforms
   stage: deploy
   image: quay.io/buildah/stable:v1.43.5-immutable@sha256:7c2b605262748ace2c5c57c5550942d0adad57aec82ede3070927722306c0ffb
   parallel:
@@ -120,11 +138,14 @@ oracle-images:
         echo "NOUGAT_REGISTRY, NOUGAT_REGISTRY_USER or NOUGAT_REGISTRY_TOKEN is unset (are the tags protected?): nowhere to publish."
         exit 1
       fi
-    - scripts/oracle-image-publish.sh --flavour "$FLAVOUR" --php "$PHP" --tag "$CI_COMMIT_TAG" --registry-image "$NOUGAT_REGISTRY/$CI_PROJECT_NAMESPACE/images/$CI_PROJECT_NAME"
+    - scripts/oracle-image-publish.sh --flavour "$FLAVOUR" --php "$PHP" --tag "$CI_COMMIT_TAG" --platforms "$ORACLE_PLATFORMS" --registry-image "$NOUGAT_REGISTRY/$CI_PROJECT_NAMESPACE/images/$CI_PROJECT_NAME"
 
-# Prove the runner can build both architectures without pushing: manual, on branches (never on tags), so a dry run
-# can pass before anyone tags. It never logs in or pushes, so it needs no registry variables.
+# Prove the runner can build what a tag would publish, without pushing: manual, on branches (never on tags), so a dry
+# run can pass before anyone tags. Same SQUIRE_BUILD_AMD64 switch: run it with SQUIRE_BUILD_AMD64=1 to prove the
+# runner can emulate amd64 before flipping the switch for tags. It never logs in or pushes, so it needs no registry
+# variables.
 oracle-images-dry-run:
+  extends: .oracle-platforms
   stage: deploy
   image: quay.io/buildah/stable:v1.43.5-immutable@sha256:7c2b605262748ace2c5c57c5550942d0adad57aec82ede3070927722306c0ffb
   parallel:
@@ -138,4 +159,4 @@ oracle-images-dry-run:
       when: manual
       allow_failure: true
   script:
-    - scripts/oracle-image-publish.sh --flavour "$FLAVOUR" --php "$PHP" --registry-image "$CI_PROJECT_NAMESPACE/images/$CI_PROJECT_NAME" --dry-run
+    - scripts/oracle-image-publish.sh --flavour "$FLAVOUR" --php "$PHP" --platforms "$ORACLE_PLATFORMS" --registry-image "$CI_PROJECT_NAMESPACE/images/$CI_PROJECT_NAME" --dry-run

@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Oracle | Squire docs</title>
 <meta name="description" content="How Squire checks an app&#039;s Oracle connection, and the opt-in Oracle-ready Docker images for local work.">
-<meta name="docs-version" content="0.10.4">
+<meta name="docs-version" content="0.10.5">
 <link rel="stylesheet" href="../../assets/wayne-ui/wayne-ui.css">
 <link rel="stylesheet" href="../../assets/docs.css">
 <link rel="stylesheet" href="../../docs/theme/squire.css">
@@ -28,7 +28,7 @@
       <a href="../../index.html#party">The party</a>
       <a href="../../docs/index.html" aria-current="page">Documentation</a>
     </nav>
-    <span class="brand__version">v0.10.4</span>
+    <span class="brand__version">v0.10.5</span>
   </div>
 </header><div class="docs-layout docs-layout--toc">
   <details class="docs-menu">
@@ -60,7 +60,8 @@
 <li><code>squire/oracle-sail:&lt;php&gt;</code>: Laravel Sail's own runtime plus the Oracle install. In your <code>docker-compose.yml</code>, swap the service's <code>build:</code> block for <code>image: squire/oracle-sail:8.4</code> and keep the rest of the service as Sail wrote it; the image keeps Sail's entrypoint contract, including the <code>WWWUSER</code> UID remap.</li>
 <li><code>squire/oracle-parity:&lt;php&gt;</code>: the official <code>php:&lt;php&gt;-cli-bookworm</code> image with the extensions Citadel apps use (intl, ldap, soap, zip, gd, pdo_mysql, mysqli, bcmath, pcntl, exif, redis, imagick), Composer and git, plus the Oracle install. This is the flavor WELD's <code>compose.oracle.yaml</code> points its services at. It runs as a non-root <code>app</code> user whose UID is a build argument (<code>APP_UID</code>) and can still be overridden at run time.</li>
 </ul>
-<p>The names above are the local names of <code>scripts/oracle-image-build.sh</code>. The published images live in the group's <code>images</code> project (the stack's shared image registry; Squire's own GitLab has no container registry), at <code>&lt;registry&gt;/enterprise-apps/images/squire-oracle-parity:8.4</code> and <code>&lt;registry&gt;/enterprise-apps/images/squire-oracle-sail:8.4</code> (<code>&lt;registry&gt;</code> is the registry address of the images project shown on its Container Registry page), plus <code>:8.4-&lt;squire version&gt;</code> for a fixed one. CI is set to publish them when a Squire version is tagged, multi-arch (linux/amd64 and linux/arm64); a Sail app swaps <code>build:</code> for <code>image:</code> with that path. Not yet, though: the CI runner cannot build linux/amd64, so no tag has published them so far (MAINTAINING.md, Publishing the Oracle images, has the details). Until it can, build them locally with <code>scripts/oracle-image-build.sh</code>.</p>
+<p>The names above are the local names of <code>scripts/oracle-image-build.sh</code>. The published images live in the group's <code>images</code> project (the stack's shared image registry; Squire's own GitLab has no container registry), at <code>&lt;registry&gt;/enterprise-apps/images/squire-oracle-parity:8.4</code> and <code>&lt;registry&gt;/enterprise-apps/images/squire-oracle-sail:8.4</code> (<code>&lt;registry&gt;</code> is the registry address of the images project shown on its Container Registry page), plus <code>:8.4-&lt;squire version&gt;</code> for a fixed one; a Sail app swaps <code>build:</code> for <code>image:</code> with that path.</p>
+<p><strong>The published images are linux/arm64 only, for now.</strong> From Squire 0.10.5, a tag publishes both flavors for PHP 8.3, 8.4 and 8.5 for linux/arm64: Apple silicon Macs and arm64 Linux hosts can pull them. The CI runner cannot build linux/amd64 yet (it is arm64, and its host has no amd64 emulation), so on an amd64 computer, Citadel-shaped hosts included, build the images locally with <code>scripts/oracle-image-build.sh</code> (below) until it can. Pulling the published tag on amd64 fails with &quot;no matching manifest for linux/amd64&quot;, which is the image's way of saying the same thing. One switch turns amd64 back on: the CI variable <code>SQUIRE_BUILD_AMD64=1</code>, once the runner host can emulate amd64 (MAINTAINING.md, Publishing the Oracle images).</p>
 <p>Both flavors download Oracle's Instant Client Basic Light at build time under Oracle's license and never commit it: the install script pins the exact SHA-256 of each zip. Oracle does not publish a 21.x client for arm64, so the line differs per architecture: linux/amd64 gets 21.7.0.0.0 and linux/arm64 gets 19.32.0.0.0.</p>
 <!-- docs-test: skip needs a real project -->
 <pre tabindex="0"><code>scripts/oracle-image-build.sh --flavour sail --php 8.4        # or: --flavour parity
@@ -73,7 +74,7 @@ scripts/oracle-image-test.sh --flavour all --platform linux/amd64
   <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item"><a href="#the-connection-check">The connection check</a></li><li class="docs-toc__item"><a href="#squire-doctor-oracle">squire doctor oracle</a></li><li class="docs-toc__item"><a href="#oracle-ready-images-local">Oracle-ready images (local)</a></li></ul></nav>
 </div>
 <footer class="docs-footer">
-  <span>Documents Squire <span data-docs-version>0.10.4</span></span>
+  <span>Documents Squire <span data-docs-version>0.10.5</span></span>
   <span><a rel="noopener" href="https://github.com/waynestate/squire">Source</a> <a href="oracle.md">Markdown</a></span>
 </footer>
 </body>

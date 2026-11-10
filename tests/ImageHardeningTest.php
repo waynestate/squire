@@ -476,6 +476,50 @@ final class ImageHardeningTest extends SquireTestCase
         );
     }
 
+    public function testTheOracleJobsBuildArm64OnlyUntilOneSwitchTurnsAmd64On(): void
+    {
+        // The only runner is arm64 with no qemu binfmt, so an amd64 leg dies at its first RUN. Both oracle jobs take
+        // their platforms from SQUIRE_BUILD_AMD64, which defaults to off; "1" builds both into one list again.
+        $ci = $this->repoFile('.gitlab-ci.yml');
+        self::assertMatchesRegularExpression('/^\.oracle-platforms:\n  variables:\n    SQUIRE_BUILD_AMD64: "0"$/m', $ci);
+        self::assertStringContainsString('if [ "$SQUIRE_BUILD_AMD64" = "1" ]; then', $ci);
+        self::assertStringContainsString('ORACLE_PLATFORMS="amd64,arm64"', $ci);
+        self::assertStringContainsString('ORACLE_PLATFORMS="arm64"', $ci);
+        foreach (['oracle-images', 'oracle-images-dry-run'] as $job) {
+            self::assertMatchesRegularExpression('/^' . preg_quote($job, '/') . ":\n  extends: \\.oracle-platforms$/m", $ci, $job . ' takes the switch');
+        }
+        self::assertSame(2, substr_count($ci, 'scripts/oracle-image-publish.sh --flavour "$FLAVOUR" --php "$PHP"'));
+        self::assertSame(2, substr_count($ci, '--platforms "$ORACLE_PLATFORMS"'), 'both jobs pass the platforms on');
+
+        $script = $this->repoFile('scripts/oracle-image-publish.sh');
+        self::assertStringContainsString('platforms="amd64,arm64"', $script, 'by hand, the script still builds both by default');
+        self::assertStringContainsString('manifest add "$list_name" "squire/oracle-${flavour}:${php_line}-${arch}"', $script);
+        self::assertStringContainsString('for arch in "${build_order[@]}"; do' . "\n" . '    buildah "${STORAGE[@]}" manifest add', $script, 'the list holds only what was built');
+    }
+
+    public function testTheOraclePublishScriptRefusesAnUnknownPlatform(): void
+    {
+        $bash = array_values(array_filter(['/bin/bash', '/usr/bin/bash', '/usr/local/bin/bash'], 'is_executable'))[0] ?? null;
+        if ($bash === null) {
+            self::markTestSkipped('no bash here');
+        }
+        $script = dirname(__DIR__) . '/scripts/oracle-image-publish.sh';
+        foreach (['riscv64', 'amd64,s390x', ','] as $platforms) {
+            $process = proc_open(
+                [$bash, $script, '--flavour', 'parity', '--php', '8.4', '--registry-image', 'x', '--dry-run', '--platforms', $platforms],
+                [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
+                $pipes,
+            );
+            self::assertIsResource($process);
+            $out = stream_get_contents($pipes[1]) . stream_get_contents($pipes[2]);
+            fclose($pipes[1]);
+            fclose($pipes[2]);
+            $code = proc_close($process);
+            self::assertSame(2, $code, $platforms . ': ' . $out);
+            self::assertStringContainsString('--platforms takes amd64, arm64 or amd64,arm64', $out);
+        }
+    }
+
     public function testTheOracleInstallNeverStopsToAskAboutAnOverwrite(): void
     {
         // The arm64 Basic Light and SDK zips share their META-INF signing files. A plain second unzip prompts
