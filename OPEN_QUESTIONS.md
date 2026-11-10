@@ -14,8 +14,12 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
    the real value; check it matches.
 4. **Can a secret be mounted?** Squire assumes environment variables from the dashboard only. Default: the scripts read
    `SQUIRE_*` from the environment; nothing is read from a file in the repository.
-5. **PowerShell minimum.** The `.ps1` scripts are written for Windows PowerShell 5.1 and PowerShell 7; the lint (PSScriptAnalyzer)
-   runs on 7.4 only. 5.1 behavior is by inspection, not run.
+5. **PowerShell minimum.** Answered for Windows by a run (2026-11-10): `scripts\parity.ps1` ran `up` (no base image, so
+   the script's own message), `up -Fallback`, `up` on Citadel's own `citadel/php-apache:8.5r3`, `status`, `pin`, `down`
+   and `reset` under Windows PowerShell 5.1.26100 (Desktop), with `/up.php` answering 200 through the proxy, and the
+   missing-base message under PowerShell 7 as well (CI's parity-powershell job covers 7 end to end). The run caught a 5.1 bug (redirected stderr from a native command is a terminating error under
+   `'Stop'`), fixed with `Invoke-NativeQuiet`. The lint (PSScriptAnalyzer) still runs on 7.4 only, and no CI job runs
+   5.1; the template test pins the fix. macOS PowerShell is not run.
 6. **PROCTOR is a dev dependency.** `composer install --no-dev` removes it, so the release step needs
    `SQUIRE_PROCTOR_BIN`. Default: the step skips with a stated reason when it is missing; the policy falls back to the
    copy CREED ships, and to PROCTOR's own default with a notice when CREED is not installed.
@@ -94,7 +98,7 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
     owns passed, and the three that only the base image decides showed as gaps (the Apache version in the `Server`
     header and on error pages, and no `/run/secrets` loading in the entrypoint; MAINTAINING.md, Contract suite).
     What is still not proven: a CI run on Citadel's image (CI cannot reach it), `citadel/php-apache:8.4r5` (no
-    download yet), Windows PowerShell 5.1, and the GitLab runner path (no Docker daemon there, so the GitLab
+    download yet), and the GitLab runner path (no Docker daemon there, so the GitLab
     pipeline has no contract job). What is needed to close it: a runner that can reach Citadel's images and run a
     container with a port, and a decision on where the suite lives long term. Default: the GitHub jobs stay on the
     fallback, the real image is a maintainer's run after each new Citadel image, and no GitLab job is committed until
@@ -117,4 +121,4 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
 - Checks for rules that need a running app or a server (most of the list of S-rules beyond the 26 in `BEST_PRACTICES.md`).
 - A GitLab release job. Tags are cut by hand on git.wayne.edu; the push mirror carries each one to GitHub, where the `release` workflow (`.github/workflows/release.yml`) publishes it as a GitHub Release with its CHANGELOG notes, and Packagist reads the tag from the mirror.
 - Templates for apps that are none of raw PHP, Laravel or a static site.
-- Running the PowerShell scripts on Windows PowerShell 5.1 itself (see question 5) and on macOS.
+- Running the PowerShell scripts on macOS, and a CI job on Windows PowerShell 5.1 (it ran by hand; see question 5).

@@ -589,6 +589,9 @@ Copy-Item .env.squire.example .env.squire
 scripts\parity.ps1 up                  # or: scripts\parity.ps1 up -Fallback
 ```
 
+`parity.ps1` has run end to end on Windows PowerShell 5.1 (2026-11-10); apps made earlier take the 5.1 fix with
+`squire update`.
+
 Commands: `up`, `down`, `reset` (also removes volumes), `logs [service]`, `shell [service]`, `status`, `pin` (prints the
 digests of the images you have pulled, so you can pin them).
 
@@ -1114,6 +1117,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 - Added: `scripts/contract-image.sh --base-image=REF` runs the image contract on an image already on your machine instead of the fallback, above all Citadel's own `citadel/php-apache:8.5r3` (which `parity image get` loads). It never pulls, and stops when the image is missing or built for another platform. The three checks that only the base image decides (the Apache server directives and the entrypoint's `/run/secrets` loading) print `GAP:` lines there instead of failing; on the fallback they still fail. The first run on Citadel's image (2026-11-10) passed every check the kit owns and showed three gaps, recorded on the Proof and Image hardening pages.
 - Added: the release script installs the frontend from a `yarn.lock` too, through corepack, as Citadel's images ship Yarn: Yarn 1 with `corepack yarn install --frozen-lockfile --non-interactive --ignore-scripts`, Yarn 2 and later (a lock with a `__metadata:` block) with `corepack yarn install --immutable --mode=skip-build`, then `corepack yarn run build`. A Yarn 2 lock needs `"packageManager": "yarn@..."` in `package.json`; without it the release stops before installing and says so, since corepack would hand the lock to Yarn 1. `SQUIRE_NPM_REBUILD` works with both (`yarn rebuild`, or `npm rebuild` for Yarn 1). Until now a committed `yarn.lock` stopped the release with "commit a lock file" (two apps in the 82-app proof). Doctor rule S12 accepts either Yarn install as installing from the lock. Run `squire update` to take the new `scripts/release.sh`.
+- Fixed: `scripts\parity.ps1` on Windows PowerShell 5.1. There a native command's redirected stderr is a terminating error under `$ErrorActionPreference = 'Stop'`, so `up` with no base image on the machine died on a raw `NativeCommandError` instead of saying the image is missing, and `pin` could die the same way. The quiet docker calls now run through `Invoke-NativeQuiet`, and the script's own errors print one plain `parity: ...` line and exit 1 instead of a `Write-Error` record. First run on 5.1 itself: `up -Fallback`, `up` on `citadel/php-apache:8.5r3`, `status`, `pin`, `down` and `reset` all passed. Run `squire update` to take the new script.
 - Changed: the image contract runs the app containers with the kit's compose file's least privilege (`--cap-drop=ALL`, the same seven capabilities back, `no-new-privileges`, 256 processes, 512 MB), and a test fails when the two disagree. The baked-code container starts through the image's own entrypoint, as Citadel starts it, instead of Apache alone.
 
 ### 0.10.8 (2026-11-10) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-10-8-2026-11-10)
@@ -2052,6 +2056,8 @@ scripts/parity.sh up                   # or: scripts/parity.sh up --fallback
 Copy-Item .env.squire.example .env.squire
 scripts\parity.ps1 up                  # or: scripts\parity.ps1 up -Fallback
 ```
+
+`parity.ps1` has been run end to end on Windows PowerShell 5.1 (2026-11-10, on the fallback and on Citadel's `citadel/php-apache:8.5r3`); CI runs it on PowerShell 7. An app made before that fix gets it with `squire update`: on 5.1 the old script stopped on a raw `NativeCommandError` where it meant to say the base image is missing.
 
 Commands: `up`, `down`, `reset` (also removes volumes), `logs [service]`, `shell [service]`, `status`, `pin` (prints the digests of the images you have pulled, so you can pin them).
 
@@ -3170,6 +3176,7 @@ The table below records the most recent time the checks on this page were run ag
 | Local parity rig (`parity.sh up --fallback`, shell twin under WSL 2 bash) | 2026-11-07 | 88fd2ec | pass: the release ran all eight steps in 6s and `/up.php` answered 200 with body `ok` through the proxy | 27s to healthy (images prebuilt on this machine) |
 | Image contract on the fallback (`contract-image.sh`, linux/amd64, Git Bash on Docker Desktop) | 2026-11-10 | c33f789 plus the `--base-image` change | pass: 26 of 26, under the compose file's least privilege | 4m 19s (base built from cache) |
 | Image contract on Citadel's own image (`contract-image.sh --base-image=citadel/php-apache:8.5r3`, image id `950dcf67937a`) | 2026-11-10 | the same | pass: 23 checks passed, 3 gaps that only the image can close (below) | 1m 20s |
+| Local parity rig on Windows PowerShell 5.1.26100 (`parity.ps1 up -Fallback`, then `up` on `citadel/php-apache:8.5r3`, `status`, `pin`, `reset`) | 2026-11-10 | the same plus the 5.1 fix | pass: `/up.php` answered 200 with body `ok` through the proxy on both bases; before the fix, `up` with no base image died on a raw `NativeCommandError` instead of its own message | 49s fallback, 26s Citadel's image |
 
 To refresh this section, rerun `composer ci` and the local parity rig from [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html), then rewrite the table. The 82-app corpus run and the four real-app boots were not rerun: they need the shared proof corpus and the internal app repositories, which are not available on this machine, so the parity row uses the synthetic fixture that `squire init` writes, the same way CI does.
 
@@ -3234,7 +3241,7 @@ Three findings belong to the image, not to the kit, and no app file can change t
 A run that only finds praise was not looking hard enough. This one found these, and every finding is about Squire, not the apps:
 
 - **Fixed: the release needs a lock file, and `init` never said so.** 31 of the 82 apps have no `composer.json` and no `composer.lock`. `init` wrote a release into each, `doctor` passed it, and the first boot showed that release stopping at step 1. `init` now ends with a "Heads up" line naming the missing files and how to make them; see [Troubleshooting](https://squire.apps.wayne.edu/docs/troubleshooting.html).
-- **Fixed: Yarn.** Two apps keep a `yarn.lock`. The release installed JavaScript only from `package-lock.json` or `pnpm-lock.yaml`, so the frontend step stopped with "commit a lock file", which read oddly when one was committed. It now installs from `yarn.lock` too, through corepack: Yarn 1 with `--frozen-lockfile`, Yarn 2 and later with `--immutable` (see [The release script](https://squire.apps.wayne.edu/docs/guides/release-script.html)).
+- **Fixed: Yarn.** Two apps keep a `yarn.lock`. The release installed JavaScript only from `package-lock.json` or `pnpm-lock.yaml`, so the frontend step stopped with "commit a lock file", which read oddly when one was committed. It now installs from `yarn.lock` too, through corepack: Yarn 1 with `--frozen-lockfile`, Yarn 2 and later with `--immutable` (see [The release script](https://squire.apps.wayne.edu/docs/guides/release-script.html)). Both were run by hand inside `citadel/php-apache:8.5r3` on 2026-11-10: corepack's Yarn 1.22.22 and Yarn 4.5.3 each installed from their lock with scripts off and then ran the build.
 - **Open: fresh output that warns about itself.** Right after `init`, `doctor` warns on every app that `.env.squire` is not ignored at the repository root (`init` only edits `.gitignore` in a folder below the root) and that the Citadel image in the compose file is not pinned by digest (S67). Both warnings are true and both have a documented fix, but a kit should not hand its owner homework on day one.
 - **Windows checkouts.** The first pass used clones made on Windows, where Git had turned the line endings of existing deploy scripts into CRLF. `doctor` failed S8 on 11 apps that are LF in their repositories, exactly the trap the rule describes. The numbers above are from the Linux checkout Citadel sees.
 

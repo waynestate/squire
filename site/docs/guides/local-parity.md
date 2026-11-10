@@ -65,6 +65,8 @@ Copy-Item .env.squire.example .env.squire
 scripts\parity.ps1 up                  # or: scripts\parity.ps1 up -Fallback
 ```
 
+`parity.ps1` has been run end to end on Windows PowerShell 5.1 (2026-11-10, on the fallback and on Citadel's `citadel/php-apache:8.5r3`); CI runs it on PowerShell 7. An app made before that fix gets it with `squire update`: on 5.1 the old script stopped on a raw `NativeCommandError` where it meant to say the base image is missing.
+
 Commands: `up`, `down`, `reset` (also removes volumes), `logs [service]`, `shell [service]`, `status`, `pin` (prints the digests of the images you have pulled, so you can pin them).
 
 ## What it starts [#](https://squire.apps.wayne.edu/docs/guides/local-parity.html#what-it-starts)

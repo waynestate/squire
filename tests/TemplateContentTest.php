@@ -159,6 +159,29 @@ final class TemplateContentTest extends SquireTestCase
         self::assertStringNotContainsString('wsl.exe', strtolower($ps));
     }
 
+    /**
+     * Windows PowerShell 5.1 under $ErrorActionPreference = 'Stop' throws on a native command's redirected stderr, so
+     * `& docker image inspect missing *> $null` died with a NativeCommandError before the script's own message showed.
+     * Every quiet native call goes through Invoke-NativeQuiet, which drops the preference to 'Continue' for itself.
+     */
+    public function testParityPs1RunsOnWindowsPowerShell51(): void
+    {
+        $ps = $this->read('common/scripts/parity.ps1');
+
+        self::assertStringContainsString("\$ErrorActionPreference = 'Stop'", $ps);
+        self::assertMatchesRegularExpression(
+            "/function Invoke-NativeQuiet \{.*?\\\$ErrorActionPreference = 'Continue'\s+& \\\$Program @Arguments 2>\\\$null\s+\}/s",
+            $ps,
+        );
+        // Outside the helper, no line runs a native command with stderr redirected.
+        $outside = preg_replace('/function Invoke-NativeQuiet \{.*?\r?\n\}\r?\n/s', '', $ps) ?? '';
+        $code = preg_replace('/^\s*#.*$/m', '', $outside) ?? '';
+        self::assertDoesNotMatchRegularExpression('/(\*>|2>)\s*\$null/', $code);
+        // Exit-Parity prints one plain line: Write-Error under 'Stop' throws and skips the exit.
+        self::assertStringContainsString('[Console]::Error.WriteLine("parity: $Message")', $ps);
+        self::assertStringNotContainsString('Write-Error', $code);
+    }
+
     public function testEveryCatalogEntryHasASourceFile(): void
     {
         foreach (Catalog::all() as $template) {

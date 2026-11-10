@@ -613,6 +613,9 @@ Copy-Item .env.squire.example .env.squire
 scripts\parity.ps1 up                  # or: scripts\parity.ps1 up -Fallback
 ```
 
+`parity.ps1` has run end to end on Windows PowerShell 5.1 (2026-11-10); apps made earlier take the 5.1 fix with
+`squire update`.
+
 Commands: `up`, `down`, `reset` (also removes volumes), `logs [service]`, `shell [service]`, `status`, `pin` (prints the
 digests of the images you have pulled, so you can pin them).
 
