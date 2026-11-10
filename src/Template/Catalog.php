@@ -45,6 +45,8 @@ final class Catalog
             new Template('scripts/release.sh', $release, true),
             new Template('health.php', $release),
             new Template('oracle-check.php', $release),
+            // Line endings (CREED every-os-4, PROCTOR gitattributes-eol). An app with its own keeps it.
+            new Template('.gitattributes', $release, false, null, appMayOwn: true),
             new Template('public/up.php', $release, false, 'raw'),
             new Template('public/index.php', $release, false, 'raw', appMayOwn: true),
             new Template('public/.htaccess', $release, false, 'raw', appMayOwn: true),

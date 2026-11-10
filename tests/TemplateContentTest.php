@@ -163,4 +163,21 @@ final class TemplateContentTest extends SquireTestCase
             self::assertInstanceOf(Template::class, $template);
         }
     }
+
+    public function testTheGitattributesTemplateIsLfAndPinsEveryKind(): void
+    {
+        $content = $this->read('common/.gitattributes');
+
+        self::assertStringNotContainsString("\r", $content, 'the .gitattributes template must be LF');
+        foreach ([
+            '* text=auto eol=lf',
+            '*.sh text eol=lf',
+            '*.conf text eol=lf',
+            'Dockerfile text eol=lf',
+            '*.Dockerfile text eol=lf',
+            '*.ps1 text eol=crlf',
+        ] as $line) {
+            self::assertMatchesRegularExpression('/^' . preg_quote($line, '/') . '$/m', $content, $line);
+        }
+    }
 }

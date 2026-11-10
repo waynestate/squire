@@ -95,6 +95,22 @@ final class CatalogTest extends SquireTestCase
         self::assertFalse($byDestination['scripts/release.sh']->appMayOwn);
     }
 
+    public function testEveryTargetGetsTheGitattributesAndTheAppMayOwnIt(): void
+    {
+        $catalog = new Catalog(Squire::templatesDir());
+
+        foreach (Catalog::TARGETS as $target) {
+            $byDestination = [];
+            foreach ($catalog->select($target, Catalog::GROUPS) as $template) {
+                $byDestination[$template->destination] = $template;
+            }
+
+            self::assertArrayHasKey('.gitattributes', $byDestination);
+            self::assertSame('common/.gitattributes', $byDestination['.gitattributes']->source());
+            self::assertTrue($byDestination['.gitattributes']->appMayOwn);
+        }
+    }
+
     public function testStaticFilesComeFromTheirOwnDirectoryAndInheritRawFromTheRawDirectory(): void
     {
         $catalog = new Catalog(Squire::templatesDir());
