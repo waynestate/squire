@@ -1112,6 +1112,9 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ### Unreleased [#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+- Added: `scripts/contract-image.sh --base-image=REF` runs the image contract on an image already on your machine instead of the fallback, above all Citadel's own `citadel/php-apache:8.5r3` (which `parity image get` loads). It never pulls, and stops when the image is missing or built for another platform. The three checks that only the base image decides (the Apache server directives and the entrypoint's `/run/secrets` loading) print `GAP:` lines there instead of failing; on the fallback they still fail. The first run on Citadel's image (2026-11-10) passed every check the kit owns and showed three gaps, recorded on the Proof and Image hardening pages.
+- Changed: the image contract runs the app containers with the kit's compose file's least privilege (`--cap-drop=ALL`, the same seven capabilities back, `no-new-privileges`, 256 processes, 512 MB), and a test fails when the two disagree. The baked-code container starts through the image's own entrypoint, as Citadel starts it, instead of Apache alone.
+
 ### 0.10.8 (2026-11-10) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-10-8-2026-11-10)
 
 - Docs: the Local parity guide points at Preflight 0.6.0's `mysql56-migrate` component and PROCTOR's `mysql56-ci` check, the CI side of the same MySQL 5.6.51 pin (D-078).
@@ -1953,7 +1956,7 @@ Look for the `Digest:` line, and for `linux/amd64` and `linux/arm64/v8` under Ma
 
 ### The image contract suite [#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#the-image-contract-suite)
 
-A file can promise anything; the running image is what counts. `scripts/contract-image.sh` (in Squire's repository) builds the fallback base and the app image for a platform, runs the container with a throwaway raw PHP app mounted at `/citadel/src` and a throwaway secret mounted at `/run/secrets`, runs the release as `citadel`, and then pipes `scripts/contract-image-checks.php` to `php` inside the container. One PASS or FAIL line per check:
+A file can promise anything; the running image is what counts. `scripts/contract-image.sh` (in Squire's repository) builds the fallback base and the app image for a platform, runs the container with a throwaway raw PHP app mounted at `/citadel/src`, a throwaway secret mounted at `/run/secrets` and the compose file's least privilege (every capability dropped but the seven the app service adds back, `no-new-privileges`, 256 processes, 512 MB), runs the release as `citadel`, and then pipes `scripts/contract-image-checks.php` to `php` inside the container. One PASS or FAIL line per check:
 
 | Item | Checked in the running image |
 | --- | --- |
@@ -1965,9 +1968,26 @@ A file can promise anything; the running image is what counts. `scripts/contract
 ```sh
 sh scripts/contract-image.sh --platform=linux/amd64
 sh scripts/contract-image.sh --platform=linux/arm64   # needs qemu emulation on an amd64 host
+sh scripts/contract-image.sh --base-image=citadel/php-apache:8.5r3   # Citadel's own image, already on this machine
 ```
 
-GitHub CI runs it for both platforms on every push. It proves the fallback base, not the real Citadel image, which is internal: a green run is a contract, not a certificate.
+GitHub CI runs it on the fallback for both platforms on every push: a green run there is a contract, not a certificate.
+
+#### On Citadel's own image [#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#on-citadel-s-own-image)
+
+`--base-image=REF` runs the same contract on an image that is already on your machine instead of the fallback. For Citadel's own, [Parity](https://parity.apps.wayne.edu/)'s `parity image get` loads `citadel/php-apache:8.5r3` byte for byte (its image id is checked). The script never pulls the image: Citadel's images are internal, and something else with the same name would prove nothing. It stops if the image is missing or built for another platform.
+
+Three checks test what only the base image decides, which no file in your app can change: the Apache server directives (`ServerTokens`, `TraceEnable`, `ServerSignature`) and whether its entrypoint turns `/run/secrets` into variables for Apache. On the fallback those are the kit's promises and a miss is a FAIL. On any other image a miss prints a `GAP:` line, and the run ends with a count of them: true, worth knowing, the image owner's to fix, and not a failure of your app.
+
+On 2026-11-10 `citadel/php-apache:8.5r3` (image id `950dcf67937a`) passed every check the kit owns, on linux/amd64, in 80 seconds, under the compose file's least privilege, and showed three gaps:
+
+| Gap | What Citadel's image does | What it means for your app |
+| --- | --- | --- |
+| `Server` header | `Apache/2.4.69 (Debian)`: the version and the OS | Every answer names the Apache version. Only the platform can set `ServerTokens Prod` |
+| Error page footer | Apache's own error pages carry the version footer | The same, for `ServerSignature Off` |
+| Secrets for the web | the entrypoint does not read `/run/secrets` | On Citadel, `./.env` is the secret path, as above; the release script still reads `/run/secrets` |
+
+`TRACE` already answers 405 there. Everything else held on Citadel's bytes: the first release at container start, a second release with the smoke test, `/up.php` and `health.php`, opcache in both cases (pulled in place and baked in), the web's `disable_functions`, the CLI keeping every function, a Composer script that shells out, and the secret's value in no log, layer or image config.
 
 ---
 
@@ -3147,6 +3167,8 @@ The table below records the most recent time the checks on this page were run ag
 | --- | --- | --- | --- | --- |
 | `composer ci` | 2026-11-07 | 88fd2ec | pass: 404 tests, 2771 assertions, 0 phpstan errors, 0 advisories | 8m 14s |
 | Local parity rig (`parity.sh up --fallback`, shell twin under WSL 2 bash) | 2026-11-07 | 88fd2ec | pass: the release ran all eight steps in 6s and `/up.php` answered 200 with body `ok` through the proxy | 27s to healthy (images prebuilt on this machine) |
+| Image contract on the fallback (`contract-image.sh`, linux/amd64, Git Bash on Docker Desktop) | 2026-11-10 | c33f789 plus the `--base-image` change | pass: 26 of 26, under the compose file's least privilege | 4m 19s (base built from cache) |
+| Image contract on Citadel's own image (`contract-image.sh --base-image=citadel/php-apache:8.5r3`, image id `950dcf67937a`) | 2026-11-10 | the same | pass: 23 checks passed, 3 gaps that only the image can close (below) | 1m 20s |
 
 To refresh this section, rerun `composer ci` and the local parity rig from [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html), then rewrite the table. The 82-app corpus run and the four real-app boots were not rerun: they need the shared proof corpus and the internal app repositories, which are not available on this machine, so the parity row uses the synthetic fixture that `squire init` writes, the same way CI does.
 
@@ -3196,6 +3218,16 @@ Doctor reads files; it never runs an app. To see whether the kit actually brings
 | Slim 2 | The release stopped at step 3: the lock file installs one package from Subversion, and the image has no `svn`. The message named the step and the cause. |
 | Laravel 13 | Without a `.env`, step 1 refused, as documented. With one made from `.env.example`, as the Citadel dashboard would, the release ran all ten steps in 106 seconds, including the migrations on MySQL 5.6. The app's own `.htaccess` then redirects every plain HTTP request to HTTPS, so `/up` answered 307 and the health check said unhealthy. That is the trusted-proxy class of problem parity exists to show before Citadel does. |
 
+### The release on Citadel's own image [#](https://squire.apps.wayne.edu/docs/reference/proof.html#the-release-on-citadel-s-own-image)
+
+The boots above used the fallback base. On 2026-11-10 the image contract suite ran on Citadel's own PHP image instead: `citadel/php-apache:8.5r3`, loaded byte for byte by [Parity](https://parity.apps.wayne.edu/)'s `parity image get` (image id `950dcf67937a`), with the app container under the same least privilege the kit's compose file gives it. Citadel's entrypoint fetched Composer and ran the first release as `citadel`; a second release ran with the smoke test on; `/up.php` answered 200 from the host and `health.php` passed inside; opcache checked mounted code every 2 seconds and never checked baked code; the web had no `exec` and kept `proc_open`; the CLI kept everything; a Composer script shelled out; and the mounted secret's value was in no log, layer or image config.
+
+Three findings belong to the image, not to the kit, and no app file can change them:
+
+- The `Server` header is `Apache/2.4.69 (Debian)`: every answer names the Apache version and the OS (`ServerTokens Prod` fixes it).
+- Apache's own error pages carry the version footer (`ServerSignature Off` fixes it). `TRACE` already answers 405.
+- The entrypoint does not turn `/run/secrets` files into variables for Apache, so on Citadel `./.env` stays the secret path, as [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#on-citadel-s-own-image) says.
+
 ### What it caught in Squire [#](https://squire.apps.wayne.edu/docs/reference/proof.html#what-it-caught-in-squire)
 
 A run that only finds praise was not looking hard enough. This one found these, and every finding is about Squire, not the apps:
@@ -3207,7 +3239,7 @@ A run that only finds praise was not looking hard enough. This one found these, 
 
 ### What this does not prove [#](https://squire.apps.wayne.edu/docs/reference/proof.html#what-this-does-not-prove)
 
-- No app was deployed to Citadel and no Quick Update ran. The boots used the fallback base image, an approximation of Citadel's image, and only four apps were booted.
+- No app was deployed to Citadel and no Quick Update ran. The four app boots used the fallback base image, an approximation of Citadel's image; only the image contract's fixture app ran on Citadel's own image, and never behind Citadel's proxy.
 - No real configuration, database contents, Oracle, CAS or Entra were used, so an app's own pages are only shown to start, not to work.
 - `doctor` decides only the rules a machine can read from files; the rest of the best practices are not checked here.
 - The per-app record names the applications and stays in the stack's internal notes.

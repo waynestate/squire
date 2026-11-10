@@ -17,6 +17,8 @@ The table below records the most recent time the checks on this page were run ag
 |---|---|---|---|---|
 | `composer ci` | 2026-11-07 | 88fd2ec | pass: 404 tests, 2771 assertions, 0 phpstan errors, 0 advisories | 8m 14s |
 | Local parity rig (`parity.sh up --fallback`, shell twin under WSL 2 bash) | 2026-11-07 | 88fd2ec | pass: the release ran all eight steps in 6s and `/up.php` answered 200 with body `ok` through the proxy | 27s to healthy (images prebuilt on this machine) |
+| Image contract on the fallback (`contract-image.sh`, linux/amd64, Git Bash on Docker Desktop) | 2026-11-10 | c33f789 plus the `--base-image` change | pass: 26 of 26, under the compose file's least privilege | 4m 19s (base built from cache) |
+| Image contract on Citadel's own image (`contract-image.sh --base-image=citadel/php-apache:8.5r3`, image id `950dcf67937a`) | 2026-11-10 | the same | pass: 23 checks passed, 3 gaps that only the image can close (below) | 1m 20s |
 
 To refresh this section, rerun `composer ci` and the local parity rig from [Local parity](../guides/local-parity.md), then rewrite the table. The 82-app corpus run and the four real-app boots were not rerun: they need the shared proof corpus and the internal app repositories, which are not available on this machine, so the parity row uses the synthetic fixture that `squire init` writes, the same way CI does.
 
@@ -66,6 +68,16 @@ Doctor reads files; it never runs an app. To see whether the kit actually brings
 | Slim 2 | The release stopped at step 3: the lock file installs one package from Subversion, and the image has no `svn`. The message named the step and the cause. |
 | Laravel 13 | Without a `.env`, step 1 refused, as documented. With one made from `.env.example`, as the Citadel dashboard would, the release ran all ten steps in 106 seconds, including the migrations on MySQL 5.6. The app's own `.htaccess` then redirects every plain HTTP request to HTTPS, so `/up` answered 307 and the health check said unhealthy. That is the trusted-proxy class of problem parity exists to show before Citadel does. |
 
+## The release on Citadel's own image
+
+The boots above used the fallback base. On 2026-11-10 the image contract suite ran on Citadel's own PHP image instead: `citadel/php-apache:8.5r3`, loaded byte for byte by [Parity](https://parity.apps.wayne.edu/)'s `parity image get` (image id `950dcf67937a`), with the app container under the same least privilege the kit's compose file gives it. Citadel's entrypoint fetched Composer and ran the first release as `citadel`; a second release ran with the smoke test on; `/up.php` answered 200 from the host and `health.php` passed inside; opcache checked mounted code every 2 seconds and never checked baked code; the web had no `exec` and kept `proc_open`; the CLI kept everything; a Composer script shelled out; and the mounted secret's value was in no log, layer or image config.
+
+Three findings belong to the image, not to the kit, and no app file can change them:
+
+- The `Server` header is `Apache/2.4.69 (Debian)`: every answer names the Apache version and the OS (`ServerTokens Prod` fixes it).
+- Apache's own error pages carry the version footer (`ServerSignature Off` fixes it). `TRACE` already answers 405.
+- The entrypoint does not turn `/run/secrets` files into variables for Apache, so on Citadel `./.env` stays the secret path, as [Image hardening](../guides/image-hardening.md#on-citadel-s-own-image) says.
+
 ## What it caught in Squire
 
 A run that only finds praise was not looking hard enough. This one found these, and every finding is about Squire, not the apps:
@@ -77,7 +89,7 @@ A run that only finds praise was not looking hard enough. This one found these, 
 
 ## What this does not prove
 
-- No app was deployed to Citadel and no Quick Update ran. The boots used the fallback base image, an approximation of Citadel's image, and only four apps were booted.
+- No app was deployed to Citadel and no Quick Update ran. The four app boots used the fallback base image, an approximation of Citadel's image; only the image contract's fixture app ran on Citadel's own image, and never behind Citadel's proxy.
 - No real configuration, database contents, Oracle, CAS or Entra were used, so an app's own pages are only shown to start, not to work.
 - `doctor` decides only the rules a machine can read from files; the rest of the best practices are not checked here.
 - The per-app record names the applications and stays in the stack's internal notes.

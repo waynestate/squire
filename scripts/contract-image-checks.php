@@ -12,6 +12,12 @@
  * It asks Apache on 127.0.0.1:80 for the fixture's probe page, which reports the web's own PHP settings, and checks
  * Apache's own answers: one PASS or FAIL line per assertion, exit 1 on any FAIL. Values are never printed, only
  * whether they matched. A squire checks the straps before the knight rides, not after he falls off.
+ *
+ * A fourth variable, CONTRACT_BASE, says whose base image this is: "fallback" (the default, the kit's own
+ * base-fallback.Dockerfile) or "image" (one the caller named with --base-image, such as Citadel's own). A few checks
+ * test what only the base image provides, its Apache server config and its entrypoint, which no app file can change.
+ * On the fallback the kit makes those promises, so a miss is a FAIL. On another image a miss is a GAP line: true, worth
+ * recording, the image owner's to fix, and it does not fail the run.
  */
 
 declare(strict_types=1);
@@ -22,6 +28,16 @@ $report = static function (bool $ok, string $what) use (&$failures): void {
     if (!$ok) {
         $failures++;
     }
+};
+$base = getenv('CONTRACT_BASE') === 'image' ? 'image' : 'fallback';
+// A promise of the base image itself: a FAIL on the kit's fallback, a GAP on anyone else's image.
+$baseReport = static function (bool $ok, string $what) use ($report, $base): void {
+    if ($ok || $base === 'fallback') {
+        $report($ok, $what);
+
+        return;
+    }
+    echo 'GAP: ', $what, " (the base image's to fix: no app file can change it)\n";
 };
 
 /** @return array{status: int, headers: array<string, string>, body: string} */
@@ -48,12 +64,14 @@ $request = static function (string $method, string $path): array {
 $up = $request('GET', '/up.php');
 $report($up['status'] === 200, 'GET /up.php answers 200 inside the container (got ' . $up['status'] . ')');
 $server = $up['headers']['server'] ?? '';
-$report($server === 'Apache', 'the Server header is exactly "Apache", no version or OS (ServerTokens Prod; got "' . $server . '")');
+// ServerTokens, TraceEnable and ServerSignature are server-config directives: the base image's Apache, never a vhost or
+// .htaccess, decides them.
+$baseReport($server === 'Apache', 'the Server header is exactly "Apache", no version or OS (ServerTokens Prod; got "' . $server . '")');
 $report(!isset($up['headers']['x-powered-by']), 'no X-Powered-By header (expose_php Off)');
 
 $trace = $request('TRACE', '/up.php');
-$report($trace['status'] === 405, 'TRACE answers 405 (TraceEnable Off; got ' . $trace['status'] . ')');
-$report(!str_contains($trace['body'], '<address>'), "Apache's own error page has no version footer (ServerSignature Off)");
+$baseReport($trace['status'] === 405, 'TRACE answers 405 (TraceEnable Off; got ' . $trace['status'] . ')');
+$baseReport(!str_contains($trace['body'], '<address>'), "Apache's own error page has no version footer (ServerSignature Off)");
 
 // --- the web's PHP, from the fixture's probe page -------------------------------------------------------------------
 
@@ -80,11 +98,12 @@ $report(($web['proc_open'] ?? false) === true && ($web['popen'] ?? false) === tr
 $cliDisabled = (string) ini_get('disable_functions');
 $report($cliDisabled === '' && function_exists('exec') && function_exists('proc_open'), 'the CLI disables nothing (Composer scripts, artisan, the health check)');
 
-// A secret mounted as a file reaches the web
+// A secret mounted as a file reaches the web. The entrypoint loads it for Apache: the fallback's does, Citadel's does
+// not (on Citadel ./.env is the secret path), so this is the base image's promise. The release half is the kit's own.
 $secretName = (string) getenv('CONTRACT_SECRET_NAME');
 $secretMd5 = (string) getenv('CONTRACT_SECRET_MD5');
 if ($secretName !== '' && $secretMd5 !== '') {
-    $report(($web['secret_md5'] ?? null) === $secretMd5, 'the web sees the secret mounted at /run/secrets/' . $secretName . ' as a variable');
+    $baseReport(($web['secret_md5'] ?? null) === $secretMd5, 'the web sees the secret mounted at /run/secrets/' . $secretName . ' as a variable');
 } else {
     $report(false, 'the driver passed CONTRACT_SECRET_NAME and CONTRACT_SECRET_MD5');
 }

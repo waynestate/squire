@@ -68,6 +68,20 @@
 <td>pass: the release ran all eight steps in 6s and <code>/up.php</code> answered 200 with body <code>ok</code> through the proxy</td>
 <td>27s to healthy (images prebuilt on this machine)</td>
 </tr>
+<tr>
+<td>Image contract on the fallback (<code>contract-image.sh</code>, linux/amd64, Git Bash on Docker Desktop)</td>
+<td>2026-11-10</td>
+<td>c33f789 plus the <code>--base-image</code> change</td>
+<td>pass: 26 of 26, under the compose file's least privilege</td>
+<td>4m 19s (base built from cache)</td>
+</tr>
+<tr>
+<td>Image contract on Citadel's own image (<code>contract-image.sh --base-image=citadel/php-apache:8.5r3</code>, image id <code>950dcf67937a</code>)</td>
+<td>2026-11-10</td>
+<td>the same</td>
+<td>pass: 23 checks passed, 3 gaps that only the image can close (below)</td>
+<td>1m 20s</td>
+</tr>
 </tbody>
 </table></div>
 <p>To refresh this section, rerun <code>composer ci</code> and the local parity rig from <a href="../guides/local-parity.html">Local parity</a>, then rewrite the table. The 82-app corpus run and the four real-app boots were not rerun: they need the shared proof corpus and the internal app repositories, which are not available on this machine, so the parity row uses the synthetic fixture that <code>squire init</code> writes, the same way CI does.</p>
@@ -174,6 +188,14 @@
 </tr>
 </tbody>
 </table></div>
+<h2 id="the-release-on-citadel-s-own-image">The release on Citadel's own <span class="docs-heading-tail"><span>image</span><a class="docs-heading-link" aria-label="Link to this section" href="#the-release-on-citadel-s-own-image">#</a></span></h2>
+<p>The boots above used the fallback base. On 2026-11-10 the image contract suite ran on Citadel's own PHP image instead: <code>citadel/php-apache:8.5r3</code>, loaded byte for byte by <a rel="noopener" href="https://parity.apps.wayne.edu/">Parity</a>'s <code>parity image get</code> (image id <code>950dcf67937a</code>), with the app container under the same least privilege the kit's compose file gives it. Citadel's entrypoint fetched Composer and ran the first release as <code>citadel</code>; a second release ran with the smoke test on; <code>/up.php</code> answered 200 from the host and <code>health.php</code> passed inside; opcache checked mounted code every 2 seconds and never checked baked code; the web had no <code>exec</code> and kept <code>proc_open</code>; the CLI kept everything; a Composer script shelled out; and the mounted secret's value was in no log, layer or image config.</p>
+<p>Three findings belong to the image, not to the kit, and no app file can change them:</p>
+<ul>
+<li>The <code>Server</code> header is <code>Apache/2.4.69 (Debian)</code>: every answer names the Apache version and the OS (<code>ServerTokens Prod</code> fixes it).</li>
+<li>Apache's own error pages carry the version footer (<code>ServerSignature Off</code> fixes it). <code>TRACE</code> already answers 405.</li>
+<li>The entrypoint does not turn <code>/run/secrets</code> files into variables for Apache, so on Citadel <code>./.env</code> stays the secret path, as <a href="../guides/image-hardening.html#on-citadel-s-own-image">Image hardening</a> says.</li>
+</ul>
 <h2 id="what-it-caught-in-squire">What it caught in <span class="docs-heading-tail"><span>Squire</span><a class="docs-heading-link" aria-label="Link to this section" href="#what-it-caught-in-squire">#</a></span></h2>
 <p>A run that only finds praise was not looking hard enough. This one found these, and every finding is about Squire, not the apps:</p>
 <ul>
@@ -184,7 +206,7 @@
 </ul>
 <h2 id="what-this-does-not-prove">What this does not <span class="docs-heading-tail"><span>prove</span><a class="docs-heading-link" aria-label="Link to this section" href="#what-this-does-not-prove">#</a></span></h2>
 <ul>
-<li>No app was deployed to Citadel and no Quick Update ran. The boots used the fallback base image, an approximation of Citadel's image, and only four apps were booted.</li>
+<li>No app was deployed to Citadel and no Quick Update ran. The four app boots used the fallback base image, an approximation of Citadel's image; only the image contract's fixture app ran on Citadel's own image, and never behind Citadel's proxy.</li>
 <li>No real configuration, database contents, Oracle, CAS or Entra were used, so an app's own pages are only shown to start, not to work.</li>
 <li><code>doctor</code> decides only the rules a machine can read from files; the rest of the best practices are not checked here.</li>
 <li>The per-app record names the applications and stays in the stack's internal notes.</li>
@@ -213,7 +235,7 @@ vendor/bin/squire doctor
     </main>
     <nav class="docs-pager" aria-label="Pages"><a class="docs-pager__link" href="../../docs/reference/files.html"><span class="docs-pager__dir">Previous</span><span class="docs-pager__title">Files</span></a><a class="docs-pager__link docs-pager__link--next" href="../../docs/troubleshooting.html"><span class="docs-pager__dir">Next</span><span class="docs-pager__title">Troubleshooting</span></a></nav>
   </div>
-  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item"><a href="#last-run">Last run</a></li><li class="docs-toc__item"><a href="#what-ran">What ran</a></li><li class="docs-toc__item"><a href="#results">Results</a></li><li class="docs-toc__item"><a href="#four-apps-on-local-parity">Four apps on local parity</a></li><li class="docs-toc__item"><a href="#what-it-caught-in-squire">What it caught in Squire</a></li><li class="docs-toc__item"><a href="#what-this-does-not-prove">What this does not prove</a></li><li class="docs-toc__item"><a href="#run-it-on-your-app">Run it on your app</a></li><li class="docs-toc__item"><a href="#related">Related</a></li></ul></nav>
+  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item"><a href="#last-run">Last run</a></li><li class="docs-toc__item"><a href="#what-ran">What ran</a></li><li class="docs-toc__item"><a href="#results">Results</a></li><li class="docs-toc__item"><a href="#four-apps-on-local-parity">Four apps on local parity</a></li><li class="docs-toc__item"><a href="#the-release-on-citadel-s-own-image">The release on Citadel&#039;s own image</a></li><li class="docs-toc__item"><a href="#what-it-caught-in-squire">What it caught in Squire</a></li><li class="docs-toc__item"><a href="#what-this-does-not-prove">What this does not prove</a></li><li class="docs-toc__item"><a href="#run-it-on-your-app">Run it on your app</a></li><li class="docs-toc__item"><a href="#related">Related</a></li></ul></nav>
 </div>
 <footer class="docs-footer">
   <span>Documents Squire <span data-docs-version>0.10.8</span></span>

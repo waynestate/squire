@@ -150,7 +150,7 @@ Look for the `Digest:` line, and for `linux/amd64` and `linux/arm64/v8` under Ma
 
 ## The image contract suite
 
-A file can promise anything; the running image is what counts. `scripts/contract-image.sh` (in Squire's repository) builds the fallback base and the app image for a platform, runs the container with a throwaway raw PHP app mounted at `/citadel/src` and a throwaway secret mounted at `/run/secrets`, runs the release as `citadel`, and then pipes `scripts/contract-image-checks.php` to `php` inside the container. One PASS or FAIL line per check:
+A file can promise anything; the running image is what counts. `scripts/contract-image.sh` (in Squire's repository) builds the fallback base and the app image for a platform, runs the container with a throwaway raw PHP app mounted at `/citadel/src`, a throwaway secret mounted at `/run/secrets` and the compose file's least privilege (every capability dropped but the seven the app service adds back, `no-new-privileges`, 256 processes, 512 MB), runs the release as `citadel`, and then pipes `scripts/contract-image-checks.php` to `php` inside the container. One PASS or FAIL line per check:
 
 | Item | Checked in the running image |
 |---|---|
@@ -162,7 +162,24 @@ A file can promise anything; the running image is what counts. `scripts/contract
 ```sh
 sh scripts/contract-image.sh --platform=linux/amd64
 sh scripts/contract-image.sh --platform=linux/arm64   # needs qemu emulation on an amd64 host
+sh scripts/contract-image.sh --base-image=citadel/php-apache:8.5r3   # Citadel's own image, already on this machine
 ```
 
-GitHub CI runs it for both platforms on every push. It proves the fallback base, not the real Citadel image, which is internal: a green run is a contract, not a certificate.
+GitHub CI runs it on the fallback for both platforms on every push: a green run there is a contract, not a certificate.
+
+### On Citadel's own image
+
+`--base-image=REF` runs the same contract on an image that is already on your machine instead of the fallback. For Citadel's own, [Parity](https://parity.apps.wayne.edu/)'s `parity image get` loads `citadel/php-apache:8.5r3` byte for byte (its image id is checked). The script never pulls the image: Citadel's images are internal, and something else with the same name would prove nothing. It stops if the image is missing or built for another platform.
+
+Three checks test what only the base image decides, which no file in your app can change: the Apache server directives (`ServerTokens`, `TraceEnable`, `ServerSignature`) and whether its entrypoint turns `/run/secrets` into variables for Apache. On the fallback those are the kit's promises and a miss is a FAIL. On any other image a miss prints a `GAP:` line, and the run ends with a count of them: true, worth knowing, the image owner's to fix, and not a failure of your app.
+
+On 2026-11-10 `citadel/php-apache:8.5r3` (image id `950dcf67937a`) passed every check the kit owns, on linux/amd64, in 80 seconds, under the compose file's least privilege, and showed three gaps:
+
+| Gap | What Citadel's image does | What it means for your app |
+|---|---|---|
+| `Server` header | `Apache/2.4.69 (Debian)`: the version and the OS | Every answer names the Apache version. Only the platform can set `ServerTokens Prod` |
+| Error page footer | Apache's own error pages carry the version footer | The same, for `ServerSignature Off` |
+| Secrets for the web | the entrypoint does not read `/run/secrets` | On Citadel, `./.env` is the secret path, as above; the release script still reads `/run/secrets` |
+
+`TRACE` already answers 405 there. Everything else held on Citadel's bytes: the first release at container start, a second release with the smoke test, `/up.php` and `health.php`, opcache in both cases (pulled in place and baked in), the web's `disable_functions`, the CLI keeping every function, a Composer script that shells out, and the secret's value in no log, layer or image config.
 

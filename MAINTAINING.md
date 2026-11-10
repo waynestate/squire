@@ -44,19 +44,23 @@ docker run --rm -v "${PWD}:/app" -w /app composer:2.11.1 sh -c "composer install
 
 ## Contract suite (image)
 
-`scripts/contract-image.sh` proves that `release.sh` runs inside an image. The real Citadel image is internal, so it
-uses the fallback base Squire already builds for local parity (`.squire/base-fallback.Dockerfile`, tag
-`squire/php-parity-base:8.4`): php:8.4-apache plus Node 22, multi-arch.
+`scripts/contract-image.sh` proves that `release.sh` runs inside an image. By default it uses the fallback base Squire
+already builds for local parity (`.squire/base-fallback.Dockerfile`, tag `squire/php-parity-base:8.4`): php:8.4-apache
+plus Node 22, multi-arch and public, so CI can build it. `--base-image=REF` runs it on an image already on this
+machine instead, above all Citadel's own (`citadel/php-apache:8.5r3`, which `parity image get` loads byte for byte).
 
 ```
 sh scripts/contract-image.sh --platform=linux/amd64
 sh scripts/contract-image.sh --platform=linux/arm64   # needs qemu emulation on an amd64 host
+sh scripts/contract-image.sh --base-image=citadel/php-apache:8.5r3   # Citadel's own image, never pulled
 sh scripts/contract-image.sh --keep                   # keep the container, image, volume and temp dir
 ```
 
 It makes a throwaway fixture app (`squire init --target=raw`, with `composer.json` and `composer.lock` seeded from
-`deploy/`), builds the fallback base and the app image for the platform, runs the container with the fixture mounted
-at `/citadel/src` the way the kit's compose file mounts it, runs `release.sh` as the `citadel` user with the smoke
+`deploy/`), builds the fallback base (unless `--base-image`) and the app image for the platform, runs the container
+with the fixture mounted at `/citadel/src` the way the kit's compose file mounts it and with the compose file's least
+privilege (`--cap-drop=ALL`, the seven capabilities the app service adds back, `no-new-privileges`, 256 processes,
+512 MB; `ContractImageTest` fails when the driver and the compose file disagree), runs `release.sh` as the `citadel` user with the smoke
 test on, and prints one PASS or FAIL line per assertion: the release.sh exit code, HTTP 200 from `/up.php` on the
 host, `php health.php` inside the container, and the first-release deployment log with no failed sibling. Then it
 checks the hardening in the running image: `scripts/contract-image-checks.php` is piped to `php` in the
@@ -71,12 +75,23 @@ release must name it, and its value must be in no log, no `docker history` line 
 code is 1 on any FAIL. It needs Docker with buildx and network access (the fixture installs its Composer
 dependencies); without PHP on the PATH it runs the initializer in a `composer:2.11.1` container.
 
-**What it proves and what it does not.** It proves the release mechanics end to end on the public stand-in: the
-fallback base builds for the platform, the app image builds on top of it, the first-release hook runs at container
-start, `release.sh` is safe to run twice, Apache serves the front controller and the health endpoint, and the
-deployment log lands where `citadel-deploy` puts it. It does not prove parity with the real image: the fallback has
-no `oci8`, `imagick` or `ssmtp`, its HA-Proxy differs from Citadel's, and nothing here touches Citadel itself. A
-green run is a contract, not a certificate.
+**What it proves and what it does not.** On the fallback it proves the release mechanics end to end on the public
+stand-in: the fallback base builds for the platform, the app image builds on top of it, the first-release hook runs
+at container start, `release.sh` is safe to run twice, Apache serves the front controller and the health endpoint,
+and the deployment log lands where `citadel-deploy` puts it. The fallback has no `oci8`, `imagick` or `ssmtp`, so
+that run is a contract, not a certificate.
+
+**On Citadel's own image.** Three checks test what only the base image decides (the Apache server directives
+`ServerTokens`, `TraceEnable` and `ServerSignature`, and whether the entrypoint loads `/run/secrets` for Apache). On
+the fallback they are the kit's promises and a miss is a FAIL; with `--base-image` a miss is a `GAP:` line that is
+counted and printed but does not fail the run (`CONTRACT_BASE=image` tells `contract-image-checks.php`). The run on
+2026-11-10, `citadel/php-apache:8.5r3` (image id `950dcf67937a`), linux/amd64, Docker Desktop, 80 seconds: every
+check the kit owns passed, under the least-privilege flags (which answers OPEN_QUESTIONS 8 for that image), and three
+gaps showed: the `Server` header is `Apache/2.4.69 (Debian)`, Apache's error pages carry the version footer, and the
+entrypoint does not read `/run/secrets` (on Citadel `./.env` is the secret path). `TRACE` answers 405. That is
+evidence for the platform's Apache hardening request, not a kit bug. Still not proven: Citadel's HA-Proxy, its host,
+`citadel/php-apache:8.4r5` (Citadel has published no download for it), and any CI run on Citadel's image, since CI
+cannot reach it. Rerun after each new Citadel image and update this paragraph and the Proof page.
 
 **In CI.** The `contract-image` job on GitHub runs the script for both platforms, linux/amd64 and linux/arm64, with
 the arm64 leg under QEMU. It passed on 2026-11-08 and has blocked the run since. The `contract-parity-sh` and

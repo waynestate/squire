@@ -1,15 +1,20 @@
 #!/bin/sh
-# scripts/contract-image.sh: prove that release.sh runs inside an image, on the fallback base.
+# scripts/contract-image.sh: prove that release.sh runs inside an image, on the fallback base or on Citadel's own.
 #
-# The real Citadel image is internal, so the stand-in is the fallback base Squire already builds
-# (.squire/base-fallback.Dockerfile, tag squire/php-parity-base:8.4): php:8.4-apache plus Node 22, multi-arch.
+# By default the base is the fallback Squire already builds (.squire/base-fallback.Dockerfile, tag
+# squire/php-parity-base:8.4): php:8.4-apache plus Node 22, multi-arch, public, so CI can build it anywhere.
+# --base-image=REF runs the same contract on an image already on this machine instead, above all Citadel's real one
+# (citadel/php-apache:8.5r3, which `parity image get` loads byte for byte). It is never pulled: Citadel's images are
+# internal, and a contract that fetched "something with that name" would prove nothing.
 #
-#   scripts/contract-image.sh [--platform=linux/arm64|linux/amd64] [--keep]
+#   scripts/contract-image.sh [--platform=linux/arm64|linux/amd64] [--base-image=REF] [--keep]
 #
 # It makes a throwaway fixture app (squire init --target=raw, composer.json and composer.lock seeded from deploy/,
-# public/index.php and public/up.php from the raw template), builds the fallback base and the app image for the
-# platform, runs the container with a free local port and the fixture mounted at /citadel/src the way the kit's
-# compose file mounts it, runs scripts/release.sh inside as the citadel user with the smoke test on, and asserts:
+# public/index.php and public/up.php from the raw template), builds the fallback base (unless --base-image) and the
+# app image for the platform, runs the container with a free local port, the fixture mounted at /citadel/src and the
+# least-privilege flags the kit's compose file runs the app with (every capability dropped but the seven it adds
+# back, no-new-privileges, the pids and memory limits), runs scripts/release.sh inside as the citadel user with the
+# smoke test on, and asserts:
 #
 #   - release.sh exited 0
 #   - /up.php answers HTTP 200 from the host
@@ -30,7 +35,9 @@
 # One line per assertion, PASS or FAIL; exit 1 on any FAIL. Unless --keep, the container, the app image, the logs
 # volume and the temp dir are removed (the shared base image stays, like any pulled image).
 #
-# The mirror holds the signature: this proves the release mechanics, not parity, because it is not the real image.
+# On the fallback the mirror holds the signature: that run proves the release mechanics, not parity, because it is
+# not the real image. On Citadel's own image it is the same contract on the same bytes Citadel runs (still not
+# Citadel's proxy, host or dashboard: a squire can polish the armor, not the castle).
 set -eu
 
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
@@ -57,18 +64,31 @@ SECRET_NAME="SQUIRE_CONTRACT_SECRET"
 SECRET_VALUE="contract-secret-$$-$(date +%s)"
 KEEP=0
 PLATFORM=""
+BASE_IMAGE=""
 TMPROOT=""
 FAILURES=0
+GAPS=0
+# Whose base this is, for contract-image-checks.php: the kit's fallback, or an image the caller named.
+CONTRACT_BASE="fallback"
+
+# The app service's least privilege, the same flags docker-compose.squire.yml gives it (S70): every capability
+# dropped but the seven Apache and the entrypoint need, no-new-privileges, and the pids and memory limits.
+# tests/ContractImageTest.php fails when this list and the compose file's cap_add disagree.
+RUN_LIMITS="--cap-drop=ALL --cap-add=CHOWN --cap-add=DAC_OVERRIDE --cap-add=FOWNER --cap-add=SETUID --cap-add=SETGID --cap-add=NET_BIND_SERVICE --cap-add=KILL --security-opt=no-new-privileges:true --pids-limit=256 --memory=512m"
 
 usage() {
-    printf 'usage: scripts/contract-image.sh [--platform=linux/arm64|linux/amd64] [--keep]\n'
+    printf 'usage: scripts/contract-image.sh [--platform=linux/arm64|linux/amd64] [--base-image=REF] [--keep]\n'
     printf '\n'
-    printf 'Proves that scripts/release.sh runs inside the fallback image: builds a fixture app, builds the\n'
-    printf 'fallback base and the app image for the platform, runs the container, runs release.sh as citadel\n'
-    printf 'with the smoke test on, and asserts the smoke URL, health.php and the first-release log.\n'
+    printf 'Proves that scripts/release.sh runs inside an image: builds a fixture app, builds the fallback base\n'
+    printf '(or takes --base-image) and the app image for the platform, runs the container with the compose\n'
+    printf 'file%s least privilege, runs release.sh as citadel with the smoke test on, and asserts the smoke URL,\n' "'s"
+    printf 'health.php, the first-release log and the hardening inside the running image.\n'
     printf '\n'
     printf '  --platform=linux/arm64|linux/amd64  build and run for this platform (default: the machine%s)\n' \
         "'s own"
+    printf '  --base-image=REF                    use this image, already on this machine, as the base instead of\n'
+    printf '                                      building the fallback (for example citadel/php-apache:8.5r3, which\n'
+    printf '                                      parity image get loads); never pulled\n'
     printf '  --keep                              keep the container, the app image, the volume and the temp dir\n'
 }
 
@@ -160,13 +180,19 @@ build_images() {
     case "$gid" in '' | *[!0-9]*) gid=1000 ;; esac
     if [ "$uid" -lt 1 ] || [ "$uid" -gt 65534 ]; then uid=1000; fi
     if [ "$gid" -lt 1 ] || [ "$gid" -gt 65534 ]; then gid=1000; fi
-    printf 'building the fallback base image %s for %s\n' "$BASE_TAG" "$PLATFORM" >&2
-    docker buildx build --load --platform "$PLATFORM" \
-        --build-arg "CITADEL_SOURCE_UID=$uid" \
-        --build-arg "CITADEL_SOURCE_GID=$gid" \
-        -f "$(win_path "$FIXTURE/.squire/base-fallback.Dockerfile")" \
-        -t "$BASE_TAG" \
-        "$(win_path "$FIXTURE/.squire")"
+    if [ -n "$BASE_IMAGE" ]; then
+        # An image of the caller's, used as it is: its citadel and prisoner users were fixed when it was built.
+        BASE_TAG="$BASE_IMAGE"
+        printf 'base image %s (id %s), as found on this machine\n' "$BASE_TAG" "$(docker image inspect -f '{{.Id}}' "$BASE_TAG")" >&2
+    else
+        printf 'building the fallback base image %s for %s\n' "$BASE_TAG" "$PLATFORM" >&2
+        docker buildx build --load --platform "$PLATFORM" \
+            --build-arg "CITADEL_SOURCE_UID=$uid" \
+            --build-arg "CITADEL_SOURCE_GID=$gid" \
+            -f "$(win_path "$FIXTURE/.squire/base-fallback.Dockerfile")" \
+            -t "$BASE_TAG" \
+            "$(win_path "$FIXTURE/.squire")"
+    fi
     printf 'building the app image %s for %s\n' "$APP_TAG" "$PLATFORM" >&2
     docker buildx build --load --platform "$PLATFORM" \
         --build-arg "BASE_IMAGE=$BASE_TAG" \
@@ -183,8 +209,9 @@ run_container() {
         -v "$LOGVOL":/citadel/logs \
         "$APP_TAG" \
         -c 'mkdir -p /citadel/logs/deployments /citadel/logs/apache && chown citadel:citadel /citadel/logs/deployments && chown -R prisoner:prisoner /citadel/logs/apache 2>/dev/null || true'
-    # The app source, as the kit's compose file mounts it, plus the logs volume.
-    docker run -d \
+    # The app source, as the kit's compose file mounts it, plus the logs volume, with the compose file's limits.
+    # shellcheck disable=SC2086  # RUN_LIMITS is a list of flags and splits on purpose
+    docker run -d $RUN_LIMITS \
         --name "$CID" \
         -p "127.0.0.1:$PORT:80" \
         -v "$(win_path "$FIXTURE")":/citadel/src \
@@ -224,6 +251,7 @@ report() {
 for arg in "$@"; do
     case "$arg" in
         --platform=*) PLATFORM="${arg#--platform=}" ;;
+        --base-image=*) BASE_IMAGE="${arg#--base-image=}" ;;
         --keep) KEEP=1 ;;
         -h | --help) usage; exit 0 ;;
         *) usage >&2; die "unknown option: $arg" ;;
@@ -245,6 +273,14 @@ esac
 command -v docker >/dev/null 2>&1 || die "docker is not installed or not on PATH"
 docker buildx version >/dev/null 2>&1 || die "'docker buildx' is required"
 [ -d "$REPO/deploy" ] || die "deploy/ not found; run this from a checkout of the Squire repository"
+if [ -n "$BASE_IMAGE" ]; then
+    CONTRACT_BASE="image"
+    docker image inspect "$BASE_IMAGE" >/dev/null 2>&1 \
+        || die "--base-image=$BASE_IMAGE is not on this machine; it is never pulled. For Citadel's own image, run 'parity image get' first"
+    base_platform="$(docker image inspect -f '{{.Os}}/{{.Architecture}}' "$BASE_IMAGE")"
+    [ "$base_platform" = "$PLATFORM" ] \
+        || die "--base-image=$BASE_IMAGE is $base_platform, not $PLATFORM; pass --platform=$base_platform"
+fi
 
 TMPROOT="$(mktemp -d)" || die "mktemp -d failed"
 
@@ -309,9 +345,11 @@ docker exec -i -u citadel \
     -e "CONTRACT_SECRET_NAME=$SECRET_NAME" \
     -e "CONTRACT_SECRET_MD5=$secret_md5" \
     -e "CONTRACT_APP_DIR=/citadel/src" \
+    -e "CONTRACT_BASE=$CONTRACT_BASE" \
     "$CID" php <"$REPO/scripts/contract-image-checks.php" >"$TMPROOT/checks.log" 2>&1 || rc=$?
 cat "$TMPROOT/checks.log"
 FAILURES=$((FAILURES + $(grep -c '^FAIL: ' "$TMPROOT/checks.log" || true)))
+GAPS="$(grep -c '^GAP: ' "$TMPROOT/checks.log" || true)"
 if [ "$rc" != "0" ] && ! grep -q '^FAIL: ' "$TMPROOT/checks.log"; then
     report 1 "contract-image-checks.php ran to the end (exit $rc)"
 fi
@@ -331,13 +369,16 @@ if [ "$rc" != "0" ]; then
 fi
 report "$rc" "the app image builds with --build-arg SQUIRE_OPCACHE_VALIDATE=0"
 if [ "$rc" = "0" ]; then
-    # Apache alone (no first-release hook: the fixture already has its vendor/ from the run above).
-    docker run -d --name "$BAKED_CID" --entrypoint apache2-foreground \
+    # Started the way Citadel starts it, through the image's own entrypoint. The first-release log is already in the
+    # shared logs volume, so the hook skips it; Citadel's entrypoint also puts Composer in place on every first boot,
+    # which the release below needs (the fallback base has Composer built in).
+    # shellcheck disable=SC2086  # RUN_LIMITS is a list of flags and splits on purpose
+    docker run -d $RUN_LIMITS --name "$BAKED_CID" \
         -v "$(win_path "$FIXTURE")":/citadel/src \
         -v "$LOGVOL":/citadel/logs \
         "$BAKED_TAG" >/dev/null
     # shellcheck disable=SC2016  # the PHP program is single-quoted on purpose
-    baked="$(docker exec "$BAKED_CID" php -r 'for ($i = 0; $i < 60; $i++) { $b = @file_get_contents("http://127.0.0.1:80/squire-contract-probe"); if ($b !== false) { $j = json_decode($b, true); echo $j["validate_timestamps"] ?? "?"; exit(0); } sleep(1); } echo "none";' 2>/dev/null || true)"
+    baked="$(docker exec "$BAKED_CID" php -r 'for ($i = 0; $i < 120; $i++) { $b = @file_get_contents("http://127.0.0.1:80/squire-contract-probe"); if ($b !== false) { $j = json_decode($b, true); echo $j["validate_timestamps"] ?? "?"; exit(0); } sleep(1); } echo "none";' 2>/dev/null || true)"
     rc=0
     [ "$baked" = "0" ] || rc=1
     report "$rc" "code baked in: the web never checks files (validate_timestamps $baked)"
@@ -347,8 +388,11 @@ if [ "$rc" = "0" ]; then
     grep -q "opcache.validate_timestamps=0: Apache keeps serving" "$TMPROOT/baked-release.log" || rc=1
     report "$rc" "code baked in: a release in place still passes and warns that Apache needs a restart"
 fi
+if [ "$GAPS" != "0" ]; then
+    printf 'contract-image: %s gap(s) in %s, the base image%s to fix (the GAP lines above)\n' "$GAPS" "$BASE_TAG" "'s"
+fi
 if [ "$FAILURES" != "0" ]; then
     printf 'contract-image: %s assertion(s) failed\n' "$FAILURES" >&2
     exit 1
 fi
-printf 'contract-image: all assertions passed\n'
+printf 'contract-image: all assertions passed on %s\n' "$BASE_TAG"

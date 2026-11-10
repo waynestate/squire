@@ -5,6 +5,9 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+- Added: `scripts/contract-image.sh --base-image=REF` runs the image contract on an image already on your machine instead of the fallback, above all Citadel's own `citadel/php-apache:8.5r3` (which `parity image get` loads). It never pulls, and stops when the image is missing or built for another platform. The three checks that only the base image decides (the Apache server directives and the entrypoint's `/run/secrets` loading) print `GAP:` lines there instead of failing; on the fallback they still fail. The first run on Citadel's image (2026-11-10) passed every check the kit owns and showed three gaps, recorded on the Proof and Image hardening pages.
+- Changed: the image contract runs the app containers with the kit's compose file's least privilege (`--cap-drop=ALL`, the same seven capabilities back, `no-new-privileges`, 256 processes, 512 MB), and a test fails when the two disagree. The baked-code container starts through the image's own entrypoint, as Citadel starts it, instead of Apache alone.
+
 ## 0.10.8 (2026-11-10)
 
 - Docs: the Local parity guide points at Preflight 0.6.0's `mysql56-migrate` component and PROCTOR's `mysql56-ci` check, the CI side of the same MySQL 5.6.51 pin (D-078).

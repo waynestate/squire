@@ -24,7 +24,10 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
    `X-Forwarded-Proto`; other 1.5 behaviors (connection reuse, header casing) may differ.
 8. **`cap_drop: [ALL]` on the real image.** Verified on the fallback image only (the app starts and answers `/up.php`).
    Apache needs `CHOWN`, `SETUID`, `SETGID`, `DAC_OVERRIDE` and `NET_BIND_SERVICE` on some images; the compose file adds back
-   what the fallback needed. Re-check on the real image.
+   what the fallback needed. **Answered 2026-11-10 for `citadel/php-apache:8.5r3`:** the image contract suite now runs
+   the app with the compose file's flags, and on Citadel's own image (`--base-image`) the entrypoint installed
+   Composer, ran the first release as `citadel`, and Apache dropped to `prisoner` and served, with the same seven
+   capabilities. Re-check on each new Citadel image (8.4r5 has no download yet).
 9. **`php.ini` is safe defaults, not a mirror.** `.squire/php.ini` holds the safe defaults HELMET also enforces at
    runtime, not a copy of the platform's file, so the local app runs with hardened PHP settings. For exact parity with
    the platform, replace it with a copy of the platform's file.
@@ -86,12 +89,16 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
     now that it passed on 2026-11-08), all on the fallback image, not the real Citadel image. The `contract-image` job also checks the
     hardening inside the running image (Apache's banner and TRACE, opcache, the web's disable_functions, a mounted
     secret, a Composer script), with the checks in `scripts/contract-image-checks.php` so another driver can reuse
-    them. What is
-    not proven: the real Citadel image (internal, with no pullable digest), Windows PowerShell 5.1, and the GitLab
-    runner path (the runner is arm64, has no Docker daemon and no qemu binfmt, so the GitLab pipeline has no contract
-    job). What is needed to close it: Docker access on the GitLab runner (and qemu binfmt for amd64-only images), a
-    pullable copy of the real image with a digest, and a decision on where the suite lives long term. Default: the
-    GitHub jobs stay; no GitLab job is committed until the runner can run it.
+    them. **The real image, by hand (2026-11-10):** `scripts/contract-image.sh --base-image=citadel/php-apache:8.5r3`
+    runs the same contract on Citadel's own image, loaded byte for byte by `parity image get`; every check the kit
+    owns passed, and the three that only the base image decides showed as gaps (the Apache version in the `Server`
+    header and on error pages, and no `/run/secrets` loading in the entrypoint; MAINTAINING.md, Contract suite).
+    What is still not proven: a CI run on Citadel's image (CI cannot reach it), `citadel/php-apache:8.4r5` (no
+    download yet), Windows PowerShell 5.1, and the GitLab runner path (no Docker daemon there, so the GitLab
+    pipeline has no contract job). What is needed to close it: a runner that can reach Citadel's images and run a
+    container with a port, and a decision on where the suite lives long term. Default: the GitHub jobs stay on the
+    fallback, the real image is a maintainer's run after each new Citadel image, and no GitLab job is committed until
+    the runner can run it.
 
 ## Missing configuration
 

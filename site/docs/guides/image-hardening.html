@@ -227,7 +227,7 @@ docker build -f &quot;$base&quot; $args -t squire/php-parity-base:8.4 .squire   
 </code></pre>
 <p>Look for the <code>Digest:</code> line, and for <code>linux/amd64</code> and <code>linux/arm64/v8</code> under Manifests. Then run the tests and the image contract suite on both platforms. Maintainers have the full procedure in <code>MAINTAINING.md</code>. Two references are yours, not the kit's: the real Citadel image (<code>SQUIRE_BASE_IMAGE</code>, pin it once you have its digest) and any <code>SQUIRE_NODE_IMAGE</code>, <code>SQUIRE_PROXY_IMAGE</code> or <code>SQUIRE_MYSQL_IMAGE</code> override.</p>
 <h2 id="the-image-contract-suite">The image contract <span class="docs-heading-tail"><span>suite</span><a class="docs-heading-link" aria-label="Link to this section" href="#the-image-contract-suite">#</a></span></h2>
-<p>A file can promise anything; the running image is what counts. <code>scripts/contract-image.sh</code> (in Squire's repository) builds the fallback base and the app image for a platform, runs the container with a throwaway raw PHP app mounted at <code>/citadel/src</code> and a throwaway secret mounted at <code>/run/secrets</code>, runs the release as <code>citadel</code>, and then pipes <code>scripts/contract-image-checks.php</code> to <code>php</code> inside the container. One PASS or FAIL line per check:</p>
+<p>A file can promise anything; the running image is what counts. <code>scripts/contract-image.sh</code> (in Squire's repository) builds the fallback base and the app image for a platform, runs the container with a throwaway raw PHP app mounted at <code>/citadel/src</code>, a throwaway secret mounted at <code>/run/secrets</code> and the compose file's least privilege (every capability dropped but the seven the app service adds back, <code>no-new-privileges</code>, 256 processes, 512 MB), runs the release as <code>citadel</code>, and then pipes <code>scripts/contract-image-checks.php</code> to <code>php</code> inside the container. One PASS or FAIL line per check:</p>
 <div class="docs-table" role="region" aria-label="Table" tabindex="0"><table>
 <thead>
 <tr>
@@ -256,13 +256,45 @@ docker build -f &quot;$base&quot; $args -t squire/php-parity-base:8.4 .squire   
 </table></div>
 <pre tabindex="0"><code class="language-sh">sh scripts/contract-image.sh --platform=linux/amd64
 sh scripts/contract-image.sh --platform=linux/arm64   # needs qemu emulation on an amd64 host
+sh scripts/contract-image.sh --base-image=citadel/php-apache:8.5r3   # Citadel's own image, already on this machine
 </code></pre>
-<p>GitHub CI runs it for both platforms on every push. It proves the fallback base, not the real Citadel image, which is internal: a green run is a contract, not a certificate.</p>
+<p>GitHub CI runs it on the fallback for both platforms on every push: a green run there is a contract, not a certificate.</p>
+<h3 id="on-citadel-s-own-image">On Citadel's own <span class="docs-heading-tail"><span>image</span><a class="docs-heading-link" aria-label="Link to this section" href="#on-citadel-s-own-image">#</a></span></h3>
+<p><code>--base-image=REF</code> runs the same contract on an image that is already on your machine instead of the fallback. For Citadel's own, <a rel="noopener" href="https://parity.apps.wayne.edu/">Parity</a>'s <code>parity image get</code> loads <code>citadel/php-apache:8.5r3</code> byte for byte (its image id is checked). The script never pulls the image: Citadel's images are internal, and something else with the same name would prove nothing. It stops if the image is missing or built for another platform.</p>
+<p>Three checks test what only the base image decides, which no file in your app can change: the Apache server directives (<code>ServerTokens</code>, <code>TraceEnable</code>, <code>ServerSignature</code>) and whether its entrypoint turns <code>/run/secrets</code> into variables for Apache. On the fallback those are the kit's promises and a miss is a FAIL. On any other image a miss prints a <code>GAP:</code> line, and the run ends with a count of them: true, worth knowing, the image owner's to fix, and not a failure of your app.</p>
+<p>On 2026-11-10 <code>citadel/php-apache:8.5r3</code> (image id <code>950dcf67937a</code>) passed every check the kit owns, on linux/amd64, in 80 seconds, under the compose file's least privilege, and showed three gaps:</p>
+<div class="docs-table" role="region" aria-label="Table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Gap</th>
+<th>What Citadel's image does</th>
+<th>What it means for your app</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Server</code> header</td>
+<td><code>Apache/2.4.69 (Debian)</code>: the version and the OS</td>
+<td>Every answer names the Apache version. Only the platform can set <code>ServerTokens Prod</code></td>
+</tr>
+<tr>
+<td>Error page footer</td>
+<td>Apache's own error pages carry the version footer</td>
+<td>The same, for <code>ServerSignature Off</code></td>
+</tr>
+<tr>
+<td>Secrets for the web</td>
+<td>the entrypoint does not read <code>/run/secrets</code></td>
+<td>On Citadel, <code>./.env</code> is the secret path, as above; the release script still reads <code>/run/secrets</code></td>
+</tr>
+</tbody>
+</table></div>
+<p><code>TRACE</code> already answers 405 there. Everything else held on Citadel's bytes: the first release at container start, a second release with the smoke test, <code>/up.php</code> and <code>health.php</code>, opcache in both cases (pulled in place and baked in), the web's <code>disable_functions</code>, the CLI keeping every function, a Composer script that shells out, and the secret's value in no log, layer or image config.</p>
 </article>
     </main>
     <nav class="docs-pager" aria-label="Pages"><a class="docs-pager__link" href="../../docs/guides/portable-image.html"><span class="docs-pager__dir">Previous</span><span class="docs-pager__title">The portable image</span></a><a class="docs-pager__link docs-pager__link--next" href="../../docs/guides/oracle.html"><span class="docs-pager__dir">Next</span><span class="docs-pager__title">Oracle</span></a></nav>
   </div>
-  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item"><a href="#apache-a-quieter-banner-no-trace">Apache: a quieter banner, no TRACE</a></li><li class="docs-toc__item"><a href="#opcache-set-by-how-your-code-arrives">opcache: set by how your code arrives</a></li><li class="docs-toc__item"><a href="#disable-functions-the-web-loses-the-shell">disable_functions: the web loses the shell</a></li><li class="docs-toc__item"><a href="#session-cookie-httponly-secure-samesite-lax">Session cookie: HttpOnly, Secure, SameSite=Lax</a></li><li class="docs-toc__item"><a href="#secrets-files-at-run-time-never-in-a-layer">Secrets: files at run time, never in a layer</a></li><li class="docs-toc__item"><a href="#npm-no-install-scripts-no-day-old-versions">npm: no install scripts, no day-old versions</a></li><li class="docs-toc__item"><a href="#base-images-pinned-by-digest">Base images: pinned by digest</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#through-a-proxy-or-a-mirror">Through a proxy or a mirror</a></li><li class="docs-toc__item"><a href="#the-image-contract-suite">The image contract suite</a></li></ul></nav>
+  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item"><a href="#apache-a-quieter-banner-no-trace">Apache: a quieter banner, no TRACE</a></li><li class="docs-toc__item"><a href="#opcache-set-by-how-your-code-arrives">opcache: set by how your code arrives</a></li><li class="docs-toc__item"><a href="#disable-functions-the-web-loses-the-shell">disable_functions: the web loses the shell</a></li><li class="docs-toc__item"><a href="#session-cookie-httponly-secure-samesite-lax">Session cookie: HttpOnly, Secure, SameSite=Lax</a></li><li class="docs-toc__item"><a href="#secrets-files-at-run-time-never-in-a-layer">Secrets: files at run time, never in a layer</a></li><li class="docs-toc__item"><a href="#npm-no-install-scripts-no-day-old-versions">npm: no install scripts, no day-old versions</a></li><li class="docs-toc__item"><a href="#base-images-pinned-by-digest">Base images: pinned by digest</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#through-a-proxy-or-a-mirror">Through a proxy or a mirror</a></li><li class="docs-toc__item"><a href="#the-image-contract-suite">The image contract suite</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#on-citadel-s-own-image">On Citadel&#039;s own image</a></li></ul></nav>
 </div>
 <footer class="docs-footer">
   <span>Documents Squire <span data-docs-version>0.10.8</span></span>
