@@ -12,12 +12,14 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ## Unreleased [#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+## 0.10.6 (2026-11-10) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-10-6-2026-11-10)
+
+- Fixed: the docs builder, agent-ready generator, template export and doctor scans walk folders with scandir, because PHP's recursive directory iterator lists only some files on Docker Desktop mounts (22 of Preflight's 28 guide pages went missing).
 - Site: `assets/stack-env.js` knows Parity, so a pre-production page links Parity's pre-production site and a dev page links its local `site/` folder. Until now Parity, of all parts, was the one link that ignored its environment.
 - Site: Parity is out; the party list links its site.
 - Changed: requires waynestate/pinstripe ^0.3 and waynestate/advisor ^0.3.
 - Docs: the 0.10.5 tag published the Oracle images, the first tag to do so: both flavors for PHP 8.3, 8.4 and 8.5, linux/arm64 only. The Oracle guide and MAINTAINING.md (What each tag published) list each image's list digest, for example `squire-oracle-sail:8.4-0.10.5@sha256:3d942883ea31c802e2a958542697941c6bff4b36989931e12e2c24289b690a87` and `squire-oracle-parity:8.4-0.10.5@sha256:531b22047eedfd4e8bceee4583cbce2d0aac3129d27afdae97aec8b22bb54367`. amd64 hosts still build locally until `SQUIRE_BUILD_AMD64=1`.
 - Docs: US spelling in the README and OPEN_QUESTIONS.md (flavors).
-- Fixed: the docs builder, agent-ready generator, template export and doctor scans walk folders with scandir, because PHP's recursive directory iterator lists only some files on Docker Desktop mounts (22 of Preflight's 28 guide pages went missing).
 
 ## 0.10.5 (2026-11-09) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-10-5-2026-11-09)
 
