@@ -13,6 +13,7 @@ Versioning once 1.0 is out.
 ## Unreleased
 
 - Changed: doctor rule S8 names every `.gitattributes` line to add (shell scripts, `.conf` files, Dockerfiles and PowerShell), the same pins PROCTOR's `gitattributes-eol` check wants, so following the doctor clears PROCTOR too.
+- Added: the kit ships a `.gitattributes` that pins line endings (LF for shell scripts, `.conf` files and Dockerfiles, CRLF for PowerShell and batch files), so a deploy layer in its own folder clears PROCTOR's `gitattributes-eol` and `crlf-deploy-script` warnings. An app that has its own `.gitattributes` keeps it: Squire never writes over it.
 - Changed: the GitHub workflow calls Preflight 0.5.0 (was 0.1.4), now that GitHub's copy of Preflight has the tag. MAINTAINING.md says the arm64 contract leg blocks, as it has since it passed on 2026-11-08.
 
 ## 0.10.6 (2026-11-10)

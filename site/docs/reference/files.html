@@ -76,6 +76,11 @@
 <td>All targets</td>
 </tr>
 <tr>
+<td><code>.gitattributes</code></td>
+<td>Pins line endings: LF for shell scripts, <code>.conf</code> files and Dockerfiles, CRLF for PowerShell and batch files, so a Windows checkout cannot break a deploy. Written only when the folder has none; never written over an app's own.</td>
+<td>All targets</td>
+</tr>
+<tr>
 <td><code>public/up.php</code></td>
 <td>The endpoint that answers <code>ok</code>. Laravel has <code>/up</code> built in.</td>
 <td>Raw PHP and static</td>
