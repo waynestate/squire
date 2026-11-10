@@ -476,6 +476,18 @@ final class ImageHardeningTest extends SquireTestCase
         );
     }
 
+    public function testTheOracleInstallNeverStopsToAskAboutAnOverwrite(): void
+    {
+        // The arm64 Basic Light and SDK zips share their META-INF signing files. A plain second unzip prompts
+        // "replace ...?", reads EOF in a build and fails, which broke every arm64 Oracle image build.
+        $script = $this->repoFile('images/oracle/install-oracle.sh');
+        preg_match_all('/^\s*unzip\s.*$/m', $script, $m);
+        self::assertCount(2, $m[0], 'one unzip for Basic Light, one for the SDK');
+        self::assertStringContainsString('basic_zip', $m[0][0]);
+        self::assertStringContainsString('sdk_zip', $m[0][1]);
+        self::assertMatchesRegularExpression('/\s-n\s/', $m[0][1], 'the SDK unzip never overwrites, so it never prompts');
+    }
+
     // --- PHP 8.4: the session ID length stays at PHP's defaults ------------------------------------------------------
 
     public function testPhpIniLeavesTheSessionIdLengthAtPhpsDefaults(): void

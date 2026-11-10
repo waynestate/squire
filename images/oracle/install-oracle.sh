@@ -99,9 +99,14 @@ actual_sdk="$(sha256sum "${workdir}/${sdk_zip}" | cut -d' ' -f1)"
 # --- unpack ----------------------------------------------------------------------------
 # The zips wrap their contents in a version-specific folder (for example
 # instantclient_21_7); flatten it so the client always lives at $ic_home.
+# The arm64 19.32 zips both carry the same zip-signing files (META-INF/), so
+# the SDK is unpacked with -n (never overwrite): Basic Light's files always
+# win, and unzip never stops to ask, which a build with no terminal reads as
+# "None" and fails. Nothing reads META-INF, so it goes.
 mkdir -p "$ic_home"
 unzip -q "${workdir}/${basic_zip}" -d "$ic_home"
-unzip -q "${workdir}/${sdk_zip}" -d "$ic_home"
+unzip -q -n "${workdir}/${sdk_zip}" -d "$ic_home"
+rm -rf "${ic_home:?}/META-INF"
 
 wrapper=""
 wrapper_count=0
