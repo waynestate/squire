@@ -15,7 +15,7 @@
         ".squire/base-fallback.Dockerfile": "4e0e380c7178e7553433e15e5017e8430d16819be8c75e12179785ece5332512",
         ".squire/fallback/citadel-apache-entrypoint": "061f6da51ba784c5820d8ba33d923c3eb14950006969a24adc83fb86c56db223",
         ".squire/fallback/citadel-deploy": "4203eb9458ab6910156622735da2ca026e2ac50420598c64e98cf3ef66603b90",
-        ".squire/haproxy.cfg": "bcbc3ea3a8fb19c991900a1275e0d6954b41a6a3c6ccaef1934eeebf9f6ab901",
+        ".squire/haproxy.cfg": "8dff538b5473b6027028f18520a6f92637c60ff77ec2c95eaeabc36db8b28a11",
         ".squire/php-web.ini": "4a584cdb8f7fb5c14458897e7019267a7d435bc3490d86f7eb40745f4c22e1a1",
         ".squire/php.ini": "897b909647d70a461ab8a5f4f46b90c560c72e4c2e6fafb9892f8625565de027",
         ".squire/portable.Dockerfile": "1ebe444ea3bf1b06ca443740b5a2de1d5bef3f8dd7846d381057ed50748bb818",

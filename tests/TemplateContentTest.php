@@ -151,6 +151,42 @@ final class TemplateContentTest extends SquireTestCase
         self::assertStringContainsString('http-request add-header X-Forwarded-Proto http', $config);
     }
 
+    /**
+     * Docker's embedded DNS answers on 127.0.0.11, but Podman's (aardvark-dns) answers on the network gateway, so a
+     * fixed nameserver times out a minute after `up` and HAProxy takes the app down (503). The proxy reads the
+     * engine's own /etc/resolv.conf instead (Parity 64bf3e8).
+     */
+    public function testTheProxyReadsTheEngineNameserverNotDockerLoopback(): void
+    {
+        $common = $this->read('common/.squire/haproxy.cfg');
+        $deploy = (string) file_get_contents(dirname(__DIR__) . '/deploy/.squire/haproxy.cfg');
+
+        foreach (['common/.squire/haproxy.cfg' => $common, 'deploy/.squire/haproxy.cfg' => $deploy] as $source => $config) {
+            self::assertStringContainsString('parse-resolv-conf', $config, $source);
+            self::assertStringNotContainsString('127.0.0.11', $config, $source);
+
+            $defined = [];
+            if (preg_match_all('/^resolvers\s+(\S+)/m', $config, $sections)) {
+                foreach ($sections[1] as $name) {
+                    $defined[$name] = true;
+                }
+            }
+            self::assertNotEmpty($defined, $source . ': no resolvers section defined');
+
+            $referenced = [];
+            if (preg_match_all('/^\s*server\b.*\bresolvers\s+(\S+)/m', $config, $servers)) {
+                foreach ($servers[1] as $name) {
+                    $referenced[$name] = true;
+                }
+            }
+            foreach (array_keys($referenced) as $name) {
+                self::assertArrayHasKey($name, $defined, $source . ': server references undefined resolvers section "' . $name . '"');
+            }
+        }
+
+        self::assertSame($common, $deploy, 'the deploy copy must be byte-identical to the template');
+    }
+
     public function testPowerShellTemplatesDoNotNeedBash(): void
     {
         $ps = $this->read('common/scripts/parity.ps1');
