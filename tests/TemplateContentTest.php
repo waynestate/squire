@@ -84,6 +84,9 @@ final class TemplateContentTest extends SquireTestCase
         self::assertStringContainsString('corepack pnpm install --frozen-lockfile $ignore_flag', $common);
         self::assertStringContainsString('npm run "$SQUIRE_NPM_BUILD_SCRIPT"', $common);
         self::assertStringContainsString('corepack pnpm run "$SQUIRE_NPM_BUILD_SCRIPT"', $common);
+        self::assertStringContainsString('corepack yarn install --frozen-lockfile --non-interactive $ignore_flag', $common, 'Yarn 1');
+        self::assertStringContainsString('corepack yarn install --immutable $yarn_skip', $common, 'Yarn 2 and later');
+        self::assertStringContainsString('corepack yarn run "$SQUIRE_NPM_BUILD_SCRIPT"', $common);
         self::assertFileDoesNotExist(Squire::templatesDir() . '/vue/scripts/release.sh', 'one release script, for every app');
     }
 

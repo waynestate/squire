@@ -127,12 +127,12 @@
 <tr>
 <td><code>SQUIRE_NPM_IGNORE_SCRIPTS</code></td>
 <td><code>1</code></td>
-<td>Install with <code>--ignore-scripts</code>.</td>
+<td>Install with <code>--ignore-scripts</code> (Yarn 2 and later: <code>--mode=skip-build</code>).</td>
 </tr>
 <tr>
 <td><code>SQUIRE_NPM_REBUILD</code></td>
 <td>empty</td>
-<td>Packages, separated by spaces, whose install scripts run after the install (<code>npm rebuild --ignore-scripts=false</code>, or <code>pnpm rebuild</code>; pnpm 10 also needs them in <code>pnpm.onlyBuiltDependencies</code>). The escape hatch for a package that needs its own scripts, such as a native addon.</td>
+<td>Packages, separated by spaces, whose install scripts run after the install (<code>npm rebuild --ignore-scripts=false</code>, <code>pnpm rebuild</code>, or <code>yarn rebuild</code> for Yarn 2 and later; Yarn 1 apps get <code>npm rebuild</code>; pnpm 10 also needs them in <code>pnpm.onlyBuiltDependencies</code>). The escape hatch for a package that needs its own scripts, such as a native addon.</td>
 </tr>
 <tr>
 <td><code>SQUIRE_NPM_BUILD_SCRIPT</code></td>

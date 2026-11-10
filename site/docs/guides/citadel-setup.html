@@ -43,7 +43,7 @@
 <h2 id="the-steps">The <span class="docs-heading-tail"><span>steps</span><a class="docs-heading-link" aria-label="Link to this section" href="#the-steps">#</a></span></h2>
 <ol>
 <li>In the dashboard set the build script to <code>build.sh</code>, the health check to <code>[&quot;php&quot;,&quot;health.php&quot;]</code>, and the Quick Update post-script to <code>./scripts/release.sh</code> (user <code>citadel</code>).</li>
-<li>Commit <code>composer.lock</code>, and <code>package-lock.json</code> or <code>pnpm-lock.yaml</code> if you have a frontend.</li>
+<li>Commit <code>composer.lock</code>, and <code>package-lock.json</code>, <code>pnpm-lock.yaml</code> or <code>yarn.lock</code> if you have a frontend.</li>
 <li>Mark the scripts executable in git. On Windows: <code>git update-index --chmod=+x build.sh scripts/*.sh deployments/*.sh</code>.</li>
 <li>Set <code>SQUIRE_*</code> values in the app's <code>./.env</code> configuration file (below), not in a file in the repository. The dashboard has no environment field; its configuration-files step, after the wizard, writes <code>./.env</code> into the source tree. A Laravel app reads <code>./.env</code> already; a raw PHP app loads it with <code>vlucas/phpdotenv</code> (<code>Dotenv\Dotenv::createUnsafeImmutable($root)-&gt;safeLoad()</code>), so <code>getenv()</code> sees the values and a real environment variable wins.</li>
 </ol>

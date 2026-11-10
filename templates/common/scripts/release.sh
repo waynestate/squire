@@ -534,8 +534,36 @@ else
             corepack pnpm rebuild "${rebuild[@]}"
         fi
         run_build=(corepack pnpm run "$SQUIRE_NPM_BUILD_SCRIPT")
+    elif [ -f yarn.lock ]; then
+        command -v corepack >/dev/null 2>&1 || fail "yarn.lock found but corepack is not on PATH"
+        # Two Yarns share the file name. Yarn 2 and later (Berry) write a __metadata: block and need package.json to
+        # name them in packageManager, or corepack hands the lock to Yarn 1, which cannot read it. Yarn 1 (Classic) is
+        # corepack's default and has no rebuild of named packages, so npm rebuilds those in its node_modules.
+        if grep -q '^__metadata:' yarn.lock; then
+            grep -q '"packageManager"[[:space:]]*:[[:space:]]*"yarn@' package.json \
+                || fail "yarn.lock is from Yarn 2 or later, but package.json has no \"packageManager\": \"yarn@...\" line; add one (corepack use yarn@4) so corepack runs that Yarn"
+            yarn_skip=""
+            if [ -n "$ignore_flag" ]; then
+                yarn_skip="--mode=skip-build"
+            fi
+            # shellcheck disable=SC2086  # the flag is empty or one word
+            corepack yarn install --immutable $yarn_skip
+            if [ "${#rebuild[@]}" -gt 0 ]; then
+                note "running install scripts for: ${rebuild[*]}"
+                corepack yarn rebuild "${rebuild[@]}"
+            fi
+        else
+            # shellcheck disable=SC2086  # the flag is empty or one word
+            corepack yarn install --frozen-lockfile --non-interactive $ignore_flag
+            if [ "${#rebuild[@]}" -gt 0 ]; then
+                command -v npm >/dev/null 2>&1 || fail "SQUIRE_NPM_REBUILD with Yarn 1 needs npm on PATH to rebuild the named packages"
+                note "running install scripts for: ${rebuild[*]}"
+                npm rebuild --ignore-scripts=false "${rebuild[@]}"
+            fi
+        fi
+        run_build=(corepack yarn run "$SQUIRE_NPM_BUILD_SCRIPT")
     else
-        fail "package.json has no package-lock.json or pnpm-lock.yaml; commit a lock file, or set SQUIRE_NPM=skip if the built assets are committed"
+        fail "package.json has no package-lock.json, pnpm-lock.yaml or yarn.lock; commit a lock file, or set SQUIRE_NPM=skip if the built assets are committed"
     fi
     if grep -q "\"${SQUIRE_NPM_BUILD_SCRIPT}\"[[:space:]]*:" package.json; then
         "${run_build[@]}"

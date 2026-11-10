@@ -42,13 +42,16 @@ final class ReleaseScriptCheck implements Check
 
         $hasNpmLock = $project->has('package-lock.json');
         $hasPnpmLock = $project->has('pnpm-lock.yaml');
+        $hasYarnLock = $project->has('yarn.lock');
         if (preg_match('/\bnpm\s+install\b(?!\s+(-g|--global))/', $code) === 1) {
             $findings[] = Finding::fail('S12', '`npm install` can change the lock file on the server. Use `npm ci`.', $release);
-        } elseif (($hasNpmLock && !str_contains($code, 'npm ci')) || ($hasPnpmLock && !str_contains($code, '--frozen-lockfile'))) {
-            $findings[] = Finding::warn('S12', 'The app has a JavaScript lock file but the release script does not install from it (npm ci, or pnpm install --frozen-lockfile).', $release);
+        } elseif (($hasNpmLock && !str_contains($code, 'npm ci'))
+            || ($hasPnpmLock && !str_contains($code, '--frozen-lockfile'))
+            || ($hasYarnLock && !str_contains($code, '--frozen-lockfile') && !str_contains($code, '--immutable'))) {
+            $findings[] = Finding::warn('S12', 'The app has a JavaScript lock file but the release script does not install from it (npm ci, pnpm install --frozen-lockfile, yarn install --frozen-lockfile, or yarn install --immutable).', $release);
         }
 
-        if ($hasNpmLock || $hasPnpmLock || $project->has('package.json')) {
+        if ($hasNpmLock || $hasPnpmLock || $hasYarnLock || $project->has('package.json')) {
             $findings[] = str_contains($code, '--ignore-scripts')
                 ? Finding::pass('S57', 'JavaScript packages install with --ignore-scripts.', $release)
                 : Finding::warn('S57', 'Install JavaScript packages with --ignore-scripts so a compromised package cannot run code at install time.', $release);

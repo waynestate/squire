@@ -559,7 +559,7 @@ can tell you where the armor is dented; only the knight gets to charge.
 
 1. In the dashboard set the build script to `build.sh`, the health check to `["php","health.php"]`, and the Quick Update
    post-script to `./scripts/release.sh` (user `citadel`).
-2. Commit `composer.lock`, and `package-lock.json` or `pnpm-lock.yaml` if you have a frontend.
+2. Commit `composer.lock`, and `package-lock.json`, `pnpm-lock.yaml` or `yarn.lock` if you have a frontend.
 3. Mark the scripts executable in git. On Windows: `git update-index --chmod=+x build.sh scripts/*.sh deployments/*.sh`.
 4. Set `SQUIRE_*` values in the app's `./.env` configuration file (below), not in a file in the repository. The
    dashboard has no environment field; its configuration-files step, after the wizard, writes `./.env` into the

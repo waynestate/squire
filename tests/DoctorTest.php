@@ -95,6 +95,7 @@ final class DoctorTest extends SquireTestCase
             'composer install keeps dev packages' => [$release("composer install --no-interaction\n"), 'S12:fail'],
             'no composer install at all' => [$release("echo hi\n"), 'S12:fail'],
             'npm install instead of npm ci' => [$release($good . "npm install\n"), 'S12:fail'],
+            'a yarn.lock the release never installs from' => [$release($good . "npm ci\n") + ['yarn.lock' => "# yarn lockfile v1\n"], 'S12:warn'],
             'a download piped into a shell' => [$release($good . "curl -s https://example.invalid/x | sh\n"), 'S4:fail'],
             'a script without set -e' => [['build.sh' => "#!/bin/sh\necho hi\n"] + $release($good), 'S3:warn'],
             'a bash script without pipefail' => [['scripts/release.sh' => "#!/usr/bin/env bash\nset -e\n" . $good] + $release(''), 'S3:warn'],
@@ -122,6 +123,28 @@ final class DoctorTest extends SquireTestCase
         $findings = $this->examine($this->app($files));
 
         self::assertContains($expected, $this->keys($findings), implode("\n", $this->keys($findings)));
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function yarnInstalls(): iterable
+    {
+        yield 'Yarn 1' => ["corepack yarn install --frozen-lockfile --ignore-scripts\n"];
+        yield 'Yarn 2 and later' => ["corepack yarn install --immutable --mode=skip-build\n"];
+    }
+
+    #[DataProvider('yarnInstalls')]
+    public function testAYarnLockInstalledFromTheLockRaisesNoLockWarning(string $install): void
+    {
+        $app = $this->app([
+            'build.sh' => "#!/bin/sh\nset -eu\n",
+            'scripts/release.sh' => "#!/usr/bin/env bash\nset -euo pipefail\ncomposer install --no-dev --no-interaction\n" . $install,
+            'package.json' => "{}\n",
+            'yarn.lock' => "# yarn lockfile v1\n",
+        ]);
+        $keys = $this->keys($this->examine($app));
+
+        self::assertContains('S12:pass', $keys);
+        self::assertNotContains('S12:warn', $keys);
     }
 
     public function testCommentsDoNotSatisfyARule(): void
