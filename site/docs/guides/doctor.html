@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Doctor | Squire docs</title>
 <meta name="description" content="What squire doctor checks (the S-rules), its handoff to PROCTOR, its text and json output, and its exit codes.">
-<meta name="docs-version" content="0.10.4">
+<meta name="docs-version" content="0.10.5">
 <link rel="stylesheet" href="../../assets/wayne-ui/wayne-ui.css">
 <link rel="stylesheet" href="../../assets/docs.css">
 <link rel="stylesheet" href="../../docs/theme/squire.css">
@@ -28,7 +28,7 @@
       <a href="../../index.html#party">The party</a>
       <a href="../../docs/index.html" aria-current="page">Documentation</a>
     </nav>
-    <span class="brand__version">v0.10.4</span>
+    <span class="brand__version">v0.10.5</span>
   </div>
 </header><div class="docs-layout docs-layout--toc">
   <details class="docs-menu">
@@ -212,6 +212,7 @@
 </tr>
 </tbody>
 </table></div>
+<p>The local parity rules (S35 to S37, S41, S67, S70, S71) check Squire's parity kit, which is deprecated as of 0.10.5. When the kit is there, <code>doctor</code> adds one S35 info line that points at <a rel="noopener" href="https://git.wayne.edu/enterprise-apps/parity">Parity</a>; when it is not, the S35 info line says how to start with Parity instead. Neither changes the exit code. Parity runs its own checks (<code>parity check</code>); see <a href="local-parity.html">Local parity</a>.</p>
 <h2 id="handoff-to-proctor-s50">Handoff to PROCTOR <span class="docs-heading-tail"><span>(S50)</span><a class="docs-heading-link" aria-label="Link to this section" href="#handoff-to-proctor-s50">#</a></span></h2>
 <p>The lock file (S13), composer audit and MySQL 5.6 safety (S18) are owned by PROCTOR; <code>doctor</code> no longer repeats them and hands off instead (S50). Each check has one owner; PROCTOR owns those, and <code>doctor</code> may run where PROCTOR is not installed.</p>
 <p>Drift from the Squire templates is reported as a warning under S9, never as a failure: you may edit your copies.</p>
@@ -230,7 +231,7 @@
   <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item"><a href="#what-it-checks">What it checks</a></li><li class="docs-toc__item"><a href="#the-s-rules">The S-rules</a></li><li class="docs-toc__item"><a href="#handoff-to-proctor-s50">Handoff to PROCTOR (S50)</a></li><li class="docs-toc__item"><a href="#output">Output</a></li><li class="docs-toc__item"><a href="#exit-codes">Exit codes</a></li></ul></nav>
 </div>
 <footer class="docs-footer">
-  <span>Documents Squire <span data-docs-version>0.10.4</span></span>
+  <span>Documents Squire <span data-docs-version>0.10.5</span></span>
   <span><a rel="noopener" href="https://github.com/waynestate/squire">Source</a> <a href="doctor.md">Markdown</a></span>
 </footer>
 </body>

@@ -192,6 +192,51 @@ final class ConsoleTest extends SquireTestCase
         self::assertSame(['parity'], $manifest['groups']);
     }
 
+    public function testInitAndUpdatePointAtParityWhenTheParityGroupIsInPlay(): void
+    {
+        $app = $this->app();
+        $init = $this->runSquire(['init', '--path=' . $app]);
+        self::assertSame(0, $init['exit'], $init['stderr']);
+        self::assertStringContainsString(Squire::PARITY_POINTER . "\n", $init['stdout']);
+        self::assertStringContainsString('https://git.wayne.edu/enterprise-apps/parity', Squire::PARITY_POINTER);
+        self::assertStringContainsString('parity init --from-squire', Squire::PARITY_POINTER);
+        self::assertStringContainsString('0.12.0', Squire::PARITY_POINTER);
+
+        // One line, and update says it before RESULT so RESULT stays last.
+        self::assertStringNotContainsString("\n", Squire::PARITY_POINTER);
+        $update = $this->runSquire(['update', '--path=' . $app]);
+        self::assertSame(0, $update['exit'], $update['stdout']);
+        self::assertStringContainsString(Squire::PARITY_POINTER . "\nRESULT: pass", $update['stdout']);
+
+        // --check stays a plain drift report.
+        $check = $this->runSquire(['init', '--check', '--path=' . $app]);
+        self::assertStringNotContainsString('Parity:', $check['stdout']);
+    }
+
+    public function testInitAndUpdateSayNothingAboutParityWithoutTheParityGroup(): void
+    {
+        $app = $this->app();
+        $init = $this->runSquire(['init', '--only=release', '--path=' . $app]);
+        self::assertSame(0, $init['exit'], $init['stderr']);
+        self::assertStringNotContainsString('Parity:', $init['stdout']);
+
+        $update = $this->runSquire(['update', '--path=' . $app]);
+        self::assertStringNotContainsString('Parity:', $update['stdout']);
+    }
+
+    public function testDoctorPointsAtParity(): void
+    {
+        $kit = $this->runSquire(['doctor', '--path=' . $this->initializedApp()]);
+        self::assertStringContainsString('INFO S35  The parity kit is deprecated', $kit['stdout']);
+        self::assertStringContainsString(Squire::PARITY_URL, $kit['stdout']);
+
+        $app = $this->app();
+        $this->runSquire(['init', '--only=release', '--path=' . $app]);
+        $none = $this->runSquire(['doctor', '--path=' . $app]);
+        self::assertStringContainsString('INFO S35  No local parity setup. Parity runs Citadel on your computer', $none['stdout']);
+        self::assertStringNotContainsString('squire init --only=parity', $none['stdout']);
+    }
+
     public function testUpdateExitsTwoWithoutAManifest(): void
     {
         $app = $this->app();

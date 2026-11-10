@@ -83,6 +83,7 @@
       [".term--doctor", false],
       [".os", false],
       [".parity__side", false],
+      [".handoff", false],
       [".field__stop", false]
     ];
     groups.forEach(function (g) {
@@ -192,6 +193,13 @@
   }).map(function (f) {
     return f[0];
   }).join(" ");
+  // Squire::PARITY_POINTER, which init prints whenever the parity group is in play.
+  var PARITY_LINE = {
+    html: '<span class="t-gold">Parity:</span> the parity group is deprecated (removed no sooner than 0.12.0). ' +
+      "Parity runs Citadel on your computer now; `parity init --from-squire` carries this kit over: " +
+      "https://git.wayne.edu/enterprise-apps/parity",
+    cls: ""
+  };
 
   var packer = document.querySelector("[data-packer]");
 
@@ -388,6 +396,7 @@
         });
         lines.push({ html: "Target: laravel. Wrote .squire.json.", cls: "" });
         lines.push({ html: esc(NEXT), cls: "" });
+        lines.push(PARITY_LINE);
         return print("vendor/bin/squire init", lines, function () {
           return 45;
         }).then(function () {
@@ -453,6 +462,7 @@
         });
         lines.push({ html: "Target: laravel. Wrote .squire.json.", cls: "" });
         lines.push({ html: esc(NEXT), cls: "" });
+        lines.push(PARITY_LINE);
         var flight = Promise.resolve();
         return print("vendor/bin/squire init --force", lines, function (l, n, instant) {
           if (wasEdited && FILES[n] && FILES[n][1] === "release" && !instant) {

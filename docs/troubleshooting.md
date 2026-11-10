@@ -5,7 +5,7 @@ description: "Symptoms, causes and fixes for the Squire setup, from permission e
 
 # Troubleshooting
 
-Symptoms you may meet setting up a Squire app, each with its cause, a fix and a check command. Only what the README and the open questions ground is listed here. Next, see [Doctor](guides/doctor.md) for the full rule list and [Local parity](guides/local-parity.md) for the parity setup.
+Symptoms you may meet setting up a Squire app, each with its cause, a fix and a check command. Only what the README and the open questions ground is listed here. Next, see [Doctor](guides/doctor.md) for the full rule list and [Local parity](guides/local-parity.md) for the parity setup. The `scripts/parity.sh` symptoms below belong to Squire's deprecated parity kit; [Parity](https://git.wayne.edu/enterprise-apps/parity), which replaces it, has its own `parity check`.
 
 ## Symptoms
 

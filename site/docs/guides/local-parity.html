@@ -5,8 +5,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Local parity | Squire docs</title>
-<meta name="description" content="Run your app on the Citadel PHP image behind a proxy like Citadel&#039;s, with the same MySQL 5.6.51: Docker requirements, WSL 2 advice, engines and licenses, the parity.sh and parity.ps1 commands, and the fallback build.">
-<meta name="docs-version" content="0.10.4">
+<meta name="description" content="Run Citadel on your computer with Parity, the stack&#039;s own tool, and move off Squire&#039;s deprecated parity kit; plus the kit itself while it lasts: Docker requirements, WSL 2 advice, engines and licenses, the parity.sh and parity.ps1 commands, and the fallback build.">
+<meta name="docs-version" content="0.10.5">
 <link rel="stylesheet" href="../../assets/wayne-ui/wayne-ui.css">
 <link rel="stylesheet" href="../../assets/docs.css">
 <link rel="stylesheet" href="../../docs/theme/squire.css">
@@ -28,7 +28,7 @@
       <a href="../../index.html#party">The party</a>
       <a href="../../docs/index.html" aria-current="page">Documentation</a>
     </nav>
-    <span class="brand__version">v0.10.4</span>
+    <span class="brand__version">v0.10.5</span>
   </div>
 </header><div class="docs-layout docs-layout--toc">
   <details class="docs-menu">
@@ -39,7 +39,21 @@
   <div class="docs-content">
     <main id="main">
       <article class="docs-article"><h1 id="local-parity">Local <span class="docs-heading-tail"><span>parity</span><a class="docs-heading-link" aria-label="Link to this section" href="#local-parity">#</a></span></h1>
-<p>This page sets up the local kit: your app on the Citadel image, behind an HA-Proxy that adds the same forwarding headers, with MySQL 5.6.51 beside it. Finish <a href="citadel-setup.html">Citadel setup</a> first if you have not run <code>squire init</code> yet.</p>
+<p>To run your app on Citadel's own PHP image, behind Citadel's proxy, with MySQL 5.6 beside it, use <a rel="noopener" href="https://git.wayne.edu/enterprise-apps/parity">Parity</a>. The rest of this page is Squire's older parity kit, which is deprecated.</p>
+<h2 id="use-parity">Use <span class="docs-heading-tail"><span>Parity</span><a class="docs-heading-link" aria-label="Link to this section" href="#use-parity">#</a></span></h2>
+<p>Parity is the stack's tool for running Citadel on your computer: one program, <code>parity</code>, for Windows, macOS and Linux (x64 and arm64), for any app, with or without Squire. It runs on Docker or Podman (Podman is recommended) and needs no PHP or Composer on your computer. It uses Citadel's own PHP image (checked against Citadel's, byte for byte), Citadel's <code>vhost.conf</code> and <code>php.ini</code>, an HAProxy that adds the same forwarding headers, and MySQL 5.6. It runs the files Squire writes (<code>build.sh</code>, <code>deployments/</code>, the health check) the way Citadel does, applies the app's <code>sign_in</code> setting, and runs its Citadel-style cron entries. Its commands are <code>check</code>, <code>init</code>, <code>up</code>, <code>down</code>, <code>status</code>, <code>logs</code>, <code>shell</code>, <code>image</code> and <code>test</code>.</p>
+<p>Coming from this kit, in the app's folder:</p>
+<!-- docs-test: skip needs Parity and a container engine -->
+<pre tabindex="0"><code class="language-sh">parity check                 # what to fix on this computer, one finding per line
+parity init --from-squire    # writes parity.json from docker-compose.squire.yml and .env.squire
+parity image get             # Citadel's image, checked against Citadel's
+parity up                    # build, start, and print the address
+</code></pre>
+<p><code>parity init --from-squire</code> carries the kit's settings over (base image, public folder, ports, database name, time zone, deployments) and leaves passwords and every other value behind; Parity makes its own local passwords. It lists the kit's files and deletes none of them. Two differences to expect: Parity runs Citadel's own <code>php.ini</code>, not the kit's hardened one, and the kit's <code>scheduler</code> and <code>worker</code> services become one cron entry that runs Laravel's scheduler every minute, because Citadel has cron and no services. Parity's <a rel="noopener" href="https://git.wayne.edu/enterprise-apps/parity">README</a> has the install line for each OS and the full command list.</p>
+<p>Squire still does its own job: it writes the files Citadel runs and checks them with <code>squire doctor</code>. Squire gets the app onto Citadel; Parity runs Citadel on your computer.</p>
+<h2 id="the-parity-kit-is-deprecated">The parity kit is <span class="docs-heading-tail"><span>deprecated</span><a class="docs-heading-link" aria-label="Link to this section" href="#the-parity-kit-is-deprecated">#</a></span></h2>
+<aside class="docs-callout docs-callout--warning" role="note"><p class="docs-callout__label">Warning</p><p>Squire's <code>parity</code> group (<code>docker-compose.squire.yml</code>, <code>.squire/</code>, <code>.env.squire.example</code>, <code>scripts/parity.sh</code> and <code>scripts/parity.ps1</code>) is deprecated as of Squire 0.10.5. It still works, and <code>squire init</code>, <code>squire update</code> and <code>squire doctor</code> say so in one line. It is removed no sooner than two minor releases and 60 days later: Squire 0.12.0, and not before 2027-01-08 (the stack's ADR-0022). When it goes, <code>squire update</code> removes only the kit files you never edited and prints where Parity is. The portable image files (<code>.squire/portable.Dockerfile</code>, <code>.squire/portable/</code>) are not leaving: they move to a group of their own.</p></aside>
+<p>The rest of this page sets up the kit for teams that still use it: your app on the Citadel image, behind an HA-Proxy that adds the same forwarding headers, with MySQL 5.6.51 beside it. Finish <a href="citadel-setup.html">Citadel setup</a> first if you have not run <code>squire init</code> yet.</p>
 <h2 id="requirements"><span class="docs-heading-tail"><span>Requirements</span><a class="docs-heading-link" aria-label="Link to this section" href="#requirements">#</a></span></h2>
 <p>Needs Docker with Compose v2. Windows needs Docker Desktop with the WSL 2 backend; no shell other than PowerShell is required.</p>
 <p><strong>On Windows, keep the source in the WSL 2 filesystem.</strong> Advice, not a requirement: keep the app's source tree inside the WSL 2 Linux filesystem (for example under <code>~/src</code> in your WSL distribution) and run <code>scripts/parity.sh</code> from there, not from a Windows folder such as <code>C:\Users\you\...</code> reached through <code>/mnt/c</code>. Bind mounts from the Windows side are much slower (Composer and npm installs feel it most), and file ownership and permissions do not map cleanly; that is the cause of the <code>Permission denied</code> failure described under the bind-mount question (OPEN_QUESTIONS 15). The PowerShell <code>scripts\parity.ps1</code> still works from a Windows folder, only slower.</p>
@@ -74,10 +88,10 @@ scripts\parity.ps1 up                  # or: scripts\parity.ps1 up -Fallback
     </main>
     <nav class="docs-pager" aria-label="Pages"><a class="docs-pager__link" href="../../docs/guides/mysql-upgrade-path.html"><span class="docs-pager__dir">Previous</span><span class="docs-pager__title">MySQL upgrade path</span></a><a class="docs-pager__link docs-pager__link--next" href="../../docs/guides/portable-image.html"><span class="docs-pager__dir">Next</span><span class="docs-pager__title">The portable image</span></a></nav>
   </div>
-  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item"><a href="#requirements">Requirements</a></li><li class="docs-toc__item"><a href="#engines-and-licenses">Engines and licenses</a></li><li class="docs-toc__item"><a href="#starting-parity">Starting parity</a></li><li class="docs-toc__item"><a href="#what-it-starts">What it starts</a></li><li class="docs-toc__item"><a href="#no-access-to-the-real-image">No access to the real image?</a></li><li class="docs-toc__item"><a href="#next">Next</a></li></ul></nav>
+  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item"><a href="#use-parity">Use Parity</a></li><li class="docs-toc__item"><a href="#the-parity-kit-is-deprecated">The parity kit is deprecated</a></li><li class="docs-toc__item"><a href="#requirements">Requirements</a></li><li class="docs-toc__item"><a href="#engines-and-licenses">Engines and licenses</a></li><li class="docs-toc__item"><a href="#starting-parity">Starting parity</a></li><li class="docs-toc__item"><a href="#what-it-starts">What it starts</a></li><li class="docs-toc__item"><a href="#no-access-to-the-real-image">No access to the real image?</a></li><li class="docs-toc__item"><a href="#next">Next</a></li></ul></nav>
 </div>
 <footer class="docs-footer">
-  <span>Documents Squire <span data-docs-version>0.10.4</span></span>
+  <span>Documents Squire <span data-docs-version>0.10.5</span></span>
   <span><a rel="noopener" href="https://github.com/waynestate/squire">Source</a> <a href="local-parity.md">Markdown</a></span>
 </footer>
 </body>

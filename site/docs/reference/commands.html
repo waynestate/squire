@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Commands | Squire docs</title>
 <meta name="description" content="Every squire command with its usage, arguments and options, plus the exit codes to expect.">
-<meta name="docs-version" content="0.10.4">
+<meta name="docs-version" content="0.10.5">
 <link rel="stylesheet" href="../../assets/wayne-ui/wayne-ui.css">
 <link rel="stylesheet" href="../../assets/docs.css">
 <link rel="stylesheet" href="../../docs/theme/squire.css">
@@ -28,7 +28,7 @@
       <a href="../../index.html#party">The party</a>
       <a href="../../docs/index.html" aria-current="page">Documentation</a>
     </nav>
-    <span class="brand__version">v0.10.4</span>
+    <span class="brand__version">v0.10.5</span>
   </div>
 </header><div class="docs-layout docs-layout--toc">
   <details class="docs-menu">
@@ -132,7 +132,7 @@
 </tr>
 <tr>
 <td><code>--only=VALUE</code></td>
-<td>Comma-separated groups to write: release, parity. (default: the groups recorded in .squire.json, else release, parity)</td>
+<td>Comma-separated groups to write: release, parity (deprecated: Parity runs Citadel locally now). (default: the groups recorded in .squire.json, else release, parity)</td>
 <td></td>
 </tr>
 <tr>
@@ -176,7 +176,7 @@
 </tr>
 <tr>
 <td><code>--only=VALUE</code></td>
-<td>Comma-separated groups to update: release, parity. (default: the groups recorded in .squire.json)</td>
+<td>Comma-separated groups to update: release, parity (deprecated: Parity runs Citadel locally now). (default: the groups recorded in .squire.json)</td>
 <td></td>
 </tr>
 <tr>
@@ -241,16 +241,18 @@
 <!-- /generated -->
 <h2 id="exit-codes">Exit <span class="docs-heading-tail"><span>codes</span><a class="docs-heading-link" aria-label="Link to this section" href="#exit-codes">#</a></span></h2>
 <p><code>0</code> pass, <code>1</code> findings (<code>init --check</code>: drift; <code>update</code>: an edited file still differs from the template; <code>doctor</code>: a failed rule), <code>2</code> the tool itself could not run.</p>
+<h2 id="the-parity-group-is-deprecated">The parity group is <span class="docs-heading-tail"><span>deprecated</span><a class="docs-heading-link" aria-label="Link to this section" href="#the-parity-group-is-deprecated">#</a></span></h2>
+<p>When the <code>parity</code> group is in play, <code>init</code> (not <code>init --check</code>) and <code>update</code> print one line before they finish, and <code>doctor</code> adds an S35 info finding that says the same: the group is deprecated, it is removed no sooner than Squire 0.12.0, and <a rel="noopener" href="https://git.wayne.edu/enterprise-apps/parity">Parity</a> runs Citadel on your computer now (<code>parity init --from-squire</code> carries the kit over). The exit codes do not change. See <a href="../guides/local-parity.html">Local parity</a>.</p>
 <h2 id="doctor-oracle">doctor <span class="docs-heading-tail"><span>oracle</span><a class="docs-heading-link" aria-label="Link to this section" href="#doctor-oracle">#</a></span></h2>
 <p><code>vendor/bin/squire doctor oracle</code> runs the same plain-language Oracle connection check that <code>release.sh</code> runs on Citadel, from your terminal or <code>sail php vendor/bin/squire doctor oracle</code>. It reads the <code>ORACLE_*</code> settings from the environment and the app's <code>.env</code>, prints setting names and never values, and stays silent when the app has no Oracle settings. Add <code>-v</code> for the client version.</p>
 </article>
     </main>
     <nav class="docs-pager" aria-label="Pages"><a class="docs-pager__link" href="../../docs/guides/docs-builder.html"><span class="docs-pager__dir">Previous</span><span class="docs-pager__title">The docs builder</span></a><a class="docs-pager__link docs-pager__link--next" href="../../docs/reference/configuration.html"><span class="docs-pager__dir">Next</span><span class="docs-pager__title">Configuration</span></a></nav>
   </div>
-  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item docs-toc__item--sub"><a href="#squire-doctor">squire doctor</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#squire-init">squire init</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#squire-update">squire update</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#options-every-command-accepts">Options every command accepts</a></li><li class="docs-toc__item"><a href="#exit-codes">Exit codes</a></li><li class="docs-toc__item"><a href="#doctor-oracle">doctor oracle</a></li></ul></nav>
+  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item docs-toc__item--sub"><a href="#squire-doctor">squire doctor</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#squire-init">squire init</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#squire-update">squire update</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#options-every-command-accepts">Options every command accepts</a></li><li class="docs-toc__item"><a href="#exit-codes">Exit codes</a></li><li class="docs-toc__item"><a href="#the-parity-group-is-deprecated">The parity group is deprecated</a></li><li class="docs-toc__item"><a href="#doctor-oracle">doctor oracle</a></li></ul></nav>
 </div>
 <footer class="docs-footer">
-  <span>Documents Squire <span data-docs-version>0.10.4</span></span>
+  <span>Documents Squire <span data-docs-version>0.10.5</span></span>
   <span><a rel="noopener" href="https://github.com/waynestate/squire">Source</a> <a href="commands.md">Markdown</a></span>
 </footer>
 </body>

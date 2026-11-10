@@ -7,6 +7,7 @@ namespace Waynestate\Squire\Doctor\Check;
 use Waynestate\Squire\Doctor\Check;
 use Waynestate\Squire\Doctor\Finding;
 use Waynestate\Squire\Doctor\Project;
+use Waynestate\Squire\Squire;
 
 /**
  * S35 to S37, S67, S70 and S71: the local setup matches Citadel (the real image, a proxy, MySQL 5.6, the health-check
@@ -20,10 +21,11 @@ final class ParityCheck implements Check
     {
         $compose = $project->read(self::COMPOSE);
         if ($compose === null) {
-            return [Finding::info('S35', 'No local parity setup (docker-compose.squire.yml). `squire init --only=parity` writes one.')];
+            return [Finding::info('S35', 'No local parity setup. Parity runs Citadel on your computer (`parity init`, then `parity up`): ' . Squire::PARITY_URL)];
         }
 
-        $findings = [];
+        // The kit still gets its checks while it is here, plus one line on where it is going (ADR-0022).
+        $findings = [Finding::info('S35', 'The parity kit is deprecated and leaves no sooner than Squire 0.12.0. Parity runs Citadel on your computer; `parity init --from-squire` carries the kit over: ' . Squire::PARITY_URL, self::COMPOSE)];
 
         $findings[] = preg_match('#citadel/php-apache:\d#', $compose) === 1
             ? Finding::pass('S35', 'The app runs on a Citadel PHP image.', self::COMPOSE)

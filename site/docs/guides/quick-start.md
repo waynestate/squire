@@ -62,7 +62,7 @@ Commit the `.squire.json` record file. `update` reads it to know which files Squ
 | `public/.htaccess` | Raw: sends every request but `index.php` and `up.php` to the front controller. Static: routes every request that is not a real file to it. |
 | `.npmrc` | Vue layer only: sets `min-release-age=1` for the frontend install. |
 | Vue `docker-compose.squire.yml` | Vue layer only: the common parity compose plus a Node 22 service for frontend tooling. |
-| `docker-compose.squire.yml`, `.squire/`, `.env.squire.example`, `scripts/parity.sh`, `scripts/parity.ps1` | Local parity. |
+| `docker-compose.squire.yml`, `.squire/`, `.env.squire.example`, `scripts/parity.sh`, `scripts/parity.ps1` | Local parity. Deprecated: [Parity](https://git.wayne.edu/enterprise-apps/parity) takes over (see [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html)). |
 
 Every shell script uses `set -euo pipefail` (`build.sh` uses `set -eu`, because Citadel runs it with `/bin/sh`), prints a `[squire] ==> step N: ...` marker for each step, and can be run twice with the same result.
 

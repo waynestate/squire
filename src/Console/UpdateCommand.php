@@ -13,6 +13,7 @@ use Waynestate\Squire\Squire;
 use Waynestate\Squire\Template\Catalog;
 use Waynestate\Squire\Template\FileResult;
 use Waynestate\Squire\Template\Manifest;
+use Waynestate\Squire\Template\Template;
 use Waynestate\Squire\Template\Updater;
 use Waynestate\Squire\ToolError;
 
@@ -29,7 +30,7 @@ final class UpdateCommand extends Command
             ->setDescription('Take new template versions for files Squire wrote that were never edited, add the files a newer release wrote, and show a diff for the edited ones.')
             ->addOption('path', null, InputOption::VALUE_REQUIRED, 'Path to the application.', '.')
             ->addOption('target', null, InputOption::VALUE_REQUIRED, 'raw, laravel or static (default: the target recorded in .squire.json).')
-            ->addOption('only', null, InputOption::VALUE_REQUIRED, 'Comma-separated groups to update: release, parity. (default: the groups recorded in .squire.json)')
+            ->addOption('only', null, InputOption::VALUE_REQUIRED, 'Comma-separated groups to update: release, parity (deprecated: Parity runs Citadel locally now). (default: the groups recorded in .squire.json)')
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Print the plan; write nothing.');
     }
 
@@ -82,6 +83,10 @@ final class UpdateCommand extends Command
             if ($result->diff !== null) {
                 $output->write($result->diff);
             }
+        }
+
+        if (in_array(Template::GROUP_PARITY, $groups, true)) {
+            $output->writeln(Squire::PARITY_POINTER);
         }
 
         $edited = array_filter($results, static fn(FileResult $r): bool => $r->state === FileResult::EDITED);

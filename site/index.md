@@ -12,7 +12,7 @@ The Citadel kit
 
 Suits you up for the Citadel.
 
-A squire carries the knight's kit. This one carries your app's. `squire init` writes the scripts Citadel runs when you deploy and `squire doctor` checks them. The parity setup runs your app on your laptop on the same PHP image and MySQL 5.6 as Citadel, behind the same kind of proxy.
+A squire carries the knight's kit. This one carries your app's. `squire init` writes the scripts Citadel runs when you deploy and `squire doctor` checks them. To run your app on your laptop on the same PHP image and MySQL 5.6 as Citadel, behind the same kind of proxy, Squire rides with [Parity](https://git.wayne.edu/enterprise-apps/parity).
 
 `$ composer require waynestate/squire --dev`
 
@@ -42,7 +42,7 @@ vendor/bin/squire init
 2. `deployments/001-first-release.sh` Runs once per app and calls the release with the smoke test off; Apache is not up yet.
 3. `scripts/release.sh` The idempotent release: install from the lock file, audit, ask PROCTOR's gate for a go or no-go, build, migrate, smoke-test `/up`. Also your Quick Update post-script.
 4. `health.php` Citadel's health check: one request to `/up`, never boots the framework.
-5. `The parity kit 19 files` `docker-compose.squire.yml`, `.squire/`, `.env.squire.example`, `scripts/parity.sh` and `scripts/parity.ps1`: Citadel on your machine, and the portable image for everywhere else.
+5. `The parity kit 19 files` `docker-compose.squire.yml`, `.squire/`, `.env.squire.example`, `scripts/parity.sh` and `scripts/parity.ps1`: Citadel on your machine, and the portable image for everywhere else. The local half is deprecated: Parity takes it over.
 
 ![Squire's satchel](https://squire.apps.wayne.edu/brand/squire-avatar-512.png)
 
@@ -89,6 +89,8 @@ created scripts/parity.ps1 (written from the template)
 created .env.squire.example (written from the template)
 
 Target: laravel. Wrote .squire.json.
+
+Parity: the parity group is deprecated (removed no sooner than 0.12.0). Parity runs Citadel on your computer now; \`parity init --from-squire\` carries this kit over: https://git.wayne.edu/enterprise-apps/parity
 
 Every shell script runs with `set -euo pipefail`, prints a `[squire] ==> step N` marker, and gives the same result when you run it twice. Pack half the bag with `--only=release` or `--only=parity`.
 
@@ -152,7 +154,15 @@ Local parity
 
 ## Practice on the real field
 
-Parity runs your app on the Citadel PHP image, behind an HA-Proxy that adds the same forwarding headers, with MySQL 5.6.51 beside it. If something would only break on Citadel, you should see it on your laptop first.
+The parity kit runs your app on the Citadel PHP image, behind an HA-Proxy that adds the same forwarding headers, with MySQL 5.6.51 beside it. If something would only break on Citadel, you should see it on your laptop first.
+
+Squire hands this job on
+
+### Parity runs Citadel on your computer now
+
+[Parity](https://git.wayne.edu/enterprise-apps/parity) is the stack's own tool for this: one program for Windows, macOS and Linux that runs Citadel's PHP image, its proxy and MySQL 5.6 for any app, with or without Squire, on Docker or Podman (Podman recommended). `parity init --from-squire` carries this kit's settings over and deletes nothing.
+
+The kit below still works, and is deprecated as of Squire 0.10.5. It leaves no sooner than Squire 0.12.0, and not before 2027-01-08. The portable image stays with Squire.
 
 1. Your browser on localhost
 2. HA-Proxy adds X-Forwarded-For and -Proto
@@ -247,12 +257,13 @@ Squire is one part of WELD, the Wayne State application stack. It rides last. Th
 - **[ADVISOR](https://advisor.apps.wayne.edu/)** what applies, and what next
 - **[Drawbridge](https://drawbridge.apps.wayne.edu/)** the Citadel sign-in gateway
 - **Squire** the Citadel kit
+- **[Parity](https://git.wayne.edu/enterprise-apps/parity)** Citadel on your computer
 
 Known limits
 
 ## Scuffs on the leather
 
-Squire 0.7.1 is tagged and on Packagist. Where we had to guess how Citadel behaves, `OPEN_QUESTIONS.md` lists each guess and the default it chose.
+Squire 0.10.5 is tagged and on Packagist. Where we had to guess how Citadel behaves, `OPEN_QUESTIONS.md` lists each guess and the default it chose.
 
 - The local `php.ini` holds the safe defaults HELMET also enforces at runtime, not the platform's file.
 - The Citadel image has no registry digest to pin yet; doctor warns under S67 until you run `pin`.

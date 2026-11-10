@@ -17,7 +17,7 @@ Documentation: [squire.apps.wayne.edu/docs/](https://squire.apps.wayne.edu/docs/
 
 Checks: `composer ci` (the same command runs on GitLab and GitHub).
 
-Squire is the Citadel kit: build.sh, the release script, the health check, and local parity on the real images. Its docs builder turns `docs/` into the committed pages under `site/docs/`, with a changelog page generated from `CHANGELOG.md` when the nav lists one. It is part of WELD, the Wayne State application stack, beside WayneUI (project 0, the interface layer), CREED, PROCTOR, Preflight, SESAME, HELMET, Pinstripe and Sourdough.
+Squire is the Citadel kit: build.sh, the release script, the health check, and local parity on the real images. Its docs builder turns `docs/` into the committed pages under `site/docs/`, with a changelog page generated from `CHANGELOG.md` when the nav lists one. It is part of WELD, the Wayne State application stack, beside WayneUI (project 0, the interface layer), CREED, PROCTOR, Preflight, SESAME, HELMET, Pinstripe, Sourdough and [Parity](https://git.wayne.edu/enterprise-apps/parity). Squire gets the app onto Citadel; Parity runs Citadel on your computer, and takes over from Squire's own parity kit, which is deprecated (see [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html)).
 
 **Not to be confused with:** `squire doctor` checks deploy setup only; standards checks are PROCTOR's.
 
@@ -26,7 +26,7 @@ Squire is the Citadel kit: build.sh, the release script, the health check, and l
 Front page: [`site/index.html`](site/index.html), a static page you can serve from anywhere.
 On Citadel it is served by the raw-PHP deploy layer in [`deploy/`](deploy/): a Squire kit whose front controller serves `site/` behind HELMET's security headers. For local development, keep serving `site/` directly.
 
-Status: 0.10.4, tagged and on Packagist.
+Status: 0.10.5, tagged and on Packagist.
 
 ## Where the code lives
 
@@ -70,6 +70,7 @@ The pages under `docs/` build into the committed site at `site/docs/`: rebuild w
 - `squire doctor` checks an app against the best practices a machine can decide ([BEST_PRACTICES.md](BEST_PRACTICES.md)).
   The lock file, composer audit and MySQL 5.6 checks are owned by PROCTOR; `doctor` hands off to it (S50) instead of repeating them.
 - A local setup that runs your app on the Citadel PHP image, behind a proxy like Citadel's, with the same MySQL 5.6.
+  Deprecated as of 0.10.5: [Parity](https://git.wayne.edu/enterprise-apps/parity) does this job now.
 - Squire's maintainers send platform improvement proposals to the platform team privately. Squire never touches a server.
 
 ## Install
@@ -101,7 +102,8 @@ settings. Add `-v` for the client version.
 
 `init` never overwrites a file you edited, or a file it did not write, unless you pass `--force`. It records a SHA-256 of
 each file in `.squire.json`; commit that file. `--only=release` writes just the Citadel scripts, `--only=parity` just the
-local setup.
+local setup. When the parity group is in play, `init` and `update` end with one line that says it is deprecated and
+points at Parity, and `doctor` adds an S35 info line that says the same.
 The release installs from the lock file, so when the app has no `composer.json` or no `composer.lock`, `init` ends with a "Heads up" line: commit both before the first deploy (`composer init`, then `composer update`), or the release stops at step 1.
 
 A Vue/Inertia app is a layer on `raw`, `laravel` or `static`, not a fourth target: `init` detects `vue` in `package.json`
@@ -567,6 +569,19 @@ can tell you where the armor is dented; only the knight gets to charge.
 
 ## Local parity
 
+**Use [Parity](https://git.wayne.edu/enterprise-apps/parity) to run Citadel on your computer.** It is the stack's own
+tool for this job: one program for Windows, macOS and Linux, for any app, with or without Squire, on Docker or Podman
+(Podman recommended), with Citadel's PHP image, Citadel's proxy and MySQL 5.6. It runs the files Squire writes the way
+Citadel does, applies the app's `sign_in` setting and runs its Citadel-style cron entries. Coming from this kit, run
+`parity init --from-squire` in the app's folder: it carries the kit's settings over (never its passwords) and deletes
+nothing. Then `parity image get` and `parity up`. Full page:
+[Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html).
+
+**Squire's parity kit is deprecated** as of 0.10.5. It still works. It is removed no sooner than two minor releases
+and 60 days later, so Squire 0.12.0 and not before 2027-01-08 (the stack's ADR-0022); `squire update` will then remove
+only the kit files you never edited. The portable image files stay with Squire, in a group of their own. The rest of
+this section is the kit, for teams still on it.
+
 Needs Docker with Compose v2. Windows needs Docker Desktop with the WSL 2 backend; no shell other than PowerShell is
 required.
 
@@ -662,10 +677,13 @@ The names above are the local names of scripts/oracle-image-build.sh. The publis
 `images` project (the stack's shared image registry; Squire's own GitLab has no container registry), at
 `<registry>/enterprise-apps/images/squire-oracle-parity:8.4` and `<registry>/enterprise-apps/images/squire-oracle-sail:8.4`
 (`<registry>` is the registry address of the images project shown on its Container Registry page), plus
-`:8.4-<squire version>` for a fixed one. CI is set to publish them when a Squire version is tagged, multi-arch
-(linux/amd64 and linux/arm64); a Sail app swaps `build:` for `image:` with that path. Not yet, though: the CI
-runner cannot build linux/amd64, so no tag has published them so far (MAINTAINING.md, Publishing the Oracle
-images). Until it can, build them locally with scripts/oracle-image-build.sh.
+`:8.4-<squire version>` for a fixed one; a Sail app swaps `build:` for `image:` with that path.
+
+**The published images are linux/arm64 only, for now.** From Squire 0.10.5, a tag publishes both flavours for PHP
+8.3, 8.4 and 8.5 for linux/arm64 (Apple silicon, arm64 Linux hosts). The CI runner cannot build linux/amd64 yet, so
+on an amd64 computer, Citadel-shaped hosts included, build them locally with scripts/oracle-image-build.sh until it
+can. One switch turns amd64 back on: the CI variable `SQUIRE_BUILD_AMD64=1`, once the runner host can emulate amd64
+(MAINTAINING.md, Publishing the Oracle images).
 
 Both flavours download Oracle's Instant Client Basic Light at build time under Oracle's license and never commit
 it: the install script pins the exact SHA-256 of each zip. Oracle does not publish a 21.x client for arm64, so the
@@ -785,6 +803,7 @@ MIT, copyright Wayne State University. A squire carries the armor; the knight st
   <a href="https://github.com/waynestate/helmet"><img src="docs/readme/cast/helmet.png" width="44" alt="HELMET"></a>
   <a href="https://github.com/waynestate/sourdough"><img src="docs/readme/cast/sourdough.png" width="44" alt="Sourdough"></a>
   <a href="https://github.com/waynestate/squire"><img src="docs/readme/cast/squire.png" width="44" alt="Squire"></a>
+  <a href="https://git.wayne.edu/enterprise-apps/parity"><img src="docs/readme/cast/parity.png" width="44" alt="Parity"></a>
   <a href="https://github.com/waynestate/preflight"><img src="docs/readme/cast/preflight.png" width="44" alt="Preflight"></a>
   <a href="https://github.com/waynestate/pinstripe"><img src="docs/readme/cast/pinstripe.png" width="44" alt="Pinstripe"></a>
   <a href="https://github.com/waynestate/booster"><img src="docs/readme/cast/booster.png" width="44" alt="Booster"></a>

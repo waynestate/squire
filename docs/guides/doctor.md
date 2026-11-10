@@ -45,6 +45,8 @@ This page explains what `squire doctor` checks (the S-rules), how it hands off t
 | S71 | warn | The local health check uses Citadel's timing (5 minutes, 15 seconds). | A slow `/up` shows up before it ships. |
 | S78 | warn | A Vue app does not track `node_modules/` in git. | Dependencies are rebuilt from the lock file; the tree is not source. |
 
+The local parity rules (S35 to S37, S41, S67, S70, S71) check Squire's parity kit, which is deprecated as of 0.10.5. When the kit is there, `doctor` adds one S35 info line that points at [Parity](https://git.wayne.edu/enterprise-apps/parity); when it is not, the S35 info line says how to start with Parity instead. Neither changes the exit code. Parity runs its own checks (`parity check`); see [Local parity](local-parity.md).
+
 ## Handoff to PROCTOR (S50)
 
 The lock file (S13), composer audit and MySQL 5.6 safety (S18) are owned by PROCTOR; `doctor` no longer repeats them and hands off instead (S50). Each check has one owner; PROCTOR owns those, and `doctor` may run where PROCTOR is not installed.

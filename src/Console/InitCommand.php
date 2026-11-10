@@ -28,7 +28,7 @@ final class InitCommand extends Command
             ->setDescription('Write the standard Citadel scripts into an app, or report drift with --check.')
             ->addOption('path', null, InputOption::VALUE_REQUIRED, 'Path to the application.', '.')
             ->addOption('target', null, InputOption::VALUE_REQUIRED, 'raw, laravel or static (default: the target recorded in .squire.json, else laravel when an artisan file exists; static must be asked for).')
-            ->addOption('only', null, InputOption::VALUE_REQUIRED, 'Comma-separated groups to write: release, parity. (default: the groups recorded in .squire.json, else release, parity)')
+            ->addOption('only', null, InputOption::VALUE_REQUIRED, 'Comma-separated groups to write: release, parity (deprecated: Parity runs Citadel locally now). (default: the groups recorded in .squire.json, else release, parity)')
             ->addOption('check', null, InputOption::VALUE_NONE, 'Write nothing; report files that are missing, outdated or edited. Exit 1 on drift.')
             ->addOption('force', null, InputOption::VALUE_NONE, 'Overwrite files that were edited or that Squire did not write.');
     }
@@ -100,6 +100,9 @@ final class InitCommand extends Command
         );
         $output->writeln('Next: git update-index --chmod=+x ' . implode(' ', $executables));
         $output->writeln('      (Git on Windows does not record the executable bit; Citadel also marks deployments/ and Quick Update scripts executable.)');
+        if (in_array(Template::GROUP_PARITY, $groups, true)) {
+            $output->writeln(Squire::PARITY_POINTER);
+        }
 
         // The release script stops at step 1 without these two files, so the first deploy would fail. Say so now,
         // not in the deployment log. Found by the 2026-11-05 proof run: 31 of 82 Wayne State apps had no lock file.

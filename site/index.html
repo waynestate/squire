@@ -51,7 +51,7 @@
       <a href="#party">The party</a>
       <a href="docs/">Documentation</a>
     </nav>
-    <span class="brand__version">v<span data-docs-version>0.10.4</span></span>
+    <span class="brand__version">v<span data-docs-version>0.10.5</span></span>
   </div>
 </header>
 
@@ -85,7 +85,7 @@
           <span class="hero__letters" aria-hidden="true"><span style="--i:0">S</span><span style="--i:1">Q</span><span style="--i:2">U</span><span style="--i:3">I</span><span style="--i:4">R</span><span style="--i:5">E</span></span>
         </h1>
         <p class="hero__tagline">Suits you up for <span class="strap">the Citadel.<span class="strap__band" aria-hidden="true"></span><span class="strap__buckle" aria-hidden="true"></span></span></p>
-        <p class="hero__blurb">A squire carries the knight's kit. This one carries your app's. <code>squire init</code> writes the scripts Citadel runs when you deploy and <code>squire doctor</code> checks them. The parity setup runs your app on your laptop on the same PHP image and MySQL 5.6 as Citadel, behind the same kind of proxy.</p>
+        <p class="hero__blurb">A squire carries the knight's kit. This one carries your app's. <code>squire init</code> writes the scripts Citadel runs when you deploy and <code>squire doctor</code> checks them. To run your app on your laptop on the same PHP image and MySQL 5.6 as Citadel, behind the same kind of proxy, Squire rides with <a href="https://git.wayne.edu/enterprise-apps/parity">Parity</a>.</p>
         <div class="quickstart">
           <code class="quickstart__code" id="quickstart-cmd" tabindex="0"><span class="t-dim">$</span> composer require waynestate/squire <span class="quickstart__flag">--dev</span></code>
           <button class="copy-btn" type="button" data-copy="composer require waynestate/squire --dev">
@@ -178,7 +178,7 @@ Ask me before you guess.</code></pre>
               <span class="item__check" aria-hidden="true"></span>
               <span class="item__body">
                 <code class="item__name">The parity kit <span class="item__count">19 files</span></code>
-                <span class="item__what"><code>docker-compose.squire.yml</code>, <code>.squire/</code>, <code>.env.squire.example</code>, <code>scripts/parity.sh</code> and <code>scripts/parity.ps1</code>: Citadel on your machine, and the portable image for everywhere else.</span>
+                <span class="item__what"><code>docker-compose.squire.yml</code>, <code>.squire/</code>, <code>.env.squire.example</code>, <code>scripts/parity.sh</code> and <code>scripts/parity.ps1</code>: Citadel on your machine, and the portable image for everywhere else. The local half is deprecated: Parity takes it over.</span>
               </span>
               <span class="stamp" aria-hidden="true">Packed</span>
             </span>
@@ -232,6 +232,7 @@ Ask me before you guess.</code></pre>
 <p>created           scripts/parity.ps1  <span class="t-dim">(written from the template)</span></p>
 <p>created           .env.squire.example  <span class="t-dim">(written from the template)</span></p>
 <p>Target: laravel. Wrote .squire.json.</p>
+<p><span class="t-gold">Parity:</span> the parity group is deprecated (removed no sooner than 0.12.0). Parity runs Citadel on your computer now; `parity init --from-squire` carries this kit over: https://git.wayne.edu/enterprise-apps/parity</p>
             </div>
           </div>
         </div>
@@ -308,8 +309,20 @@ Ask me before you guess.</code></pre>
       <div class="section__head">
         <p class="label">Local parity</p>
         <h2 id="parity-title">Practice on the real field</h2>
-        <p>Parity runs your app on the Citadel PHP image, behind an HA-Proxy that adds the same forwarding headers, with MySQL 5.6.51 beside it. If something would only break on Citadel, you should see it on your laptop first.</p>
+        <p>The parity kit runs your app on the Citadel PHP image, behind an HA-Proxy that adds the same forwarding headers, with MySQL 5.6.51 beside it. If something would only break on Citadel, you should see it on your laptop first.</p>
       </div>
+
+      <!-- The handoff. Parity's mark tilts in and levels out; the mark itself
+           is copied, never redrawn. -->
+      <aside class="handoff" aria-labelledby="handoff-title">
+        <span class="handoff__mark"><img src="assets/marks/parity.png" width="72" height="72" alt=""></span>
+        <div class="handoff__body">
+          <p class="handoff__kicker">Squire hands this job on</p>
+          <h3 class="handoff__title" id="handoff-title">Parity runs Citadel on your computer now</h3>
+          <p><a href="https://git.wayne.edu/enterprise-apps/parity">Parity</a> is the stack's own tool for this: one program for Windows, macOS and Linux that runs Citadel's PHP image, its proxy and MySQL 5.6 for any app, with or without Squire, on Docker or Podman (Podman recommended). <code>parity init --from-squire</code> carries this kit's settings over and deletes nothing.</p>
+          <p class="handoff__fine">The kit below still works, and is deprecated as of Squire 0.10.5. It leaves no sooner than Squire 0.12.0, and not before 2027-01-08. The portable image stays with Squire.</p>
+        </div>
+      </aside>
 
       <!-- Stitched lanes sit in the gaps between the stations, never under them. -->
       <ol class="field" data-field>
@@ -457,6 +470,7 @@ scripts\parity.ps1 up                  <span class="t-dim"># or: scripts\parity.
             <li><img src="assets/marks/advisor.png" width="40" height="40" alt=""><span><b><a class="part-link" href="https://advisor.apps.wayne.edu/">ADVISOR</a></b> what applies, and what next</span></li>
             <li><img src="assets/marks/drawbridge.png" width="40" height="40" alt=""><span><b><a class="part-link" href="https://drawbridge.apps.wayne.edu/">Drawbridge</a></b> the Citadel sign-in gateway</span></li>
             <li class="is-here"><img src="brand/squire-avatar-256.png" width="40" height="40" alt=""><span><b>Squire</b> the Citadel kit</span></li>
+            <li><img src="assets/marks/parity.png" width="40" height="40" alt=""><span><b><a class="part-link" href="https://git.wayne.edu/enterprise-apps/parity">Parity</a></b> Citadel on your computer</span></li>
           </ul>
         </div>
       </div>
@@ -469,7 +483,7 @@ scripts\parity.ps1 up                  <span class="t-dim"># or: scripts\parity.
       <div class="section__head">
         <p class="label label--on-leather">Known limits</p>
         <h2 id="limits-title">Scuffs on the leather</h2>
-        <p>Squire 0.7.1 is tagged and on Packagist. Where we had to guess how Citadel behaves, <code>OPEN_QUESTIONS.md</code> lists each guess and the default it chose.</p>
+        <p>Squire 0.10.5 is tagged and on Packagist. Where we had to guess how Citadel behaves, <code>OPEN_QUESTIONS.md</code> lists each guess and the default it chose.</p>
       </div>
       <ul class="dents">
         <li>The local <code>php.ini</code> holds the safe defaults HELMET also enforces at runtime, not the platform's file.</li>

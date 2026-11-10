@@ -1,6 +1,6 @@
 ---
 title: "Upgrading"
-description: "What changed in each released minor of Squire (0.10.4, 0.10.3, 0.10.2, 0.10.1, 0.10.0, 0.9.0, 0.8.0, 0.7.1, 0.7.0, 0.6.0, 0.5.0, 0.4.0 and the 0.3.x line), the steps to move an app to them, and how to verify the upgrade held."
+description: "What changed in each released minor of Squire (0.10.5, 0.10.4, 0.10.3, 0.10.2, 0.10.1, 0.10.0, 0.9.0, 0.8.0, 0.7.1, 0.7.0, 0.6.0, 0.5.0, 0.4.0 and the 0.3.x line), the steps to move an app to them, and how to verify the upgrade held."
 ---
 
 # Upgrading
@@ -16,6 +16,20 @@ vendor/bin/squire init --check
 vendor/bin/squire update --dry-run
 
 `squire init --check` reports when your copies have drifted from the templates; it exits `0` when they match and `1` when they have. `squire update --dry-run` prints the plan and writes nothing; it exits `1` when an edited file still differs from the template. Exit `2` means the tool itself could not run. For the full command reference, see [Commands](reference/commands.md).
+
+## 0.10.5 (2026-11-09)
+
+No breaks: a patch on 0.10.4, and no kit file changes, so `squire update` has nothing to take. Squire's `parity` group is deprecated: [Parity](https://git.wayne.edu/enterprise-apps/parity), the stack's own tool, runs Citadel on your computer now, and `init`, `update` and `doctor` each say so in one line when the group is in play. The kit still works and is removed no sooner than Squire 0.12.0, and not before 2027-01-08. The PHP 8.5 Oracle images build again, and tags publish the Oracle images for linux/arm64 only (amd64 users build them locally).
+
+### Steps
+
+1. Update the `waynestate/squire` dev dependency: `composer update waynestate/squire` when the app already requires `^0.10`, otherwise `composer require --dev waynestate/squire:^0.10.5`.
+2. If the app uses Squire's parity kit, move to Parity before 0.12.0: install it, then run `parity init --from-squire`, `parity image get` and `parity up` in the app's folder ([Local parity](guides/local-parity.md)). Keep the kit files until you have; nothing deletes them yet.
+3. On an Apple silicon Mac or an arm64 Linux host, an app can pull the published Oracle images instead of building them ([Oracle](guides/oracle.md)). On amd64, keep building them with `scripts/oracle-image-build.sh`.
+
+### How to verify
+
+Run the two checks at the top of this page; both exit `0`. `squire update --dry-run` on an app with the parity group ends with the Parity line, and `squire doctor` shows an S35 info line pointing at Parity.
 
 ## 0.10.4 (2026-11-09)
 

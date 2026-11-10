@@ -24,6 +24,6 @@ The canonical repository is [git.wayne.edu/enterprise-apps/squire](https://git.w
 
 ## Its place in the stack [#](https://squire.apps.wayne.edu/docs/#its-place-in-the-stack)
 
-Squire is part of WELD, the Wayne State application stack, beside WayneUI (project 0, the interface layer every other project builds on), CREED, PROCTOR, Preflight, SESAME, HELMET, Pinstripe, Sourdough, Booster, Rollcall, Drawbridge and ADVISOR.
+Squire is part of WELD, the Wayne State application stack, beside WayneUI (project 0, the interface layer every other project builds on), CREED, PROCTOR, Preflight, SESAME, HELMET, Pinstripe, Sourdough, [Parity](https://git.wayne.edu/enterprise-apps/parity), Booster, Rollcall, Drawbridge and ADVISOR. Squire gets the app onto Citadel; Parity runs Citadel on your computer.
 
 > A knight never suits up alone. Your app shouldn't deploy alone either.

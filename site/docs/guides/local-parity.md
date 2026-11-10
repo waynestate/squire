@@ -1,6 +1,6 @@
 ---
 title: "Local parity | Squire docs"
-description: "Run your app on the Citadel PHP image behind a proxy like Citadel's, with the same MySQL 5.6.51: Docker requirements, WSL 2 advice, engines and licenses, the parity.sh and parity.ps1 commands, and the fallback build."
+description: "Run Citadel on your computer with Parity, the stack's own tool, and move off Squire's deprecated parity kit; plus the kit itself while it lasts: Docker requirements, WSL 2 advice, engines and licenses, the parity.sh and parity.ps1 commands, and the fallback build."
 url: https://squire.apps.wayne.edu/docs/guides/local-parity.html
 llms: https://squire.apps.wayne.edu/llms.txt
 generator: Squire agent-ready
@@ -8,7 +8,32 @@ generator: Squire agent-ready
 
 # Local parity [#](https://squire.apps.wayne.edu/docs/guides/local-parity.html#local-parity)
 
-This page sets up the local kit: your app on the Citadel image, behind an HA-Proxy that adds the same forwarding headers, with MySQL 5.6.51 beside it. Finish [Citadel setup](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html) first if you have not run `squire init` yet.
+To run your app on Citadel's own PHP image, behind Citadel's proxy, with MySQL 5.6 beside it, use [Parity](https://git.wayne.edu/enterprise-apps/parity). The rest of this page is Squire's older parity kit, which is deprecated.
+
+## Use Parity [#](https://squire.apps.wayne.edu/docs/guides/local-parity.html#use-parity)
+
+Parity is the stack's tool for running Citadel on your computer: one program, `parity`, for Windows, macOS and Linux (x64 and arm64), for any app, with or without Squire. It runs on Docker or Podman (Podman is recommended) and needs no PHP or Composer on your computer. It uses Citadel's own PHP image (checked against Citadel's, byte for byte), Citadel's `vhost.conf` and `php.ini`, an HAProxy that adds the same forwarding headers, and MySQL 5.6. It runs the files Squire writes (`build.sh`, `deployments/`, the health check) the way Citadel does, applies the app's `sign_in` setting, and runs its Citadel-style cron entries. Its commands are `check`, `init`, `up`, `down`, `status`, `logs`, `shell`, `image` and `test`.
+
+Coming from this kit, in the app's folder:
+
+```sh
+parity check                 # what to fix on this computer, one finding per line
+parity init --from-squire    # writes parity.json from docker-compose.squire.yml and .env.squire
+parity image get             # Citadel's image, checked against Citadel's
+parity up                    # build, start, and print the address
+```
+
+`parity init --from-squire` carries the kit's settings over (base image, public folder, ports, database name, time zone, deployments) and leaves passwords and every other value behind; Parity makes its own local passwords. It lists the kit's files and deletes none of them. Two differences to expect: Parity runs Citadel's own `php.ini`, not the kit's hardened one, and the kit's `scheduler` and `worker` services become one cron entry that runs Laravel's scheduler every minute, because Citadel has cron and no services. Parity's [README](https://git.wayne.edu/enterprise-apps/parity) has the install line for each OS and the full command list.
+
+Squire still does its own job: it writes the files Citadel runs and checks them with `squire doctor`. Squire gets the app onto Citadel; Parity runs Citadel on your computer.
+
+## The parity kit is deprecated [#](https://squire.apps.wayne.edu/docs/guides/local-parity.html#the-parity-kit-is-deprecated)
+
+Warning
+
+Squire's `parity` group (`docker-compose.squire.yml`, `.squire/`, `.env.squire.example`, `scripts/parity.sh` and `scripts/parity.ps1`) is deprecated as of Squire 0.10.5. It still works, and `squire init`, `squire update` and `squire doctor` say so in one line. It is removed no sooner than two minor releases and 60 days later: Squire 0.12.0, and not before 2027-01-08 (the stack's ADR-0022). When it goes, `squire update` removes only the kit files you never edited and prints where Parity is. The portable image files (`.squire/portable.Dockerfile`, `.squire/portable/`) are not leaving: they move to a group of their own.
+
+The rest of this page sets up the kit for teams that still use it: your app on the Citadel image, behind an HA-Proxy that adds the same forwarding headers, with MySQL 5.6.51 beside it. Finish [Citadel setup](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html) first if you have not run `squire init` yet.
 
 ## Requirements [#](https://squire.apps.wayne.edu/docs/guides/local-parity.html#requirements)
 
