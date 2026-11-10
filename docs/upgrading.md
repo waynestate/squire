@@ -1,6 +1,6 @@
 ---
 title: "Upgrading"
-description: "What changed in each released minor of Squire (0.10.3, 0.10.2, 0.10.1, 0.10.0, 0.9.0, 0.8.0, 0.7.1, 0.7.0, 0.6.0, 0.5.0, 0.4.0 and the 0.3.x line), the steps to move an app to them, and how to verify the upgrade held."
+description: "What changed in each released minor of Squire (0.10.4, 0.10.3, 0.10.2, 0.10.1, 0.10.0, 0.9.0, 0.8.0, 0.7.1, 0.7.0, 0.6.0, 0.5.0, 0.4.0 and the 0.3.x line), the steps to move an app to them, and how to verify the upgrade held."
 ---
 
 # Upgrading
@@ -16,6 +16,19 @@ vendor/bin/squire init --check
 vendor/bin/squire update --dry-run
 
 `squire init --check` reports when your copies have drifted from the templates; it exits `0` when they match and `1` when they have. `squire update --dry-run` prints the plan and writes nothing; it exits `1` when an edited file still differs from the template. Exit `2` means the tool itself could not run. For the full command reference, see [Commands](reference/commands.md).
+
+## 0.10.4 (2026-11-09)
+
+No breaks: a patch on 0.10.3, and no kit file changes, so `squire update` has nothing to take. The Oracle-ready local images build on linux/arm64 again (Apple silicon, arm64 Linux): `images/oracle/install-oracle.sh` unpacked the Instant Client SDK over the Basic Light files and stopped at a "replace?" prompt, which failed every arm64 build of both flavors. The CI publish script for those images also stops failing on its Sail flavor. The published images are still not available: the CI runner cannot build linux/amd64 (MAINTAINING.md has the details), so build them locally with `scripts/oracle-image-build.sh`.
+
+### Steps
+
+1. Update the `waynestate/squire` dev dependency: `composer update waynestate/squire` when the app already requires `^0.10`, otherwise `composer require --dev waynestate/squire:^0.10.4`.
+2. If you build the Oracle images on an arm64 machine, build them again as the [Oracle guide](guides/oracle.md) shows (`scripts/oracle-image-build.sh --flavour parity --php 8.4`, or `--flavour sail`).
+
+### How to verify
+
+Run the two checks at the top of this page; both exit `0`. On arm64, `scripts/oracle-image-test.sh --flavour all --platform linux/arm64` exits `0`.
 
 ## 0.10.3 (2026-11-09)
 

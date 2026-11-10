@@ -12,6 +12,8 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ## Unreleased [#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+## 0.10.4 (2026-11-09) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-10-4-2026-11-09)
+
 - Fixed: the Sail flavor of the `oracle-images` CI jobs failed before it built anything, on every tag since 0.6.0: `scripts/oracle-image-publish.sh` ran `buildah from docker://composer:2.11.1@sha256:...`, and buildah's `docker://` transport refuses a tag and a digest together (`invalid reference format`). The script now names the image in full without the prefix (`docker.io/library/composer:2.11.1@sha256:...`, same digest), and a test fails on a tag and a digest after `docker://` in either Oracle script.
 - Fixed: every linux/arm64 Oracle image build (both flavors, in CI and with `scripts/oracle-image-build.sh` on an arm64 machine) failed in `images/oracle/install-oracle.sh`. The arm64 Instant Client 19.32 Basic Light and SDK zips share their `META-INF/` signing files, so the second `unzip` stopped to ask whether to replace them, read end of input and failed. The SDK now unpacks with `unzip -n` (Basic Light's files always win), the unused `META-INF/` is removed, and a test pins it. The amd64 21.7 zips share no files, so amd64 builds were never affected.
 - Fixed: when a build dies because the runner cannot run the other architecture, the publish script now says so plainly; it looked for `Exec format error`, but buildah prints it in lower case, so the job showed only a raw log tail. It also builds the runner's own architecture first, so a dry run proves that half before it stops.
