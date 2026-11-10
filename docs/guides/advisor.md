@@ -16,7 +16,8 @@ In the app, install ADVISOR as a dev dependency:
 composer require --dev waynestate/advisor
 ```
 
-Then add one line to the app's `modules.json` (or point `ADVISOR_MODULES_FILE` at a file that holds it):
+Then put the module in a manifest of your own (for example `advisor-modules.json` in the app) and point
+`ADVISOR_MODULES_FILE` at it. ADVISOR reads its own `modules.json` and that one extra file, nothing else:
 
 ```json
 {

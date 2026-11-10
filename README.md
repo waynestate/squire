@@ -532,8 +532,8 @@ image has no Node.
 
 Squire ships an [ADVISOR](https://github.com/waynestate/advisor) module, so a coding agent that runs ADVISOR can run
 Squire's checks without leaving its sandbox. In the app, install ADVISOR as a dev dependency (`composer require
---dev waynestate/advisor`) and add one line to the app's `modules.json` (or point `ADVISOR_MODULES_FILE` at a file
-that holds it):
+--dev waynestate/advisor`), put the module in a manifest of your own (for example `advisor-modules.json`), and point
+`ADVISOR_MODULES_FILE` at it. ADVISOR reads its own `modules.json` and that one extra file, nothing else:
 
 ```json
 {
