@@ -18,9 +18,23 @@ final class InitializerTest extends SquireTestCase
         return new Initializer(new Catalog(Squire::templatesDir()));
     }
 
+    /**
+     * A test app with no .gitattributes of its own, so init writes the kit's like any other file. The shared
+     * fixture writes one for the doctor tests, and init leaves an app's own copy alone (app-owned).
+     *
+     * @param array<string, string> $extra
+     */
+    private function kitApp(array $extra = [], bool $laravel = false): string
+    {
+        $app = $this->app($extra, $laravel);
+        unlink($app . '/.gitattributes');
+
+        return $app;
+    }
+
     public function testInitWritesEveryFileAndTheManifest(): void
     {
-        $app = $this->app();
+        $app = $this->kitApp();
         $results = $this->initializer()->run($app, 'raw', ['release', 'parity'], false, false);
 
         foreach ($results as $result) {
@@ -36,7 +50,7 @@ final class InitializerTest extends SquireTestCase
 
     public function testRunningInitTwiceChangesNothing(): void
     {
-        $app = $this->app();
+        $app = $this->kitApp();
         $this->initializer()->run($app, 'raw', ['release', 'parity'], false, false);
         $manifestBefore = (string) file_get_contents($app . '/' . Squire::MANIFEST);
 
@@ -95,7 +109,7 @@ final class InitializerTest extends SquireTestCase
 
     public function testCheckModeReportsMissingOkModifiedAndUntracked(): void
     {
-        $app = $this->app();
+        $app = $this->kitApp();
         $missing = $this->states($this->initializer()->run($app, 'raw', ['release'], false, true));
         self::assertSame(FileResult::MISSING, $missing['build.sh']);
         self::assertFileDoesNotExist($app . '/build.sh', 'check mode must not write');
@@ -150,7 +164,7 @@ final class InitializerTest extends SquireTestCase
 
     public function testAStaticAppGetsTheRawKitPlusTheFrontController(): void
     {
-        $app = $this->app();
+        $app = $this->kitApp();
         $results = $this->initializer()->run($app, 'static', ['release', 'parity'], false, false);
 
         foreach ($results as $result) {
@@ -168,7 +182,7 @@ final class InitializerTest extends SquireTestCase
 
     public function testStaticCheckPassesAfterInitAndReportsDriftAfterAnEdit(): void
     {
-        $app = $this->app();
+        $app = $this->kitApp();
         $this->initializer()->run($app, 'static', ['release'], false, false);
         $ok = $this->states($this->initializer()->run($app, 'static', ['release'], false, true));
         self::assertSame([FileResult::OK], array_values(array_unique($ok)));
@@ -229,6 +243,23 @@ echo 'my own front door';
         }
     }
 
+    public function testAnAppsOwnGitattributesIsNeverWrittenOver(): void
+    {
+        $own = "* text=auto eol=lf\n*.sh text eol=lf\n";
+        $app = $this->app();
+
+        foreach ([false, true] as $force) {
+            $states = $this->states($this->initializer()->run($app, 'raw', ['release'], $force, false));
+            self::assertSame(FileResult::APP_OWNED, $states['.gitattributes']);
+            self::assertSame($own, (string) file_get_contents($app . '/.gitattributes'));
+        }
+
+        // Not recorded, so an update never touches it either.
+        $manifest = Manifest::load($app);
+        self::assertNotNull($manifest);
+        self::assertArrayNotHasKey('.gitattributes', $manifest->files);
+    }
+
     public function testAFrontControllerSquireWroteIsTrackedLikeAnyOtherFile(): void
     {
         $app = $this->app();
@@ -267,11 +298,11 @@ echo 'my own front door';
 
     public function testInitWritesTheVueLayerOnlyWhenVueIsDetected(): void
     {
-        $plain = $this->app();
+        $plain = $this->kitApp();
         $this->initializer()->run($plain, 'raw', ['release', 'parity'], false, false, Catalog::detectLayer($plain));
         self::assertFileDoesNotExist($plain . '/.npmrc');
 
-        $vue = $this->vueApp();
+        $vue = $this->kitApp(['package.json' => '{"dependencies":{"vue":"^3.0.0"}}' . "\n"]);
         $results = $this->initializer()->run($vue, 'raw', ['release', 'parity'], false, false, Catalog::detectLayer($vue));
         self::assertFileExists($vue . '/.npmrc');
         self::assertStringContainsString('min-release-age=1', (string) file_get_contents($vue . '/.npmrc'));
@@ -295,7 +326,7 @@ echo 'my own front door';
 
     public function testRunningVueInitTwiceChangesNothing(): void
     {
-        $app = $this->vueApp();
+        $app = $this->kitApp(['package.json' => '{"dependencies":{"vue":"^3.0.0"}}' . "\n"]);
         $this->initializer()->run($app, 'raw', ['release', 'parity'], false, false, Catalog::detectLayer($app));
         $manifestBefore = (string) file_get_contents($app . '/' . Squire::MANIFEST);
 
