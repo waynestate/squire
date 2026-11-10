@@ -614,7 +614,9 @@ scripts\parity.ps1 up                  # or: scripts\parity.ps1 up -Fallback
 ```
 
 `parity.ps1` has run end to end on Windows PowerShell 5.1 (2026-11-10); apps made earlier take the 5.1 fix with
-`squire update`.
+`squire update`. Give each app its own `SQUIRE_PROJECT` in `.env.squire`: apps on one name share the database and the
+record of which `deployments/` files already ran, so the second app's release never runs. `up` warns while the name is
+the default `squire-app`.
 
 Commands: `up`, `down`, `reset` (also removes volumes), `logs [service]`, `shell [service]`, `status`, `pin` (prints the
 digests of the images you have pulled, so you can pin them).

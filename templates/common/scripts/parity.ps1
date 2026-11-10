@@ -124,6 +124,15 @@ switch ($Command) {
                 Exit-Parity "base image '$base' is not on this machine. Build it from the Citadel repository (php citadel build_images), pull it from your registry, or re-run with -Fallback."
             }
         }
+        # Every app left on the default name is one compose project: one database, one logs volume, and in it the
+        # record of which deployments/ files already ran. A second app then finds its release "already run".
+        $project = $env:SQUIRE_PROJECT
+        if ([string]::IsNullOrEmpty($project)) {
+            $project = Get-EnvValue -Name 'SQUIRE_PROJECT' -Default 'squire-app'
+        }
+        if ([string]::IsNullOrEmpty($project) -or $project -eq 'squire-app') {
+            Write-Warning "SQUIRE_PROJECT is the default 'squire-app'. Apps on one name share a database and a release record, so a second app's release never runs; give this app its own name in $EnvFile."
+        }
         if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') {
             Write-Warning 'ARM64 detected. MySQL 5.6 and the real Citadel images are amd64, so Docker emulates them; builds can take 30 minutes or more.'
         }

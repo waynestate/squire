@@ -65,6 +65,12 @@ case "$cmd" in
                 die "base image '$base' is not on this machine. Build it from the Citadel repository (php citadel build_images), pull it from your registry, or re-run with --fallback."
             fi
         fi
+        # Every app left on the default name is one compose project: one database, one logs volume, and in it the
+        # record of which deployments/ files already ran. A second app then finds its release "already run".
+        project="${SQUIRE_PROJECT:-$(grep -E '^SQUIRE_PROJECT=' "$ENV_FILE" | tail -n 1 | cut -d= -f2- || true)}"
+        if [ "${project:-squire-app}" = "squire-app" ]; then
+            echo "parity: SQUIRE_PROJECT is the default 'squire-app'. Apps on one name share a database and a release record, so a second app's release never runs; give this app its own name in $ENV_FILE." >&2
+        fi
         if [ "$(uname -m)" = "arm64" ] || [ "$(uname -m)" = "aarch64" ]; then
             echo "parity: Apple Silicon or ARM detected. MySQL 5.6 and the real Citadel images are amd64, so Docker emulates them; builds can take 30 minutes or more." >&2
         fi

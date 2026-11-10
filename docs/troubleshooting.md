@@ -123,6 +123,25 @@ Check:
 git ls-files -s build.sh scripts/*.sh deployments/*.sh
 ```
 
+### Parity never turns healthy: vendor/autoload.php is missing
+
+Cause: another app on this machine ran parity under the same `SQUIRE_PROJECT` (both left on the default `squire-app`). One name is one compose project, so the two apps share the database and the logs volume, and the logs volume holds the record of which `deployments/` files already ran. Citadel runs each file once, so this app's first release is skipped as already run, and the health check reports `vendor/autoload.php is missing; the release did not finish`. Since 2026-11-10 `parity up` warns when the name is the default.
+
+Fix: give the app its own name in `.env.squire` (for example `SQUIRE_PROJECT=my-app`), then start it again. Nothing of the other app's is touched; its stack stays under the old name.
+
+<!-- docs-test: skip needs a real project -->
+```sh
+scripts/parity.sh down
+scripts/parity.sh up
+```
+
+Check:
+
+<!-- docs-test: skip needs a real project -->
+```sh
+scripts/parity.sh status
+```
+
 ### Parity compose refuses to start
 
 Cause: `.env.squire.example` holds `change-me-local-only` placeholders, and the compose file refuses to start without the two passwords.

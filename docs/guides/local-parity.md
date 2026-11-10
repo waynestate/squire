@@ -63,6 +63,8 @@ Copy-Item .env.squire.example .env.squire
 scripts\parity.ps1 up                  # or: scripts\parity.ps1 up -Fallback
 ```
 
+Give each app its own `SQUIRE_PROJECT` in `.env.squire`. Apps on one name are one compose project: they share the database and the record of which `deployments/` files already ran, so the second app's release is skipped as already run (see [Troubleshooting](../troubleshooting.md#parity-never-turns-healthy-vendor-autoload-php-is-missing)). `up` warns while the name is the default `squire-app`.
+
 `parity.ps1` has been run end to end on Windows PowerShell 5.1 (2026-11-10, on the fallback and on Citadel's `citadel/php-apache:8.5r3`); CI runs it on PowerShell 7. An app made before that fix gets it with `squire update`: on 5.1 the old script stopped on a raw `NativeCommandError` where it meant to say the base image is missing.
 
 Commands: `up`, `down`, `reset` (also removes volumes), `logs [service]`, `shell [service]`, `status`, `pin` (prints the digests of the images you have pulled, so you can pin them).
