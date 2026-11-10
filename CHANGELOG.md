@@ -5,6 +5,8 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+## 0.10.8 (2026-11-10)
+
 - Docs: the Local parity guide points at Preflight 0.6.0's `mysql56-migrate` component and PROCTOR's `mysql56-ci` check, the CI side of the same MySQL 5.6.51 pin (D-078).
 - Changed: the Oracle image tag jobs build linux/amd64 again, natively on a runner tagged `amd64`, while linux/arm64 stays on the default runner; the new `oracle-images-manifest` job stitches both halves into one manifest list per image. `SQUIRE_BUILD_AMD64` now defaults to `"1"`; `"0"` publishes linux/arm64 only. Only the two amd64 jobs carry the `amd64` tag.
 - Changed: the deploy layer requires PROCTOR ^0.15 (locked 0.15.0, was ^0.12): 0.13 checks the release cooldown against the CREED policy, 0.14 adds `script-pair` and 0.15 adds `mysql56-ci`; all only warn, nothing breaks.
