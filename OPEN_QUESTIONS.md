@@ -58,6 +58,9 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
 17. **Runner amd64 emulation.** The CI runner is linux/arm64; building the Oracle images for linux/amd64 needs qemu
     binfmt emulation and buildah running inside a container. Default: amd64 stays off (`SQUIRE_BUILD_AMD64` unset)
     until a run of the `oracle-images-dry-run` job with `SQUIRE_BUILD_AMD64=1` passes on a branch. See 18.
+    **Answered 2026-11-10: (b).** The GitLab administrator added a native amd64 runner (tag `amd64`); the amd64 half
+    builds there and the arm64 runner stitches the list. The first tag that publishes both is recorded in
+    MAINTAINING.md.
 18. **Oracle images: amd64 on an arm64 runner.** The CI runner is linux/arm64. A manual dry run of
     `oracle-images-dry-run` (parity, PHP 8.4) now pulls the images and gets through the arm64 build, but the amd64
     build dies at the first `RUN` step with an `exec format error` (`process exited with error: exec: not
@@ -74,7 +77,9 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
     publish linux/arm64 only, both flavors, PHP 8.3 to 8.5, and the amd64 legs do not run; amd64 users,
     Citadel-shaped hosts included, build locally with `scripts/oracle-image-build.sh`. Later the runner host gets
     qemu-user-static, and the CI variable `SQUIRE_BUILD_AMD64=1` (the one switch; MAINTAINING.md, Publishing the
-    Oracle images) turns amd64 back on. Open until then.
+    Oracle images) turns amd64 back on. Open until then. **Answered 2026-11-10: (b).** The GitLab administrator
+    added a native amd64 runner (tag `amd64`); the amd64 half builds there and the arm64 runner stitches the list.
+    The first tag that publishes both is recorded in MAINTAINING.md.
 19. **Contract suite on the real image and on GitLab.** What runs today: the three GitHub jobs in
     `.github/workflows/ci.yml` (`contract-image` on linux/amd64 and linux/arm64, the arm64 leg under QEMU and blocking
     now that it passed on 2026-11-08; `contract-parity-sh`; and `contract-parity-pwsh`, pwsh 7 on Linux, also blocking

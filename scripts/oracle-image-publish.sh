@@ -10,11 +10,18 @@
 # <registry image>-oracle-<flavour>:<php> (floating). Usage:
 #
 #   scripts/oracle-image-publish.sh --flavour sail|parity --php 8.4 \
-#       --tag 0.4.1 --registry-image <path> [--platforms arm64|amd64|amd64,arm64] [--dry-run]
+#       --tag 0.4.1 --registry-image <path> [--platforms arm64|amd64|amd64,arm64] \
+#       [--stage|--assemble] [--dry-run]
 #
-# The CI jobs pass --platforms arm64 until SQUIRE_BUILD_AMD64=1 (see .gitlab-ci.yml
-# and MAINTAINING.md, Publishing the Oracle images): the only runner is arm64 and
-# cannot run amd64 binaries yet.
+# The default mode builds the given platforms and pushes the list. --stage builds
+# exactly one platform, natively (the runner's own architecture), and pushes it as
+# the single-arch tag <php>-<tag>-<arch>; --assemble builds nothing: it stitches
+# the staged single-arch tags into the one manifest list per image and pushes the
+# list. The CI jobs use the two modes: oracle-images stages the linux/arm64 half
+# on the default runner, oracle-images-amd64 stages the linux/amd64 half natively
+# on a runner tagged amd64, and oracle-images-manifest assembles the staged halves
+# into the list (see .gitlab-ci.yml and MAINTAINING.md, Publishing the Oracle
+# images).
 #
 # In CI, --registry-image is the images project path inside the destination
 # registry; before pushing, the script logs in to that registry's host with
@@ -31,9 +38,11 @@ tag=""
 registry_image=""
 platforms="amd64,arm64"
 dry_run=0
+stage=0
+assemble=0
 
 usage() {
-    printf 'usage: %s --flavour sail|parity --php 8.3|8.4|8.5 --tag <squire tag> --registry-image <path> [--platforms amd64,arm64] [--dry-run]\n' "$0" >&2
+    printf 'usage: %s --flavour sail|parity --php 8.3|8.4|8.5 --tag <squire tag> --registry-image <path> [--platforms amd64,arm64] [--stage|--assemble] [--dry-run]\n' "$0" >&2
 }
 
 while [ $# -gt 0 ]; do
@@ -57,6 +66,24 @@ while [ $# -gt 0 ]; do
     --platforms)
         platforms="${2:?--platforms needs a value}"
         shift 2
+        ;;
+    --stage)
+        if [ "$assemble" -eq 1 ]; then
+            echo "oracle-image-publish: --stage and --assemble are mutually exclusive" >&2
+            usage
+            exit 1
+        fi
+        stage=1
+        shift
+        ;;
+    --assemble)
+        if [ "$stage" -eq 1 ]; then
+            echo "oracle-image-publish: --stage and --assemble are mutually exclusive" >&2
+            usage
+            exit 1
+        fi
+        assemble=1
+        shift
         ;;
     --dry-run)
         dry_run=1
@@ -108,13 +135,23 @@ if [ "$want_amd64" -eq 0 ] && [ "$want_arm64" -eq 0 ]; then
     echo "oracle-image-publish: --platforms takes amd64, arm64 or amd64,arm64 (got '${platforms}')" >&2
     exit 2
 fi
+if [ "$stage" -eq 1 ] && [ "$want_amd64" -eq 1 ] && [ "$want_arm64" -eq 1 ]; then
+    echo "oracle-image-publish: --stage builds exactly one platform: pass --platforms amd64 or --platforms arm64 (got '${platforms}')" >&2
+    usage
+    exit 2
+fi
+if [ "$assemble" -eq 1 ] && [ "$dry_run" -eq 1 ]; then
+    echo "oracle-image-publish: --assemble needs the staged images, so it cannot dry-run" >&2
+    usage
+    exit 2
+fi
 
 if [ -z "$registry_image" ]; then
     echo "oracle-image-publish: --registry-image is required" >&2
     exit 2
 fi
 
-if [ "$dry_run" -eq 0 ] && [ -z "$tag" ]; then
+if [ -z "$tag" ] && { [ "$assemble" -eq 1 ] || [ "$dry_run" -eq 0 ]; }; then
     echo "oracle-image-publish: --tag is required (unless --dry-run)" >&2
     exit 2
 fi
@@ -148,25 +185,67 @@ bud() {
     buildah "${STORAGE[@]}" bud --isolation=chroot "$@"
 }
 
-# The runner's own architecture builds without emulation, so it goes first: a
-# runner that cannot run the other one still proves its own half before the
-# script stops.
+# The registry login, shared by every mode that pushes: the token goes over
+# stdin, never on the command line. It sets authfile and push_args for the
+# push commands that follow.
+login_to_registry() {
+    if [ -z "${NOUGAT_REGISTRY_USER:-}" ] || [ -z "${NOUGAT_REGISTRY_TOKEN:-}" ]; then
+        echo "oracle-image-publish: NOUGAT_REGISTRY_USER and NOUGAT_REGISTRY_TOKEN must be set to push" >&2
+        exit 1
+    fi
+    registry_host="${registry_image%%/*}"
+    authfile="$workdir/auth.json"
+    echo "[squire] ==> logging in to ${registry_host}"
+    printf '%s\n' "$NOUGAT_REGISTRY_TOKEN" | buildah login --authfile "$authfile" -u "$NOUGAT_REGISTRY_USER" --password-stdin "$registry_host"
+    push_args=(--authfile "$authfile")
+}
+
+# The runner's own architecture, for the native-only check of --stage.
 case "$(uname -m)" in
 x86_64 | amd64) native=amd64 ;;
 aarch64 | arm64) native=arm64 ;;
 *) native="" ;;
 esac
-if [ "$native" = arm64 ]; then
-    candidates=(arm64 amd64)
-else
-    candidates=(amd64 arm64)
-fi
-build_order=()
-for arch in "${candidates[@]}"; do
-    if { [ "$arch" = amd64 ] && [ "$want_amd64" -eq 1 ]; } || { [ "$arch" = arm64 ] && [ "$want_arm64" -eq 1 ]; }; then
-        build_order+=("$arch")
+
+if [ "$stage" -eq 1 ]; then
+    # --stage builds exactly one platform (validated above), and only on a
+    # runner whose own architecture is that platform.
+    if [ "$want_amd64" -eq 1 ]; then
+        stage_arch=amd64
+    else
+        stage_arch=arm64
     fi
-done
+    if [ "$stage_arch" != "$native" ]; then
+        echo "oracle-image-publish: --stage builds natively only: this runner is linux/${native}, asked for linux/${stage_arch}. In CI the amd64 half runs on a runner tagged amd64." >&2
+        exit 1
+    fi
+    build_order=("$stage_arch")
+elif [ "$assemble" -eq 1 ]; then
+    # Assemble mode stitches the staged halves into the list, in the order
+    # amd64, arm64.
+    build_order=()
+    if [ "$want_amd64" -eq 1 ]; then
+        build_order+=(amd64)
+    fi
+    if [ "$want_arm64" -eq 1 ]; then
+        build_order+=(arm64)
+    fi
+else
+    # The runner's own architecture builds without emulation, so it goes first: a
+    # runner that cannot run the other one still proves its own half before the
+    # script stops.
+    if [ "$native" = arm64 ]; then
+        candidates=(arm64 amd64)
+    else
+        candidates=(amd64 arm64)
+    fi
+    build_order=()
+    for arch in "${candidates[@]}"; do
+        if { [ "$arch" = amd64 ] && [ "$want_amd64" -eq 1 ]; } || { [ "$arch" = arm64 ] && [ "$want_arm64" -eq 1 ]; }; then
+            build_order+=("$arch")
+        fi
+    done
+fi
 echo "[squire] ==> platforms: $(printf 'linux/%s ' "${build_order[@]}")"
 
 # Run one build, keeping its log for diagnosis. A build for an architecture the
@@ -179,7 +258,7 @@ run_bud() {
     shift 2
     if ! bud "$@" >"$log" 2>&1; then
         if grep -qi "exec format error" "$log"; then
-            echo "oracle-image-publish: the linux/${arch} build failed: this ${native:-$(uname -m)} runner cannot run linux/${arch} binaries (no qemu binfmt emulation on its host). The runner's owner can register it on the host (qemu-user-static); until then leave SQUIRE_BUILD_AMD64 unset so CI builds linux/arm64 only. See MAINTAINING.md, Publishing the Oracle images." >&2
+            echo "oracle-image-publish: the linux/${arch} build failed: this ${native:-$(uname -m)} runner cannot run linux/${arch} binaries (no qemu binfmt emulation on its host). In CI each half builds natively: linux/amd64 on a runner tagged amd64, linux/arm64 on the default runner. Check which runner this job ran on." >&2
         else
             echo "oracle-image-publish: the build failed; the last lines of its log follow." >&2
             tail -n 20 "$log" >&2
@@ -188,62 +267,99 @@ run_bud() {
     fi
 }
 
-if [ "$flavour" = sail ]; then
-    # Sail's runtime Dockerfiles ship inside the laravel/sail package, so fetch
-    # the package into a throwaway working container the way
-    # scripts/oracle-image-build.sh does with a throwaway Composer project.
-    # The image is named in full without a transport prefix: buildah's
-    # docker:// transport refuses a reference with both a tag and a digest
-    # ("invalid reference format"), while a plain name keeps the tag readable
-    # and pulls by the digest.
-    echo "[squire] ==> fetching laravel/sail into a throwaway container"
-    sail_ctr="$(buildah "${STORAGE[@]}" from docker.io/library/composer:2.11.1@sha256:8de2184c6de224f4689e8f80ed5f5edaf0030b6b8b7839a22a2bcb6722ac87d0)"
-    buildah "${STORAGE[@]}" run --isolation=chroot --workingdir /app "$sail_ctr" \
-        composer require laravel/sail --no-interaction --quiet
-    sail_mp="$(buildah "${STORAGE[@]}" mount "$sail_ctr")"
-    mkdir -p "$workdir/sail-runtime"
-    cp -r "$sail_mp/app/vendor/laravel/sail" "$workdir/sail-runtime/sail"
-    buildah "${STORAGE[@]}" umount "$sail_ctr"
-    buildah "${STORAGE[@]}" rm "$sail_ctr"
+if [ "$assemble" -eq 0 ]; then
+    if [ "$flavour" = sail ]; then
+        # Sail's runtime Dockerfiles ship inside the laravel/sail package, so
+        # fetch the package into a throwaway working container the way
+        # scripts/oracle-image-build.sh does with a throwaway Composer project.
+        # The image is named in full without a transport prefix: buildah's
+        # docker:// transport refuses a reference with both a tag and a digest
+        # ("invalid reference format"), while a plain name keeps the tag
+        # readable and pulls by the digest.
+        echo "[squire] ==> fetching laravel/sail into a throwaway container"
+        sail_ctr="$(buildah "${STORAGE[@]}" from docker.io/library/composer:2.11.1@sha256:8de2184c6de224f4689e8f80ed5f5edaf0030b6b8b7839a22a2bcb6722ac87d0)"
+        buildah "${STORAGE[@]}" run --isolation=chroot --workingdir /app "$sail_ctr" \
+            composer require laravel/sail --no-interaction --quiet
+        sail_mp="$(buildah "${STORAGE[@]}" mount "$sail_ctr")"
+        mkdir -p "$workdir/sail-runtime"
+        cp -r "$sail_mp/app/vendor/laravel/sail" "$workdir/sail-runtime/sail"
+        buildah "${STORAGE[@]}" umount "$sail_ctr"
+        buildah "${STORAGE[@]}" rm "$sail_ctr"
+    fi
+
+    for arch in "${build_order[@]}"; do
+        platform="linux/${arch}"
+        echo "[squire] ==> building ${flavour} ${php_line} for ${platform}"
+        case "$flavour" in
+        sail)
+            runtime_dir="$workdir/sail-runtime/sail/runtimes/${php_line}"
+            base_image="squire/sail-base:${php_line}-${arch}"
+            run_bud "$workdir/sail-base-${arch}.log" "$arch" \
+                --platform "$platform" \
+                --build-arg WWWGROUP=1000 \
+                -f "$runtime_dir/Dockerfile" \
+                -t "$base_image" \
+                "$runtime_dir"
+            run_bud "$workdir/oracle-sail-${arch}.log" "$arch" \
+                --platform "$platform" \
+                --build-arg "SAIL_BASE=${base_image}" \
+                -f "$repo_root/images/oracle/sail.Dockerfile" \
+                -t "squire/oracle-sail:${php_line}-${arch}" \
+                "$repo_root"
+            ;;
+        parity)
+            run_bud "$workdir/oracle-parity-${arch}.log" "$arch" \
+                --platform "$platform" \
+                --build-arg "PHP_IMAGE=${php_image}" \
+                -f "$repo_root/images/oracle/parity.Dockerfile" \
+                -t "squire/oracle-parity:${php_line}-${arch}" \
+                "$repo_root"
+            ;;
+        esac
+    done
 fi
 
-for arch in "${build_order[@]}"; do
-    platform="linux/${arch}"
-    echo "[squire] ==> building ${flavour} ${php_line} for ${platform}"
-    case "$flavour" in
-    sail)
-        runtime_dir="$workdir/sail-runtime/sail/runtimes/${php_line}"
-        base_image="squire/sail-base:${php_line}-${arch}"
-        run_bud "$workdir/sail-base-${arch}.log" "$arch" \
-            --platform "$platform" \
-            --build-arg WWWGROUP=1000 \
-            -f "$runtime_dir/Dockerfile" \
-            -t "$base_image" \
-            "$runtime_dir"
-        run_bud "$workdir/oracle-sail-${arch}.log" "$arch" \
-            --platform "$platform" \
-            --build-arg "SAIL_BASE=${base_image}" \
-            -f "$repo_root/images/oracle/sail.Dockerfile" \
-            -t "squire/oracle-sail:${php_line}-${arch}" \
-            "$repo_root"
-        ;;
-    parity)
-        run_bud "$workdir/oracle-parity-${arch}.log" "$arch" \
-            --platform "$platform" \
-            --build-arg "PHP_IMAGE=${php_image}" \
-            -f "$repo_root/images/oracle/parity.Dockerfile" \
-            -t "squire/oracle-parity:${php_line}-${arch}" \
-            "$repo_root"
-        ;;
-    esac
-done
+if [ "$stage" -eq 1 ]; then
+    # Stage mode pushes the single-arch image, not a list.
+    if [ "$dry_run" -eq 1 ]; then
+        tag_part="$tag"
+        if [ -z "$tag" ]; then
+            tag_part="<tag>"
+        fi
+        echo "Would stage ${registry_image}-oracle-${flavour}:${php_line}-${tag_part}-${build_order[0]}"
+        exit 0
+    fi
+    login_to_registry
+    stage_reference="${registry_image}-oracle-${flavour}:${php_line}-${tag}-${build_order[0]}"
+    echo "[squire] ==> pushing ${stage_reference}"
+    digest_file="$workdir/stage-digest.txt"
+    buildah "${STORAGE[@]}" push "${push_args[@]}" --digestfile "$digest_file" \
+        "squire/oracle-${flavour}:${php_line}-${build_order[0]}" \
+        "docker://${stage_reference}"
+    staged_digest="$(cat "$digest_file")"
+    echo "Staged ${stage_reference} (linux/${build_order[0]}) digest: ${staged_digest}"
+    exit 0
+fi
+
+if [ "$assemble" -eq 1 ]; then
+    login_to_registry
+fi
 
 echo "[squire] ==> assembling the manifest list"
 list_name="squire-oracle-${flavour}-${php_line}"
 buildah "${STORAGE[@]}" manifest create "$list_name"
-for arch in "${build_order[@]}"; do
-    buildah "${STORAGE[@]}" manifest add "$list_name" "squire/oracle-${flavour}:${php_line}-${arch}"
-done
+if [ "$assemble" -eq 1 ]; then
+    # The staged halves live in the registry, so each is added by its docker://
+    # reference, in the order amd64, arm64.
+    for arch in "${build_order[@]}"; do
+        buildah "${STORAGE[@]}" manifest add "${push_args[@]}" "$list_name" \
+            "docker://${registry_image}-oracle-${flavour}:${php_line}-${tag}-${arch}"
+    done
+else
+    for arch in "${build_order[@]}"; do
+        buildah "${STORAGE[@]}" manifest add "$list_name" "squire/oracle-${flavour}:${php_line}-${arch}"
+    done
+fi
 
 # The digest of the list as pushed: push the list alone (no image blobs) to a
 # local OCI directory and read it back from index.json. buildah manifest push
@@ -262,15 +378,9 @@ if [ "$dry_run" -eq 1 ]; then
     exit 0
 fi
 
-if [ -z "${NOUGAT_REGISTRY_USER:-}" ] || [ -z "${NOUGAT_REGISTRY_TOKEN:-}" ]; then
-    echo "oracle-image-publish: NOUGAT_REGISTRY_USER and NOUGAT_REGISTRY_TOKEN must be set to push" >&2
-    exit 1
+if [ "$assemble" -eq 0 ]; then
+    login_to_registry
 fi
-registry_host="${registry_image%%/*}"
-authfile="$workdir/auth.json"
-echo "[squire] ==> logging in to ${registry_host}"
-printf '%s\n' "$NOUGAT_REGISTRY_TOKEN" | buildah login --authfile "$authfile" -u "$NOUGAT_REGISTRY_USER" --password-stdin "$registry_host"
-push_args=(--authfile "$authfile")
 
 for reference_suffix in "${php_line}-${tag}" "${php_line}"; do
     reference="${registry_image}-oracle-${flavour}:${reference_suffix}"

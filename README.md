@@ -679,10 +679,10 @@ The names above are the local names of scripts/oracle-image-build.sh. The publis
 (`<registry>` is the registry address of the images project shown on its Container Registry page), plus
 `:8.4-<squire version>` for a fixed one; a Sail app swaps `build:` for `image:` with that path.
 
-**The published images are linux/arm64 only, for now.** From Squire 0.10.5, a tag publishes both flavors for PHP
-8.3, 8.4 and 8.5 for linux/arm64 (Apple silicon, arm64 Linux hosts). The CI runner cannot build linux/amd64 yet, so
-on an amd64 computer, Citadel-shaped hosts included, build them locally with scripts/oracle-image-build.sh until it
-can. One switch turns amd64 back on: the CI variable `SQUIRE_BUILD_AMD64=1`, once the runner host can emulate amd64
+**Every tag so far published linux/arm64 only.** From Squire 0.10.5, a tag publishes both flavors for PHP 8.3,
+8.4 and 8.5 for linux/arm64 (Apple silicon, arm64 Linux hosts). The pipeline now builds linux/amd64 natively on an
+amd64 runner as well, so the next tag publishes both architectures in one list; until a tag has, on an amd64
+computer, Citadel-shaped hosts included, build the images locally with scripts/oracle-image-build.sh
 (MAINTAINING.md, Publishing the Oracle images). The 0.10.5 tag published all six; the
 [Oracle guide](https://squire.apps.wayne.edu/docs/guides/oracle.html) lists their digests for pinning.
 

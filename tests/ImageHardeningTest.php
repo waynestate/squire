@@ -476,25 +476,33 @@ final class ImageHardeningTest extends SquireTestCase
         );
     }
 
-    public function testTheOracleJobsBuildArm64OnlyUntilOneSwitchTurnsAmd64On(): void
+    public function testTheOracleJobsBuildEachHalfNativelyAndStitchOneList(): void
     {
-        // The only runner is arm64 with no qemu binfmt, so an amd64 leg dies at its first RUN. Both oracle jobs take
-        // their platforms from SQUIRE_BUILD_AMD64, which defaults to off; "1" builds both into one list again.
+        // Each half builds natively: the arm64 half on the default runner, the amd64 half on a runner tagged amd64.
+        // That runner is a small shared host, so only the two amd64 jobs carry the tag; the manifest job stitches
+        // the staged halves into the one list per image.
         $ci = $this->repoFile('.gitlab-ci.yml');
-        self::assertMatchesRegularExpression('/^\.oracle-platforms:\n  variables:\n    SQUIRE_BUILD_AMD64: "0"$/m', $ci);
-        self::assertStringContainsString('if [ "$SQUIRE_BUILD_AMD64" = "1" ]; then', $ci);
-        self::assertStringContainsString('ORACLE_PLATFORMS="amd64,arm64"', $ci);
-        self::assertStringContainsString('ORACLE_PLATFORMS="arm64"', $ci);
-        foreach (['oracle-images', 'oracle-images-dry-run'] as $job) {
-            self::assertMatchesRegularExpression('/^' . preg_quote($job, '/') . ":\n  extends: \\.oracle-platforms$/m", $ci, $job . ' takes the switch');
+        self::assertMatchesRegularExpression('/^\.oracle-platforms:\n  variables:\n    SQUIRE_BUILD_AMD64: "1"$/m', $ci);
+        foreach ([
+            'scripts/oracle-image-publish.sh --flavour "$FLAVOUR" --php "$PHP" --tag "$CI_COMMIT_TAG" --platforms arm64 --stage --registry-image "$NOUGAT_REGISTRY/$CI_PROJECT_NAMESPACE/images/$CI_PROJECT_NAME"',
+            'scripts/oracle-image-publish.sh --flavour "$FLAVOUR" --php "$PHP" --tag "$CI_COMMIT_TAG" --platforms amd64 --stage --registry-image "$NOUGAT_REGISTRY/$CI_PROJECT_NAMESPACE/images/$CI_PROJECT_NAME"',
+            'scripts/oracle-image-publish.sh --flavour "$FLAVOUR" --php "$PHP" --tag "$CI_COMMIT_TAG" --platforms "$ORACLE_PLATFORMS" --assemble --registry-image "$NOUGAT_REGISTRY/$CI_PROJECT_NAMESPACE/images/$CI_PROJECT_NAME"',
+            'scripts/oracle-image-publish.sh --flavour "$FLAVOUR" --php "$PHP" --platforms arm64 --stage --registry-image "$CI_PROJECT_NAMESPACE/images/$CI_PROJECT_NAME" --dry-run',
+        ] as $line) {
+            self::assertStringContainsString($line, $ci, 'the tag pipeline stages each half and assembles the list');
         }
-        self::assertSame(2, substr_count($ci, 'scripts/oracle-image-publish.sh --flavour "$FLAVOUR" --php "$PHP"'));
-        self::assertSame(2, substr_count($ci, '--platforms "$ORACLE_PLATFORMS"'), 'both jobs pass the platforms on');
+        foreach (['oracle-images-amd64', 'oracle-images-dry-run-amd64'] as $job) {
+            self::assertMatchesRegularExpression(
+                '/^' . preg_quote($job, '/') . ':.*?  tags:\n    - amd64/ms',
+                $ci,
+                $job . ' runs on the runner tagged amd64',
+            );
+        }
+        self::assertSame(2, substr_count($ci, "\n  tags:"), 'only the amd64 jobs are tagged');
+        self::assertStringContainsString("- job: oracle-images-amd64\n      optional: true", $ci, 'a tag with the switch off still assembles arm64 alone');
 
         $script = $this->repoFile('scripts/oracle-image-publish.sh');
         self::assertStringContainsString('platforms="amd64,arm64"', $script, 'by hand, the script still builds both by default');
-        self::assertStringContainsString('manifest add "$list_name" "squire/oracle-${flavour}:${php_line}-${arch}"', $script);
-        self::assertStringContainsString('for arch in "${build_order[@]}"; do' . "\n" . '    buildah "${STORAGE[@]}" manifest add', $script, 'the list holds only what was built');
     }
 
     public function testTheOraclePublishScriptRefusesAnUnknownPlatform(): void

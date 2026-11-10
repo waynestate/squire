@@ -655,10 +655,10 @@ The names above are the local names of scripts/oracle-image-build.sh. The publis
 (`` is the registry address of the images project shown on its Container Registry page), plus
 `:8.4-` for a fixed one; a Sail app swaps `build:` for `image:` with that path.
 
-**The published images are linux/arm64 only, for now.** From Squire 0.10.5, a tag publishes both flavors for PHP
-8.3, 8.4 and 8.5 for linux/arm64 (Apple silicon, arm64 Linux hosts). The CI runner cannot build linux/amd64 yet, so
-on an amd64 computer, Citadel-shaped hosts included, build them locally with scripts/oracle-image-build.sh until it
-can. One switch turns amd64 back on: the CI variable `SQUIRE_BUILD_AMD64=1`, once the runner host can emulate amd64
+**Every tag so far published linux/arm64 only.** From Squire 0.10.5, a tag publishes both flavors for PHP 8.3,
+8.4 and 8.5 for linux/arm64 (Apple silicon, arm64 Linux hosts). The pipeline now builds linux/amd64 natively on an
+amd64 runner as well, so the next tag publishes both architectures in one list; until a tag has, on an amd64
+computer, Citadel-shaped hosts included, build the images locally with scripts/oracle-image-build.sh
 (MAINTAINING.md, Publishing the Oracle images). The 0.10.5 tag published all six; the
 [Oracle guide](https://squire.apps.wayne.edu/docs/guides/oracle.html) lists their digests for pinning.
 
@@ -1112,6 +1112,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ### Unreleased [#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+- Changed: the Oracle image tag jobs build linux/amd64 again, natively on a runner tagged `amd64`, while linux/arm64 stays on the default runner; the new `oracle-images-manifest` job stitches both halves into one manifest list per image. `SQUIRE_BUILD_AMD64` now defaults to `"1"`; `"0"` publishes linux/arm64 only. Only the two amd64 jobs carry the `amd64` tag.
 - Changed: the deploy layer requires PROCTOR ^0.12 (locked 0.12.0, was ^0.11): two new warning-only checks, nothing breaks.
 - Changed: Renovate proposes only patch and digest updates for the two PHP 8.4 base images (the Oracle parity image and the fallback base), so it stops opening 8.5 bumps the image tests reject.
 - Docs: the ADVISOR guide and README say to list `SquireModule` in a manifest of your own and point `ADVISOR_MODULES_FILE` at it; ADVISOR never reads an app's `modules.json`.
@@ -2291,7 +2292,7 @@ Apps that talk to Oracle need the Instant Client and the `oci8` extension. Squir
 
 The names above are the local names of `scripts/oracle-image-build.sh`. The published images live in the group's `images` project (the stack's shared image registry; Squire's own GitLab has no container registry), at `<registry>/enterprise-apps/images/squire-oracle-parity:8.4` and `<registry>/enterprise-apps/images/squire-oracle-sail:8.4` (`<registry>` is the registry address of the images project shown on its Container Registry page), plus `:8.4-<squire version>` for a fixed one; a Sail app swaps `build:` for `image:` with that path.
 
-**The published images are linux/arm64 only, for now.** From Squire 0.10.5, a tag publishes both flavors for PHP 8.3, 8.4 and 8.5 for linux/arm64: Apple silicon Macs and arm64 Linux hosts can pull them. The CI runner cannot build linux/amd64 yet (it is arm64, and its host has no amd64 emulation), so on an amd64 computer, Citadel-shaped hosts included, build the images locally with `scripts/oracle-image-build.sh` (below) until it can. Pulling the published tag on amd64 fails with "no matching manifest for linux/amd64", which is the image's way of saying the same thing. One switch turns amd64 back on: the CI variable `SQUIRE_BUILD_AMD64=1`, once the runner host can emulate amd64 (MAINTAINING.md, Publishing the Oracle images).
+**Every tag so far published linux/arm64 only.** From Squire 0.10.5, a tag publishes both flavors for PHP 8.3, 8.4 and 8.5 for linux/arm64: Apple silicon Macs and arm64 Linux hosts can pull them. The pipeline now builds linux/amd64 natively on an amd64 runner as well, so the next tag publishes both architectures in one list; until a tag has, on an amd64 computer, Citadel-shaped hosts included, build the images locally with `scripts/oracle-image-build.sh` (below). Pulling a tag that predates the first multi-arch one on amd64 fails with "no matching manifest for linux/amd64", which is the image's way of saying the same thing.
 
 The 0.10.5 tag published all six (linux/arm64). Pin the fixed tag with its list digest so a pull always gets the same bytes:
 
