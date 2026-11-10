@@ -12,6 +12,8 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ## Unreleased [#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+- Fixed: `squire update` reports a file current, and records it, when an app's edit already matches the new template byte for byte (an edit taken upstream), instead of reporting drift.
+
 ## 0.10.7 (2026-11-10) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-10-7-2026-11-10)
 
 - Added: the kit ships a `.gitattributes` that pins line endings (LF for shell scripts, `.conf` files and Dockerfiles, CRLF for PowerShell and batch files), so a deploy layer in its own folder clears PROCTOR's `gitattributes-eol` and `crlf-deploy-script` warnings. An app that has its own `.gitattributes` keeps it: Squire never writes over it.
