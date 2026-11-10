@@ -295,7 +295,7 @@ final class DocsExamples
     {
         $docs = $this->root.'/docs';
         $out = [];
-        foreach ($this->walk($docs, 'md') as $relative) {
+        foreach (self::walk($docs, 'md') as $relative) {
             $path = substr($relative, 0, -3);
             $out[$path] = $docs.'/'.$relative;
         }
@@ -747,82 +747,121 @@ final class DocsExamples
         $dir = sys_get_temp_dir().'/squire-examples-'.bin2hex(random_bytes(6));
         mkdir($dir, 0o755, true);
         if ($this->cwd !== null) {
-            $this->copyTree($this->root.'/'.$this->cwd, $dir);
+            self::copyTree($this->root.'/'.$this->cwd, $dir);
         }
 
         return $dir;
     }
 
-    /** Copies a tree into another, skipping vendor folders anywhere in it. */
-    private function copyTree(string $from, string $to): void
+    /**
+     * Copies a tree into another, skipping vendor folders anywhere in it. Walked by hand with scandir: PHP's
+     * recursive directory iterator lists only some files on Docker Desktop mounts, so it must not drive what the
+     * examples run against.
+     */
+    private static function copyTree(string $from, string $to): void
     {
-        $iterator = new RecursiveIteratorIterator(
-            new RecursiveCallbackFilterIterator(
-                new RecursiveDirectoryIterator($from, FilesystemIterator::SKIP_DOTS),
-                static fn (SplFileInfo $item): bool => ! ($item->isDir() && $item->getFilename() === 'vendor'),
-            ),
-        );
-        foreach ($iterator as $item) {
-            if (! $item instanceof SplFileInfo || ! $item->isFile()) {
-                continue;
+        $scan = static function (string $path, string $prefix) use (&$scan, $to): void {
+            $entries = scandir($path);
+            if ($entries === false) {
+                throw new DocsSiteError("Cannot read the folder {$path}.");
             }
-            $relative = ltrim(str_replace('\\', '/', substr($item->getPathname(), strlen($from))), '/');
-            $target = $to.'/'.$relative;
-            if (! is_dir(dirname($target)) && ! mkdir(dirname($target), 0o755, true) && ! is_dir(dirname($target))) {
-                throw new DocsSiteError('Cannot create '.dirname($target).'.');
+            foreach ($entries as $entry) {
+                if ($entry === '.' || $entry === '..') {
+                    continue;
+                }
+                $relative = $prefix === '' ? $entry : $prefix.'/'.$entry;
+                $full = $path.'/'.$entry;
+                if (is_dir($full) && ! is_link($full)) {
+                    if ($entry === 'vendor') {
+                        continue;
+                    }
+                    $scan($full, $relative);
+
+                    continue;
+                }
+                if (! is_file($full)) {
+                    continue;
+                }
+                $target = $to.'/'.$relative;
+                if (! is_dir(dirname($target)) && ! mkdir(dirname($target), 0o755, true) && ! is_dir(dirname($target))) {
+                    throw new DocsSiteError('Cannot create '.dirname($target).'.');
+                }
+                if (! copy($full, $target)) {
+                    throw new DocsSiteError("Cannot copy {$full} to {$target}.");
+                }
             }
-            if (! copy($item->getPathname(), $target)) {
-                throw new DocsSiteError("Cannot copy {$item->getPathname()} to {$target}.");
-            }
-        }
+        };
+        $scan($from, '');
     }
 
     /**
-     * Removes a directory tree; a missing directory is fine. A timed-out command may still hold a file or the
-     * directory open, so failures are ignored: the leftovers expire when that command exits.
+     * Removes a directory tree; a missing directory is fine. Children are removed before their folder, like the old
+     * CHILD_FIRST walk. A timed-out command may still hold a file open, so the per-file failures are ignored: the
+     * leftovers expire when that command exits.
      */
     private static function removeDir(string $dir): void
     {
         if (! is_dir($dir)) {
             return;
         }
-        $items = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::CHILD_FIRST,
-        );
-        foreach ($items as $item) {
-            if (! $item instanceof SplFileInfo) {
-                continue;
+        $scan = static function (string $path) use (&$scan): void {
+            $entries = scandir($path);
+            if ($entries === false) {
+                throw new DocsSiteError("Cannot read the folder {$path}.");
             }
-            if ($item->isDir()) {
-                @rmdir($item->getPathname());
-            } else {
-                @unlink($item->getPathname());
+            foreach ($entries as $entry) {
+                if ($entry === '.' || $entry === '..') {
+                    continue;
+                }
+                $full = $path.'/'.$entry;
+                if (is_dir($full) && ! is_link($full)) {
+                    $scan($full);
+                    @rmdir($full);
+
+                    continue;
+                }
+                @unlink($full);
             }
-        }
+        };
+        $scan($dir);
         @rmdir($dir);
     }
 
-    /** @return list<string> the Markdown files under a folder, relative, sorted, dot and underscore files skipped */
-    private function walk(string $dir, string $extension): array
+    /**
+     * The Markdown files under a folder, relative, sorted, dot and underscore files skipped. Walked by hand with
+     * scandir: PHP's recursive directory iterator lists only some files on Docker Desktop mounts, so it must not
+     * drive which pages the builder sees.
+     *
+     * @return list<string>
+     */
+    private static function walk(string $dir, string $extension): array
     {
         if (! is_dir($dir)) {
             return [];
         }
         $out = [];
-        $iterator = new RecursiveIteratorIterator(
-            new RecursiveCallbackFilterIterator(
-                new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS),
-                static function (SplFileInfo $file): bool {
-                    return ! str_starts_with($file->getFilename(), '.') && ! str_starts_with($file->getFilename(), '_');
-                },
-            ),
-        );
-        foreach ($iterator as $file) {
-            if ($file instanceof SplFileInfo && strtolower($file->getExtension()) === $extension) {
-                $out[] = str_replace('\\', '/', substr($file->getPathname(), strlen($dir) + 1));
+        $scan = static function (string $path, string $prefix) use (&$scan, $extension, &$out): void {
+            $entries = scandir($path);
+            if ($entries === false) {
+                throw new DocsSiteError("Cannot read the folder {$path}.");
             }
-        }
+            foreach ($entries as $entry) {
+                if ($entry === '.' || $entry === '..' || str_starts_with($entry, '.') || str_starts_with($entry, '_')) {
+                    continue;
+                }
+                $relative = $prefix === '' ? $entry : $prefix.'/'.$entry;
+                $full = $path.'/'.$entry;
+                if (is_dir($full) && ! is_link($full)) {
+                    $scan($full, $relative);
+
+                    continue;
+                }
+                if (is_file($full) && strtolower(pathinfo($entry, PATHINFO_EXTENSION)) === $extension) {
+                    $out[] = $relative;
+                }
+            }
+        };
+        $scan($dir, '');
         sort($out);
 
         return $out;
@@ -1128,7 +1167,7 @@ final class DocsSite
         if (! is_dir($this->siteDocs)) {
             return $out;
         }
-        foreach ($this->walk($this->siteDocs, 'html') as $relative) {
+        foreach (self::walk($this->siteDocs, 'html') as $relative) {
             $key = 'site/docs/'.$relative;
             if (isset($files[$key]) || isset($binaries[$key])) {
                 continue;
@@ -1142,18 +1181,49 @@ final class DocsSite
         // longer produces is a leftover.
         $themeDir = $this->siteDocs.'/theme';
         if (is_dir($themeDir)) {
-            $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($themeDir, FilesystemIterator::SKIP_DOTS));
-            foreach ($iterator as $file) {
-                if (! $file instanceof SplFileInfo || ! $file->isFile()) {
-                    continue;
-                }
-                $relative = str_replace('\\', '/', substr($file->getPathname(), strlen($themeDir) + 1));
+            foreach (self::themeFiles($themeDir) as $relative) {
                 if (! isset($binaries['site/docs/theme/'.$relative])) {
                     $out[] = 'site/docs/theme/'.$relative;
                 }
             }
         }
         sort($out);
+
+        return $out;
+    }
+
+    /**
+     * Every file under a folder, relative with forward slashes, nothing skipped: the theme scan must see hidden
+     * files too. Walked by hand with scandir: PHP's recursive directory iterator lists only some files on Docker
+     * Desktop mounts.
+     *
+     * @return list<string>
+     */
+    private static function themeFiles(string $dir): array
+    {
+        $out = [];
+        $scan = static function (string $path, string $prefix) use (&$scan, &$out): void {
+            $entries = scandir($path);
+            if ($entries === false) {
+                throw new DocsSiteError("Cannot read the folder {$path}.");
+            }
+            foreach ($entries as $entry) {
+                if ($entry === '.' || $entry === '..') {
+                    continue;
+                }
+                $relative = $prefix === '' ? $entry : $prefix.'/'.$entry;
+                $full = $path.'/'.$entry;
+                if (is_dir($full) && ! is_link($full)) {
+                    $scan($full, $relative);
+
+                    continue;
+                }
+                if (is_file($full)) {
+                    $out[] = $relative;
+                }
+            }
+        };
+        $scan($dir, '');
 
         return $out;
     }
@@ -2434,7 +2504,7 @@ final class DocsSite
 
                 continue;
             }
-            foreach ($this->walk($this->root.'/'.$folder, 'php') as $relative) {
+            foreach (self::walk($this->root.'/'.$folder, 'php') as $relative) {
                 $files[$folder.'/'.$relative] = true;
             }
         }
@@ -3468,30 +3538,41 @@ final class DocsSite
         return implode(', ', $out);
     }
 
-    /** @return list<string> paths relative to $dir, forward slashes, sorted, private skipped */
-    private function walk(string $dir, string $extension): array
+    /**
+     * Paths relative to $dir, forward slashes, sorted, private skipped. Walked by hand with scandir: PHP's
+     * recursive directory iterator lists only some files on Docker Desktop mounts, so it must not drive which pages
+     * the builder sees.
+     *
+     * @return list<string>
+     */
+    private static function walk(string $dir, string $extension): array
     {
         if (! is_dir($dir)) {
             return [];
         }
         $out = [];
-        $iterator = new RecursiveIteratorIterator(
-            new RecursiveCallbackFilterIterator(
-                new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS),
-                static function (SplFileInfo $file, string $key, RecursiveDirectoryIterator $it): bool {
-                    if (str_starts_with($file->getFilename(), '.') || str_starts_with($file->getFilename(), '_')) {
-                        return false;
-                    }
-
-                    return true;
-                },
-            ),
-        );
-        foreach ($iterator as $file) {
-            if ($file instanceof SplFileInfo && strtolower($file->getExtension()) === $extension) {
-                $out[] = str_replace('\\', '/', substr($file->getPathname(), strlen($dir) + 1));
+        $scan = static function (string $path, string $prefix) use (&$scan, $extension, &$out): void {
+            $entries = scandir($path);
+            if ($entries === false) {
+                throw new DocsSiteError("Cannot read the folder {$path}.");
             }
-        }
+            foreach ($entries as $entry) {
+                if ($entry === '.' || $entry === '..' || str_starts_with($entry, '.') || str_starts_with($entry, '_')) {
+                    continue;
+                }
+                $relative = $prefix === '' ? $entry : $prefix.'/'.$entry;
+                $full = $path.'/'.$entry;
+                if (is_dir($full) && ! is_link($full)) {
+                    $scan($full, $relative);
+
+                    continue;
+                }
+                if (is_file($full) && strtolower(pathinfo($entry, PATHINFO_EXTENSION)) === $extension) {
+                    $out[] = $relative;
+                }
+            }
+        };
+        $scan($dir, '');
         sort($out);
 
         return $out;

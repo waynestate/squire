@@ -99,19 +99,43 @@ final class Project
             return [];
         }
 
+        // Walked by hand with scandir: PHP's recursive directory iterator lists only some files on Docker Desktop
+        // mounts, so it must not drive what the doctor sees. Reaching the limit stops the walk, like the old break did.
         $found = [];
-        $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($root, \FilesystemIterator::SKIP_DOTS));
-        foreach ($iterator as $file) {
-            if (!$file instanceof \SplFileInfo || !$file->isFile()) {
-                continue;
-            }
-            if (in_array(strtolower($file->getExtension()), $extensions, true)) {
-                $found[] = $directory . '/' . ltrim(str_replace('\\', '/', substr($file->getPathname(), strlen($root))), '/');
-            }
+        $scan = function (string $path, string $prefix) use (&$scan, $extensions, $limit, $directory, &$found): void {
             if (count($found) >= $limit) {
-                break;
+                return;
             }
-        }
+            $entries = scandir($path);
+            if ($entries === false) {
+                throw new ToolError(sprintf('Cannot read %s.', $path));
+            }
+            foreach ($entries as $entry) {
+                if ($entry === '.' || $entry === '..') {
+                    continue;
+                }
+                $relative = $prefix === '' ? $entry : $prefix . '/' . $entry;
+                $full = $path . '/' . $entry;
+                if (is_dir($full) && !is_link($full)) {
+                    $scan($full, $relative);
+                    if (count($found) >= $limit) {
+                        return;
+                    }
+
+                    continue;
+                }
+                if (!is_file($full)) {
+                    continue;
+                }
+                if (in_array(strtolower(pathinfo($entry, PATHINFO_EXTENSION)), $extensions, true)) {
+                    $found[] = $directory . '/' . $relative;
+                    if (count($found) >= $limit) {
+                        return;
+                    }
+                }
+            }
+        };
+        $scan($root, '');
         sort($found);
 
         return $found;

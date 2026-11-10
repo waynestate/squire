@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace Waynestate\Squire\Template;
 
-use FilesystemIterator;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
-use SplFileInfo;
 use Waynestate\Squire\Squire;
 use Waynestate\Squire\ToolError;
 
@@ -75,6 +71,9 @@ final class Exporter
         if (!is_dir($dir)) {
             throw new ToolError(sprintf('Not a directory: %s', $dir));
         }
+
+        // Forward slashes throughout, so the walked paths compare equal to the expected ones on every OS.
+        $dir = str_replace('\\', '/', $dir);
 
         $fresh = $this->freshExport();
         $drifted = [];
@@ -237,22 +236,40 @@ final class Exporter
     }
 
     /**
-     * @return list<string> absolute paths of every file under $dir
+     * Absolute paths of every file under $dir, with forward slashes. Walked by hand with scandir: PHP's recursive
+     * directory iterator lists only some files on Docker Desktop mounts, so it must not drive what the check sees.
+     *
+     * @return list<string>
      */
-    private function listFiles(string $dir): array
+    private static function listFiles(string $dir): array
     {
         $files = [];
-        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS));
-        foreach ($iterator as $file) {
-            if (!$file instanceof SplFileInfo || !$file->isFile()) {
-                continue;
+        $scan = static function (string $path) use (&$scan, &$files): void {
+            $entries = scandir($path);
+            if ($entries === false) {
+                throw new ToolError("Cannot read the folder {$path}.");
             }
-            $path = str_replace('\\', '/', $file->getPathname());
-            if (str_contains($path, '/.git/')) {
-                continue;
+            foreach ($entries as $entry) {
+                if ($entry === '.' || $entry === '..') {
+                    continue;
+                }
+                $full = $path . '/' . $entry;
+                if (is_dir($full) && !is_link($full)) {
+                    $scan($full);
+
+                    continue;
+                }
+                if (!is_file($full)) {
+                    continue;
+                }
+                $slash = str_replace('\\', '/', $full);
+                if (str_contains($slash, '/.git/')) {
+                    continue;
+                }
+                $files[] = $slash;
             }
-            $files[] = $file->getPathname();
-        }
+        };
+        $scan(rtrim(str_replace('\\', '/', $dir), '/'));
         sort($files);
 
         return $files;

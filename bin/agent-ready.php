@@ -770,7 +770,7 @@ final class AgentReady
     public function leftovers(array $files): array
     {
         $out = [];
-        foreach ($this->walk($this->site, 'md') as $relative) {
+        foreach (self::walk($this->site, 'md') as $relative) {
             if (isset($files[$relative])) {
                 continue;
             }
@@ -804,7 +804,7 @@ final class AgentReady
     private function pages(): array
     {
         $pages = [];
-        foreach ($this->walk($this->site, 'html') as $relative) {
+        foreach (self::walk($this->site, 'html') as $relative) {
             if (in_array($relative, $this->exclude, true)) {
                 continue;
             }
@@ -835,32 +835,41 @@ final class AgentReady
         return $pages;
     }
 
-    /** @return list<string> paths relative to $dir, with forward slashes, sorted */
-    private function walk(string $dir, string $extension): array
+    /**
+     * Walked by hand with scandir: PHP's recursive directory iterator lists only some files on Docker Desktop
+     * mounts, so it must not drive what the tool sees.
+     *
+     * @return list<string> paths relative to $dir, with forward slashes, sorted
+     */
+    private static function walk(string $dir, string $extension): array
     {
         $skip = ['assets', 'brand', 'screenshots', 'vendor', 'node_modules'];
         $out = [];
-        $iterator = new RecursiveIteratorIterator(
-            new RecursiveCallbackFilterIterator(
-                new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS),
-                static function (SplFileInfo $file, string $key, RecursiveDirectoryIterator $iterator) use ($skip, $dir): bool {
-                    $relative = str_replace('\\', '/', substr($file->getPathname(), strlen($dir) + 1));
-                    if (str_starts_with($file->getFilename(), '.')) {
-                        return false;
-                    }
-                    if ($iterator->hasChildren()) {
-                        return ! in_array($relative, $skip, true);
-                    }
-
-                    return true;
-                },
-            ),
-        );
-        foreach ($iterator as $file) {
-            if ($file instanceof SplFileInfo && strtolower($file->getExtension()) === $extension) {
-                $out[] = str_replace('\\', '/', substr($file->getPathname(), strlen($dir) + 1));
+        $scan = static function (string $path, string $prefix) use (&$scan, $skip, $extension, &$out): void {
+            $entries = scandir($path);
+            if ($entries === false) {
+                throw new AgentReadyError("Cannot read the folder {$path}.");
             }
-        }
+            foreach ($entries as $entry) {
+                if ($entry === '.' || $entry === '..' || str_starts_with($entry, '.')) {
+                    continue;
+                }
+                $relative = $prefix === '' ? $entry : $prefix.'/'.$entry;
+                $full = $path.'/'.$entry;
+                if (is_dir($full) && ! is_link($full)) {
+                    if (in_array($relative, $skip, true)) {
+                        continue;
+                    }
+                    $scan($full, $relative);
+
+                    continue;
+                }
+                if (is_file($full) && strtolower(pathinfo($entry, PATHINFO_EXTENSION)) === $extension) {
+                    $out[] = $relative;
+                }
+            }
+        };
+        $scan($dir, '');
         sort($out);
 
         return $out;
