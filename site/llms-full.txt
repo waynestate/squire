@@ -1112,6 +1112,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ### Unreleased [#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+- Docs: the Local parity guide points at Preflight 0.6.0's `mysql56-migrate` component and PROCTOR's `mysql56-ci` check, the CI side of the same MySQL 5.6.51 pin (D-078).
 - Changed: the Oracle image tag jobs build linux/amd64 again, natively on a runner tagged `amd64`, while linux/arm64 stays on the default runner; the new `oracle-images-manifest` job stitches both halves into one manifest list per image. `SQUIRE_BUILD_AMD64` now defaults to `"1"`; `"0"` publishes linux/arm64 only. Only the two amd64 jobs carry the `amd64` tag.
 - Changed: the deploy layer requires PROCTOR ^0.12 (locked 0.12.0, was ^0.11): two new warning-only checks, nothing breaks.
 - Changed: Renovate proposes only patch and digest updates for the two PHP 8.4 base images (the Oracle parity image and the fallback base), so it stops opening 8.5 bumps the image tests reject.
@@ -1989,6 +1990,8 @@ parity up                    # build, start, and print the address
 `parity init --from-squire` carries the kit's settings over (base image, public folder, ports, database name, time zone, deployments) and leaves passwords and every other value behind; Parity makes its own local passwords. It lists the kit's files and deletes none of them. Two differences to expect: Parity runs Citadel's own `php.ini`, not the kit's hardened one, and the kit's `scheduler` and `worker` services become one cron entry that runs Laravel's scheduler every minute, because Citadel has cron and no services. Parity's [README](https://git.wayne.edu/enterprise-apps/parity) has the install line for each OS and the full command list.
 
 Squire still does its own job: it writes the files Citadel runs and checks them with `squire doctor`. Squire gets the app onto Citadel; Parity runs Citadel on your computer.
+
+In CI, the same MySQL pin checks every merge: Preflight's [`mysql56-migrate` component](https://preflight.apps.wayne.edu/docs/guides/component-mysql56-migrate.html) (0.6.0) runs the app's migrations against `mysql:5.6.51` on an amd64 runner, and PROCTOR's `mysql56-ci` check warns when an app with migrations has no such job. Parity catches a bad migration on your computer; the pipeline catches the one that slipped past.
 
 ### The parity kit is deprecated [#](https://squire.apps.wayne.edu/docs/guides/local-parity.html#the-parity-kit-is-deprecated)
 
