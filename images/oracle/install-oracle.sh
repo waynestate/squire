@@ -154,9 +154,11 @@ ldconfig
 
 # Enable the extension where PHP actually scans for ini files. Debian and
 # Ubuntu use /etc/php/<line>/<sapi>/conf.d; the official PHP image uses
-# /usr/local/etc/php/conf.d. Ask PHP rather than guessing.
-conf_dir="$(php --ini | sed -n 's/^[Ss]can for additional \.ini files in:[[:space:]]*//p')"
+# /usr/local/etc/php/conf.d. Ask PHP rather than guessing. PHP 8.5 prints the
+# path in double quotes (8.4 and older print it bare), so drop them.
+conf_dir="$(php --ini | sed -n 's/^[Ss]can for additional \.ini files in:[[:space:]]*//p' | sed 's/^"\(.*\)"[[:space:]]*$/\1/')"
 [ -n "$conf_dir" ] || die "could not determine the PHP ini scan directory from php --ini"
+[ -d "$conf_dir" ] || die "the PHP ini scan directory from php --ini does not exist: ${conf_dir}"
 echo "extension=oci8.so" > "${conf_dir}/zz-oci8.ini"
 
 # The SDK is only needed to compile; drop it and the zips.

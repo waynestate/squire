@@ -488,6 +488,15 @@ final class ImageHardeningTest extends SquireTestCase
         self::assertMatchesRegularExpression('/\s-n\s/', $m[0][1], 'the SDK unzip never overwrites, so it never prompts');
     }
 
+    public function testTheOracleInstallReadsPhp85sQuotedIniScanDirectory(): void
+    {
+        // PHP 8.5's php --ini prints the scan directory in double quotes; written into the path as-is, the oci8 ini
+        // went to a folder that does not exist and every PHP 8.5 Oracle image build failed.
+        $script = $this->repoFile('images/oracle/install-oracle.sh');
+        self::assertMatchesRegularExpression('/^conf_dir=.*php --ini.*sed \'s\/\^"\\\\\(\.\*\\\\\)"/m', $script, 'the quotes are stripped');
+        self::assertStringContainsString('[ -d "$conf_dir" ] || die', $script, 'a missing folder fails with its name');
+    }
+
     // --- PHP 8.4: the session ID length stays at PHP's defaults ------------------------------------------------------
 
     public function testPhpIniLeavesTheSessionIdLengthAtPhpsDefaults(): void

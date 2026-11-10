@@ -20,7 +20,7 @@ vendor/bin/squire init --check vendor/bin/squire update --dry-run
 
 ## 0.10.4 (2026-11-09) [#](https://squire.apps.wayne.edu/docs/upgrading.html#0-10-4-2026-11-09)
 
-No breaks: a patch on 0.10.3, and no kit file changes, so `squire update` has nothing to take. The Oracle-ready local images build on linux/arm64 again (Apple silicon, arm64 Linux): `images/oracle/install-oracle.sh` unpacked the Instant Client SDK over the Basic Light files and stopped at a "replace?" prompt, which failed every arm64 build of both flavors. The CI publish script for those images also stops failing on its Sail flavor. The published images are still not available: the CI runner cannot build linux/amd64 (MAINTAINING.md has the details), so build them locally with `scripts/oracle-image-build.sh`.
+No breaks: a patch on 0.10.3, and no kit file changes, so `squire update` has nothing to take. The Oracle-ready local images build on linux/arm64 again (Apple silicon, arm64 Linux): `images/oracle/install-oracle.sh` unpacked the Instant Client SDK over the Basic Light files and stopped at a "replace?" prompt, which failed every arm64 build of both flavors. PHP 8.5 builds still fail in 0.10.4 on every architecture (PHP 8.5 quotes the path `php --ini` prints; fixed on main for the next release), so build the 8.3 or 8.4 line until then. The CI publish script for those images also stops failing on its Sail flavor. The published images are still not available: the CI runner cannot build linux/amd64 (MAINTAINING.md has the details), so build them locally with `scripts/oracle-image-build.sh`.
 
 ### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps)
 

@@ -162,14 +162,18 @@ fetches it, not that base. The real Citadel image (`citadel/php-apache:8.4r5`) i
   passes, nothing is pushed.
 
 **Known limit: no tag has published the images yet.** Every tag pipeline since this GitLab became the home (0.6.0
-to 0.10.3) failed all six `oracle-images` jobs. Three causes, two fixed:
+to 0.10.4) failed all six `oracle-images` jobs. Four causes, three fixed:
 
-- Fixed (Unreleased): the Sail flavor never reached a build. The script ran `buildah from
+- Fixed in 0.10.4: the Sail flavor never reached a build. The script ran `buildah from
   docker://composer:<tag>@sha256:...`, and buildah's `docker://` transport refuses a tag and a digest together
   (`invalid reference format`). It now names the image in full without the prefix.
-- Fixed (Unreleased): every linux/arm64 build failed in `install-oracle.sh`. The arm64 Instant Client zips share
+- Fixed in 0.10.4: every linux/arm64 build failed in `install-oracle.sh`. The arm64 Instant Client zips share
   their `META-INF/` signing files, and the second `unzip` stopped to ask about replacing them, which fails with no
-  terminal. The SDK now unpacks with `unzip -n`.
+  terminal. The SDK now unpacks with `unzip -n`. The 0.10.4 tag pipeline built PHP 8.3 and 8.4 of both flavors
+  for linux/arm64.
+- Fixed (Unreleased): every PHP 8.5 build failed in `install-oracle.sh`. PHP 8.5's `php --ini` prints the ini scan
+  directory in double quotes, and the script wrote `zz-oci8.ini` into a path with the quotes in it. It strips them
+  now and fails by name if the folder is missing.
 - Open: the only runner is linux/arm64 and cannot run linux/amd64 binaries, so every amd64 build dies at its
   first `RUN` step (`fork/exec /bin/sh: exec format error`). The job cannot fix that itself. A probe job on
   2026-11-09 found Docker's default capabilities (no `CAP_SYS_ADMIN`), seccomp on, `/proc/sys` read-only and

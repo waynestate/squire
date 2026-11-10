@@ -12,6 +12,8 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ## Unreleased [#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+- Fixed: every PHP 8.5 Oracle image build (both flavors, every architecture, in CI and with `scripts/oracle-image-build.sh --php 8.5`) failed in `images/oracle/install-oracle.sh`. PHP 8.5's `php --ini` prints the ini scan directory in double quotes (8.4 and older print it bare), and the script wrote `zz-oci8.ini` into a path with the quotes in it, a folder that does not exist. It strips the quotes now, fails by name if the folder is missing, and a test pins both.
+
 ## 0.10.4 (2026-11-09) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-10-4-2026-11-09)
 
 - Fixed: the Sail flavor of the `oracle-images` CI jobs failed before it built anything, on every tag since 0.6.0: `scripts/oracle-image-publish.sh` ran `buildah from docker://composer:2.11.1@sha256:...`, and buildah's `docker://` transport refuses a tag and a digest together (`invalid reference format`). The script now names the image in full without the prefix (`docker.io/library/composer:2.11.1@sha256:...`, same digest), and a test fails on a tag and a digest after `docker://` in either Oracle script.

@@ -43,6 +43,9 @@
 <p>All notable changes to Squire are recorded here. The format follows Keep a Changelog; the project follows Semantic
 Versioning once 1.0 is out.</p>
 <h2 id="unreleased"><span class="docs-heading-tail"><span>Unreleased</span><a class="docs-heading-link" aria-label="Link to this section" href="#unreleased">#</a></span></h2>
+<ul>
+<li>Fixed: every PHP 8.5 Oracle image build (both flavors, every architecture, in CI and with <code>scripts/oracle-image-build.sh --php 8.5</code>) failed in <code>images/oracle/install-oracle.sh</code>. PHP 8.5's <code>php --ini</code> prints the ini scan directory in double quotes (8.4 and older print it bare), and the script wrote <code>zz-oci8.ini</code> into a path with the quotes in it, a folder that does not exist. It strips the quotes now, fails by name if the folder is missing, and a test pins both.</li>
+</ul>
 <h2 id="0-10-4-2026-11-09">0.10.4 <span class="docs-heading-tail"><span>(2026-11-09)</span><a class="docs-heading-link" aria-label="Link to this section" href="#0-10-4-2026-11-09">#</a></span></h2>
 <ul>
 <li>Fixed: the Sail flavor of the <code>oracle-images</code> CI jobs failed before it built anything, on every tag since 0.6.0: <code>scripts/oracle-image-publish.sh</code> ran <code>buildah from docker://composer:2.11.1@sha256:...</code>, and buildah's <code>docker://</code> transport refuses a tag and a digest together (<code>invalid reference format</code>). The script now names the image in full without the prefix (<code>docker.io/library/composer:2.11.1@sha256:...</code>, same digest), and a test fails on a tag and a digest after <code>docker://</code> in either Oracle script.</li>
