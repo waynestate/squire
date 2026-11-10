@@ -86,6 +86,15 @@ final class Updater
             }
             $diskHash = Manifest::hash($disk);
 
+            // The app's edit was taken upstream into the template: nothing to merge, adopt the new hash.
+            if ($diskHash === $newHash) {
+                if (!$dryRun && $recordedHash !== $newHash) {
+                    $written[$destination] = $newHash;
+                }
+                $results[] = new FileResult($destination, FileResult::CURRENT, 'matches the current template');
+                continue;
+            }
+
             if ($newHash === $recordedHash) {
                 $results[] = new FileResult(
                     $destination,

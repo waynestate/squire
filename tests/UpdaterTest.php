@@ -91,6 +91,45 @@ final class UpdaterTest extends SquireTestCase
         self::assertSame($recordedBefore, $manifest->files['build.sh'], 'the record of an edited file is not touched');
     }
 
+    public function testAnEditedFileThatMatchesTheNewTemplateIsAdoptedAsCurrent(): void
+    {
+        [$app, $updater, $templates] = $this->movableApp();
+        $content = "#!/bin/sh\n# version two\n";
+        file_put_contents($app . '/build.sh', $content);
+        file_put_contents($templates . '/common/build.sh', $content);
+
+        $results = $updater->run($app, 'raw', ['release', 'parity'], false);
+        $states = $this->states($results);
+
+        self::assertSame(FileResult::CURRENT, $states['build.sh']);
+        self::assertSame($content, (string) file_get_contents($app . '/build.sh'), 'the file itself is never rewritten');
+        $manifest = Manifest::load($app);
+        self::assertNotNull($manifest);
+        self::assertSame(Manifest::hash("#!/bin/sh\n# version two\n"), $manifest->files['build.sh'], 'the new hash is recorded');
+
+        $second = $this->states($updater->run($app, 'raw', ['release', 'parity'], false));
+        self::assertSame(FileResult::CURRENT, $second['build.sh'], 'once adopted, the file stays current');
+    }
+
+    public function testADryRunDoesNotRecordAnAdoptedFile(): void
+    {
+        [$app, $updater, $templates] = $this->movableApp();
+        $manifestBefore = Manifest::load($app);
+        self::assertNotNull($manifestBefore);
+        $recordedBefore = $manifestBefore->files['build.sh'];
+        $content = "#!/bin/sh\n# version two\n";
+        file_put_contents($app . '/build.sh', $content);
+        file_put_contents($templates . '/common/build.sh', $content);
+
+        $results = $updater->run($app, 'raw', ['release', 'parity'], true);
+        $states = $this->states($results);
+
+        self::assertSame(FileResult::CURRENT, $states['build.sh']);
+        $manifest = Manifest::load($app);
+        self::assertNotNull($manifest);
+        self::assertSame($recordedBefore, $manifest->files['build.sh'], 'a dry run writes nothing, the record included');
+    }
+
     public function testAnUnchangedTemplateIsCurrent(): void
     {
         [$app, $updater] = $this->movableApp();
