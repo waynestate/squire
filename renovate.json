@@ -2,5 +2,15 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "local>enterprise-apps/preflight//renovate/default"
+  ],
+  "packageRules": [
+    {
+      "description": "The PHP base images stay on the 8.4 row (Citadel's default); tests/ImageHardeningTest.php pins it. Patch and digest updates only.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["php", "docker.io/library/php"],
+      "matchFileNames": ["images/oracle/parity.Dockerfile", "templates/common/.squire/base-fallback.Dockerfile"],
+      "matchUpdateTypes": ["minor", "major"],
+      "enabled": false
+    }
   ]
 }
