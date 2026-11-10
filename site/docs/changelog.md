@@ -12,6 +12,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ## Unreleased [#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+- Site: the front page's stale facts are current (Squire 0.10.7 on Packagist, the bag holds 25 files, the full `squire init` output for laravel, the whole S8 message, S78 on the rule list; the README's packing-list image says 25 files too).
 - Fixed: `squire update` reports a file current, and records it, when an app's edit already matches the new template byte for byte (an edit taken upstream), instead of reporting drift.
 
 ## 0.10.7 (2026-11-10) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-10-7-2026-11-10)

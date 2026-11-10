@@ -46,7 +46,7 @@ vendor/bin/squire init
 
 ![Squire's satchel](https://squire.apps.wayne.edu/brand/squire-avatar-512.png)
 
-**To** the Citadel **From** my-app **Holds** 23 files
+**To** the Citadel **From** my-app **Holds** 25 files
 
 5 of 5 packed, buckled for deploy day
 
@@ -64,6 +64,10 @@ created scripts/release.sh (written from the template)
 
 created health.php (written from the template)
 
+created oracle-check.php (written from the template)
+
+created .gitattributes (written from the template)
+
 created docker-compose.squire.yml (written from the template)
 
 created .squire/Dockerfile (written from the template)
@@ -71,6 +75,8 @@ created .squire/Dockerfile (written from the template)
 created .squire/Dockerfile.dockerignore (written from the template)
 
 created .squire/base-fallback.Dockerfile (written from the template)
+
+created .squire/apache-hardening.conf (written from the template)
 
 created .squire/fallback/citadel-apache-entrypoint (written from the template)
 
@@ -80,7 +86,19 @@ created .squire/haproxy.cfg (written from the template)
 
 created .squire/php.ini (written from the template)
 
+created .squire/php-web.ini (written from the template)
+
 created .squire/vhost.conf (written from the template)
+
+created .squire/portable.Dockerfile (written from the template)
+
+created .squire/portable.Dockerfile.dockerignore (written from the template)
+
+created .squire/portable/squire-entrypoint.sh (written from the template)
+
+created .squire/portable/ports.conf (written from the template)
+
+created .squire/portable/vhost.conf (written from the template)
 
 created scripts/parity.sh (written from the template)
 
@@ -89,6 +107,8 @@ created scripts/parity.ps1 (written from the template)
 created .env.squire.example (written from the template)
 
 Target: laravel. Wrote .squire.json.
+
+Next: git update-index --chmod=+x build.sh deployments/001-first-release.sh scripts/release.sh .squire/fallback/citadel-apache-entrypoint .squire/fallback/citadel-deploy .squire/portable/squire-entrypoint.sh scripts/parity.sh
 
 Parity: the parity group is deprecated (removed no sooner than 0.12.0). Parity runs Citadel on your computer now; \`parity init --from-squire\` carries this kit over: https://git.wayne.edu/enterprise-apps/parity
 
@@ -127,6 +147,7 @@ fail exits 1 warn reported info noted
 - S67Images pinned by digest.
 - S70Containers drop capabilities.
 - S71Citadel's health-check timing.
+- S78A Vue app keeps `node_modules/` out of git.
 
 Every rule, its level and why it matters: `BEST_PRACTICES.md`. Drift from the templates is a warning under S9, never a failure; your copies are yours to edit.
 
@@ -144,7 +165,7 @@ PASS S20 PROCTOR runs as a report and cannot stop the release.
 
 PASS S55 health.php is an artisan-free health check. \[health.php\]
 
-WARN S8 .gitattributes does not force LF for shell scripts. Add \`\*.sh text eol=lf\`.
+WARN S8 .gitattributes does not force LF for shell scripts. Add \`\*.sh text eol=lf\`, and \`\*.conf text eol=lf\`, \`Dockerfile text eol=lf\` and \`\*.Dockerfile text eol=lf\`, which PROCTOR checks too.
 
 WARN S67 Not pinned by digest: citadel/php-apache:8.4r5. Run \`scripts/parity.sh pin\` and put the digests in .env.squire.
 
@@ -263,7 +284,7 @@ Known limits
 
 ## Scuffs on the leather
 
-Squire 0.10.5 is tagged and on Packagist. Where we had to guess how Citadel behaves, `OPEN_QUESTIONS.md` lists each guess and the default it chose.
+Squire 0.10.7 is tagged and on Packagist. Where we had to guess how Citadel behaves, `OPEN_QUESTIONS.md` lists each guess and the default it chose.
 
 - The local `php.ini` holds the safe defaults HELMET also enforces at runtime, not the platform's file.
 - The Citadel image has no registry digest to pin yet; doctor warns under S67 until you run `pin`.
