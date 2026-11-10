@@ -25,6 +25,8 @@ parity up                    # build, start, and print the address
 
 Squire still does its own job: it writes the files Citadel runs and checks them with `squire doctor`. Squire gets the app onto Citadel; Parity runs Citadel on your computer.
 
+In CI, the same MySQL pin checks every merge: Preflight's [`mysql56-migrate` component](https://preflight.apps.wayne.edu/docs/guides/component-mysql56-migrate.html) (0.6.0) runs the app's migrations against `mysql:5.6.51` on an amd64 runner, and PROCTOR's `mysql56-ci` check warns when an app with migrations has no such job. Parity catches a bad migration on your computer; the pipeline catches the one that slipped past.
+
 ## The parity kit is deprecated
 
 > [!WARNING]

@@ -5,6 +5,7 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+- Docs: the Local parity guide points at Preflight 0.6.0's `mysql56-migrate` component and PROCTOR's `mysql56-ci` check, the CI side of the same MySQL 5.6.51 pin (D-078).
 - Changed: the Oracle image tag jobs build linux/amd64 again, natively on a runner tagged `amd64`, while linux/arm64 stays on the default runner; the new `oracle-images-manifest` job stitches both halves into one manifest list per image. `SQUIRE_BUILD_AMD64` now defaults to `"1"`; `"0"` publishes linux/arm64 only. Only the two amd64 jobs carry the `amd64` tag.
 - Changed: the deploy layer requires PROCTOR ^0.12 (locked 0.12.0, was ^0.11): two new warning-only checks, nothing breaks.
 - Changed: Renovate proposes only patch and digest updates for the two PHP 8.4 base images (the Oracle parity image and the fallback base), so it stops opening 8.5 bumps the image tests reject.
