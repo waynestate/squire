@@ -500,6 +500,13 @@ final class ImageHardeningTest extends SquireTestCase
         }
         self::assertSame(2, substr_count($ci, "\n  tags:"), 'only the amd64 jobs are tagged');
         self::assertStringContainsString("- job: oracle-images-amd64\n      optional: true", $ci, 'a tag with the switch off still assembles arm64 alone');
+        // The manifest job must name its stage: without one GitLab puts it in the default test stage, which runs
+        // before deploy, and a job may not needs: a job in a later stage.
+        self::assertMatchesRegularExpression(
+            '/^oracle-images-manifest:\n(?:(?!^[^\s#]).*\n)*?  stage: deploy\n/m',
+            $ci,
+            'the manifest job sits in the deploy stage, so its needs can reach both halves',
+        );
 
         $script = $this->repoFile('scripts/oracle-image-publish.sh');
         self::assertStringContainsString('platforms="amd64,arm64"', $script, 'by hand, the script still builds both by default');

@@ -168,6 +168,7 @@ oracle-images-amd64:
 
 oracle-images-manifest:
   extends: .oracle-platforms
+  stage: deploy
   image: quay.io/buildah/stable:v1.43.5-immutable@sha256:7c2b605262748ace2c5c57c5550942d0adad57aec82ede3070927722306c0ffb
   parallel:
     matrix:
