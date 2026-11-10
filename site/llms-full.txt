@@ -508,8 +508,8 @@ image has no Node.
 
 Squire ships an [ADVISOR](https://github.com/waynestate/advisor) module, so a coding agent that runs ADVISOR can run
 Squire's checks without leaving its sandbox. In the app, install ADVISOR as a dev dependency (`composer require
---dev waynestate/advisor`) and add one line to the app's `modules.json` (or point `ADVISOR_MODULES_FILE` at a file
-that holds it):
+--dev waynestate/advisor`), put the module in a manifest of your own (for example `advisor-modules.json`), and point
+`ADVISOR_MODULES_FILE` at it. ADVISOR reads its own `modules.json` and that one extra file, nothing else:
 
 ```json
 {
@@ -1112,6 +1112,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ### Unreleased [#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+- Docs: the ADVISOR guide and README say to list `SquireModule` in a manifest of your own and point `ADVISOR_MODULES_FILE` at it; ADVISOR never reads an app's `modules.json`.
 - Site: the front page's stale facts are current (Squire 0.10.7 on Packagist, the bag holds 25 files, the full `squire init` output for laravel, the whole S8 message, S78 on the rule list; the README's packing-list image says 25 files too).
 - Fixed: `squire update` reports a file current, and records it, when an app's edit already matches the new template byte for byte (an edit taken upstream), instead of reporting drift.
 
@@ -1478,7 +1479,7 @@ In the app, install ADVISOR as a dev dependency:
 composer require --dev waynestate/advisor
 ```
 
-Then add one line to the app's `modules.json` (or point `ADVISOR_MODULES_FILE` at a file that holds it):
+Then put the module in a manifest of your own (for example `advisor-modules.json` in the app) and point `ADVISOR_MODULES_FILE` at it. ADVISOR reads its own `modules.json` and that one extra file, nothing else:
 
 ```json
 {

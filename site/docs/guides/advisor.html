@@ -45,7 +45,8 @@
 <!-- docs-test: skip needs a real project -->
 <pre tabindex="0"><code class="language-bash">composer require --dev waynestate/advisor
 </code></pre>
-<p>Then add one line to the app's <code>modules.json</code> (or point <code>ADVISOR_MODULES_FILE</code> at a file that holds it):</p>
+<p>Then put the module in a manifest of your own (for example <code>advisor-modules.json</code> in the app) and point
+<code>ADVISOR_MODULES_FILE</code> at it. ADVISOR reads its own <code>modules.json</code> and that one extra file, nothing else:</p>
 <pre tabindex="0"><code class="language-json">{
     &quot;modules&quot;: [
         &quot;Waynestate\\Squire\\Advisor\\SquireModule&quot;
