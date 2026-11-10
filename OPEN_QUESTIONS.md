@@ -71,7 +71,7 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
     amd64 half and the arm64 runner merges the manifest list (none exists today); (c) the tag job publishes arm64
     only and amd64 is built by hand with `scripts/oracle-image-build.sh` until (a) or (b) lands (amd64 users get no
     published image: a product call). **Decided 2026-11-09: (c), then (a).** From 0.10.5 the tag jobs
-    publish linux/arm64 only, both flavours, PHP 8.3 to 8.5, and the amd64 legs do not run; amd64 users,
+    publish linux/arm64 only, both flavors, PHP 8.3 to 8.5, and the amd64 legs do not run; amd64 users,
     Citadel-shaped hosts included, build locally with `scripts/oracle-image-build.sh`. Later the runner host gets
     qemu-user-static, and the CI variable `SQUIRE_BUILD_AMD64=1` (the one switch; MAINTAINING.md, Publishing the
     Oracle images) turns amd64 back on. Open until then.

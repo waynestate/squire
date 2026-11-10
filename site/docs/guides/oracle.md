@@ -41,6 +41,19 @@ The names above are the local names of `scripts/oracle-image-build.sh`. The publ
 
 **The published images are linux/arm64 only, for now.** From Squire 0.10.5, a tag publishes both flavors for PHP 8.3, 8.4 and 8.5 for linux/arm64: Apple silicon Macs and arm64 Linux hosts can pull them. The CI runner cannot build linux/amd64 yet (it is arm64, and its host has no amd64 emulation), so on an amd64 computer, Citadel-shaped hosts included, build the images locally with `scripts/oracle-image-build.sh` (below) until it can. Pulling the published tag on amd64 fails with "no matching manifest for linux/amd64", which is the image's way of saying the same thing. One switch turns amd64 back on: the CI variable `SQUIRE_BUILD_AMD64=1`, once the runner host can emulate amd64 (MAINTAINING.md, Publishing the Oracle images).
 
+The 0.10.5 tag published all six (linux/arm64). Pin the fixed tag with its list digest so a pull always gets the same bytes:
+
+| Image | List digest |
+| --- | --- |
+| `squire-oracle-sail:8.3-0.10.5` | `sha256:135f9c2c545acca83ba85a9ba0cdc749e49901187616be2707b6be40db1e80fb` |
+| `squire-oracle-sail:8.4-0.10.5` | `sha256:3d942883ea31c802e2a958542697941c6bff4b36989931e12e2c24289b690a87` |
+| `squire-oracle-sail:8.5-0.10.5` | `sha256:d3e66740c7a23221c12f112046c7ec6f316be5a8a96cf2005cbccdea4bd61bfb` |
+| `squire-oracle-parity:8.3-0.10.5` | `sha256:4a14a2af005f2ba30eb32c23d6f9d4fdbe7e5593c9dc6a0c2f2616fdb532bc71` |
+| `squire-oracle-parity:8.4-0.10.5` | `sha256:531b22047eedfd4e8bceee4583cbce2d0aac3129d27afdae97aec8b22bb54367` |
+| `squire-oracle-parity:8.5-0.10.5` | `sha256:ebfdb9536d7a3e857a11d797a701f12b2129b7504bd48250b6d946a55a2adb7e` |
+
+So a Sail app on an Apple silicon Mac writes `image: <registry>/enterprise-apps/images/squire-oracle-sail:8.4-0.10.5@sha256:3d942883ea31c802e2a958542697941c6bff4b36989931e12e2c24289b690a87`. Later tags are listed in MAINTAINING.md, What each tag published.
+
 Both flavors download Oracle's Instant Client Basic Light at build time under Oracle's license and never commit it: the install script pins the exact SHA-256 of each zip. Oracle does not publish a 21.x client for arm64, so the line differs per architecture: linux/amd64 gets 21.7.0.0.0 and linux/arm64 gets 19.32.0.0.0.
 
 ```

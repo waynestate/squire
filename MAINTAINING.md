@@ -195,9 +195,17 @@ to 0.10.4) failed all six `oracle-images` jobs. Four causes, all handled:
 
 ### What each tag published
 
-| Tag | Platforms | Images and list digests |
-|---|---|---|
-| 0.10.5 | linux/arm64 | Recorded after the tag pipeline finishes. |
+Each digest is the manifest list's, under `<registry>/enterprise-apps/`. The fixed tag keeps it for good; the floating
+`<php>` tag had it when the tag pipeline ran and moves with the next tag.
+
+| Tag | Image (fixed tag, and the floating one) | Platforms | List digest |
+|---|---|---|---|
+| 0.10.5 | `images/squire-oracle-sail:8.3-0.10.5` (and `:8.3`) | linux/arm64 | `sha256:135f9c2c545acca83ba85a9ba0cdc749e49901187616be2707b6be40db1e80fb` |
+| 0.10.5 | `images/squire-oracle-sail:8.4-0.10.5` (and `:8.4`) | linux/arm64 | `sha256:3d942883ea31c802e2a958542697941c6bff4b36989931e12e2c24289b690a87` |
+| 0.10.5 | `images/squire-oracle-sail:8.5-0.10.5` (and `:8.5`) | linux/arm64 | `sha256:d3e66740c7a23221c12f112046c7ec6f316be5a8a96cf2005cbccdea4bd61bfb` |
+| 0.10.5 | `images/squire-oracle-parity:8.3-0.10.5` (and `:8.3`) | linux/arm64 | `sha256:4a14a2af005f2ba30eb32c23d6f9d4fdbe7e5593c9dc6a0c2f2616fdb532bc71` |
+| 0.10.5 | `images/squire-oracle-parity:8.4-0.10.5` (and `:8.4`) | linux/arm64 | `sha256:531b22047eedfd4e8bceee4583cbce2d0aac3129d27afdae97aec8b22bb54367` |
+| 0.10.5 | `images/squire-oracle-parity:8.5-0.10.5` (and `:8.5`) | linux/arm64 | `sha256:ebfdb9536d7a3e857a11d797a701f12b2129b7504bd48250b6d946a55a2adb7e` |
 
 ## Changing a template
 

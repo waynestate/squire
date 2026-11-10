@@ -655,13 +655,14 @@ The names above are the local names of scripts/oracle-image-build.sh. The publis
 (`` is the registry address of the images project shown on its Container Registry page), plus
 `:8.4-` for a fixed one; a Sail app swaps `build:` for `image:` with that path.
 
-**The published images are linux/arm64 only, for now.** From Squire 0.10.5, a tag publishes both flavours for PHP
+**The published images are linux/arm64 only, for now.** From Squire 0.10.5, a tag publishes both flavors for PHP
 8.3, 8.4 and 8.5 for linux/arm64 (Apple silicon, arm64 Linux hosts). The CI runner cannot build linux/amd64 yet, so
 on an amd64 computer, Citadel-shaped hosts included, build them locally with scripts/oracle-image-build.sh until it
 can. One switch turns amd64 back on: the CI variable `SQUIRE_BUILD_AMD64=1`, once the runner host can emulate amd64
-(MAINTAINING.md, Publishing the Oracle images).
+(MAINTAINING.md, Publishing the Oracle images). The 0.10.5 tag published all six; the
+[Oracle guide](https://squire.apps.wayne.edu/docs/guides/oracle.html) lists their digests for pinning.
 
-Both flavours download Oracle's Instant Client Basic Light at build time under Oracle's license and never commit
+Both flavors download Oracle's Instant Client Basic Light at build time under Oracle's license and never commit
 it: the install script pins the exact SHA-256 of each zip. Oracle does not publish a 21.x client for arm64, so the
 line differs per architecture: linux/amd64 gets 21.7.0.0.0 and linux/arm64 gets 19.32.0.0.0.
 
@@ -1089,6 +1090,9 @@ Source: https://squire.apps.wayne.edu/docs/changelog.html
 All notable changes to Squire are recorded here. The format follows Keep a Changelog; the project follows Semantic Versioning once 1.0 is out.
 
 ### Unreleased [#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
+
+- Docs: the 0.10.5 tag published the Oracle images, the first tag to do so: both flavors for PHP 8.3, 8.4 and 8.5, linux/arm64 only. The Oracle guide and MAINTAINING.md (What each tag published) list each image's list digest, for example `squire-oracle-sail:8.4-0.10.5@sha256:3d942883ea31c802e2a958542697941c6bff4b36989931e12e2c24289b690a87` and `squire-oracle-parity:8.4-0.10.5@sha256:531b22047eedfd4e8bceee4583cbce2d0aac3129d27afdae97aec8b22bb54367`. amd64 hosts still build locally until `SQUIRE_BUILD_AMD64=1`.
+- Docs: US spelling in the README and OPEN_QUESTIONS.md (flavors).
 
 ### 0.10.5 (2026-11-09) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-10-5-2026-11-09)
 
@@ -2249,6 +2253,19 @@ Apps that talk to Oracle need the Instant Client and the `oci8` extension. Squir
 The names above are the local names of `scripts/oracle-image-build.sh`. The published images live in the group's `images` project (the stack's shared image registry; Squire's own GitLab has no container registry), at `<registry>/enterprise-apps/images/squire-oracle-parity:8.4` and `<registry>/enterprise-apps/images/squire-oracle-sail:8.4` (`<registry>` is the registry address of the images project shown on its Container Registry page), plus `:8.4-<squire version>` for a fixed one; a Sail app swaps `build:` for `image:` with that path.
 
 **The published images are linux/arm64 only, for now.** From Squire 0.10.5, a tag publishes both flavors for PHP 8.3, 8.4 and 8.5 for linux/arm64: Apple silicon Macs and arm64 Linux hosts can pull them. The CI runner cannot build linux/amd64 yet (it is arm64, and its host has no amd64 emulation), so on an amd64 computer, Citadel-shaped hosts included, build the images locally with `scripts/oracle-image-build.sh` (below) until it can. Pulling the published tag on amd64 fails with "no matching manifest for linux/amd64", which is the image's way of saying the same thing. One switch turns amd64 back on: the CI variable `SQUIRE_BUILD_AMD64=1`, once the runner host can emulate amd64 (MAINTAINING.md, Publishing the Oracle images).
+
+The 0.10.5 tag published all six (linux/arm64). Pin the fixed tag with its list digest so a pull always gets the same bytes:
+
+| Image | List digest |
+| --- | --- |
+| `squire-oracle-sail:8.3-0.10.5` | `sha256:135f9c2c545acca83ba85a9ba0cdc749e49901187616be2707b6be40db1e80fb` |
+| `squire-oracle-sail:8.4-0.10.5` | `sha256:3d942883ea31c802e2a958542697941c6bff4b36989931e12e2c24289b690a87` |
+| `squire-oracle-sail:8.5-0.10.5` | `sha256:d3e66740c7a23221c12f112046c7ec6f316be5a8a96cf2005cbccdea4bd61bfb` |
+| `squire-oracle-parity:8.3-0.10.5` | `sha256:4a14a2af005f2ba30eb32c23d6f9d4fdbe7e5593c9dc6a0c2f2616fdb532bc71` |
+| `squire-oracle-parity:8.4-0.10.5` | `sha256:531b22047eedfd4e8bceee4583cbce2d0aac3129d27afdae97aec8b22bb54367` |
+| `squire-oracle-parity:8.5-0.10.5` | `sha256:ebfdb9536d7a3e857a11d797a701f12b2129b7504bd48250b6d946a55a2adb7e` |
+
+So a Sail app on an Apple silicon Mac writes `image: <registry>/enterprise-apps/images/squire-oracle-sail:8.4-0.10.5@sha256:3d942883ea31c802e2a958542697941c6bff4b36989931e12e2c24289b690a87`. Later tags are listed in MAINTAINING.md, What each tag published.
 
 Both flavors download Oracle's Instant Client Basic Light at build time under Oracle's license and never commit it: the install script pins the exact SHA-256 of each zip. Oracle does not publish a 21.x client for arm64, so the line differs per architecture: linux/amd64 gets 21.7.0.0.0 and linux/arm64 gets 19.32.0.0.0.
 
