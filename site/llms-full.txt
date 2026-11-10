@@ -27,7 +27,7 @@ Squire is the Citadel kit: build.sh, the release script, the health check, and l
 Front page: [`site/index.html`](https://github.com/waynestate/squire/blob/HEAD/site/index.html), a static page you can serve from anywhere.
 On Citadel it is served by the raw-PHP deploy layer in [`deploy/`](https://github.com/waynestate/squire/blob/HEAD/deploy/): a Squire kit whose front controller serves `site/` behind HELMET's security headers. For local development, keep serving `site/` directly.
 
-Status: 0.10.6, tagged and on Packagist.
+Status: 0.10.7, tagged and on Packagist.
 
 ### Where the code lives
 
@@ -1091,8 +1091,10 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ### Unreleased [#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
-- Changed: doctor rule S8 names every `.gitattributes` line to add (shell scripts, `.conf` files, Dockerfiles and PowerShell), the same pins PROCTOR's `gitattributes-eol` check wants, so following the doctor clears PROCTOR too.
+### 0.10.7 (2026-11-10) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-10-7-2026-11-10)
+
 - Added: the kit ships a `.gitattributes` that pins line endings (LF for shell scripts, `.conf` files and Dockerfiles, CRLF for PowerShell and batch files), so a deploy layer in its own folder clears PROCTOR's `gitattributes-eol` and `crlf-deploy-script` warnings. An app that has its own `.gitattributes` keeps it: Squire never writes over it.
+- Changed: doctor rule S8 names every `.gitattributes` line to add (shell scripts, `.conf` files, Dockerfiles and PowerShell), the same pins PROCTOR's `gitattributes-eol` check wants, so following the doctor clears PROCTOR too.
 - Changed: the GitHub workflow calls Preflight 0.5.0 (was 0.1.4), now that GitHub's copy of Preflight has the tag. MAINTAINING.md says the arm64 contract leg blocks, as it has since it passed on 2026-11-08.
 
 ### 0.10.6 (2026-11-10) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-10-6-2026-11-10)
