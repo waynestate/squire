@@ -58,6 +58,28 @@ final class DoctorTest extends SquireTestCase
         self::assertStringContainsString('citadel/php-apache', $warnings[0]->message);
     }
 
+    public function testS8NamesEveryLineToAdd(): void
+    {
+        $app = $this->app();
+        unlink($app . '/.gitattributes');
+        $findings = $this->examine($app);
+        $s8 = array_values(array_filter($findings, static fn(Finding $f): bool => $f->rule === 'S8'));
+
+        self::assertCount(1, $s8);
+        self::assertSame(Finding::WARN, $s8[0]->status);
+        foreach (['* text=auto eol=lf', '*.sh text eol=lf', '*.conf text eol=lf', 'Dockerfile text eol=lf', '*.Dockerfile text eol=lf'] as $line) {
+            self::assertStringContainsString($line, $s8[0]->message);
+        }
+
+        $findings = $this->examine($this->app(['.gitattributes' => "*.txt text\n"]));
+        $s8 = array_values(array_filter($findings, static fn(Finding $f): bool => $f->rule === 'S8'));
+
+        self::assertCount(1, $s8);
+        self::assertSame(Finding::WARN, $s8[0]->status);
+        self::assertStringContainsString('*.sh text eol=lf', $s8[0]->message);
+        self::assertStringContainsString('*.conf text eol=lf', $s8[0]->message);
+    }
+
     /** @return array<string, array{array<string, string>, string}> */
     public static function badApps(): array
     {

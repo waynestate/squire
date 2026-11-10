@@ -21,7 +21,7 @@ This page explains what `squire doctor` checks (the S-rules), how it hands off t
 | S1 | fail | `build.sh` runs no `composer` or `npm` commands. | Citadel runs `build.sh` as root with only that file copied in; the source is not there. |
 | S3 | warn | Every shell script has `set -e`; bash scripts also have `pipefail`. | A failing step must stop the script. |
 | S4 | fail | No download is piped into a shell. | Pin a version and verify a checksum instead. |
-| S8 | fail / warn | No CRLF in shell scripts (fail); `.gitattributes` forces LF for `*.sh` (warn). | CRLF breaks a script on Linux; Git on Windows adds it. |
+| S8 | fail / warn | No CRLF in shell scripts (fail); `.gitattributes` forces LF for shell scripts, `.conf` files and Dockerfiles (warn, naming the lines to add). | CRLF breaks a script on Linux; Git on Windows adds it. |
 | S9 | fail / warn | `scripts/release.sh` exists (fail); `build.sh` and a `deployments/` hook exist (warn); files match the template version (warn). | Build tooling, the one-time hook and the release script are three jobs. |
 | S12 | fail | The release runs `composer install --no-dev`, never `composer update`, and uses `npm ci` or a frozen-lockfile install. | The lock file is the release contract. |
 | S14 | warn | The release runs `proctor gate` or `proctor check`. | PROCTOR runs `composer audit` and the other app checks, so known-vulnerable dependencies show up in the deploy log. |

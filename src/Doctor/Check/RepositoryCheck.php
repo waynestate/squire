@@ -21,9 +21,9 @@ final class RepositoryCheck implements Check
         // S8
         $attributes = $project->read('.gitattributes');
         if ($attributes === null) {
-            $findings[] = Finding::warn('S8', 'No .gitattributes. Git on Windows can convert shell scripts to CRLF; add `* text=auto eol=lf` and `*.sh text eol=lf`.');
+            $findings[] = Finding::warn('S8', 'No .gitattributes. Git on Windows can turn LF into CRLF, and bash, Apache and Docker then misread the files. Add these lines: `* text=auto eol=lf`, `*.sh text eol=lf`, `*.conf text eol=lf`, `Dockerfile text eol=lf`, `*.Dockerfile text eol=lf`, `*.ps1 text eol=crlf`.');
         } elseif (preg_match('/^\*\s.*eol=lf|^\*\.sh\s.*eol=lf/m', $attributes) !== 1) {
-            $findings[] = Finding::warn('S8', '.gitattributes does not force LF for shell scripts. Add `*.sh text eol=lf`.', '.gitattributes');
+            $findings[] = Finding::warn('S8', '.gitattributes does not force LF for shell scripts. Add `*.sh text eol=lf`, and `*.conf text eol=lf`, `Dockerfile text eol=lf` and `*.Dockerfile text eol=lf`, which PROCTOR checks too.', '.gitattributes');
         } else {
             $findings[] = Finding::pass('S8', '.gitattributes forces LF for shell scripts.', '.gitattributes');
         }
