@@ -23,6 +23,6 @@ Your squire serves one banner, and it flies over git.wayne.edu.
 
 ## Its place in the stack
 
-Squire is part of WELD, the Wayne State application stack, beside WayneUI (project 0, the interface layer every other project builds on), CREED, PROCTOR, Preflight, SESAME, HELMET, Pinstripe, Sourdough, [Parity](https://git.wayne.edu/enterprise-apps/parity), Booster, Rollcall, Drawbridge and ADVISOR. Squire gets the app onto Citadel; Parity runs Citadel on your computer.
+Squire is part of WELD, the Wayne State application stack, beside WayneUI (project 0, the interface layer every other project builds on), CREED, PROCTOR, Preflight, SESAME, HELMET, Pinstripe, Sourdough, [Parity](https://parity.apps.wayne.edu/), Booster, Rollcall, Drawbridge and ADVISOR. Squire gets the app onto Citadel; Parity runs Citadel on your computer.
 
 > A knight never suits up alone. Your app shouldn't deploy alone either.

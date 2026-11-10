@@ -5,6 +5,7 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+- Site: Parity is out; the party list links its site.
 - Changed: requires waynestate/pinstripe ^0.3 and waynestate/advisor ^0.3.
 - Docs: the 0.10.5 tag published the Oracle images, the first tag to do so: both flavors for PHP 8.3, 8.4 and 8.5, linux/arm64 only. The Oracle guide and MAINTAINING.md (What each tag published) list each image's list digest, for example `squire-oracle-sail:8.4-0.10.5@sha256:3d942883ea31c802e2a958542697941c6bff4b36989931e12e2c24289b690a87` and `squire-oracle-parity:8.4-0.10.5@sha256:531b22047eedfd4e8bceee4583cbce2d0aac3129d27afdae97aec8b22bb54367`. amd64 hosts still build locally until `SQUIRE_BUILD_AMD64=1`.
 - Docs: US spelling in the README and OPEN_QUESTIONS.md (flavors).

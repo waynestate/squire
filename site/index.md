@@ -12,7 +12,7 @@ The Citadel kit
 
 Suits you up for the Citadel.
 
-A squire carries the knight's kit. This one carries your app's. `squire init` writes the scripts Citadel runs when you deploy and `squire doctor` checks them. To run your app on your laptop on the same PHP image and MySQL 5.6 as Citadel, behind the same kind of proxy, Squire rides with [Parity](https://git.wayne.edu/enterprise-apps/parity).
+A squire carries the knight's kit. This one carries your app's. `squire init` writes the scripts Citadel runs when you deploy and `squire doctor` checks them. To run your app on your laptop on the same PHP image and MySQL 5.6 as Citadel, behind the same kind of proxy, Squire rides with [Parity](https://parity.apps.wayne.edu/).
 
 `$ composer require waynestate/squire --dev`
 
@@ -160,7 +160,7 @@ Squire hands this job on
 
 ### Parity runs Citadel on your computer now
 
-[Parity](https://git.wayne.edu/enterprise-apps/parity) is the stack's own tool for this: one program for Windows, macOS and Linux that runs Citadel's PHP image, its proxy and MySQL 5.6 for any app, with or without Squire, on Docker or Podman (Podman recommended). `parity init --from-squire` carries this kit's settings over and deletes nothing.
+[Parity](https://parity.apps.wayne.edu/) 0.1.0 is the stack's own tool for this: one program for Windows, macOS and Linux that runs Citadel's PHP image, its proxy and MySQL 5.6 for any app, with or without Squire, on Docker or Podman (Podman recommended). `parity init --from-squire` carries this kit's settings over and deletes nothing.
 
 The kit below still works, and is deprecated as of Squire 0.10.5. It leaves no sooner than Squire 0.12.0, and not before 2027-01-08. The portable image stays with Squire.
 
@@ -257,7 +257,7 @@ Squire is one part of WELD, the Wayne State application stack. It rides last. Th
 - **[ADVISOR](https://advisor.apps.wayne.edu/)** what applies, and what next
 - **[Drawbridge](https://drawbridge.apps.wayne.edu/)** the Citadel sign-in gateway
 - **Squire** the Citadel kit
-- **[Parity](https://git.wayne.edu/enterprise-apps/parity)** Citadel on your computer
+- **[Parity](https://parity.apps.wayne.edu/)** Citadel on your computer
 
 Known limits
 
