@@ -187,7 +187,7 @@ The canonical copy of this table is in WELD's docs: [Which command when](https:/
 | `.squire/portable.Dockerfile`, `.squire/portable/` | The portable image for platforms other than Citadel: one image as web, worker, scheduler or migrate, non-root in group 0 on 8080. Citadel never reads it. |
 
 <div align="center">
-  <img src="docs/readme/packing-list.svg" width="100%" alt="A leather strap hangs a luggage tag for each file Squire packs: build.sh, deployments/001-first-release.sh, scripts/release.sh, health.php and the parity kit of 19 files. Each tag is stamped Packed, then the satchel's own tag reads From my-app, Holds 23 files.">
+  <img src="docs/readme/packing-list.svg" width="100%" alt="A leather strap hangs a luggage tag for each file Squire packs: build.sh, deployments/001-first-release.sh, scripts/release.sh, health.php and the parity kit of 19 files. Each tag is stamped Packed, then the satchel's own tag reads From my-app, Holds 25 files.">
   <br><sub>The packing list for deploy day: each tag lands on the strap and gets its stamp.</sub>
 </div>
 

@@ -195,7 +195,7 @@ Ask me before you guess.</code></pre>
             <div class="bag__label" data-bag-label>
               <span class="bag__label-row"><b>To</b> the Citadel</span>
               <span class="bag__label-row"><b>From</b> my-app</span>
-              <span class="bag__label-row"><b>Holds</b> <span data-bag-files>23</span> files</span>
+              <span class="bag__label-row"><b>Holds</b> <span data-bag-files>25</span> files</span>
             </div>
           </div>
           <p class="bag__count" aria-live="polite"><span data-count>5</span> of 5 packed<span class="bag__ready" data-ready>, buckled for deploy day</span></p>
@@ -219,19 +219,29 @@ Ask me before you guess.</code></pre>
 <p>created           deployments/001-first-release.sh  <span class="t-dim">(written from the template)</span></p>
 <p>created           scripts/release.sh  <span class="t-dim">(written from the template)</span></p>
 <p>created           health.php  <span class="t-dim">(written from the template)</span></p>
+<p>created           oracle-check.php  <span class="t-dim">(written from the template)</span></p>
+<p>created           .gitattributes  <span class="t-dim">(written from the template)</span></p>
 <p>created           docker-compose.squire.yml  <span class="t-dim">(written from the template)</span></p>
 <p>created           .squire/Dockerfile  <span class="t-dim">(written from the template)</span></p>
 <p>created           .squire/Dockerfile.dockerignore  <span class="t-dim">(written from the template)</span></p>
 <p>created           .squire/base-fallback.Dockerfile  <span class="t-dim">(written from the template)</span></p>
+<p>created           .squire/apache-hardening.conf  <span class="t-dim">(written from the template)</span></p>
 <p>created           .squire/fallback/citadel-apache-entrypoint  <span class="t-dim">(written from the template)</span></p>
 <p>created           .squire/fallback/citadel-deploy  <span class="t-dim">(written from the template)</span></p>
 <p>created           .squire/haproxy.cfg  <span class="t-dim">(written from the template)</span></p>
 <p>created           .squire/php.ini  <span class="t-dim">(written from the template)</span></p>
+<p>created           .squire/php-web.ini  <span class="t-dim">(written from the template)</span></p>
 <p>created           .squire/vhost.conf  <span class="t-dim">(written from the template)</span></p>
+<p>created           .squire/portable.Dockerfile  <span class="t-dim">(written from the template)</span></p>
+<p>created           .squire/portable.Dockerfile.dockerignore  <span class="t-dim">(written from the template)</span></p>
+<p>created           .squire/portable/squire-entrypoint.sh  <span class="t-dim">(written from the template)</span></p>
+<p>created           .squire/portable/ports.conf  <span class="t-dim">(written from the template)</span></p>
+<p>created           .squire/portable/vhost.conf  <span class="t-dim">(written from the template)</span></p>
 <p>created           scripts/parity.sh  <span class="t-dim">(written from the template)</span></p>
 <p>created           scripts/parity.ps1  <span class="t-dim">(written from the template)</span></p>
 <p>created           .env.squire.example  <span class="t-dim">(written from the template)</span></p>
 <p>Target: laravel. Wrote .squire.json.</p>
+<p>Next: git update-index --chmod=+x build.sh deployments/001-first-release.sh scripts/release.sh .squire/fallback/citadel-apache-entrypoint .squire/fallback/citadel-deploy .squire/portable/squire-entrypoint.sh scripts/parity.sh</p>
 <p><span class="t-gold">Parity:</span> the parity group is deprecated (removed no sooner than 0.12.0). Parity runs Citadel on your computer now; `parity init --from-squire` carries this kit over: https://git.wayne.edu/enterprise-apps/parity</p>
             </div>
           </div>
@@ -281,6 +291,7 @@ Ask me before you guess.</code></pre>
             <li class="patch patch--warn" style="--i:23"><span class="patch__no">S67</span><span class="patch__txt">Images pinned by digest.</span></li>
             <li class="patch patch--warn" style="--i:24"><span class="patch__no">S70</span><span class="patch__txt">Containers drop capabilities.</span></li>
             <li class="patch patch--warn" style="--i:25"><span class="patch__no">S71</span><span class="patch__txt">Citadel's health-check timing.</span></li>
+            <li class="patch patch--warn" style="--i:26"><span class="patch__no">S78</span><span class="patch__txt">A Vue app keeps <code>node_modules/</code> out of git.</span></li>
           </ul>
           <p class="rules__more">Every rule, its level and why it matters: <code>BEST_PRACTICES.md</code>. Drift from the templates is a warning under S9, never a failure; your copies are yours to edit.</p>
         </div>
@@ -294,7 +305,7 @@ Ask me before you guess.</code></pre>
             <p><span class="t-ok">PASS</span> S14  The release script runs PROCTOR (proctor gate or proctor check).</p>
 <p><span class="t-ok">PASS</span> S20  PROCTOR runs as a report and cannot stop the release.</p>
 <p><span class="t-ok">PASS</span> S55  health.php is an artisan-free health check. <span class="t-dim">[health.php]</span></p>
-<p><span class="t-gold">WARN</span> S8   .gitattributes does not force LF for shell scripts. Add `*.sh text eol=lf`.</p>
+<p><span class="t-gold">WARN</span> S8   .gitattributes does not force LF for shell scripts. Add `*.sh text eol=lf`, and `*.conf text eol=lf`, `Dockerfile text eol=lf` and `*.Dockerfile text eol=lf`, which PROCTOR checks too.</p>
 <p><span class="t-gold">WARN</span> S67  Not pinned by digest: citadel/php-apache:8.4r5. Run `scripts/parity.sh pin` and put the digests in .env.squire.</p>
 <p class="term__result">RESULT: pass (0 fail, 2 warn, 0 info, 5 pass)</p>
           </div>
@@ -483,7 +494,7 @@ scripts\parity.ps1 up                  <span class="t-dim"># or: scripts\parity.
       <div class="section__head">
         <p class="label label--on-leather">Known limits</p>
         <h2 id="limits-title">Scuffs on the leather</h2>
-        <p>Squire 0.10.5 is tagged and on Packagist. Where we had to guess how Citadel behaves, <code>OPEN_QUESTIONS.md</code> lists each guess and the default it chose.</p>
+        <p>Squire 0.10.7 is tagged and on Packagist. Where we had to guess how Citadel behaves, <code>OPEN_QUESTIONS.md</code> lists each guess and the default it chose.</p>
       </div>
       <ul class="dents">
         <li>The local <code>php.ini</code> holds the safe defaults HELMET also enforces at runtime, not the platform's file.</li>
