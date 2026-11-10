@@ -12,6 +12,7 @@ use Waynestate\Advisor\Config;
 use Waynestate\Advisor\Content\ContentBundle;
 use Waynestate\Advisor\Exception\ToolInputError;
 use Waynestate\Advisor\Module\ModuleContext;
+use Waynestate\Advisor\Playbook\Settings;
 use Waynestate\Advisor\Security\PathGuard;
 use Waynestate\Advisor\Security\ProcessOutput;
 use Waynestate\Advisor\Security\ProcessRunner;
@@ -49,6 +50,7 @@ final class SquireModuleTest extends SquireTestCase
             $clock,
             new PathGuard($root),
             $processes,
+            Settings::forProject($root),
         );
 
         return new SquireModule($context);
