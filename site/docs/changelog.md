@@ -12,6 +12,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ## Unreleased [#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+- Changed: Renovate proposes only patch and digest updates for the two PHP 8.4 base images (the Oracle parity image and the fallback base), so it stops opening 8.5 bumps the image tests reject.
 - Docs: the ADVISOR guide and README say to list `SquireModule` in a manifest of your own and point `ADVISOR_MODULES_FILE` at it; ADVISOR never reads an app's `modules.json`.
 - Site: the front page's stale facts are current (Squire 0.10.7 on Packagist, the bag holds 25 files, the full `squire init` output for laravel, the whole S8 message, S78 on the rule list; the README's packing-list image says 25 files too).
 - Fixed: `squire update` reports a file current, and records it, when an app's edit already matches the new template byte for byte (an edit taken upstream), instead of reporting drift.
