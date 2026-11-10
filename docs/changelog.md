@@ -12,6 +12,8 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+- Changed: the GitHub workflow calls Preflight 0.5.0 (was 0.1.4), now that GitHub's copy of Preflight has the tag. MAINTAINING.md says the arm64 contract leg blocks, as it has since it passed on 2026-11-08.
+
 ## 0.10.6 (2026-11-10)
 
 - Fixed: the docs builder, agent-ready generator, template export and doctor scans walk folders with scandir, because PHP's recursive directory iterator lists only some files on Docker Desktop mounts (22 of Preflight's 28 guide pages went missing).
