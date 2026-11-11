@@ -101,7 +101,7 @@ jobs:
           FIXTURE="$(mktemp -d)/app"
           mkdir -p "$FIXTURE"
           cp deploy/composer.json deploy/composer.lock "$FIXTURE/"
-          php bin/squire init --path="$FIXTURE" --target=raw
+          php bin/squire init --path="$FIXTURE" --target=raw --only=release,parity
           [ -f "$FIXTURE/public/up.php" ] || cp templates/raw/public/up.php "$FIXTURE/public/up.php"
           echo "FIXTURE=$FIXTURE" >> "$GITHUB_ENV"
       - name: Prepare .env.squire with dummy passwords
@@ -158,7 +158,7 @@ jobs:
           FIXTURE="$(mktemp -d)/app"
           mkdir -p "$FIXTURE"
           cp deploy/composer.json deploy/composer.lock "$FIXTURE/"
-          php bin/squire init --path="$FIXTURE" --target=raw
+          php bin/squire init --path="$FIXTURE" --target=raw --only=release,parity
           [ -f "$FIXTURE/public/up.php" ] || cp templates/raw/public/up.php "$FIXTURE/public/up.php"
           echo "FIXTURE=$FIXTURE" >> "$GITHUB_ENV"
       - name: Prepare .env.squire with dummy passwords

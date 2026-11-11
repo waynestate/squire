@@ -43,6 +43,9 @@
 <p>All notable changes to Squire are recorded here. The format follows Keep a Changelog; the project follows Semantic
 Versioning once 1.0 is out.</p>
 <h2 id="unreleased"><span class="docs-heading-tail"><span>Unreleased</span><a class="docs-heading-link" aria-label="Link to this section" href="#unreleased">#</a></span></h2>
+<ul>
+<li>Fixed: the GitHub contract legs (<code>contract-parity-sh</code>, <code>contract-parity-pwsh</code>, and <code>contract-image</code> on linux/amd64 and linux/arm64) failed since <code>squire init</code> stopped writing the <code>parity</code> group by default (D-095): the fixture had no <code>.squire/Dockerfile</code> or <code>.env.squire.example</code>. The workflow and <code>scripts/contract-image.sh</code> now ask for it with <code>--only=release,parity</code>.</li>
+</ul>
 <h2 id="0-10-9-2026-11-11">0.10.9 <span class="docs-heading-tail"><span>(2026-11-11)</span><a class="docs-heading-link" aria-label="Link to this section" href="#0-10-9-2026-11-11">#</a></span></h2>
 <ul>
 <li>Changed: the parity kit's HAProxy pin moves to the current <code>haproxy:3.0-alpine</code> digest (<code>sha256:1c15903c50d5510dcc01de755049e7015a6dd3f35bb2dc4582e888116cb71d8f</code>) in <code>docker-compose.squire.yml</code>, for the common and vue kits and Squire's own deploy layer. Run <code>squire update</code> to take it.</li>

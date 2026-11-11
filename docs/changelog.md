@@ -12,6 +12,8 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+- Fixed: the GitHub contract legs (`contract-parity-sh`, `contract-parity-pwsh`, and `contract-image` on linux/amd64 and linux/arm64) failed since `squire init` stopped writing the `parity` group by default (D-095): the fixture had no `.squire/Dockerfile` or `.env.squire.example`. The workflow and `scripts/contract-image.sh` now ask for it with `--only=release,parity`.
+
 ## 0.10.9 (2026-11-11)
 
 - Changed: the parity kit's HAProxy pin moves to the current `haproxy:3.0-alpine` digest (`sha256:1c15903c50d5510dcc01de755049e7015a6dd3f35bb2dc4582e888116cb71d8f`) in `docker-compose.squire.yml`, for the common and vue kits and Squire's own deploy layer. Run `squire update` to take it.
