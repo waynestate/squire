@@ -30,7 +30,7 @@ jobs:
     # and package-lock.json. Runs as a container job so the exact image the GitLab job uses does the work.
     # Pinned to the manifest list digest: the image is multi-arch (linux/amd64, linux/arm/v7, linux/arm64).
     runs-on: ubuntu-latest
-    container: node:22-alpine@sha256:fe4f6d74e20370acb04ad889077d14d0f64a9c8ea6a42bc60cddf1e844699914
+    container: node:22-alpine@sha256:0e1754758c2df4cfa3e68d59e2e1b7374bb7fd9ea6328eaaacf15cc934af8202
     steps:
       # The node image has no git; without it checkout downloads an archive that drops
       # the export-ignored package files. With git it clones, and npm ci finds the lock.
