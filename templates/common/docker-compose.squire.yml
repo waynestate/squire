@@ -6,6 +6,8 @@
 #          stop at 191 characters)
 #
 # Start it with scripts/parity.sh (Linux, macOS) or scripts/parity.ps1 (Windows), which pass --env-file .env.squire.
+# Deprecated: Parity (parity init --from-squire, then parity up) is the supported way to run this stack locally;
+# these scripts remain until it lands everywhere.
 # Every SQUIRE_* variable is documented in .env.squire.example. Secrets are required, not defaulted: compose stops
 # with a message if a password is missing (fail closed).
 #
