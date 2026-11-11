@@ -28,7 +28,7 @@ final class InitCommand extends Command
             ->setDescription('Write the standard Citadel scripts into an app, or report drift with --check.')
             ->addOption('path', null, InputOption::VALUE_REQUIRED, 'Path to the application.', '.')
             ->addOption('target', null, InputOption::VALUE_REQUIRED, 'raw, laravel or static (default: the target recorded in .squire.json, else laravel when an artisan file exists; static must be asked for).')
-            ->addOption('only', null, InputOption::VALUE_REQUIRED, 'Comma-separated groups to write: release, parity (deprecated: Parity runs Citadel locally now). (default: the groups recorded in .squire.json, else release, parity)')
+            ->addOption('only', null, InputOption::VALUE_REQUIRED, 'Comma-separated groups to write: release, parity (opt-in: Parity runs Citadel locally now). (default: the groups recorded in .squire.json, else release)')
             ->addOption('check', null, InputOption::VALUE_NONE, 'Write nothing; report files that are missing, outdated or edited. Exit 1 on drift.')
             ->addOption('force', null, InputOption::VALUE_NONE, 'Overwrite files that were edited or that Squire did not write.');
     }
@@ -50,7 +50,7 @@ final class InitCommand extends Command
             // An app Squire already initialized keeps its recorded target and groups: detection cannot see a
             // static app, so a plain folder would read as raw and the front controller would slip past --check,
             // and a bare `init` should complete the kit with its recorded groups instead of rewriting it as
-            // release,parity.
+            // the fresh-app default.
             $manifest = Manifest::load($path);
 
             $targetOption = $input->getOption('target');
@@ -67,7 +67,9 @@ final class InitCommand extends Command
                     throw new ToolError('--only needs at least one group: release, parity.');
                 }
             } else {
-                $groups = $manifest !== null && $manifest->groups !== [] ? $manifest->groups : Catalog::GROUPS;
+                // A fresh app gets the default groups (release only): parity is opt-in, because Parity runs the
+                // app locally now (D-082) and the kit should not ship a second local-run path by default.
+                $groups = $manifest !== null && $manifest->groups !== [] ? $manifest->groups : Catalog::DEFAULT_GROUPS;
             }
 
             $layer = Catalog::detectLayer($path);
@@ -102,6 +104,9 @@ final class InitCommand extends Command
         $output->writeln('      (Git on Windows does not record the executable bit; Citadel also marks deployments/ and Quick Update scripts executable.)');
         if (in_array(Template::GROUP_PARITY, $groups, true)) {
             $output->writeln(Squire::PARITY_POINTER);
+        } else {
+            // The kit no longer ships a local-run path by default (D-082): point at Parity, which runs the app locally.
+            $output->writeln(sprintf('Run it locally with Parity: parity init --from-squire, then parity up (%s).', Squire::PARITY_URL));
         }
 
         // The release script stops at step 1 without these two files, so the first deploy would fail. Say so now,

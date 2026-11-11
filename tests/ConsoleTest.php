@@ -162,15 +162,15 @@ final class ConsoleTest extends SquireTestCase
         $result = $this->runSquire(['init', '--path=' . $app]);
 
         self::assertSame(0, $result['exit'], $result['stderr']);
-        self::assertFileDoesNotExist($app . '/docker-compose.squire.yml', 'the recorded groups win over the release,parity default');
+        self::assertFileDoesNotExist($app . '/docker-compose.squire.yml', 'the recorded groups win over the fresh-app default');
         $manifest = json_decode((string) file_get_contents($app . '/' . Squire::MANIFEST), true);
         self::assertSame(['release'], $manifest['groups']);
     }
 
-    public function testBareInitWithoutAManifestDefaultsToReleaseAndParity(): void
+    public function testExplicitGroupsStillWriteReleaseAndParity(): void
     {
         $app = $this->app();
-        $result = $this->runSquire(['init', '--path=' . $app]);
+        $result = $this->runSquire(['init', '--only=release,parity', '--path=' . $app]);
 
         self::assertSame(0, $result['exit'], $result['stderr']);
         self::assertFileExists($app . '/build.sh');
@@ -195,7 +195,7 @@ final class ConsoleTest extends SquireTestCase
     public function testInitAndUpdatePointAtParityWhenTheParityGroupIsInPlay(): void
     {
         $app = $this->app();
-        $init = $this->runSquire(['init', '--path=' . $app]);
+        $init = $this->runSquire(['init', '--only=release,parity', '--path=' . $app]);
         self::assertSame(0, $init['exit'], $init['stderr']);
         self::assertStringContainsString(Squire::PARITY_POINTER . "\n", $init['stdout']);
         self::assertStringContainsString('https://git.wayne.edu/enterprise-apps/parity', Squire::PARITY_POINTER);
@@ -213,12 +213,14 @@ final class ConsoleTest extends SquireTestCase
         self::assertStringNotContainsString('Parity:', $check['stdout']);
     }
 
-    public function testInitAndUpdateSayNothingAboutParityWithoutTheParityGroup(): void
+    public function testInitAndUpdateOmitTheParityPointerWithoutTheParityGroup(): void
     {
         $app = $this->app();
         $init = $this->runSquire(['init', '--only=release', '--path=' . $app]);
         self::assertSame(0, $init['exit'], $init['stderr']);
-        self::assertStringNotContainsString('Parity:', $init['stdout']);
+        self::assertStringNotContainsString(Squire::PARITY_POINTER, $init['stdout']);
+        // The kit no longer ships a local-run path by default, so init points at Parity instead.
+        self::assertStringContainsString('Run it locally with Parity: parity init --from-squire, then parity up (' . Squire::PARITY_URL . ').', $init['stdout']);
 
         $update = $this->runSquire(['update', '--path=' . $app]);
         self::assertStringNotContainsString('Parity:', $update['stdout']);

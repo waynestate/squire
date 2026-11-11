@@ -25,8 +25,8 @@ use Waynestate\Squire\ToolError;
  */
 final class SquireModule implements Module
 {
-    /** The groups `squire init` writes by default; the drift check covers the same ground. */
-    private const GROUPS = ['release', 'parity'];
+    /** The groups a fresh `squire init` writes; the drift check falls back to them when the app has no manifest. */
+    private const GROUPS = Catalog::DEFAULT_GROUPS;
 
     public function __construct(private readonly ModuleContext $context) {}
 
@@ -121,12 +121,13 @@ final class SquireModule implements Module
                 }
 
                 try {
-                    // The same resolution `squire init --check` uses: the recorded target wins, else detection;
-                    // the default groups and the detected layer.
+                    // The same resolution `squire init --check` uses: the recorded target and groups win, else
+                    // detection and the default groups; the detected layer.
                     $manifest = Manifest::load($app);
                     $target = $manifest !== null ? $manifest->target : Catalog::detectTarget($app);
+                    $groups = $manifest !== null && $manifest->groups !== [] ? $manifest->groups : self::GROUPS;
                     $layer = Catalog::detectLayer($app);
-                    $results = (new Initializer(new Catalog(Squire::templatesDir())))->run($app, $target, self::GROUPS, false, true, $layer);
+                    $results = (new Initializer(new Catalog(Squire::templatesDir())))->run($app, $target, $groups, false, true, $layer);
                 } catch (ToolError $e) {
                     throw new ToolInputError($e->getMessage());
                 }
@@ -147,7 +148,7 @@ final class SquireModule implements Module
                     'squire_version' => Squire::version(),
                     'app' => $context->guard->relative($app),
                     'target' => $target,
-                    'groups' => self::GROUPS,
+                    'groups' => $groups,
                     'layer' => $layer,
                     'result' => $drift === [] ? 'pass' : 'drift',
                     'need_attention' => count($drift),

@@ -21,7 +21,11 @@ final class Catalog
      */
     public const EXTENDS = ['static' => 'raw'];
 
+    /** Every group Squire knows; `--only` may name any of them. */
     public const GROUPS = [Template::GROUP_RELEASE, Template::GROUP_PARITY];
+
+    /** The groups a fresh `squire init` writes when no manifest and no --only say otherwise: release only. Parity is opt-in. */
+    public const DEFAULT_GROUPS = [Template::GROUP_RELEASE];
 
     // A Vue/Inertia app is a layer on raw or laravel, not a third target: the PHP app still deploys the same way, and
     // the export keeps its raw/ and laravel/ layout for Sourdough.
