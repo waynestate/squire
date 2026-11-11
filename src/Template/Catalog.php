@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Waynestate\Squire\Template;
 
+use Waynestate\Squire\Squire;
 use Waynestate\Squire\ToolError;
 
 /**
@@ -185,9 +186,10 @@ final class Catalog
     }
 
     /**
-     * The template's content, with LF line endings so a checkout with CRLF compares equal.
+     * The template's content, with LF line endings so a checkout with CRLF compares equal. Every {{PHP_LINE}}
+     * becomes the app's PHP line; the legacy default keeps callers that do not name one on the line they have.
      */
-    public function content(Template $template): string
+    public function content(Template $template, string $phpLine = Squire::LEGACY_PHP_LINE): string
     {
         $path = $this->templatesDir . '/' . $template->source();
         $content = is_file($path) ? file_get_contents($path) : false;
@@ -195,7 +197,7 @@ final class Catalog
             throw new ToolError(sprintf('Template file is missing from the package: %s', $template->source()));
         }
 
-        return self::normalize($content);
+        return str_replace('{{PHP_LINE}}', $phpLine, self::normalize($content));
     }
 
     public static function normalize(string $content): string

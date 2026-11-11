@@ -60,7 +60,7 @@ case "$cmd" in
             export SQUIRE_BASE_IMAGE="$FALLBACK_TAG"
         else
             base="$(grep -E '^SQUIRE_BASE_IMAGE=' "$ENV_FILE" | tail -n 1 | cut -d= -f2- || true)"
-            base="${base:-citadel/php-apache:8.4r5}"
+            base="${base:-citadel/php-apache:{{PHP_LINE}}}"
             if ! docker image inspect "$base" >/dev/null 2>&1; then
                 die "base image '$base' is not on this machine. Build it from the Citadel repository (php citadel build_images), pull it from your registry, or re-run with --fallback."
             fi

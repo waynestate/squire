@@ -118,7 +118,7 @@ switch ($Command) {
             }
             $env:SQUIRE_BASE_IMAGE = $FallbackTag
         } else {
-            $base = Get-EnvValue -Name 'SQUIRE_BASE_IMAGE' -Default 'citadel/php-apache:8.4r5'
+            $base = Get-EnvValue -Name 'SQUIRE_BASE_IMAGE' -Default 'citadel/php-apache:{{PHP_LINE}}'
             $null = Invoke-NativeQuiet -Program 'docker' -Arguments @('image', 'inspect', $base)
             if ($LASTEXITCODE -ne 0) {
                 Exit-Parity "base image '$base' is not on this machine. Build it from the Citadel repository (php citadel build_images), pull it from your registry, or re-run with -Fallback."

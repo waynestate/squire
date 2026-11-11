@@ -139,7 +139,7 @@ final class TemplateContentTest extends SquireTestCase
             $env = $this->read($target . '/.env.squire.example');
 
             self::assertStringContainsString('SQUIRE_DB_PASSWORD=change-me-local-only', $env);
-            self::assertStringContainsString('citadel/php-apache:8.4r5', $env);
+            self::assertStringContainsString('citadel/php-apache:{{PHP_LINE}}', $env);
         }
     }
 

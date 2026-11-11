@@ -17,6 +17,7 @@ final readonly class Manifest
      * @param array<string, string> $files destination => sha256 of the content Squire wrote
      * @param list<string>          $groups
      * @param string|null          $layer
+     * @param string|null          $php the PHP line the app runs on (8.4r5, 8.5r3); null when Squire predates it
      */
     public function __construct(
         public string $version,
@@ -24,6 +25,7 @@ final readonly class Manifest
         public array $groups,
         public array $files,
         public ?string $layer = null,
+        public ?string $php = null,
     ) {}
 
     public static function load(string $appPath): ?self
@@ -53,6 +55,10 @@ final readonly class Manifest
         }
 
         $layer = is_string($data['layer'] ?? null) ? $data['layer'] : null;
+        $php = $data['php'] ?? null;
+        if ($php !== null && (!is_string($php) || preg_match('/^\d+\.\d+r\d+$/', $php) !== 1)) {
+            throw new ToolError(sprintf('%s records php "%s", which is not a PHP line such as 8.5r3.', Squire::MANIFEST, is_string($php) ? $php : json_encode($php)));
+        }
 
         return new self(
             is_string($data['version'] ?? null) ? $data['version'] : 'unknown',
@@ -60,6 +66,7 @@ final readonly class Manifest
             $groups,
             $files,
             $layer,
+            $php,
         );
     }
 
@@ -75,6 +82,9 @@ final readonly class Manifest
         ];
         if ($this->layer !== null) {
             $data['layer'] = $this->layer;
+        }
+        if ($this->php !== null) {
+            $data['php'] = $this->php;
         }
         $data['files'] = $files;
 

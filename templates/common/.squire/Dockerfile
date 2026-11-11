@@ -5,7 +5,7 @@
 # directory that holds only that file), the 5-minute health check, and Citadel's entrypoint. So a local build breaks
 # the way a Citadel build breaks (S35, S43).
 #
-# BASE_IMAGE is the real Citadel image (citadel/php-apache:8.4r5, built by Citadel's `php citadel build_images`), or
+# BASE_IMAGE is the real Citadel image (citadel/php-apache:{{PHP_LINE}}, built by Citadel's `php citadel build_images`), or
 # the fallback base from .squire/base-fallback.Dockerfile when you cannot get that image.
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE}

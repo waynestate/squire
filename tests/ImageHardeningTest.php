@@ -321,7 +321,7 @@ final class ImageHardeningTest extends SquireTestCase
     private const PINNED = '/@sha256:[0-9a-f]{64}$/';
 
     /** Local build names, never pulled: the real Citadel image you build yourself, the app image, Sail's base. */
-    private const LOCAL = ['citadel/php-apache:8.4r5', 'sail-base'];
+    private const LOCAL = ['citadel/php-apache:{{PHP_LINE}}', 'sail-base'];
 
     private function repoFile(string $path): string
     {
