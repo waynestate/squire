@@ -21,6 +21,7 @@ final class Application extends SymfonyApplication
         $this->addCommand(new InitCommand());
         $this->addCommand(new UpdateCommand());
         $this->addCommand(new DoctorCommand());
+        $this->addCommand(new FactsCommand());
         $this->setCatchExceptions(true);
     }
 

@@ -11,6 +11,7 @@ The block below is owned by the docs builder: it lists every command the CLI kee
 | Command | What it does |
 | --- | --- |
 | `squire doctor` | Check an app's Citadel release setup against the Squire rules (S1 to S78). |
+| `squire facts` | Fills the squire-facts regions from .squire/facts.json (--check: report drift, write nothing) |
 | `squire init` | Write the standard Citadel scripts into an app, or report drift with --check. |
 | `squire update` | Take new template versions for files Squire wrote that were never edited, add the files a newer release wrote, and show a diff for the edited ones. |
 
@@ -28,6 +29,18 @@ Usage: `squire doctor [--path PATH] [--format FORMAT] [--] [<topic>]`
 | --- | --- | --- |
 | `--path=VALUE` | Path to the application. | `.` |
 | `--format=VALUE` | Output format: text or json. | `text` |
+| `--silent` | Do not output any message |  |
+
+### `squire facts`
+
+Fills the squire-facts regions from .squire/facts.json (--check: report drift, write nothing)
+
+Usage: `squire facts [--check] [--path PATH]`
+
+| Option | Meaning | Default |
+| --- | --- | --- |
+| `--check` | Write nothing; report regions that are out of date. Exit 1 on drift. |  |
+| `--path=VALUE` | Path to the folder holding .squire/facts.json. | `.` |
 | `--silent` | Do not output any message |  |
 
 ### `squire init`

@@ -54,6 +54,10 @@
 <td data-label="What it does">Check an app's Citadel release setup against the Squire rules (S1 to S78).</td>
 </tr>
 <tr>
+<td data-label="Command"><code>squire facts</code></td>
+<td data-label="What it does">Fills the squire-facts regions from .squire/facts.json (--check: report drift, write nothing)</td>
+</tr>
+<tr>
 <td data-label="Command"><code>squire init</code></td>
 <td data-label="What it does">Write the standard Citadel scripts into an app, or report drift with --check.</td>
 </tr>
@@ -100,6 +104,35 @@
 <td data-label="Option"><code>--format=VALUE</code></td>
 <td data-label="Meaning">Output format: text or json.</td>
 <td data-label="Default"><code>text</code></td>
+</tr>
+<tr>
+<td data-label="Option"><code>--silent</code></td>
+<td data-label="Meaning">Do not output any message</td>
+<td data-label="Default"></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="squire-facts"><span class="docs-heading-tail"><code>squire facts</code><a class="docs-heading-link" aria-label="Link to this section" href="#squire-facts">#</a></span></h3>
+<p>Fills the squire-facts regions from .squire/facts.json (--check: report drift, write nothing)</p>
+<p>Usage: <code>squire facts [--check] [--path PATH]</code></p>
+<div class="docs-table" role="region" aria-label="Table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Meaning</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="Option"><code>--check</code></td>
+<td data-label="Meaning">Write nothing; report regions that are out of date. Exit 1 on drift.</td>
+<td data-label="Default"></td>
+</tr>
+<tr>
+<td data-label="Option"><code>--path=VALUE</code></td>
+<td data-label="Meaning">Path to the folder holding .squire/facts.json.</td>
+<td data-label="Default"><code>.</code></td>
 </tr>
 <tr>
 <td data-label="Option"><code>--silent</code></td>
@@ -254,7 +287,7 @@
     </main>
     <nav class="docs-pager" aria-label="Pages"><a class="docs-pager__link" href="../../docs/guides/docs-builder.html"><span class="docs-pager__dir">Previous</span><span class="docs-pager__title">The docs builder</span></a><a class="docs-pager__link docs-pager__link--next" href="../../docs/reference/configuration.html"><span class="docs-pager__dir">Next</span><span class="docs-pager__title">Configuration</span></a></nav>
   </div>
-  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item docs-toc__item--sub"><a href="#squire-doctor">squire doctor</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#squire-init">squire init</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#squire-update">squire update</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#options-every-command-accepts">Options every command accepts</a></li><li class="docs-toc__item"><a href="#exit-codes">Exit codes</a></li><li class="docs-toc__item"><a href="#the-parity-group-is-deprecated">The parity group is deprecated</a></li><li class="docs-toc__item"><a href="#doctor-oracle">doctor oracle</a></li></ul></nav>
+  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item docs-toc__item--sub"><a href="#squire-doctor">squire doctor</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#squire-facts">squire facts</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#squire-init">squire init</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#squire-update">squire update</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#options-every-command-accepts">Options every command accepts</a></li><li class="docs-toc__item"><a href="#exit-codes">Exit codes</a></li><li class="docs-toc__item"><a href="#the-parity-group-is-deprecated">The parity group is deprecated</a></li><li class="docs-toc__item"><a href="#doctor-oracle">doctor oracle</a></li></ul></nav>
 </div>
 <footer class="docs-footer">
   <span>Documents Squire <span data-docs-version>0.10.9</span></span>

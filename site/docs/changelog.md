@@ -12,6 +12,8 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ## Unreleased [#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+- Added: `squire facts` fills marked regions from a committed `.squire/facts.json`, and `squire facts --check` fails CI on drift (D-109; the snapshot writer comes next).
+
 ## 0.10.9 (2026-11-11) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-10-9-2026-11-11)
 
 - Changed: the parity kit's HAProxy pin moves to the current `haproxy:3.0-alpine` digest (`sha256:1c15903c50d5510dcc01de755049e7015a6dd3f35bb2dc4582e888116cb71d8f`) in `docker-compose.squire.yml`, for the common and vue kits and Squire's own deploy layer. Run `squire update` to take it.
