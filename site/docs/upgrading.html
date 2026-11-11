@@ -47,8 +47,9 @@
 vendor/bin/squire update --dry-run</p>
 <p><code>squire init --check</code> reports when your copies have drifted from the templates; it exits <code>0</code> when they match and <code>1</code> when they have. <code>squire update --dry-run</code> prints the plan and writes nothing; it exits <code>1</code> when an edited file still differs from the template. Exit <code>2</code> means the tool itself could not run. For the full command reference, see <a href="reference/commands.html">Commands</a>.</p>
 <h2 id="0-10-9-2026-11-11">0.10.9 <span class="docs-heading-tail"><span>(2026-11-11)</span><a class="docs-heading-link" aria-label="Link to this section" href="#0-10-9-2026-11-11">#</a></span></h2>
-<p>No breaks for an app that already has a <code>.squire.json</code>: it keeps its recorded groups. What changes:</p>
+<p>No breaks for an app that already has a <code>.squire.json</code>: it keeps its recorded groups and its PHP line. What changes:</p>
 <ul>
+<li>A new app starts on the Citadel PHP line <code>8.5r3</code> and records it as <code>php</code> in <code>.squire.json</code>. An app whose <code>.squire.json</code> has no <code>php</code> key stays on <code>8.4r5</code>, and <code>squire update</code> never moves it; <code>squire init --php &lt;line&gt;</code> picks a line on purpose.</li>
 <li>A fresh <code>squire init</code> writes only the <code>release</code> group. The <code>parity</code> group is opt-in (<code>--only release,parity</code>), because Parity runs the app locally now; <code>init</code> points at <code>parity init --from-squire</code> when the group is not in play.</li>
 <li>The release script fetches the PROCTOR version your <code>composer.lock</code> pins when <code>--no-dev</code> left it out, so the deploy gate runs on Citadel; <code>SQUIRE_PROCTOR_FETCH=0</code> turns that off.</li>
 <li>The release script installs the frontend from a <code>yarn.lock</code> too (Yarn 1, or Yarn 2 and later with <code>&quot;packageManager&quot;</code> in <code>package.json</code>).</li>

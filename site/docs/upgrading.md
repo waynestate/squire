@@ -20,8 +20,9 @@ vendor/bin/squire init --check vendor/bin/squire update --dry-run
 
 ## 0.10.9 (2026-11-11) [#](https://squire.apps.wayne.edu/docs/upgrading.html#0-10-9-2026-11-11)
 
-No breaks for an app that already has a `.squire.json`: it keeps its recorded groups. What changes:
+No breaks for an app that already has a `.squire.json`: it keeps its recorded groups and its PHP line. What changes:
 
+- A new app starts on the Citadel PHP line `8.5r3` and records it as `php` in `.squire.json`. An app whose `.squire.json` has no `php` key stays on `8.4r5`, and `squire update` never moves it; `squire init --php <line>` picks a line on purpose.
 - A fresh `squire init` writes only the `release` group. The `parity` group is opt-in (`--only release,parity`), because Parity runs the app locally now; `init` points at `parity init --from-squire` when the group is not in play.
 - The release script fetches the PROCTOR version your `composer.lock` pins when `--no-dev` left it out, so the deploy gate runs on Citadel; `SQUIRE_PROCTOR_FETCH=0` turns that off.
 - The release script installs the frontend from a `yarn.lock` too (Yarn 1, or Yarn 2 and later with `"packageManager"` in `package.json`).
