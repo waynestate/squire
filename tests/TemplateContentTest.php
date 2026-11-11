@@ -242,4 +242,22 @@ final class TemplateContentTest extends SquireTestCase
             self::assertMatchesRegularExpression('/^' . preg_quote($line, '/') . '$/m', $content, $line);
         }
     }
+
+    /**
+     * The Vue layer's .npmrc carries the stronger lines: the age guard plus the install hardening, so an app
+     * starting from Squire gets the same file WELD ships.
+     */
+    public function testTheVueNpmrcHoldsTheAgeGuardAndTheInstallHardening(): void
+    {
+        $content = $this->read('vue/.npmrc');
+
+        self::assertStringNotContainsString("\r", $content, 'the Vue .npmrc must be LF');
+        foreach ([
+            'min-release-age=1',
+            'ignore-scripts=true',
+            'audit=true',
+        ] as $line) {
+            self::assertMatchesRegularExpression('/^' . preg_quote($line, '/') . '$/m', $content, $line);
+        }
+    }
 }
