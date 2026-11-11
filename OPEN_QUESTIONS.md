@@ -12,8 +12,14 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
     Update post-script. Needs a Citadel maintainer's answer.
 3. **Is the public directory `src/public`?** Default for local parity: `SQUIRE_PUBLIC_DIR=src/public`. The dashboard passes
    the real value; check it matches.
-4. **Can a secret be mounted?** Squire assumes environment variables from the dashboard only. Default: the scripts read
-   `SQUIRE_*` from the environment; nothing is read from a file in the repository.
+4. **Can a secret be mounted?** Still unanswered for Citadel: whether its containers can mount a secret file has not
+   been confirmed. What Squire does meanwhile: `scripts/release.sh` and the portable image's entrypoint read a folder
+   of secret files (`SQUIRE_SECRETS_DIR`, default `/run/secrets`; each file named like a variable becomes that
+   variable unless the environment already sets it, and only names are printed), so a host that mounts secrets
+   (Docker, Compose, Kubernetes) works today. Citadel's own entrypoint does not load `/run/secrets` (the 2026-11-10
+   contract run on `citadel/php-apache:8.5r3`, question 19), so on Citadel only the release script would read them.
+   Default: settings come from the environment and `./.env.squire`, a dashboard configuration file kept out of git;
+   nothing secret is read from a file in the repository.
 5. **PowerShell minimum.** Answered for Windows by a run (2026-11-10): `scripts\parity.ps1` ran `up` (no base image, so
    the script's own message), `up -Fallback`, `up` on Citadel's own `citadel/php-apache:8.5r3`, `status`, `pin`, `down`
    and `reset` under Windows PowerShell 5.1.26100 (Desktop), with `/up.php` answering 200 through the proxy, and the
