@@ -226,3 +226,22 @@ oracle-images-dry-run-amd64:
       allow_failure: true
   script:
     - scripts/oracle-image-publish.sh --flavour "$FLAVOUR" --php "$PHP" --platforms amd64 --stage --registry-image "$CI_PROJECT_NAMESPACE/images/$CI_PROJECT_NAME" --dry-run
+
+# A GitLab Release for every tag, with the tag's CHANGELOG.md section as its notes (scripts/release-notes.sh, the
+# same cut the GitHub release workflow makes). A maintainer cuts the tag; this job only writes the label on it. It
+# never creates, moves or deletes a tag. A release that already exists (HTTP 409) is left as it is.
+gitlab-release:
+  stage: deploy
+  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/composer:2.11.1@sha256:8de2184c6de224f4689e8f80ed5f5edaf0030b6b8b7839a22a2bcb6722ac87d0
+  rules:
+    - if: $CI_COMMIT_TAG
+  script:
+    - sh scripts/release-notes.sh "$CI_COMMIT_TAG" > release-notes.md
+    - php -r 'echo json_encode(["tag_name" => getenv("CI_COMMIT_TAG"), "name" => "Squire " . getenv("CI_COMMIT_TAG"), "description" => file_get_contents("release-notes.md")], JSON_THROW_ON_ERROR);' > release.json
+    - |
+      code="$(curl --silent --show-error --output release-response.json --write-out '%{http_code}' --request POST --header "JOB-TOKEN: $CI_JOB_TOKEN" --header "Content-Type: application/json" --data @release.json "$CI_API_V4_URL/projects/$CI_PROJECT_ID/releases")"
+      case "$code" in
+        201) echo "Created the GitLab Release for $CI_COMMIT_TAG." ;;
+        409) echo "A GitLab Release for $CI_COMMIT_TAG already exists; left as it is." ;;
+        *) echo "Creating the GitLab Release answered HTTP $code:"; cat release-response.json; exit 1 ;;
+      esac

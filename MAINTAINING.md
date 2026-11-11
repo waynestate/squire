@@ -250,7 +250,7 @@ Each digest is the manifest list's, under `<registry>/enterprise-apps/`. The fix
    the two disagree.
 2. `composer ci` and both linters green locally, then both pipelines green for that commit.
 3. Run a secrets scan of the history and check that nothing internal (server names, people, IDs) is in the tree.
-4. Tag `X.Y.Z` (no `v`) on git.wayne.edu, with an approver. The mirror carries the tag to GitHub, and Packagist picks it up from there. On GitHub, `.github/workflows/release.yml` then creates the release from the matching `## X.Y.Z (` section of `CHANGELOG.md` (it fails loudly when the section is missing or empty, and uses only the built-in `GITHUB_TOKEN`).
+4. Tag `X.Y.Z` (no `v`) on git.wayne.edu, with an approver. The mirror carries the tag to GitHub, and Packagist picks it up from there. Both homes then publish a release whose notes are the matching `## X.Y.Z (` section of `CHANGELOG.md`, cut by one script, `scripts/release-notes.sh`, which fails loudly when the section is missing or empty: on git.wayne.edu the `gitlab-release` job creates the GitLab Release with the job's own token (a release that already exists is left as it is), and on GitHub `.github/workflows/release.yml` creates the GitHub Release with only the built-in `GITHUB_TOKEN`. Neither creates, moves or deletes a tag.
 5. A release needs a maintainer's approval. Never move or delete a published tag.
 6. When Preflight releases, update both of this repo's pins: the component tag in `.gitlab-ci.yml` and the tag
    in `.github/workflows/ci.yml`.

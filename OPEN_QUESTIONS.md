@@ -130,6 +130,5 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
 
 - The Citadel side of the deploy gate (`proctor gate` in `runGitPull()`, before the commit is checked out), and a supervised queue worker on Citadel (today: the scheduler-driven short worker, untested on Citadel, and the portable image's `worker` role off Citadel; see the queue workers guide).
 - Checks for rules that need a running app or a server (most of the list of S-rules beyond the 26 in `BEST_PRACTICES.md`).
-- A GitLab release job. Tags are cut by hand on git.wayne.edu; the push mirror carries each one to GitHub, where the `release` workflow (`.github/workflows/release.yml`) publishes it as a GitHub Release with its CHANGELOG notes, and Packagist reads the tag from the mirror.
 - Templates for apps that are none of raw PHP, Laravel or a static site.
 - Running the PowerShell scripts on macOS, and a CI job on Windows PowerShell 5.1 (it ran by hand; see question 5).
