@@ -67,12 +67,12 @@
 </tr>
 <tr>
 <td data-label="File"><code>health.php</code></td>
-<td data-label="What it is">Citadel's health check (<code>[&quot;php&quot;,<wbr>&quot;health.<wbr>php&quot;]</code>): one HTTP request to <code>/up</code>, never boots the framework.</td>
+<td data-label="What it is">Citadel's health check (<code>[&quot;php&quot;,<wbr>&quot;health.<wbr>php&quot;]</code>): one HTTP request to <code>/up</code>, never boots the framework. On a Laravel app, keep Pint off it: <a href="../guides/quick-start.html#keep-pint-off-the-kit-s-root-files">Keep Pint off the kit's root files</a>.</td>
 <td data-label="Target or layer">All targets</td>
 </tr>
 <tr>
 <td data-label="File"><code>oracle-check.php</code></td>
-<td data-label="What it is">The plain-language Oracle connection check the release runs: settings, host, port, driver, login. A report, never a gate; silent when the app has no <code>ORACLE_*</code> settings.</td>
+<td data-label="What it is">The plain-language Oracle connection check the release runs: settings, host, port, driver, login. A report, never a gate; silent when the app has no <code>ORACLE_*</code> settings. On a Laravel app, keep Pint off it as well: <a href="../guides/quick-start.html#keep-pint-off-the-kit-s-root-files">Keep Pint off the kit's root files</a>.</td>
 <td data-label="Target or layer">All targets</td>
 </tr>
 <tr>

@@ -183,8 +183,8 @@
 <tr>
 <td data-label="Rule">S57</td>
 <td data-label="Level">warn</td>
-<td data-label="What it checks">JavaScript packages install with <code>--ignore-scripts</code>; <code>.npmrc</code> sets <code>min-release-age</code>.</td>
-<td data-label="Why">A compromised package cannot run at install time, and a version published an hour ago is not installed.</td>
+<td data-label="What it checks">JavaScript packages install with <code>--ignore-scripts</code>; <code>.npmrc</code> sets <code>min-release-age</code>; <code>package.json</code> declares npm 11.10 or later.</td>
+<td data-label="Why">A compromised package cannot run at install time, a version published an hour ago is not installed, and npm reads min-release-age only from version 11.10.</td>
 </tr>
 <tr>
 <td data-label="Rule">S67</td>

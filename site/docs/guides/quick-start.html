@@ -118,6 +118,14 @@
 </tbody>
 </table></div>
 <p>Every shell script uses <code>set -euo pipefail</code> (<code>build.sh</code> uses <code>set -eu</code>, because Citadel runs it with <code>/bin/sh</code>), prints a <code>[squire] ==&gt; step N: ...</code> marker for each step, and can be run twice with the same result.</p>
+<h2 id="keep-pint-off-the-kit-s-root-files">Keep Pint off the kit's root <span class="docs-heading-tail"><span>files</span><a class="docs-heading-link" aria-label="Link to this section" href="#keep-pint-off-the-kit-s-root-files">#</a></span></h2>
+<p>For a Laravel target, <code>init</code> writes <code>health.php</code> and <code>oracle-check.php</code> at the app root, next to the rest of the kit. A Laravel app usually runs Pint over its whole tree, and Pint polishes every blade it can reach, kit included: it reformats or flags the two files, and the next <code>init --check</code> reports the drift. Keep Pint off the kit's files with a <code>pint.json</code> at the app root:</p>
+<pre tabindex="0"><code class="language-json">{
+    &quot;preset&quot;: &quot;laravel&quot;,
+    &quot;notPath&quot;: [&quot;health.php&quot;, &quot;oracle-check.php&quot;]
+}
+</code></pre>
+<p><code>exclude</code> takes directories relative to the path, while <code>notPath</code> skips named files, which is why the two root files need the second key. Sourdough's Laravel templates already ship this exact <code>pint.json</code>, so an app baked from one starts with the exclusion in place.</p>
 <h2 id="next-steps">Next <span class="docs-heading-tail"><span>steps</span><a class="docs-heading-link" aria-label="Link to this section" href="#next-steps">#</a></span></h2>
 <ul>
 <li><a href="raw-php-app.html">Raw PHP app</a></li>
@@ -133,7 +141,7 @@
     </main>
     <nav class="docs-pager" aria-label="Pages"><a class="docs-pager__link" href="../../docs/guides/theming.html"><span class="docs-pager__dir">Previous</span><span class="docs-pager__title">Theming</span></a><a class="docs-pager__link docs-pager__link--next" href="../../docs/guides/doctor.html"><span class="docs-pager__dir">Next</span><span class="docs-pager__title">Doctor</span></a></nav>
   </div>
-  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item"><a href="#1-install-squire">1. Install Squire</a></li><li class="docs-toc__item"><a href="#2-run-squire-init">2. Run squire init</a></li><li class="docs-toc__item"><a href="#3-run-squire-doctor">3. Run squire doctor</a></li><li class="docs-toc__item"><a href="#4-commit-squire-json">4. Commit .squire.json</a></li><li class="docs-toc__item"><a href="#what-you-built">What you built</a></li><li class="docs-toc__item"><a href="#next-steps">Next steps</a></li></ul></nav>
+  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item"><a href="#1-install-squire">1. Install Squire</a></li><li class="docs-toc__item"><a href="#2-run-squire-init">2. Run squire init</a></li><li class="docs-toc__item"><a href="#3-run-squire-doctor">3. Run squire doctor</a></li><li class="docs-toc__item"><a href="#4-commit-squire-json">4. Commit .squire.json</a></li><li class="docs-toc__item"><a href="#what-you-built">What you built</a></li><li class="docs-toc__item"><a href="#keep-pint-off-the-kit-s-root-files">Keep Pint off the kit&#039;s root files</a></li><li class="docs-toc__item"><a href="#next-steps">Next steps</a></li></ul></nav>
 </div>
 <footer class="docs-footer">
   <span>Documents Squire <span data-docs-version>0.10.8</span></span>

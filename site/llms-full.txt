@@ -1445,7 +1445,7 @@ The other gates, by platform:
 | --- | --- | --- |
 | Lint the shell templates (ShellCheck in Docker) | `scripts\lint-shell.ps1` | `scripts/lint-shell.sh` |
 | Lint the PowerShell templates (PSScriptAnalyzer) | `scripts\lint-powershell.ps1` | `pwsh -File scripts/lint-powershell.ps1` |
-| Local parity, in an app | `scripts\parity.ps1 up` | `scripts/parity.sh up` |
+| Local parity, in an app (deprecated: use Parity, `parity up`) | `scripts\parity.ps1 up` | `scripts/parity.sh up` |
 | Front page accessibility gate (Preflight's a11y checker, in Docker) | `scripts\a11y.ps1` | `scripts/a11y.sh` |
 | Docs kit JavaScript tests (needs Node, or Docker) | `npm ci && npm test` | `npm ci && npm test` |
 
@@ -1792,7 +1792,7 @@ Note
 | S42 | warn | `.env` and `.env.squire` are git-ignored. | Secrets stay out of git. |
 | S50 | info | Hand-off: points at `proctor check` for the lock file, composer audit and MySQL 5.6 checks, and names `proctor gate`, which the release asks for a go or no-go. | Each check has one owner; PROCTOR owns those, and `doctor` may run where PROCTOR is not installed. |
 | S55 | fail / warn | A health check that does not run `artisan` or boot the framework exists. | Citadel runs it every 5 minutes as root. |
-| S57 | warn | JavaScript packages install with `--ignore-scripts`; `.npmrc` sets `min-release-age`. | A compromised package cannot run at install time, and a version published an hour ago is not installed. |
+| S57 | warn | JavaScript packages install with `--ignore-scripts`; `.npmrc` sets `min-release-age`; `package.json` declares npm 11.10 or later. | A compromised package cannot run at install time, a version published an hour ago is not installed, and npm reads min-release-age only from version 11.10. |
 | S67 | warn | Every image in the compose file is pinned by digest. | The same bytes tomorrow as today. |
 | S70 | warn | Local containers drop capabilities and set `no-new-privileges`. | Least privilege, also locally. |
 | S71 | warn | The local health check uses Citadel's timing (5 minutes, 15 seconds). | A slow `/up` shows up before it ships. |
@@ -2634,6 +2634,19 @@ Commit the `.squire.json` record file. `update` reads it to know which files Squ
 
 Every shell script uses `set -euo pipefail` (`build.sh` uses `set -eu`, because Citadel runs it with `/bin/sh`), prints a `[squire] ==> step N: ...` marker for each step, and can be run twice with the same result.
 
+### Keep Pint off the kit's root files [#](https://squire.apps.wayne.edu/docs/guides/quick-start.html#keep-pint-off-the-kit-s-root-files)
+
+For a Laravel target, `init` writes `health.php` and `oracle-check.php` at the app root, next to the rest of the kit. A Laravel app usually runs Pint over its whole tree, and Pint polishes every blade it can reach, kit included: it reformats or flags the two files, and the next `init --check` reports the drift. Keep Pint off the kit's files with a `pint.json` at the app root:
+
+```json
+{
+    "preset": "laravel",
+    "notPath": ["health.php", "oracle-check.php"]
+}
+```
+
+`exclude` takes directories relative to the path, while `notPath` skips named files, which is why the two root files need the second key. Sourdough's Laravel templates already ship this exact `pint.json`, so an app baked from one starts with the exclusion in place.
+
 ### Next steps [#](https://squire.apps.wayne.edu/docs/guides/quick-start.html#next-steps)
 
 - [Raw PHP app](https://squire.apps.wayne.edu/docs/guides/raw-php-app.html)
@@ -3144,8 +3157,8 @@ What `squire init` writes into your app, which target or layer each file belongs
 | `build.sh` | Citadel's build hook: system packages only, POSIX sh, runs as root with no app source. No Composer, no npm. | All targets |
 | `deployments/001-first-release.sh` | Runs once per app: calls the release script with the smoke test off (Apache is not up yet). | All targets |
 | `scripts/release.sh` | The idempotent release: preconditions, `composer install --no-dev` from the lock file, audit, PROCTOR's deploy gate (`proctor gate`, a report by default, a stop with `SQUIRE_PROCTOR=enforce`), frontend build, Laravel `migrate --force` and `optimize`, an Oracle connection check (a report, never a gate), `/up` smoke test. Use it as the Quick Update post-script as well. | All targets |
-| `health.php` | Citadel's health check (`["php","health.php"]`): one HTTP request to `/up`, never boots the framework. | All targets |
-| `oracle-check.php` | The plain-language Oracle connection check the release runs: settings, host, port, driver, login. A report, never a gate; silent when the app has no `ORACLE_*` settings. | All targets |
+| `health.php` | Citadel's health check (`["php","health.php"]`): one HTTP request to `/up`, never boots the framework. On a Laravel app, keep Pint off it: [Keep Pint off the kit's root files](https://squire.apps.wayne.edu/docs/guides/quick-start.html#keep-pint-off-the-kit-s-root-files). | All targets |
+| `oracle-check.php` | The plain-language Oracle connection check the release runs: settings, host, port, driver, login. A report, never a gate; silent when the app has no `ORACLE_*` settings. On a Laravel app, keep Pint off it as well: [Keep Pint off the kit's root files](https://squire.apps.wayne.edu/docs/guides/quick-start.html#keep-pint-off-the-kit-s-root-files). | All targets |
 | `.gitattributes` | Pins line endings: LF for shell scripts, `.conf` files and Dockerfiles, CRLF for PowerShell and batch files, so a Windows checkout cannot break a deploy. Written only when the folder has none; never written over an app's own. | All targets |
 | `public/up.php` | The endpoint that answers `ok`. Laravel has `/up` built in. | Raw PHP and static |
 | `public/index.php` | Raw: the front controller that serves `public/` files safely and hands the rest to the app's entry. Static: the one that serves the committed site with HELMET's headers. Never written over an app's own. | Raw and static |

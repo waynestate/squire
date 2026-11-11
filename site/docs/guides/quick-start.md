@@ -66,6 +66,19 @@ Commit the `.squire.json` record file. `update` reads it to know which files Squ
 
 Every shell script uses `set -euo pipefail` (`build.sh` uses `set -eu`, because Citadel runs it with `/bin/sh`), prints a `[squire] ==> step N: ...` marker for each step, and can be run twice with the same result.
 
+## Keep Pint off the kit's root files [#](https://squire.apps.wayne.edu/docs/guides/quick-start.html#keep-pint-off-the-kit-s-root-files)
+
+For a Laravel target, `init` writes `health.php` and `oracle-check.php` at the app root, next to the rest of the kit. A Laravel app usually runs Pint over its whole tree, and Pint polishes every blade it can reach, kit included: it reformats or flags the two files, and the next `init --check` reports the drift. Keep Pint off the kit's files with a `pint.json` at the app root:
+
+```json
+{
+    "preset": "laravel",
+    "notPath": ["health.php", "oracle-check.php"]
+}
+```
+
+`exclude` takes directories relative to the path, while `notPath` skips named files, which is why the two root files need the second key. Sourdough's Laravel templates already ship this exact `pint.json`, so an app baked from one starts with the exclusion in place.
+
 ## Next steps [#](https://squire.apps.wayne.edu/docs/guides/quick-start.html#next-steps)
 
 - [Raw PHP app](https://squire.apps.wayne.edu/docs/guides/raw-php-app.html)
