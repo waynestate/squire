@@ -55,160 +55,160 @@
 </thead>
 <tbody>
 <tr>
-<td>S1</td>
-<td>fail</td>
-<td><code>build.sh</code> runs no <code>composer</code> or <code>npm</code> commands.</td>
-<td>Citadel runs <code>build.sh</code> as root with only that file copied in; the source is not there.</td>
+<td data-label="Rule">S1</td>
+<td data-label="Level">fail</td>
+<td data-label="What it checks"><code>build.sh</code> runs no <code>composer</code> or <code>npm</code> commands.</td>
+<td data-label="Why">Citadel runs <code>build.sh</code> as root with only that file copied in; the source is not there.</td>
 </tr>
 <tr>
-<td>S3</td>
-<td>warn</td>
-<td>Every shell script has <code>set -e</code>; bash scripts also have <code>pipefail</code>.</td>
-<td>A failing step must stop the script.</td>
+<td data-label="Rule">S3</td>
+<td data-label="Level">warn</td>
+<td data-label="What it checks">Every shell script has <code>set -e</code>; bash scripts also have <code>pipefail</code>.</td>
+<td data-label="Why">A failing step must stop the script.</td>
 </tr>
 <tr>
-<td>S4</td>
-<td>fail</td>
-<td>No download is piped into a shell.</td>
-<td>Pin a version and verify a checksum instead.</td>
+<td data-label="Rule">S4</td>
+<td data-label="Level">fail</td>
+<td data-label="What it checks">No download is piped into a shell.</td>
+<td data-label="Why">Pin a version and verify a checksum instead.</td>
 </tr>
 <tr>
-<td>S8</td>
-<td>fail / warn</td>
-<td>No CRLF in shell scripts (fail); <code>.gitattributes</code> forces LF for shell scripts, <code>.conf</code> files and Dockerfiles (warn, naming the lines to add).</td>
-<td>CRLF breaks a script on Linux; Git on Windows adds it.</td>
+<td data-label="Rule">S8</td>
+<td data-label="Level">fail / warn</td>
+<td data-label="What it checks">No CRLF in shell scripts (fail); <code>.gitattributes</code> forces LF for shell scripts, <code>.conf</code> files and Dockerfiles (warn, naming the lines to add).</td>
+<td data-label="Why">CRLF breaks a script on Linux; Git on Windows adds it.</td>
 </tr>
 <tr>
-<td>S9</td>
-<td>fail / warn</td>
-<td><code>scripts/release.sh</code> exists (fail); <code>build.sh</code> and a <code>deployments/</code> hook exist (warn); files match the template version (warn).</td>
-<td>Build tooling, the one-time hook and the release script are three jobs.</td>
+<td data-label="Rule">S9</td>
+<td data-label="Level">fail / warn</td>
+<td data-label="What it checks"><code>scripts/<wbr>release.<wbr>sh</code> exists (fail); <code>build.sh</code> and a <code>deployments/</code> hook exist (warn); files match the template version (warn).</td>
+<td data-label="Why">Build tooling, the one-time hook and the release script are three jobs.</td>
 </tr>
 <tr>
-<td>S12</td>
-<td>fail</td>
-<td>The release runs <code>composer install --no-dev</code>, never <code>composer update</code>, and uses <code>npm ci</code> or a frozen-lockfile install.</td>
-<td>The lock file is the release contract.</td>
+<td data-label="Rule">S12</td>
+<td data-label="Level">fail</td>
+<td data-label="What it checks">The release runs <code>composer install --no-dev</code>, never <code>composer update</code>, and uses <code>npm ci</code> or a frozen-lockfile install.</td>
+<td data-label="Why">The lock file is the release contract.</td>
 </tr>
 <tr>
-<td>S14</td>
-<td>warn</td>
-<td>The release runs <code>proctor gate</code> or <code>proctor check</code>.</td>
-<td>PROCTOR runs <code>composer audit</code> and the other app checks, so known-vulnerable dependencies show up in the deploy log.</td>
+<td data-label="Rule">S14</td>
+<td data-label="Level">warn</td>
+<td data-label="What it checks">The release runs <code>proctor gate</code> or <code>proctor check</code>.</td>
+<td data-label="Why">PROCTOR runs <code>composer audit</code> and the other app checks, so known-vulnerable dependencies show up in the deploy log.</td>
 </tr>
 <tr>
-<td>S15</td>
-<td>fail / warn</td>
-<td><code>auth.json</code> is git-ignored (fail); Composer runs non-interactively (warn).</td>
-<td>Credentials stay out of git; Citadel has no terminal to prompt on.</td>
+<td data-label="Rule">S15</td>
+<td data-label="Level">fail / warn</td>
+<td data-label="What it checks"><code>auth.json</code> is git-ignored (fail); Composer runs non-interactively (warn).</td>
+<td data-label="Why">Credentials stay out of git; Citadel has no terminal to prompt on.</td>
 </tr>
 <tr>
-<td>S16</td>
-<td>warn</td>
-<td>Laravel: <code>php artisan optimize</code> runs in the release.</td>
-<td>Config, route and view caches.</td>
+<td data-label="Rule">S16</td>
+<td data-label="Level">warn</td>
+<td data-label="What it checks">Laravel: <code>php artisan optimize</code> runs in the release.</td>
+<td data-label="Why">Config, route and view caches.</td>
 </tr>
 <tr>
-<td>S17</td>
-<td>info</td>
-<td>Laravel: <code>migrate --force</code> runs, or something else runs migrations.</td>
-<td>Keep migrations compatible with the old code (parallel change).</td>
+<td data-label="Rule">S17</td>
+<td data-label="Level">info</td>
+<td data-label="What it checks">Laravel: <code>migrate --force</code> runs, or something else runs migrations.</td>
+<td data-label="Why">Keep migrations compatible with the old code (parallel change).</td>
 </tr>
 <tr>
-<td>S19</td>
-<td>warn</td>
-<td>The release refuses to run as root; no <code>sudo</code> in scripts.</td>
-<td>Files created as root cannot be written by the web process.</td>
+<td data-label="Rule">S19</td>
+<td data-label="Level">warn</td>
+<td data-label="What it checks">The release refuses to run as root; no <code>sudo</code> in scripts.</td>
+<td data-label="Why">Files created as root cannot be written by the web process.</td>
 </tr>
 <tr>
-<td>S20</td>
-<td>fail / warn</td>
-<td>PROCTOR runs as a report (the command is followed by an OR branch that records the status), never as a bare command.</td>
-<td>After a Quick Update the new commit is already live; a failing post-script cannot undo it.</td>
+<td data-label="Rule">S20</td>
+<td data-label="Level">fail / warn</td>
+<td data-label="What it checks">PROCTOR runs as a report (the command is followed by an OR branch that records the status), never as a bare command.</td>
+<td data-label="Why">After a Quick Update the new commit is already live; a failing post-script cannot undo it.</td>
 </tr>
 <tr>
-<td>S21</td>
-<td>warn</td>
-<td>The release requests <code>/up</code> at the end.</td>
-<td>A release that cannot answer a request did not ship.</td>
+<td data-label="Rule">S21</td>
+<td data-label="Level">warn</td>
+<td data-label="What it checks">The release requests <code>/up</code> at the end.</td>
+<td data-label="Why">A release that cannot answer a request did not ship.</td>
 </tr>
 <tr>
-<td>S22</td>
-<td>warn</td>
-<td>The release prints a marker per step.</td>
-<td>The dashboard log shows where it stopped.</td>
+<td data-label="Rule">S22</td>
+<td data-label="Level">warn</td>
+<td data-label="What it checks">The release prints a marker per step.</td>
+<td data-label="Why">The dashboard log shows where it stopped.</td>
 </tr>
 <tr>
-<td>S35</td>
-<td>warn</td>
-<td>The compose file uses a <code>citadel/php-apache</code> image.</td>
-<td>Same PHP and extensions as production.</td>
+<td data-label="Rule">S35</td>
+<td data-label="Level">warn</td>
+<td data-label="What it checks">The compose file uses a <code>citadel/<wbr>php-apache</code> image.</td>
+<td data-label="Why">Same PHP and extensions as production.</td>
 </tr>
 <tr>
-<td>S36</td>
-<td>warn</td>
-<td>A proxy that adds <code>X-Forwarded-For</code> and <code>X-Forwarded-Proto</code> is in front of the app.</td>
-<td>Trusted-proxy and HTTPS detection bugs only show behind one.</td>
+<td data-label="Rule">S36</td>
+<td data-label="Level">warn</td>
+<td data-label="What it checks">A proxy that adds <code>X-Forwarded-For</code> and <code>X-Forwarded-Proto</code> is in front of the app.</td>
+<td data-label="Why">Trusted-proxy and HTTPS detection bugs only show behind one.</td>
 </tr>
 <tr>
-<td>S37</td>
-<td>warn</td>
-<td>The local database is MySQL 5.6.</td>
-<td>Its limits then show up locally.</td>
+<td data-label="Rule">S37</td>
+<td data-label="Level">warn</td>
+<td data-label="What it checks">The local database is MySQL 5.6.</td>
+<td data-label="Why">Its limits then show up locally.</td>
 </tr>
 <tr>
-<td>S41</td>
-<td>fail</td>
-<td>The Docker socket is not mounted.</td>
-<td>It is root on the host.</td>
+<td data-label="Rule">S41</td>
+<td data-label="Level">fail</td>
+<td data-label="What it checks">The Docker socket is not mounted.</td>
+<td data-label="Why">It is root on the host.</td>
 </tr>
 <tr>
-<td>S42</td>
-<td>warn</td>
-<td><code>.env</code> and <code>.env.squire</code> are git-ignored.</td>
-<td>Secrets stay out of git.</td>
+<td data-label="Rule">S42</td>
+<td data-label="Level">warn</td>
+<td data-label="What it checks"><code>.env</code> and <code>.env.squire</code> are git-ignored.</td>
+<td data-label="Why">Secrets stay out of git.</td>
 </tr>
 <tr>
-<td>S50</td>
-<td>info</td>
-<td>Hand-off: points at <code>proctor check</code> for the lock file, composer audit and MySQL 5.6 checks, and names <code>proctor gate</code>, which the release asks for a go or no-go.</td>
-<td>Each check has one owner; PROCTOR owns those, and <code>doctor</code> may run where PROCTOR is not installed.</td>
+<td data-label="Rule">S50</td>
+<td data-label="Level">info</td>
+<td data-label="What it checks">Hand-off: points at <code>proctor check</code> for the lock file, composer audit and MySQL 5.6 checks, and names <code>proctor gate</code>, which the release asks for a go or no-go.</td>
+<td data-label="Why">Each check has one owner; PROCTOR owns those, and <code>doctor</code> may run where PROCTOR is not installed.</td>
 </tr>
 <tr>
-<td>S55</td>
-<td>fail / warn</td>
-<td>A health check that does not run <code>artisan</code> or boot the framework exists.</td>
-<td>Citadel runs it every 5 minutes as root.</td>
+<td data-label="Rule">S55</td>
+<td data-label="Level">fail / warn</td>
+<td data-label="What it checks">A health check that does not run <code>artisan</code> or boot the framework exists.</td>
+<td data-label="Why">Citadel runs it every 5 minutes as root.</td>
 </tr>
 <tr>
-<td>S57</td>
-<td>warn</td>
-<td>JavaScript packages install with <code>--ignore-scripts</code>; <code>.npmrc</code> sets <code>min-release-age</code>.</td>
-<td>A compromised package cannot run at install time, and a version published an hour ago is not installed.</td>
+<td data-label="Rule">S57</td>
+<td data-label="Level">warn</td>
+<td data-label="What it checks">JavaScript packages install with <code>--ignore-scripts</code>; <code>.npmrc</code> sets <code>min-release-age</code>.</td>
+<td data-label="Why">A compromised package cannot run at install time, and a version published an hour ago is not installed.</td>
 </tr>
 <tr>
-<td>S67</td>
-<td>warn</td>
-<td>Every image in the compose file is pinned by digest.</td>
-<td>The same bytes tomorrow as today.</td>
+<td data-label="Rule">S67</td>
+<td data-label="Level">warn</td>
+<td data-label="What it checks">Every image in the compose file is pinned by digest.</td>
+<td data-label="Why">The same bytes tomorrow as today.</td>
 </tr>
 <tr>
-<td>S70</td>
-<td>warn</td>
-<td>Local containers drop capabilities and set <code>no-new-privileges</code>.</td>
-<td>Least privilege, also locally.</td>
+<td data-label="Rule">S70</td>
+<td data-label="Level">warn</td>
+<td data-label="What it checks">Local containers drop capabilities and set <code>no-new-privileges</code>.</td>
+<td data-label="Why">Least privilege, also locally.</td>
 </tr>
 <tr>
-<td>S71</td>
-<td>warn</td>
-<td>The local health check uses Citadel's timing (5 minutes, 15 seconds).</td>
-<td>A slow <code>/up</code> shows up before it ships.</td>
+<td data-label="Rule">S71</td>
+<td data-label="Level">warn</td>
+<td data-label="What it checks">The local health check uses Citadel's timing (5 minutes, 15 seconds).</td>
+<td data-label="Why">A slow <code>/up</code> shows up before it ships.</td>
 </tr>
 <tr>
-<td>S78</td>
-<td>warn</td>
-<td>A Vue app does not track <code>node_modules/</code> in git.</td>
-<td>Dependencies are rebuilt from the lock file; the tree is not source.</td>
+<td data-label="Rule">S78</td>
+<td data-label="Level">warn</td>
+<td data-label="What it checks">A Vue app does not track <code>node_modules/</code> in git.</td>
+<td data-label="Why">Dependencies are rebuilt from the lock file; the tree is not source.</td>
 </tr>
 </tbody>
 </table></div>

@@ -61,29 +61,29 @@ composer ci</p>
 </thead>
 <tbody>
 <tr>
-<td>Lint the shell templates (ShellCheck in Docker)</td>
-<td><code>scripts\lint-shell.ps1</code></td>
-<td><code>scripts/lint-shell.sh</code></td>
+<td data-label="Task">Lint the shell templates (ShellCheck in Docker)</td>
+<td data-label="Windows (PowerShell)"><code>scripts\lint-shell.<wbr>ps1</code></td>
+<td data-label="Linux and macOS"><code>scripts/<wbr>lint-shell.<wbr>sh</code></td>
 </tr>
 <tr>
-<td>Lint the PowerShell templates (PSScriptAnalyzer)</td>
-<td><code>scripts\lint-powershell.ps1</code></td>
-<td><code>pwsh -File scripts/lint-powershell.ps1</code></td>
+<td data-label="Task">Lint the PowerShell templates (PSScriptAnalyzer)</td>
+<td data-label="Windows (PowerShell)"><code>scripts\lint-powershell.<wbr>ps1</code></td>
+<td data-label="Linux and macOS"><code>pwsh -File scripts/<wbr>lint-powershell.<wbr>ps1</code></td>
 </tr>
 <tr>
-<td>Local parity, in an app</td>
-<td><code>scripts\parity.ps1 up</code></td>
-<td><code>scripts/parity.sh up</code></td>
+<td data-label="Task">Local parity, in an app</td>
+<td data-label="Windows (PowerShell)"><code>scripts\parity.<wbr>ps1 up</code></td>
+<td data-label="Linux and macOS"><code>scripts/<wbr>parity.<wbr>sh up</code></td>
 </tr>
 <tr>
-<td>Front page accessibility gate (Preflight's a11y checker, in Docker)</td>
-<td><code>scripts\a11y.ps1</code></td>
-<td><code>scripts/a11y.sh</code></td>
+<td data-label="Task">Front page accessibility gate (Preflight's a11y checker, in Docker)</td>
+<td data-label="Windows (PowerShell)"><code>scripts\a11y.<wbr>ps1</code></td>
+<td data-label="Linux and macOS"><code>scripts/a11y.sh</code></td>
 </tr>
 <tr>
-<td>Docs kit JavaScript tests (needs Node, or Docker)</td>
-<td><code>npm ci &amp;&amp; npm test</code></td>
-<td><code>npm ci &amp;&amp; npm test</code></td>
+<td data-label="Task">Docs kit JavaScript tests (needs Node, or Docker)</td>
+<td data-label="Windows (PowerShell)"><code>npm ci &amp;&amp; npm test</code></td>
+<td data-label="Linux and macOS"><code>npm ci &amp;&amp; npm test</code></td>
 </tr>
 </tbody>
 </table></div>

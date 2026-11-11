@@ -51,89 +51,89 @@
 </thead>
 <tbody>
 <tr>
-<td><code>build.sh</code></td>
-<td>Citadel's build hook: system packages only, POSIX sh, runs as root with no app source. No Composer, no npm.</td>
-<td>All targets</td>
+<td data-label="File"><code>build.sh</code></td>
+<td data-label="What it is">Citadel's build hook: system packages only, POSIX sh, runs as root with no app source. No Composer, no npm.</td>
+<td data-label="Target or layer">All targets</td>
 </tr>
 <tr>
-<td><code>deployments/001-first-release.sh</code></td>
-<td>Runs once per app: calls the release script with the smoke test off (Apache is not up yet).</td>
-<td>All targets</td>
+<td data-label="File"><code>deployments/001-first-release.sh</code></td>
+<td data-label="What it is">Runs once per app: calls the release script with the smoke test off (Apache is not up yet).</td>
+<td data-label="Target or layer">All targets</td>
 </tr>
 <tr>
-<td><code>scripts/release.sh</code></td>
-<td>The idempotent release: preconditions, <code>composer install --no-dev</code> from the lock file, audit, PROCTOR's deploy gate (<code>proctor gate</code>, a report by default, a stop with <code>SQUIRE_PROCTOR=enforce</code>), frontend build, Laravel <code>migrate --force</code> and <code>optimize</code>, an Oracle connection check (a report, never a gate), <code>/up</code> smoke test. Use it as the Quick Update post-script as well.</td>
-<td>All targets</td>
+<td data-label="File"><code>scripts/release.sh</code></td>
+<td data-label="What it is">The idempotent release: preconditions, <code>composer install --no-dev</code> from the lock file, audit, PROCTOR's deploy gate (<code>proctor gate</code>, a report by default, a stop with <code>SQUIRE_<wbr>PROCTOR=enforce</code>), frontend build, Laravel <code>migrate --force</code> and <code>optimize</code>, an Oracle connection check (a report, never a gate), <code>/up</code> smoke test. Use it as the Quick Update post-script as well.</td>
+<td data-label="Target or layer">All targets</td>
 </tr>
 <tr>
-<td><code>health.php</code></td>
-<td>Citadel's health check (<code>[&quot;php&quot;,&quot;health.php&quot;]</code>): one HTTP request to <code>/up</code>, never boots the framework.</td>
-<td>All targets</td>
+<td data-label="File"><code>health.php</code></td>
+<td data-label="What it is">Citadel's health check (<code>[&quot;php&quot;,<wbr>&quot;health.<wbr>php&quot;]</code>): one HTTP request to <code>/up</code>, never boots the framework.</td>
+<td data-label="Target or layer">All targets</td>
 </tr>
 <tr>
-<td><code>oracle-check.php</code></td>
-<td>The plain-language Oracle connection check the release runs: settings, host, port, driver, login. A report, never a gate; silent when the app has no <code>ORACLE_*</code> settings.</td>
-<td>All targets</td>
+<td data-label="File"><code>oracle-check.php</code></td>
+<td data-label="What it is">The plain-language Oracle connection check the release runs: settings, host, port, driver, login. A report, never a gate; silent when the app has no <code>ORACLE_*</code> settings.</td>
+<td data-label="Target or layer">All targets</td>
 </tr>
 <tr>
-<td><code>.gitattributes</code></td>
-<td>Pins line endings: LF for shell scripts, <code>.conf</code> files and Dockerfiles, CRLF for PowerShell and batch files, so a Windows checkout cannot break a deploy. Written only when the folder has none; never written over an app's own.</td>
-<td>All targets</td>
+<td data-label="File"><code>.gitattributes</code></td>
+<td data-label="What it is">Pins line endings: LF for shell scripts, <code>.conf</code> files and Dockerfiles, CRLF for PowerShell and batch files, so a Windows checkout cannot break a deploy. Written only when the folder has none; never written over an app's own.</td>
+<td data-label="Target or layer">All targets</td>
 </tr>
 <tr>
-<td><code>public/up.php</code></td>
-<td>The endpoint that answers <code>ok</code>. Laravel has <code>/up</code> built in.</td>
-<td>Raw PHP and static</td>
+<td data-label="File"><code>public/up.php</code></td>
+<td data-label="What it is">The endpoint that answers <code>ok</code>. Laravel has <code>/up</code> built in.</td>
+<td data-label="Target or layer">Raw PHP and static</td>
 </tr>
 <tr>
-<td><code>public/index.php</code></td>
-<td>Raw: the front controller that serves <code>public/</code> files safely and hands the rest to the app's entry. Static: the one that serves the committed site with HELMET's headers. Never written over an app's own.</td>
-<td>Raw and static</td>
+<td data-label="File"><code>public/index.php</code></td>
+<td data-label="What it is">Raw: the front controller that serves <code>public/</code> files safely and hands the rest to the app's entry. Static: the one that serves the committed site with HELMET's headers. Never written over an app's own.</td>
+<td data-label="Target or layer">Raw and static</td>
 </tr>
 <tr>
-<td><code>public/.htaccess</code></td>
-<td>Raw: sends every request but <code>index.php</code> and <code>up.php</code> to the front controller. Static: routes every request that is not a real file to it.</td>
-<td>Raw and static</td>
+<td data-label="File"><code>public/.htaccess</code></td>
+<td data-label="What it is">Raw: sends every request but <code>index.php</code> and <code>up.php</code> to the front controller. Static: routes every request that is not a real file to it.</td>
+<td data-label="Target or layer">Raw and static</td>
 </tr>
 <tr>
-<td><code>.npmrc</code></td>
-<td>Sets <code>min-release-age=1</code> (days) for the frontend install, with the escape hatches in its comments. See <a href="../guides/image-hardening.html#npm-no-install-scripts-no-day-old-versions">Image hardening</a>.</td>
-<td>Vue layer only</td>
+<td data-label="File"><code>.npmrc</code></td>
+<td data-label="What it is">Sets <code>min-release-age=1</code> (days) for the frontend install, with the escape hatches in its comments. See <a href="../guides/image-hardening.html#npm-no-install-scripts-no-day-old-versions">Image hardening</a>.</td>
+<td data-label="Target or layer">Vue layer only</td>
 </tr>
 <tr>
-<td><code>docker-compose.squire.yml</code></td>
-<td>The common parity compose plus a Node 22 service for frontend tooling.</td>
-<td>Vue layer only</td>
+<td data-label="File"><code>docker-compose.squire.yml</code></td>
+<td data-label="What it is">The common parity compose plus a Node 22 service for frontend tooling.</td>
+<td data-label="Target or layer">Vue layer only</td>
 </tr>
 <tr>
-<td><code>docker-compose.squire.yml</code>, <code>.squire/</code>, <code>.env.squire.example</code>, <code>scripts/parity.sh</code>, <code>scripts/parity.ps1</code></td>
-<td>Local parity. Deprecated as of 0.10.5: <a rel="noopener" href="https://git.wayne.edu/enterprise-apps/parity">Parity</a> runs Citadel on your computer now (see <a href="../guides/local-parity.html">Local parity</a>).</td>
-<td>Local parity kit</td>
+<td data-label="File"><code>docker-compose.squire.yml</code>, <code>.squire/</code>, <code>.env.squire.example</code>, <code>scripts/parity.sh</code>, <code>scripts/parity.ps1</code></td>
+<td data-label="What it is">Local parity. Deprecated as of 0.10.5: <a rel="noopener" href="https://git.wayne.edu/enterprise-apps/parity">Parity</a> runs Citadel on your computer now (see <a href="../guides/local-parity.html">Local parity</a>).</td>
+<td data-label="Target or layer">Local parity kit</td>
 </tr>
 <tr>
-<td><code>.squire/apache-hardening.conf</code></td>
-<td><code>ServerTokens Prod</code>, <code>ServerSignature Off</code> and <code>TraceEnable Off</code>, enabled by the fallback base. See <a href="../guides/image-hardening.html">Image hardening</a>.</td>
-<td>Local parity kit</td>
+<td data-label="File"><code>.squire/apache-hardening.conf</code></td>
+<td data-label="What it is"><code>ServerTokens Prod</code>, <code>ServerSignature Off</code> and <code>TraceEnable Off</code>, enabled by the fallback base. See <a href="../guides/image-hardening.html">Image hardening</a>.</td>
+<td data-label="Target or layer">Local parity kit</td>
 </tr>
 <tr>
-<td><code>.squire/portable.Dockerfile</code>, <code>.squire/portable.Dockerfile.dockerignore</code></td>
-<td>The portable image for platforms other than Citadel: the code baked in, <code>USER 10001:0</code>, group-0 writable folders, port 8080, <code>STOPSIGNAL SIGTERM</code>. Its ignore file keeps <code>.env</code>, secrets, <code>.git</code>, <code>vendor/</code> and <code>node_modules/</code> out of the build. See <a href="../guides/portable-image.html">The portable image</a>.</td>
-<td>Local parity kit</td>
+<td data-label="File"><code>.squire/portable.Dockerfile</code>, <code>.squire/portable.Dockerfile.dockerignore</code></td>
+<td data-label="What it is">The portable image for platforms other than Citadel: the code baked in, <code>USER 10001:0</code>, group-0 writable folders, port 8080, <code>STOPSIGNAL SIGTERM</code>. Its ignore file keeps <code>.env</code>, secrets, <code>.git</code>, <code>vendor/</code> and <code>node_modules/</code> out of the build. See <a href="../guides/portable-image.html">The portable image</a>.</td>
+<td data-label="Target or layer">Local parity kit</td>
 </tr>
 <tr>
-<td><code>.squire/portable/squire-entrypoint.sh</code></td>
-<td>The portable image's entrypoint: the <code>web</code>, <code>worker</code>, <code>scheduler</code>, <code>migrate</code> and <code>health</code> roles, picked by argument or <code>SQUIRE_ROLE</code>.</td>
-<td>Local parity kit</td>
+<td data-label="File"><code>.squire/portable/squire-entrypoint.sh</code></td>
+<td data-label="What it is">The portable image's entrypoint: the <code>web</code>, <code>worker</code>, <code>scheduler</code>, <code>migrate</code> and <code>health</code> roles, picked by argument or <code>SQUIRE_ROLE</code>.</td>
+<td data-label="Target or layer">Local parity kit</td>
 </tr>
 <tr>
-<td><code>.squire/portable/ports.conf</code>, <code>.squire/portable/vhost.conf</code></td>
-<td>Apache for the portable image: <code>Listen ${SQUIRE_PORT}</code>, the same document root as Citadel's vhost, logs to stdout and stderr.</td>
-<td>Local parity kit</td>
+<td data-label="File"><code>.squire/portable/ports.conf</code>, <code>.squire/portable/vhost.conf</code></td>
+<td data-label="What it is">Apache for the portable image: <code>Listen ${SQUIRE_<wbr>PORT}</code>, the same document root as Citadel's vhost, logs to stdout and stderr.</td>
+<td data-label="Target or layer">Local parity kit</td>
 </tr>
 <tr>
-<td><code>.squire/php-web.ini</code></td>
-<td>The web's own settings: the <code>disable_functions</code> list. The app image appends it to <code>php.ini</code> as <code>php-apache2handler.ini</code>, so the CLI keeps every function. See <a href="../guides/image-hardening.html">Image hardening</a>.</td>
-<td>Local parity kit</td>
+<td data-label="File"><code>.squire/php-web.ini</code></td>
+<td data-label="What it is">The web's own settings: the <code>disable_<wbr>functions</code> list. The app image appends it to <code>php.ini</code> as <code>php-apache2handler.<wbr>ini</code>, so the CLI keeps every function. See <a href="../guides/image-hardening.html">Image hardening</a>.</td>
+<td data-label="Target or layer">Local parity kit</td>
 </tr>
 </tbody>
 </table></div>

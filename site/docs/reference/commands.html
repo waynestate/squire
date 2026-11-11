@@ -50,16 +50,16 @@
 </thead>
 <tbody>
 <tr>
-<td><code>squire doctor</code></td>
-<td>Check an app's Citadel release setup against the Squire rules (S1 to S78).</td>
+<td data-label="Command"><code>squire doctor</code></td>
+<td data-label="What it does">Check an app's Citadel release setup against the Squire rules (S1 to S78).</td>
 </tr>
 <tr>
-<td><code>squire init</code></td>
-<td>Write the standard Citadel scripts into an app, or report drift with --check.</td>
+<td data-label="Command"><code>squire init</code></td>
+<td data-label="What it does">Write the standard Citadel scripts into an app, or report drift with --check.</td>
 </tr>
 <tr>
-<td><code>squire update</code></td>
-<td>Take new template versions for files Squire wrote that were never edited, add the files a newer release wrote, and show a diff for the edited ones.</td>
+<td data-label="Command"><code>squire update</code></td>
+<td data-label="What it does">Take new template versions for files Squire wrote that were never edited, add the files a newer release wrote, and show a diff for the edited ones.</td>
 </tr>
 </tbody>
 </table></div>
@@ -76,9 +76,9 @@
 </thead>
 <tbody>
 <tr>
-<td><code>topic</code></td>
-<td>no</td>
-<td>Optional topic. Use <code>oracle</code> to check the Oracle connection settings.</td>
+<td data-label="Argument"><code>topic</code></td>
+<td data-label="Required">no</td>
+<td data-label="Meaning">Optional topic. Use <code>oracle</code> to check the Oracle connection settings.</td>
 </tr>
 </tbody>
 </table></div>
@@ -92,19 +92,19 @@
 </thead>
 <tbody>
 <tr>
-<td><code>--path=VALUE</code></td>
-<td>Path to the application.</td>
-<td><code>.</code></td>
+<td data-label="Option"><code>--path=VALUE</code></td>
+<td data-label="Meaning">Path to the application.</td>
+<td data-label="Default"><code>.</code></td>
 </tr>
 <tr>
-<td><code>--format=VALUE</code></td>
-<td>Output format: text or json.</td>
-<td><code>text</code></td>
+<td data-label="Option"><code>--format=VALUE</code></td>
+<td data-label="Meaning">Output format: text or json.</td>
+<td data-label="Default"><code>text</code></td>
 </tr>
 <tr>
-<td><code>--silent</code></td>
-<td>Do not output any message</td>
-<td></td>
+<td data-label="Option"><code>--silent</code></td>
+<td data-label="Meaning">Do not output any message</td>
+<td data-label="Default"></td>
 </tr>
 </tbody>
 </table></div>
@@ -121,34 +121,34 @@
 </thead>
 <tbody>
 <tr>
-<td><code>--path=VALUE</code></td>
-<td>Path to the application.</td>
-<td><code>.</code></td>
+<td data-label="Option"><code>--path=VALUE</code></td>
+<td data-label="Meaning">Path to the application.</td>
+<td data-label="Default"><code>.</code></td>
 </tr>
 <tr>
-<td><code>--target=VALUE</code></td>
-<td>raw, laravel or static (default: the target recorded in .squire.json, else laravel when an artisan file exists; static must be asked for).</td>
-<td></td>
+<td data-label="Option"><code>--target=VALUE</code></td>
+<td data-label="Meaning">raw, laravel or static (default: the target recorded in .squire.json, else laravel when an artisan file exists; static must be asked for).</td>
+<td data-label="Default"></td>
 </tr>
 <tr>
-<td><code>--only=VALUE</code></td>
-<td>Comma-separated groups to write: release, parity (deprecated: Parity runs Citadel locally now). (default: the groups recorded in .squire.json, else release, parity)</td>
-<td></td>
+<td data-label="Option"><code>--only=VALUE</code></td>
+<td data-label="Meaning">Comma-separated groups to write: release, parity (deprecated: Parity runs Citadel locally now). (default: the groups recorded in .squire.json, else release, parity)</td>
+<td data-label="Default"></td>
 </tr>
 <tr>
-<td><code>--check</code></td>
-<td>Write nothing; report files that are missing, outdated or edited. Exit 1 on drift.</td>
-<td></td>
+<td data-label="Option"><code>--check</code></td>
+<td data-label="Meaning">Write nothing; report files that are missing, outdated or edited. Exit 1 on drift.</td>
+<td data-label="Default"></td>
 </tr>
 <tr>
-<td><code>--force</code></td>
-<td>Overwrite files that were edited or that Squire did not write.</td>
-<td></td>
+<td data-label="Option"><code>--force</code></td>
+<td data-label="Meaning">Overwrite files that were edited or that Squire did not write.</td>
+<td data-label="Default"></td>
 </tr>
 <tr>
-<td><code>--silent</code></td>
-<td>Do not output any message</td>
-<td></td>
+<td data-label="Option"><code>--silent</code></td>
+<td data-label="Meaning">Do not output any message</td>
+<td data-label="Default"></td>
 </tr>
 </tbody>
 </table></div>
@@ -165,29 +165,29 @@
 </thead>
 <tbody>
 <tr>
-<td><code>--path=VALUE</code></td>
-<td>Path to the application.</td>
-<td><code>.</code></td>
+<td data-label="Option"><code>--path=VALUE</code></td>
+<td data-label="Meaning">Path to the application.</td>
+<td data-label="Default"><code>.</code></td>
 </tr>
 <tr>
-<td><code>--target=VALUE</code></td>
-<td>raw, laravel or static (default: the target recorded in .squire.json).</td>
-<td></td>
+<td data-label="Option"><code>--target=VALUE</code></td>
+<td data-label="Meaning">raw, laravel or static (default: the target recorded in .squire.json).</td>
+<td data-label="Default"></td>
 </tr>
 <tr>
-<td><code>--only=VALUE</code></td>
-<td>Comma-separated groups to update: release, parity (deprecated: Parity runs Citadel locally now). (default: the groups recorded in .squire.json)</td>
-<td></td>
+<td data-label="Option"><code>--only=VALUE</code></td>
+<td data-label="Meaning">Comma-separated groups to update: release, parity (deprecated: Parity runs Citadel locally now). (default: the groups recorded in .squire.json)</td>
+<td data-label="Default"></td>
 </tr>
 <tr>
-<td><code>--dry-run</code></td>
-<td>Print the plan; write nothing.</td>
-<td></td>
+<td data-label="Option"><code>--dry-run</code></td>
+<td data-label="Meaning">Print the plan; write nothing.</td>
+<td data-label="Default"></td>
 </tr>
 <tr>
-<td><code>--silent</code></td>
-<td>Do not output any message</td>
-<td></td>
+<td data-label="Option"><code>--silent</code></td>
+<td data-label="Meaning">Do not output any message</td>
+<td data-label="Default"></td>
 </tr>
 </tbody>
 </table></div>
@@ -202,39 +202,39 @@
 </thead>
 <tbody>
 <tr>
-<td><code>-h</code>, <code>--help</code></td>
-<td>Display help for the given command. When no command is given display help for the list command</td>
-<td></td>
+<td data-label="Option"><code>-h</code>, <code>--help</code></td>
+<td data-label="Meaning">Display help for the given command. When no command is given display help for the list command</td>
+<td data-label="Default"></td>
 </tr>
 <tr>
-<td><code>-q</code>, <code>--quiet</code></td>
-<td>Only errors are displayed. All other output is suppressed</td>
-<td></td>
+<td data-label="Option"><code>-q</code>, <code>--quiet</code></td>
+<td data-label="Meaning">Only errors are displayed. All other output is suppressed</td>
+<td data-label="Default"></td>
 </tr>
 <tr>
-<td>`-v</td>
-<td>-vv</td>
-<td>-vvv<code>, </code>--verbose`</td>
+<td data-label="Option">`-v</td>
+<td data-label="Meaning">-vv</td>
+<td data-label="Default">-vvv<code>, </code>--verbose`</td>
 </tr>
 <tr>
-<td><code>-V</code>, <code>--version</code></td>
-<td>Display this application version</td>
-<td></td>
+<td data-label="Option"><code>-V</code>, <code>--version</code></td>
+<td data-label="Meaning">Display this application version</td>
+<td data-label="Default"></td>
 </tr>
 <tr>
-<td><code>--ansi</code></td>
-<td>Force (or disable --no-ansi) ANSI output</td>
-<td></td>
+<td data-label="Option"><code>--ansi</code></td>
+<td data-label="Meaning">Force (or disable --no-ansi) ANSI output</td>
+<td data-label="Default"></td>
 </tr>
 <tr>
-<td><code>--no-ansi</code></td>
-<td>Negate the &quot;--ansi&quot; option</td>
-<td></td>
+<td data-label="Option"><code>--no-ansi</code></td>
+<td data-label="Meaning">Negate the &quot;--ansi&quot; option</td>
+<td data-label="Default"></td>
 </tr>
 <tr>
-<td><code>-n</code>, <code>--no-interaction</code></td>
-<td>Do not ask any interactive question</td>
-<td></td>
+<td data-label="Option"><code>-n</code>, <code>--no-interaction</code></td>
+<td data-label="Meaning">Do not ask any interactive question</td>
+<td data-label="Default"></td>
 </tr>
 </tbody>
 </table></div>

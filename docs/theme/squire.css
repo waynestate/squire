@@ -748,7 +748,6 @@ body {
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.04em;
-  white-space: nowrap;
   color: var(--sq-tag-ink);
   background: var(--sq-ground-deep);
 }
@@ -758,12 +757,6 @@ body {
   padding: 0.6rem 0.9rem;
   vertical-align: top;
   border-bottom: 1px dashed var(--sq-stitch);
-}
-
-/* A file name or command keeps its shape in a cell: the column sizes to it,
-   and it only breaks if it would spill out of the table. */
-.docs-article td code {
-  overflow-wrap: break-word;
 }
 
 .docs-article tbody tr:last-child td {
@@ -1187,6 +1180,23 @@ body {
   .docs-footer {
     flex-direction: column;
     gap: 0.6rem;
+  }
+}
+
+/* The kit stacks a wide table into one luggage tag per row in a narrow column; the
+   squire stitches the tags apart and letters each value's name like the
+   table's own header. */
+@container docs-table (max-width: 560px) {
+  .docs-table:has(thead th:nth-child(3)) tr {
+    padding-block: 0.65rem;
+    border-bottom: 1px dashed var(--sq-stitch);
+  }
+
+  .docs-table:has(thead th:nth-child(3)) td:not(:first-child)[data-label]::before {
+    font-family: var(--sq-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+    color: var(--sq-tag-ink);
   }
 }
 

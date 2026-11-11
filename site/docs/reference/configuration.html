@@ -53,29 +53,29 @@
 </thead>
 <tbody>
 <tr>
-<td>Release script</td>
-<td><code>scripts/release.sh</code></td>
-<td><code>./.env.squire</code> (on Citadel, added as a configuration file and kept out of git)</td>
+<td data-label="Group">Release script</td>
+<td data-label="Reader"><code>scripts/<wbr>release.<wbr>sh</code></td>
+<td data-label="File"><code>./.env.squire</code> (on Citadel, added as a configuration file and kept out of git)</td>
 </tr>
 <tr>
-<td>Front controller</td>
-<td>raw <code>public/index.php</code>, static <code>public/index.php</code></td>
-<td>the app's environment</td>
+<td data-label="Group">Front controller</td>
+<td data-label="Reader">raw <code>public/<wbr>index.<wbr>php</code>, static <code>public/<wbr>index.<wbr>php</code></td>
+<td data-label="File">the app's environment</td>
 </tr>
 <tr>
-<td>Health check</td>
-<td><code>health.php</code></td>
-<td>the app's environment</td>
+<td data-label="Group">Health check</td>
+<td data-label="Reader"><code>health.php</code></td>
+<td data-label="File">the app's environment</td>
 </tr>
 <tr>
-<td>Local parity</td>
-<td>the parity compose file</td>
-<td><code>.env.squire</code> (see <code>.env.squire.example</code>; it holds placeholders only)</td>
+<td data-label="Group">Local parity</td>
+<td data-label="Reader">the parity compose file</td>
+<td data-label="File"><code>.env.squire</code> (see <code>.env.<wbr>squire.<wbr>example</code>; it holds placeholders only)</td>
 </tr>
 <tr>
-<td>Portable image</td>
-<td><code>.squire/portable/squire-entrypoint.sh</code>, <code>docker build</code></td>
-<td>the container's environment, and build arguments</td>
+<td data-label="Group">Portable image</td>
+<td data-label="Reader"><code>.squire/<wbr>portable/<wbr>squire-entrypoint.<wbr>sh</code>, <code>docker build</code></td>
+<td data-label="File">the container's environment, and build arguments</td>
 </tr>
 </tbody>
 </table></div>
@@ -90,124 +90,124 @@
 </thead>
 <tbody>
 <tr>
-<td><code>SQUIRE_APP_DIR</code></td>
-<td>parent of <code>scripts/</code></td>
-<td>App root.</td>
+<td data-label="Variable"><code>SQUIRE_APP_DIR</code></td>
+<td data-label="Default">parent of <code>scripts/</code></td>
+<td data-label="Meaning">App root.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_FRAMEWORK</code></td>
-<td><code>auto</code></td>
-<td><code>auto</code>, <code>laravel</code> or <code>raw</code>. Laravel is detected from <code>artisan</code>.</td>
+<td data-label="Variable"><code>SQUIRE_FRAMEWORK</code></td>
+<td data-label="Default"><code>auto</code></td>
+<td data-label="Meaning"><code>auto</code>, <code>laravel</code> or <code>raw</code>. Laravel is detected from <code>artisan</code>.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_ALLOW_ROOT</code></td>
-<td><code>0</code></td>
-<td><code>1</code> allows running as root.</td>
+<td data-label="Variable"><code>SQUIRE_ALLOW_ROOT</code></td>
+<td data-label="Default"><code>0</code></td>
+<td data-label="Meaning"><code>1</code> allows running as root.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_REQUIRE_ENV</code></td>
-<td><code>auto</code></td>
-<td><code>1</code> requires a <code>.env</code> file; <code>auto</code> means Laravel does.</td>
+<td data-label="Variable"><code>SQUIRE_REQUIRE_ENV</code></td>
+<td data-label="Default"><code>auto</code></td>
+<td data-label="Meaning"><code>1</code> requires a <code>.env</code> file; <code>auto</code> means Laravel does.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_WRITABLE_DIRS</code></td>
-<td>Laravel: <code>storage</code>, <code>bootstrap/cache</code></td>
-<td>Directories to create.</td>
+<td data-label="Variable"><code>SQUIRE_WRITABLE_DIRS</code></td>
+<td data-label="Default">Laravel: <code>storage</code>, <code>bootstrap/cache</code></td>
+<td data-label="Meaning">Directories to create.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_COMPOSER_AUDIT</code></td>
-<td><code>report</code></td>
-<td><code>report</code>, <code>fail</code> or <code>skip</code>.</td>
+<td data-label="Variable"><code>SQUIRE_COMPOSER_AUDIT</code></td>
+<td data-label="Default"><code>report</code></td>
+<td data-label="Meaning"><code>report</code>, <code>fail</code> or <code>skip</code>.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_NPM</code></td>
-<td><code>auto</code></td>
-<td><code>auto</code> or <code>skip</code> (for committed built assets).</td>
+<td data-label="Variable"><code>SQUIRE_NPM</code></td>
+<td data-label="Default"><code>auto</code></td>
+<td data-label="Meaning"><code>auto</code> or <code>skip</code> (for committed built assets).</td>
 </tr>
 <tr>
-<td><code>SQUIRE_NPM_IGNORE_SCRIPTS</code></td>
-<td><code>1</code></td>
-<td>Install with <code>--ignore-scripts</code> (Yarn 2 and later: <code>--mode=skip-build</code>).</td>
+<td data-label="Variable"><code>SQUIRE_NPM_IGNORE_SCRIPTS</code></td>
+<td data-label="Default"><code>1</code></td>
+<td data-label="Meaning">Install with <code>--ignore-scripts</code> (Yarn 2 and later: <code>--mode=skip-build</code>).</td>
 </tr>
 <tr>
-<td><code>SQUIRE_NPM_REBUILD</code></td>
-<td>empty</td>
-<td>Packages, separated by spaces, whose install scripts run after the install (<code>npm rebuild --ignore-scripts=false</code>, <code>pnpm rebuild</code>, or <code>yarn rebuild</code> for Yarn 2 and later; Yarn 1 apps get <code>npm rebuild</code>; pnpm 10 also needs them in <code>pnpm.onlyBuiltDependencies</code>). The escape hatch for a package that needs its own scripts, such as a native addon.</td>
+<td data-label="Variable"><code>SQUIRE_NPM_REBUILD</code></td>
+<td data-label="Default">empty</td>
+<td data-label="Meaning">Packages, separated by spaces, whose install scripts run after the install (<code>npm rebuild --ignore-scripts=false</code>, <code>pnpm rebuild</code>, or <code>yarn rebuild</code> for Yarn 2 and later; Yarn 1 apps get <code>npm rebuild</code>; pnpm 10 also needs them in <code>pnpm.<wbr>onlyBuiltDepende<wbr>ncies</code>). The escape hatch for a package that needs its own scripts, such as a native addon.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_NPM_BUILD_SCRIPT</code></td>
-<td><code>build</code></td>
-<td>The <code>package.json</code> script to run.</td>
+<td data-label="Variable"><code>SQUIRE_NPM_BUILD_SCRIPT</code></td>
+<td data-label="Default"><code>build</code></td>
+<td data-label="Meaning">The <code>package.json</code> script to run.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_CACHE_DIR</code></td>
-<td><code>.cache/squire</code></td>
-<td>Where Composer and npm keep their download caches between releases, inside the app folder so a Citadel Update keeps them; <code>off</code> leaves their defaults.</td>
+<td data-label="Variable"><code>SQUIRE_CACHE_DIR</code></td>
+<td data-label="Default"><code>.cache/squire</code></td>
+<td data-label="Meaning">Where Composer and npm keep their download caches between releases, inside the app folder so a Citadel Update keeps them; <code>off</code> leaves their defaults.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_MIGRATE</code></td>
-<td><code>1</code></td>
-<td>Laravel: <code>migrate --force</code>.</td>
+<td data-label="Variable"><code>SQUIRE_MIGRATE</code></td>
+<td data-label="Default"><code>1</code></td>
+<td data-label="Meaning">Laravel: <code>migrate --force</code>.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_ARTISAN_OPTIMIZE</code></td>
-<td><code>1</code></td>
-<td>Laravel: <code>optimize</code>.</td>
+<td data-label="Variable"><code>SQUIRE_ARTISAN_OPTIMIZE</code></td>
+<td data-label="Default"><code>1</code></td>
+<td data-label="Meaning">Laravel: <code>optimize</code>.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_ARTISAN_RESTART</code></td>
-<td><code>1</code></td>
-<td>Laravel: tell queue workers and <code>schedule:work</code> to restart on the new code (<code>reload</code>, or <code>queue:restart</code> and <code>schedule:interrupt</code>). Report only.</td>
+<td data-label="Variable"><code>SQUIRE_ARTISAN_RESTART</code></td>
+<td data-label="Default"><code>1</code></td>
+<td data-label="Meaning">Laravel: tell queue workers and <code>schedule:work</code> to restart on the new code (<code>reload</code>, or <code>queue:restart</code> and <code>schedule:<wbr>interrupt</code>). Report only.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_PROCTOR</code></td>
-<td><code>auto</code></td>
-<td><code>auto</code>, <code>skip</code> or <code>enforce</code>. The release asks <code>proctor gate</code> for a go or no-go (<code>proctor check</code> on a PROCTOR without the gate). By default a no-go is a report and never stops the release; <code>enforce</code> makes a no-go stop it, before the frontend build and the migrations.</td>
+<td data-label="Variable"><code>SQUIRE_PROCTOR</code></td>
+<td data-label="Default"><code>auto</code></td>
+<td data-label="Meaning"><code>auto</code>, <code>skip</code> or <code>enforce</code>. The release asks <code>proctor gate</code> for a go or no-go (<code>proctor check</code> on a PROCTOR without the gate). By default a no-go is a report and never stops the release; <code>enforce</code> makes a no-go stop it, before the frontend build and the migrations.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_PROCTOR_BIN</code></td>
-<td><code>vendor/bin/proctor</code>, then <code>PATH</code></td>
-<td>Where PROCTOR is. It is a dev dependency, so <code>--no-dev</code> removes it: point this at a copy.</td>
+<td data-label="Variable"><code>SQUIRE_PROCTOR_BIN</code></td>
+<td data-label="Default"><code>vendor/<wbr>bin/<wbr>proctor</code>, then <code>PATH</code></td>
+<td data-label="Meaning">Where PROCTOR is. It is a dev dependency, so <code>--no-dev</code> removes it: point this at a copy.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_PROCTOR_POLICY</code></td>
-<td><code>vendor/waynestate/creed/policy/policy.json</code>, when installed</td>
-<td>Path to the policy file. When unset, the script falls back to the policy the CREED package ships (the deploy wizard has no environment field); when CREED is not installed, PROCTOR runs on its own default policy with a notice. An explicit value always wins.</td>
+<td data-label="Variable"><code>SQUIRE_PROCTOR_POLICY</code></td>
+<td data-label="Default"><code>vendor/<wbr>waynestate/<wbr>creed/<wbr>policy/<wbr>policy.<wbr>json</code>, when installed</td>
+<td data-label="Meaning">Path to the policy file. When unset, the script falls back to the policy the CREED package ships (the deploy wizard has no environment field); when CREED is not installed, PROCTOR runs on its own default policy with a notice. An explicit value always wins.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_PROCTOR_RECORD_DIR</code></td>
-<td><code>storage/squire</code></td>
-<td>Where the gate keeps its verdicts, relative to the app root: <code>proctor-gate.json</code> (the last verdict) and <code>proctor-gate-baseline.json</code> (the verdict of the last release that went on, the next run's baseline). The folder gets a <code>.gitignore</code> of <code>*</code>, so it never reaches git.</td>
+<td data-label="Variable"><code>SQUIRE_PROCTOR_RECORD_DIR</code></td>
+<td data-label="Default"><code>storage/squire</code></td>
+<td data-label="Meaning">Where the gate keeps its verdicts, relative to the app root: <code>proctor-gate.<wbr>json</code> (the last verdict) and <code>proctor-gate-baseline.<wbr>json</code> (the verdict of the last release that went on, the next run's baseline). The folder gets a <code>.gitignore</code> of <code>*</code>, so it never reaches git.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_PHP_RUNTIME</code></td>
-<td><code>auto</code></td>
-<td>The PHP version the gate grades for PROCTOR's unpatched check, passed as <code>--php-runtime</code>: <code>auto</code> reads the php that runs <code>release.sh</code> (it is the one serving the app; a suffix such as <code>-dev</code> is cut), <code>skip</code> grades no runtime, and an <code>X.Y.Z</code> value is graded as given. A value that is not <code>X.Y.Z</code> is a note and grades nothing. Only <code>proctor gate</code> gets it; the older <code>proctor check</code> fallback does not.</td>
+<td data-label="Variable"><code>SQUIRE_PHP_RUNTIME</code></td>
+<td data-label="Default"><code>auto</code></td>
+<td data-label="Meaning">The PHP version the gate grades for PROCTOR's unpatched check, passed as <code>--php-runtime</code>: <code>auto</code> reads the php that runs <code>release.sh</code> (it is the one serving the app; a suffix such as <code>-dev</code> is cut), <code>skip</code> grades no runtime, and an <code>X.Y.Z</code> value is graded as given. A value that is not <code>X.Y.Z</code> is a note and grades nothing. Only <code>proctor gate</code> gets it; the older <code>proctor check</code> fallback does not.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_SMOKE</code></td>
-<td><code>1</code></td>
-<td>Request the health URL at the end and fail unless it answers 200.</td>
+<td data-label="Variable"><code>SQUIRE_SMOKE</code></td>
+<td data-label="Default"><code>1</code></td>
+<td data-label="Meaning">Request the health URL at the end and fail unless it answers 200.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_SMOKE_URL</code></td>
-<td><code>http://127.0.0.1:80/up</code> (Laravel), <code>/up.php</code> (raw and static)</td>
-<td>Full URL.</td>
+<td data-label="Variable"><code>SQUIRE_SMOKE_URL</code></td>
+<td data-label="Default"><code>http://<wbr>127.0.0.1:<wbr>80/<wbr>up</code> (Laravel), <code>/up.php</code> (raw and static)</td>
+<td data-label="Meaning">Full URL.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_SMOKE_RETRIES</code></td>
-<td><code>5</code></td>
-<td>Attempts.</td>
+<td data-label="Variable"><code>SQUIRE_SMOKE_RETRIES</code></td>
+<td data-label="Default"><code>5</code></td>
+<td data-label="Meaning">Attempts.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_SMOKE_DELAY</code></td>
-<td><code>2</code></td>
-<td>Seconds between attempts.</td>
+<td data-label="Variable"><code>SQUIRE_SMOKE_DELAY</code></td>
+<td data-label="Default"><code>2</code></td>
+<td data-label="Meaning">Seconds between attempts.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_SECRETS_DIR</code></td>
-<td><code>/run/secrets</code></td>
-<td>A folder of secret files, read before the first step: each regular file named like a variable (<code>DB_PASSWORD</code>) becomes that variable, unless the environment already sets it. Only names are printed. The fallback entrypoint reads the same folder for Apache. See <a href="../guides/image-hardening.html">Image hardening</a>.</td>
+<td data-label="Variable"><code>SQUIRE_SECRETS_DIR</code></td>
+<td data-label="Default"><code>/run/secrets</code></td>
+<td data-label="Meaning">A folder of secret files, read before the first step: each regular file named like a variable (<code>DB_PASSWORD</code>) becomes that variable, unless the environment already sets it. Only names are printed. The fallback entrypoint reads the same folder for Apache. See <a href="../guides/image-hardening.html">Image hardening</a>.</td>
 </tr>
 </tbody>
 </table></div>
@@ -222,14 +222,14 @@
 </thead>
 <tbody>
 <tr>
-<td><code>SQUIRE_APP_ENTRY</code></td>
-<td><code>app.php</code></td>
-<td>Front controller (raw <code>public/index.php</code>): the app's entry, relative to the app directory.</td>
+<td data-label="Variable"><code>SQUIRE_APP_ENTRY</code></td>
+<td data-label="Default"><code>app.php</code></td>
+<td data-label="Meaning">Front controller (raw <code>public/<wbr>index.<wbr>php</code>): the app's entry, relative to the app directory.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_STATIC_ROOT</code></td>
-<td><code>../../site</code></td>
-<td>Static <code>public/index.php</code>: the site folder.</td>
+<td data-label="Variable"><code>SQUIRE_STATIC_ROOT</code></td>
+<td data-label="Default"><code>../../site</code></td>
+<td data-label="Meaning">Static <code>public/<wbr>index.<wbr>php</code>: the site folder.</td>
 </tr>
 </tbody>
 </table></div>
@@ -244,29 +244,29 @@
 </thead>
 <tbody>
 <tr>
-<td><code>SQUIRE_HEALTH_PATH</code></td>
-<td>not stated</td>
-<td>The path the health check requests.</td>
+<td data-label="Variable"><code>SQUIRE_HEALTH_PATH</code></td>
+<td data-label="Default">not stated</td>
+<td data-label="Meaning">The path the health check requests.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_HEALTH_PORT</code></td>
-<td><code>80</code></td>
-<td>The port the health check requests.</td>
+<td data-label="Variable"><code>SQUIRE_HEALTH_PORT</code></td>
+<td data-label="Default"><code>80</code></td>
+<td data-label="Meaning">The port the health check requests.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_HEALTH_TIMEOUT</code></td>
-<td><code>5</code>, at most <code>14</code>, inside Citadel's <code>15</code></td>
-<td>Seconds the health check waits.</td>
+<td data-label="Variable"><code>SQUIRE_HEALTH_TIMEOUT</code></td>
+<td data-label="Default"><code>5</code>, at most <code>14</code>, inside Citadel's <code>15</code></td>
+<td data-label="Meaning">Seconds the health check waits.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_HEALTH_VENDOR</code></td>
-<td><code>1</code> also requires <code>vendor/autoload.php</code></td>
-<td>Whether the health check also requires the autoloader.</td>
+<td data-label="Variable"><code>SQUIRE_HEALTH_VENDOR</code></td>
+<td data-label="Default"><code>1</code> also requires <code>vendor/<wbr>autoload.<wbr>php</code></td>
+<td data-label="Meaning">Whether the health check also requires the autoloader.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_APP_DIR</code></td>
-<td>the folder <code>health.php</code> is in</td>
-<td>The app root the check reads (<code>artisan</code>, <code>vendor/</code>). The portable image sets <code>/citadel/src</code>, so a kit in a subfolder checks the app it serves.</td>
+<td data-label="Variable"><code>SQUIRE_APP_DIR</code></td>
+<td data-label="Default">the folder <code>health.php</code> is in</td>
+<td data-label="Meaning">The app root the check reads (<code>artisan</code>, <code>vendor/</code>). The portable image sets <code>/citadel/src</code>, so a kit in a subfolder checks the app it serves.</td>
 </tr>
 </tbody>
 </table></div>
@@ -282,64 +282,64 @@
 </thead>
 <tbody>
 <tr>
-<td><code>SQUIRE_ROLE</code></td>
-<td><code>web</code></td>
-<td><code>web</code>, <code>worker</code>, <code>scheduler</code> or <code>migrate</code>. A first argument naming a role wins.</td>
+<td data-label="Variable"><code>SQUIRE_ROLE</code></td>
+<td data-label="Default"><code>web</code></td>
+<td data-label="Meaning"><code>web</code>, <code>worker</code>, <code>scheduler</code> or <code>migrate</code>. A first argument naming a role wins.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_PORT</code></td>
-<td><code>PORT</code>, else <code>8080</code></td>
-<td>The port Apache listens on and the health check asks. Below 1024 is refused for a user that is not root.</td>
+<td data-label="Variable"><code>SQUIRE_PORT</code></td>
+<td data-label="Default"><code>PORT</code>, else <code>8080</code></td>
+<td data-label="Meaning">The port Apache listens on and the health check asks. Below 1024 is refused for a user that is not root.</td>
 </tr>
 <tr>
-<td><code>PORT</code></td>
-<td>not set</td>
-<td>Read when <code>SQUIRE_PORT</code> is not set (the name several platforms set).</td>
+<td data-label="Variable"><code>PORT</code></td>
+<td data-label="Default">not set</td>
+<td data-label="Meaning">Read when <code>SQUIRE_PORT</code> is not set (the name several platforms set).</td>
 </tr>
 <tr>
-<td><code>SQUIRE_WORKER_COMMAND</code></td>
-<td><code>php artisan queue:work --tries=3 --max-time=3600 --sleep=3</code></td>
-<td>The worker's command, split on spaces. Required for a raw PHP app.</td>
+<td data-label="Variable"><code>SQUIRE_WORKER_COMMAND</code></td>
+<td data-label="Default"><code>php artisan queue:<wbr>work --tries=3 --max-time=3600 --sleep=3</code></td>
+<td data-label="Meaning">The worker's command, split on spaces. Required for a raw PHP app.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_SCHEDULER_COMMAND</code></td>
-<td><code>php artisan schedule:work</code></td>
-<td>The scheduler's command. Required for a raw PHP app.</td>
+<td data-label="Variable"><code>SQUIRE_SCHEDULER_COMMAND</code></td>
+<td data-label="Default"><code>php artisan schedule:<wbr>work</code></td>
+<td data-label="Meaning">The scheduler's command. Required for a raw PHP app.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_MIGRATE_COMMAND</code></td>
-<td><code>php artisan migrate --force</code></td>
-<td>The migrate role's command; a raw PHP app without one has nothing to migrate.</td>
+<td data-label="Variable"><code>SQUIRE_MIGRATE_COMMAND</code></td>
+<td data-label="Default"><code>php artisan migrate --force</code></td>
+<td data-label="Meaning">The migrate role's command; a raw PHP app without one has nothing to migrate.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_ARTISAN_OPTIMIZE</code></td>
-<td><code>1</code></td>
-<td>Laravel: <code>php artisan optimize</code> when a <code>web</code>, <code>worker</code> or <code>scheduler</code> container starts.</td>
+<td data-label="Variable"><code>SQUIRE_ARTISAN_OPTIMIZE</code></td>
+<td data-label="Default"><code>1</code></td>
+<td data-label="Meaning">Laravel: <code>php artisan optimize</code> when a <code>web</code>, <code>worker</code> or <code>scheduler</code> container starts.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_SECRETS_DIR</code></td>
-<td><code>/run/secrets</code></td>
-<td>The same secrets loader as the release script, before any role starts.</td>
+<td data-label="Variable"><code>SQUIRE_SECRETS_DIR</code></td>
+<td data-label="Default"><code>/run/secrets</code></td>
+<td data-label="Meaning">The same secrets loader as the release script, before any role starts.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_KIT_DIR</code> (build argument)</td>
-<td><code>.</code></td>
-<td>Where the kit sits in the build context (<code>deploy</code> for WELD).</td>
+<td data-label="Variable"><code>SQUIRE_KIT_DIR</code> (build argument)</td>
+<td data-label="Default"><code>.</code></td>
+<td data-label="Meaning">Where the kit sits in the build context (<code>deploy</code> for WELD).</td>
 </tr>
 <tr>
-<td><code>SQUIRE_WRITABLE_DIRS</code> (build argument)</td>
-<td>Laravel: <code>storage bootstrap/cache</code></td>
-<td>Folders handed to group 0 and made group-writable, separated by spaces.</td>
+<td data-label="Variable"><code>SQUIRE_WRITABLE_DIRS</code> (build argument)</td>
+<td data-label="Default">Laravel: <code>storage bootstrap/<wbr>cache</code></td>
+<td data-label="Meaning">Folders handed to group 0 and made group-writable, separated by spaces.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_OPCACHE_VALIDATE</code> (build argument)</td>
-<td><code>0</code></td>
-<td>Baked code: opcache never checks files. A run-time <code>1</code> still wins.</td>
+<td data-label="Variable"><code>SQUIRE_OPCACHE_VALIDATE</code> (build argument)</td>
+<td data-label="Default"><code>0</code></td>
+<td data-label="Meaning">Baked code: opcache never checks files. A run-time <code>1</code> still wins.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_KEEP_NODE_MODULES</code> (build argument)</td>
-<td><code>0</code></td>
-<td><code>1</code> keeps <code>node_modules/</code> in the image after the frontend build. By default it is removed in the same step, because no role runs Node.</td>
+<td data-label="Variable"><code>SQUIRE_KEEP_NODE_MODULES</code> (build argument)</td>
+<td data-label="Default"><code>0</code></td>
+<td data-label="Meaning"><code>1</code> keeps <code>node_modules/</code> in the image after the frontend build. By default it is removed in the same step, because no role runs Node.</td>
 </tr>
 </tbody>
 </table></div>
@@ -355,24 +355,24 @@
 </thead>
 <tbody>
 <tr>
-<td><code>SQUIRE_OPCACHE_VALIDATE</code></td>
-<td><code>1</code></td>
-<td>How code arrives. <code>1</code>: pulled into the running container (Citadel, a bind mount, or unknown), so opcache checks files every 2 seconds. <code>0</code>: baked into an image that never changes, so it never checks. Also a build argument of <code>.squire/Dockerfile</code> (default <code>1</code>); the run-time value wins. Never empty: that turns the checks off.</td>
+<td data-label="Variable"><code>SQUIRE_OPCACHE_VALIDATE</code></td>
+<td data-label="Default"><code>1</code></td>
+<td data-label="Meaning">How code arrives. <code>1</code>: pulled into the running container (Citadel, a bind mount, or unknown), so opcache checks files every 2 seconds. <code>0</code>: baked into an image that never changes, so it never checks. Also a build argument of <code>.squire/<wbr>Dockerfile</code> (default <code>1</code>); the run-time value wins. Never empty: that turns the checks off.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_OPCACHE_MEMORY</code></td>
-<td><code>128</code></td>
-<td>opcache memory, in megabytes.</td>
+<td data-label="Variable"><code>SQUIRE_OPCACHE_MEMORY</code></td>
+<td data-label="Default"><code>128</code></td>
+<td data-label="Meaning">opcache memory, in megabytes.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_OPCACHE_MAX_FILES</code></td>
-<td><code>20000</code></td>
-<td>How many scripts opcache keeps.</td>
+<td data-label="Variable"><code>SQUIRE_OPCACHE_MAX_FILES</code></td>
+<td data-label="Default"><code>20000</code></td>
+<td data-label="Meaning">How many scripts opcache keeps.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_PHP_DISABLE_FUNCTIONS</code></td>
-<td><code>exec,passthru,shell_exec,system,pcntl_exec,phpinfo,show_source,highlight_file</code></td>
-<td>The web's <code>disable_functions</code> list (<code>.squire/php-web.ini</code>; the CLI disables nothing). It replaces the list; <code>none</code> disables nothing. Leave it unset for the default: an empty value disables nothing too.</td>
+<td data-label="Variable"><code>SQUIRE_PHP_DISABLE_FUNCTIONS</code></td>
+<td data-label="Default"><code>exec,<wbr>passthru,<wbr>shell_<wbr>exec,<wbr>system,<wbr>pcntl_<wbr>exec,<wbr>phpinfo,<wbr>show_<wbr>source,<wbr>highlight_<wbr>file</code></td>
+<td data-label="Meaning">The web's <code>disable_<wbr>functions</code> list (<code>.squire/<wbr>php-web.<wbr>ini</code>; the CLI disables nothing). It replaces the list; <code>none</code> disables nothing. Leave it unset for the default: an empty value disables nothing too.</td>
 </tr>
 </tbody>
 </table></div>
@@ -387,124 +387,124 @@
 </thead>
 <tbody>
 <tr>
-<td><code>SQUIRE_PROJECT</code></td>
-<td>not stated</td>
-<td>Local parity: the project name.</td>
+<td data-label="Variable"><code>SQUIRE_PROJECT</code></td>
+<td data-label="Default">not stated</td>
+<td data-label="Meaning">Local parity: the project name.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_BASE_IMAGE</code></td>
-<td>not stated</td>
-<td>Local parity: the app image.</td>
+<td data-label="Variable"><code>SQUIRE_BASE_IMAGE</code></td>
+<td data-label="Default">not stated</td>
+<td data-label="Meaning">Local parity: the app image.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_PROXY_IMAGE</code></td>
-<td>not stated</td>
-<td>Local parity: the proxy image.</td>
+<td data-label="Variable"><code>SQUIRE_PROXY_IMAGE</code></td>
+<td data-label="Default">not stated</td>
+<td data-label="Meaning">Local parity: the proxy image.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_MYSQL_IMAGE</code></td>
-<td>not stated</td>
-<td>Local parity: the MySQL image.</td>
+<td data-label="Variable"><code>SQUIRE_MYSQL_IMAGE</code></td>
+<td data-label="Default">not stated</td>
+<td data-label="Meaning">Local parity: the MySQL image.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_PUBLIC_DIR</code></td>
-<td>not stated</td>
-<td>Local parity: the public directory.</td>
+<td data-label="Variable"><code>SQUIRE_PUBLIC_DIR</code></td>
+<td data-label="Default">not stated</td>
+<td data-label="Meaning">Local parity: the public directory.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_SERVER_NAME</code></td>
-<td>not stated</td>
-<td>Local parity: the server name.</td>
+<td data-label="Variable"><code>SQUIRE_SERVER_NAME</code></td>
+<td data-label="Default">not stated</td>
+<td data-label="Meaning">Local parity: the server name.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_TZ</code></td>
-<td>not stated</td>
-<td>Local parity: the timezone.</td>
+<td data-label="Variable"><code>SQUIRE_TZ</code></td>
+<td data-label="Default">not stated</td>
+<td data-label="Meaning">Local parity: the timezone.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_ENVIRONMENT</code></td>
-<td>not stated</td>
-<td>Local parity: the environment.</td>
+<td data-label="Variable"><code>SQUIRE_ENVIRONMENT</code></td>
+<td data-label="Default">not stated</td>
+<td data-label="Meaning">Local parity: the environment.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_DEPLOYMENTS</code></td>
-<td>not stated</td>
-<td>Local parity: the deployments path.</td>
+<td data-label="Variable"><code>SQUIRE_DEPLOYMENTS</code></td>
+<td data-label="Default">not stated</td>
+<td data-label="Meaning">Local parity: the deployments path.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_HTTP_PORT</code></td>
-<td>not stated</td>
-<td>Local parity: the HTTP port.</td>
+<td data-label="Variable"><code>SQUIRE_HTTP_PORT</code></td>
+<td data-label="Default">not stated</td>
+<td data-label="Meaning">Local parity: the HTTP port.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_APP_MEMORY</code></td>
-<td>not stated</td>
-<td>Local parity: the app memory limit.</td>
+<td data-label="Variable"><code>SQUIRE_APP_MEMORY</code></td>
+<td data-label="Default">not stated</td>
+<td data-label="Meaning">Local parity: the app memory limit.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_SOURCE_UID</code></td>
-<td>not stated</td>
-<td>Local parity: the uid that owns the mounted source.</td>
+<td data-label="Variable"><code>SQUIRE_SOURCE_UID</code></td>
+<td data-label="Default">not stated</td>
+<td data-label="Meaning">Local parity: the uid that owns the mounted source.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_SOURCE_GID</code></td>
-<td>not stated</td>
-<td>Local parity: the gid that owns the mounted source.</td>
+<td data-label="Variable"><code>SQUIRE_SOURCE_GID</code></td>
+<td data-label="Default">not stated</td>
+<td data-label="Meaning">Local parity: the gid that owns the mounted source.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_DB_NAME</code></td>
-<td>not stated</td>
-<td>Local parity: the database name.</td>
+<td data-label="Variable"><code>SQUIRE_DB_NAME</code></td>
+<td data-label="Default">not stated</td>
+<td data-label="Meaning">Local parity: the database name.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_DB_USER</code></td>
-<td>not stated</td>
-<td>Local parity: the database user.</td>
+<td data-label="Variable"><code>SQUIRE_DB_USER</code></td>
+<td data-label="Default">not stated</td>
+<td data-label="Meaning">Local parity: the database user.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_DB_PASSWORD</code></td>
-<td>not stated</td>
-<td>Local parity: the database password.</td>
+<td data-label="Variable"><code>SQUIRE_DB_PASSWORD</code></td>
+<td data-label="Default">not stated</td>
+<td data-label="Meaning">Local parity: the database password.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_DB_ROOT_PASSWORD</code></td>
-<td>not stated</td>
-<td>Local parity: the database root password.</td>
+<td data-label="Variable"><code>SQUIRE_DB_ROOT_PASSWORD</code></td>
+<td data-label="Default">not stated</td>
+<td data-label="Meaning">Local parity: the database root password.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_DB_PORT</code></td>
-<td>not stated</td>
-<td>Local parity: the database port.</td>
+<td data-label="Variable"><code>SQUIRE_DB_PORT</code></td>
+<td data-label="Default">not stated</td>
+<td data-label="Meaning">Local parity: the database port.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_DB_MEMORY</code></td>
-<td>not stated</td>
-<td>Local parity: the database memory limit.</td>
+<td data-label="Variable"><code>SQUIRE_DB_MEMORY</code></td>
+<td data-label="Default">not stated</td>
+<td data-label="Meaning">Local parity: the database memory limit.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_PORTABLE_HTTP_PORT</code></td>
-<td><code>8081</code></td>
-<td>The <code>portable</code> profile: where the web container is published on loopback.</td>
+<td data-label="Variable"><code>SQUIRE_PORTABLE_HTTP_PORT</code></td>
+<td data-label="Default"><code>8081</code></td>
+<td data-label="Meaning">The <code>portable</code> profile: where the web container is published on loopback.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_PORTABLE_USER</code></td>
-<td><code>10001:0</code></td>
-<td>The <code>portable</code> profile: the UID and group the containers run as (try <code>1000123:0</code>).</td>
+<td data-label="Variable"><code>SQUIRE_PORTABLE_USER</code></td>
+<td data-label="Default"><code>10001:0</code></td>
+<td data-label="Meaning">The <code>portable</code> profile: the UID and group the containers run as (try <code>1000123:0</code>).</td>
 </tr>
 <tr>
-<td><code>SQUIRE_PORTABLE_ENV_FILE</code></td>
-<td><code>.env</code></td>
-<td>The <code>portable</code> profile: the app's env file, read at run time and never baked in.</td>
+<td data-label="Variable"><code>SQUIRE_PORTABLE_ENV_FILE</code></td>
+<td data-label="Default"><code>.env</code></td>
+<td data-label="Meaning">The <code>portable</code> profile: the app's env file, read at run time and never baked in.</td>
 </tr>
 <tr>
-<td><code>SQUIRE_PORTABLE_CONTEXT</code></td>
-<td><code>.</code></td>
-<td>The <code>portable</code> profile: the build context, relative to the compose file (<code>..</code> for WELD).</td>
+<td data-label="Variable"><code>SQUIRE_PORTABLE_CONTEXT</code></td>
+<td data-label="Default"><code>.</code></td>
+<td data-label="Meaning">The <code>portable</code> profile: the build context, relative to the compose file (<code>..</code> for WELD).</td>
 </tr>
 <tr>
-<td><code>SQUIRE_KIT_DIR</code></td>
-<td><code>.</code></td>
-<td>The <code>portable</code> profile: the kit's folder inside that context (<code>deploy</code> for WELD).</td>
+<td data-label="Variable"><code>SQUIRE_KIT_DIR</code></td>
+<td data-label="Default"><code>.</code></td>
+<td data-label="Meaning">The <code>portable</code> profile: the kit's folder inside that context (<code>deploy</code> for WELD).</td>
 </tr>
 </tbody>
 </table></div>

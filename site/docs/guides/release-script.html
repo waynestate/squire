@@ -52,20 +52,20 @@
 </thead>
 <tbody>
 <tr>
-<td><code>build.sh</code></td>
-<td>Citadel's build hook: system packages only, POSIX sh, runs as root with no app source. No Composer, no npm.</td>
+<td data-label="File"><code>build.sh</code></td>
+<td data-label="What it is">Citadel's build hook: system packages only, POSIX sh, runs as root with no app source. No Composer, no npm.</td>
 </tr>
 <tr>
-<td><code>deployments/001-first-release.sh</code></td>
-<td>Runs once per app: calls the release script with the smoke test off (Apache is not up yet).</td>
+<td data-label="File"><code>deployments/<wbr>001-first-release.<wbr>sh</code></td>
+<td data-label="What it is">Runs once per app: calls the release script with the smoke test off (Apache is not up yet).</td>
 </tr>
 <tr>
-<td><code>health.php</code></td>
-<td>Citadel's health check (<code>[&quot;php&quot;,&quot;health.php&quot;]</code>): one HTTP request to <code>/up</code>, never boots the framework.</td>
+<td data-label="File"><code>health.php</code></td>
+<td data-label="What it is">Citadel's health check (<code>[&quot;php&quot;,<wbr>&quot;health.<wbr>php&quot;]</code>): one HTTP request to <code>/up</code>, never boots the framework.</td>
 </tr>
 <tr>
-<td><code>oracle-check.php</code></td>
-<td>The plain-language Oracle connection check the release runs: settings, host, port, driver, login. A report, never a gate; silent when the app has no <code>ORACLE_*</code> settings.</td>
+<td data-label="File"><code>oracle-check.<wbr>php</code></td>
+<td data-label="What it is">The plain-language Oracle connection check the release runs: settings, host, port, driver, login. A report, never a gate; silent when the app has no <code>ORACLE_*</code> settings.</td>
 </tr>
 </tbody>
 </table></div>

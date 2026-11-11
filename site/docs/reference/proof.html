@@ -55,39 +55,39 @@
 </thead>
 <tbody>
 <tr>
-<td><code>composer ci</code></td>
-<td>2026-11-07</td>
-<td>88fd2ec</td>
-<td>pass: 404 tests, 2771 assertions, 0 phpstan errors, 0 advisories</td>
-<td>8m 14s</td>
+<td data-label="Check"><code>composer ci</code></td>
+<td data-label="Date">2026-11-07</td>
+<td data-label="Commit">88fd2ec</td>
+<td data-label="Result">pass: 404 tests, 2771 assertions, 0 phpstan errors, 0 advisories</td>
+<td data-label="Duration">8m 14s</td>
 </tr>
 <tr>
-<td>Local parity rig (<code>parity.sh up --fallback</code>, shell twin under WSL 2 bash)</td>
-<td>2026-11-07</td>
-<td>88fd2ec</td>
-<td>pass: the release ran all eight steps in 6s and <code>/up.php</code> answered 200 with body <code>ok</code> through the proxy</td>
-<td>27s to healthy (images prebuilt on this machine)</td>
+<td data-label="Check">Local parity rig (<code>parity.sh up --fallback</code>, shell twin under WSL 2 bash)</td>
+<td data-label="Date">2026-11-07</td>
+<td data-label="Commit">88fd2ec</td>
+<td data-label="Result">pass: the release ran all eight steps in 6s and <code>/up.php</code> answered 200 with body <code>ok</code> through the proxy</td>
+<td data-label="Duration">27s to healthy (images prebuilt on this machine)</td>
 </tr>
 <tr>
-<td>Image contract on the fallback (<code>contract-image.sh</code>, linux/amd64, Git Bash on Docker Desktop)</td>
-<td>2026-11-10</td>
-<td>c33f789 plus the <code>--base-image</code> change</td>
-<td>pass: 26 of 26, under the compose file's least privilege</td>
-<td>4m 19s (base built from cache)</td>
+<td data-label="Check">Image contract on the fallback (<code>contract-image.sh</code>, linux/amd64, Git Bash on Docker Desktop)</td>
+<td data-label="Date">2026-11-10</td>
+<td data-label="Commit">c33f789 plus the <code>--base-image</code> change</td>
+<td data-label="Result">pass: 26 of 26, under the compose file's least privilege</td>
+<td data-label="Duration">4m 19s (base built from cache)</td>
 </tr>
 <tr>
-<td>Image contract on Citadel's own image (<code>contract-image.sh --base-image=citadel/php-apache:8.5r3</code>, image id <code>950dcf67937a</code>)</td>
-<td>2026-11-10</td>
-<td>the same</td>
-<td>pass: 23 checks passed, 3 gaps that only the image can close (below)</td>
-<td>1m 20s</td>
+<td data-label="Check">Image contract on Citadel's own image (<code>contract-image.sh --base-image=citadel/php-apache:8.5r3</code>, image id <code>950dcf67937a</code>)</td>
+<td data-label="Date">2026-11-10</td>
+<td data-label="Commit">the same</td>
+<td data-label="Result">pass: 23 checks passed, 3 gaps that only the image can close (below)</td>
+<td data-label="Duration">1m 20s</td>
 </tr>
 <tr>
-<td>Local parity rig on Windows PowerShell 5.1.26100 (<code>parity.ps1 up -Fallback</code>, then <code>up</code> on <code>citadel/php-apache:8.5r3</code>, <code>status</code>, <code>pin</code>, <code>reset</code>)</td>
-<td>2026-11-10</td>
-<td>the same plus the 5.1 fix</td>
-<td>pass: <code>/up.php</code> answered 200 with body <code>ok</code> through the proxy on both bases; before the fix, <code>up</code> with no base image died on a raw <code>NativeCommandError</code> instead of its own message</td>
-<td>49s fallback, 26s Citadel's image</td>
+<td data-label="Check">Local parity rig on Windows PowerShell 5.1.26100 (<code>parity.ps1 up -Fallback</code>, then <code>up</code> on <code>citadel/php-apache:8.5r3</code>, <code>status</code>, <code>pin</code>, <code>reset</code>)</td>
+<td data-label="Date">2026-11-10</td>
+<td data-label="Commit">the same plus the 5.1 fix</td>
+<td data-label="Result">pass: <code>/up.php</code> answered 200 with body <code>ok</code> through the proxy on both bases; before the fix, <code>up</code> with no base image died on a raw <code>NativeCommandError</code> instead of its own message</td>
+<td data-label="Duration">49s fallback, 26s Citadel's image</td>
 </tr>
 </tbody>
 </table></div>
@@ -117,16 +117,16 @@
 </thead>
 <tbody>
 <tr>
-<td>82 applications</td>
-<td>76</td>
-<td>6</td>
-<td>0</td>
+<td data-label="Units">82 applications</td>
+<td data-label="Pass">76</td>
+<td data-label="Flagged">6</td>
+<td data-label="Tool error">0</td>
 </tr>
 <tr>
-<td>13 libraries, template and test sites</td>
-<td>10</td>
-<td>3</td>
-<td>0</td>
+<td data-label="Units">13 libraries, template and test sites</td>
+<td data-label="Pass">10</td>
+<td data-label="Flagged">3</td>
+<td data-label="Tool error">0</td>
 </tr>
 </tbody>
 </table></div>
@@ -140,24 +140,24 @@
 </thead>
 <tbody>
 <tr>
-<td>Raw PHP, no <code>composer.json</code></td>
-<td>31</td>
-<td>raw</td>
+<td data-label="Shape">Raw PHP, no <code>composer.json</code></td>
+<td data-label="Apps">31</td>
+<td data-label="Target init picked">raw</td>
 </tr>
 <tr>
-<td>Raw PHP with Composer</td>
-<td>33</td>
-<td>raw</td>
+<td data-label="Shape">Raw PHP with Composer</td>
+<td data-label="Apps">33</td>
+<td data-label="Target init picked">raw</td>
 </tr>
 <tr>
-<td>Slim 2</td>
-<td>1</td>
-<td>raw</td>
+<td data-label="Shape">Slim 2</td>
+<td data-label="Apps">1</td>
+<td data-label="Target init picked">raw</td>
 </tr>
 <tr>
-<td>Laravel 5.8 to 13</td>
-<td>17</td>
-<td>laravel (from <code>artisan</code>)</td>
+<td data-label="Shape">Laravel 5.8 to 13</td>
+<td data-label="Apps">17</td>
+<td data-label="Target init picked">laravel (from <code>artisan</code>)</td>
 </tr>
 </tbody>
 </table></div>
@@ -178,20 +178,20 @@
 </thead>
 <tbody>
 <tr>
-<td>Raw PHP, no <code>composer.json</code></td>
-<td>The first release stopped at step 1: <code>composer.json not found</code>. See below.</td>
+<td data-label="App shape">Raw PHP, no <code>composer.json</code></td>
+<td data-label="What happened">The first release stopped at step 1: <code>composer.<wbr>json not found</code>. See below.</td>
 </tr>
 <tr>
-<td>Raw PHP with Composer</td>
-<td>Healthy in 23 seconds. <code>/up.php</code> answered <code>ok</code> through the proxy. The app's own front page answered 500 without its configuration, which the proof does not supply.</td>
+<td data-label="App shape">Raw PHP with Composer</td>
+<td data-label="What happened">Healthy in 23 seconds. <code>/up.php</code> answered <code>ok</code> through the proxy. The app's own front page answered 500 without its configuration, which the proof does not supply.</td>
 </tr>
 <tr>
-<td>Slim 2</td>
-<td>The release stopped at step 3: the lock file installs one package from Subversion, and the image has no <code>svn</code>. The message named the step and the cause.</td>
+<td data-label="App shape">Slim 2</td>
+<td data-label="What happened">The release stopped at step 3: the lock file installs one package from Subversion, and the image has no <code>svn</code>. The message named the step and the cause.</td>
 </tr>
 <tr>
-<td>Laravel 13</td>
-<td>Without a <code>.env</code>, step 1 refused, as documented. With one made from <code>.env.example</code>, as the Citadel dashboard would, the release ran all ten steps in 106 seconds, including the migrations on MySQL 5.6. The app's own <code>.htaccess</code> then redirects every plain HTTP request to HTTPS, so <code>/up</code> answered 307 and the health check said unhealthy. That is the trusted-proxy class of problem parity exists to show before Citadel does.</td>
+<td data-label="App shape">Laravel 13</td>
+<td data-label="What happened">Without a <code>.env</code>, step 1 refused, as documented. With one made from <code>.env.example</code>, as the Citadel dashboard would, the release ran all ten steps in 106 seconds, including the migrations on MySQL 5.6. The app's own <code>.htaccess</code> then redirects every plain HTTP request to HTTPS, so <code>/up</code> answered 307 and the health check said unhealthy. That is the trusted-proxy class of problem parity exists to show before Citadel does.</td>
 </tr>
 </tbody>
 </table></div>

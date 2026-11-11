@@ -54,43 +54,43 @@
 <tbody>
 <tr>
 <td>Code</td>
-<td>mounted at <code>/citadel/src</code></td>
-<td>baked in at <code>/citadel/src</code></td>
+<td data-label=".squire/Dockerfile (Citadel mirror)">mounted at <code>/citadel/src</code></td>
+<td data-label=".squire/portable.Dockerfile">baked in at <code>/citadel/src</code></td>
 </tr>
 <tr>
 <td>Process types</td>
-<td>Apache only (<code>CMD [&quot;apache2-foreground&quot;]</code>)</td>
-<td>web, worker, scheduler or migrate, by argument or <code>SQUIRE_ROLE</code></td>
+<td data-label=".squire/Dockerfile (Citadel mirror)">Apache only (<code>CMD [&quot;apache2-foreground&quot;]</code>)</td>
+<td data-label=".squire/portable.Dockerfile">web, worker, scheduler or migrate, by argument or <code>SQUIRE_ROLE</code></td>
 </tr>
 <tr>
 <td>User</td>
-<td>starts as root, Apache drops to <code>prisoner</code></td>
-<td><code>USER 10001:0</code>; any UID in group 0 works</td>
+<td data-label=".squire/Dockerfile (Citadel mirror)">starts as root, Apache drops to <code>prisoner</code></td>
+<td data-label=".squire/portable.Dockerfile"><code>USER 10001:0</code>; any UID in group 0 works</td>
 </tr>
 <tr>
 <td>Port</td>
-<td>80</td>
-<td>8080 (<code>SQUIRE_PORT</code>, else <code>PORT</code>)</td>
+<td data-label=".squire/Dockerfile (Citadel mirror)">80</td>
+<td data-label=".squire/portable.Dockerfile">8080 (<code>SQUIRE_PORT</code>, else <code>PORT</code>)</td>
 </tr>
 <tr>
 <td>Logs</td>
-<td>files under <code>/citadel/logs</code>, rotated</td>
-<td>stdout and stderr</td>
+<td data-label=".squire/Dockerfile (Citadel mirror)">files under <code>/citadel/logs</code>, rotated</td>
+<td data-label=".squire/portable.Dockerfile">stdout and stderr</td>
 </tr>
 <tr>
 <td>Stop signal</td>
-<td><code>SIGWINCH</code> (the base's)</td>
-<td><code>SIGTERM</code>, a graceful stop for every role</td>
+<td data-label=".squire/Dockerfile (Citadel mirror)"><code>SIGWINCH</code> (the base's)</td>
+<td data-label=".squire/portable.Dockerfile"><code>SIGTERM</code>, a graceful stop for every role</td>
 </tr>
 <tr>
 <td>Release</td>
-<td><code>scripts/release.sh</code> on the running container</td>
-<td>its install-and-build half at image build; config cached at container start; migrations from the <code>migrate</code> role</td>
+<td data-label=".squire/Dockerfile (Citadel mirror)"><code>scripts/<wbr>release.<wbr>sh</code> on the running container</td>
+<td data-label=".squire/portable.Dockerfile">its install-and-build half at image build; config cached at container start; migrations from the <code>migrate</code> role</td>
 </tr>
 <tr>
 <td>opcache</td>
-<td>checks files (a bind mount changes them)</td>
-<td>never checks files (<code>SQUIRE_OPCACHE_VALIDATE=0</code>)</td>
+<td data-label=".squire/Dockerfile (Citadel mirror)">checks files (a bind mount changes them)</td>
+<td data-label=".squire/portable.Dockerfile">never checks files (<code>SQUIRE_<wbr>OPCACHE_<wbr>VALIDATE=0</code>)</td>
 </tr>
 </tbody>
 </table></div>
@@ -127,24 +127,24 @@ curl -i http://127.0.0.1:8081/up
 </thead>
 <tbody>
 <tr>
-<td><code>web</code></td>
-<td>Apache and mod_php on <code>SQUIRE_PORT</code> (else <code>PORT</code>, else 8080)</td>
-<td></td>
+<td data-label="Role"><code>web</code></td>
+<td data-label="Runs">Apache and mod_php on <code>SQUIRE_PORT</code> (else <code>PORT</code>, else 8080)</td>
+<td data-label="Replace it with"></td>
 </tr>
 <tr>
-<td><code>worker</code></td>
-<td><code>php artisan queue:work --tries=3 --max-time=3600 --sleep=3</code></td>
-<td><code>SQUIRE_WORKER_COMMAND</code></td>
+<td data-label="Role"><code>worker</code></td>
+<td data-label="Runs"><code>php artisan queue:<wbr>work --tries=3 --max-time=3600 --sleep=3</code></td>
+<td data-label="Replace it with"><code>SQUIRE_<wbr>WORKER_<wbr>COMMAND</code></td>
 </tr>
 <tr>
-<td><code>scheduler</code></td>
-<td><code>php artisan schedule:work</code></td>
-<td><code>SQUIRE_SCHEDULER_COMMAND</code></td>
+<td data-label="Role"><code>scheduler</code></td>
+<td data-label="Runs"><code>php artisan schedule:<wbr>work</code></td>
+<td data-label="Replace it with"><code>SQUIRE_<wbr>SCHEDULER_<wbr>COMMAND</code></td>
 </tr>
 <tr>
-<td><code>migrate</code></td>
-<td><code>php artisan migrate --force</code>, once per release</td>
-<td><code>SQUIRE_MIGRATE_COMMAND</code></td>
+<td data-label="Role"><code>migrate</code></td>
+<td data-label="Runs"><code>php artisan migrate --force</code>, once per release</td>
+<td data-label="Replace it with"><code>SQUIRE_<wbr>MIGRATE_<wbr>COMMAND</code></td>
 </tr>
 </tbody>
 </table></div>

@@ -520,6 +520,7 @@
 .docs-table {
   overflow-x: auto;
   margin: 1rem 0;
+  container: docs-table / inline-size;
 }
 
 .docs-article table {
@@ -540,6 +541,79 @@
 .docs-article th code {
   color: inherit;
   background: none;
+}
+
+/* In a narrow column (a phone, or a tablet beside the sidebar) a table of
+ * three or more columns becomes one card per row: the first cell is the card's
+ * name, and every other value sits under its column's header (the builder
+ * writes it into data-label). A sideways-scrolling table hid the column that
+ * explains everything; this one hides nothing. The header row stays in the
+ * page for screen readers, out of sight. Two-column tables still fit, so they
+ * keep their grid. The question is the table's own width, not the screen's. */
+@container docs-table (max-width: 560px) {
+  .docs-table:has(thead th:nth-child(3)) thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .docs-table:has(thead th:nth-child(3)) :is(table, tbody, tr, td) {
+    display: block;
+    width: auto;
+  }
+
+  .docs-table:has(thead th:nth-child(3)) tr {
+    padding: 0.55rem 0;
+    border-bottom: 1px solid var(--dk-rule);
+  }
+
+  .docs-table:has(thead th:nth-child(3)) tbody tr:last-child {
+    border-bottom: 0;
+  }
+
+  .docs-table:has(thead th:nth-child(3)) td {
+    padding: 0.2rem 0.75rem;
+    border-bottom: 0;
+  }
+
+  .docs-table:has(thead th:nth-child(3)) td:first-child {
+    font-weight: 700;
+  }
+
+  .docs-table:has(thead th:nth-child(3)) td:not(:first-child)[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    margin-top: 0.15rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--dk-muted);
+  }
+
+  .docs-table:has(thead th:nth-child(3)) td:empty {
+    display: none;
+  }
+}
+
+/* A digest or a long path in a cell has no space to wrap at, so it would set
+ * its column's width and push the table past the page. The builder puts a
+ * <wbr> at its slashes and underscores (and every 16 characters of a digest),
+ * so the table fits by breaking there and nowhere else: anywhere would let
+ * the table squeeze a column until words split mid-name. The first column
+ * names the row (a variable, a file) and gets no <wbr>; in a table wide
+ * enough for a grid a name stays whole. */
+.docs-table td code {
+  overflow-wrap: break-word;
+}
+
+@container docs-table (min-width: 561px) {
+  .docs-table:has(thead th:nth-child(3)) td:first-child code {
+    overflow-wrap: normal;
+  }
 }
 
 .docs-toc {

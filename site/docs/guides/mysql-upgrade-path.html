@@ -54,22 +54,22 @@
 </thead>
 <tbody>
 <tr>
-<td>1</td>
-<td>5.6.51</td>
-<td>5.7</td>
-<td>The next series. Laravel 13's floor.</td>
+<td data-label="Hop">1</td>
+<td data-label="From">5.6.51</td>
+<td data-label="To">5.7</td>
+<td data-label="Why this stop">The next series. Laravel 13's floor.</td>
 </tr>
 <tr>
-<td>2</td>
-<td>5.7</td>
-<td>8.0</td>
-<td>The next series. 8.0 left extended support on 2026-04-30, so it is a stepping stone, never a place to stay.</td>
+<td data-label="Hop">2</td>
+<td data-label="From">5.7</td>
+<td data-label="To">8.0</td>
+<td data-label="Why this stop">The next series. 8.0 left extended support on 2026-04-30, so it is a stepping stone, never a place to stay.</td>
 </tr>
 <tr>
-<td>3</td>
-<td>8.0</td>
-<td>8.4 LTS</td>
-<td>The target. Premier support to 2029, extended support to 2032 (<a rel="noopener" href="https://endoflife.date/mysql">endoflife.date</a>).</td>
+<td data-label="Hop">3</td>
+<td data-label="From">8.0</td>
+<td data-label="To">8.4 LTS</td>
+<td data-label="Why this stop">The target. Premier support to 2029, extended support to 2032 (<a rel="noopener" href="https://endoflife.date/mysql">endoflife.date</a>).</td>
 </tr>
 </tbody>
 </table></div>
@@ -101,24 +101,24 @@
 </thead>
 <tbody>
 <tr>
-<td><code>old_temporal_columns</code></td>
-<td><code>TIME</code>, <code>DATETIME</code> and <code>TIMESTAMP</code> columns still in the pre-5.6.4 storage format. They stop an in-place upgrade to 8.0; <code>REPAIR TABLE</code> rebuilds them.</td>
-<td>Hops 1 and 2</td>
+<td data-label="Check"><code>old_temporal_columns</code></td>
+<td data-label="What it lists"><code>TIME</code>, <code>DATETIME</code> and <code>TIMESTAMP</code> columns still in the pre-5.6.4 storage format. They stop an in-place upgrade to 8.0; <code>REPAIR TABLE</code> rebuilds them.</td>
+<td data-label="Matters for">Hops 1 and 2</td>
 </tr>
 <tr>
-<td><code>long_names_over_64</code></td>
-<td>Foreign key names and view column names that show 64 characters or more. 8.0 refuses names over 64. <code>information_schema</code> may cut a longer name to 64, so anything at 64 is listed too: confirm it with <code>SHOW CREATE TABLE</code> or <code>SHOW CREATE VIEW</code>.</td>
-<td>Hop 2</td>
+<td data-label="Check"><code>long_names_over_64</code></td>
+<td data-label="What it lists">Foreign key names and view column names that show 64 characters or more. 8.0 refuses names over 64. <code>information_<wbr>schema</code> may cut a longer name to 64, so anything at 64 is listed too: confirm it with <code>SHOW CREATE TABLE</code> or <code>SHOW CREATE VIEW</code>.</td>
+<td data-label="Matters for">Hop 2</td>
 </tr>
 <tr>
-<td><code>charset_not_utf8mb4</code></td>
-<td>Tables whose collation is not <code>utf8mb4_unicode_ci</code>, Laravel's default. Not a blocker by itself, a decision to make on purpose (see hop 2).</td>
-<td>Hop 2</td>
+<td data-label="Check"><code>charset_not_utf8mb4</code></td>
+<td data-label="What it lists">Tables whose collation is not <code>utf8mb4_<wbr>unicode_<wbr>ci</code>, Laravel's default. Not a blocker by itself, a decision to make on purpose (see hop 2).</td>
+<td data-label="Matters for">Hop 2</td>
 </tr>
 <tr>
-<td><code>rejected_by_8_4</code></td>
-<td>Foreign keys whose referenced columns are not exactly one whole <code>PRIMARY</code> or <code>UNIQUE</code> key (a plain index, part of a composite key, a prefix index), and <code>AUTO_INCREMENT</code> on <code>FLOAT</code> or <code>DOUBLE</code>.</td>
-<td>Hop 3</td>
+<td data-label="Check"><code>rejected_by_8_4</code></td>
+<td data-label="What it lists">Foreign keys whose referenced columns are not exactly one whole <code>PRIMARY</code> or <code>UNIQUE</code> key (a plain index, part of a composite key, a prefix index), and <code>AUTO_INCREMENT</code> on <code>FLOAT</code> or <code>DOUBLE</code>.</td>
+<td data-label="Matters for">Hop 3</td>
 </tr>
 </tbody>
 </table></div>

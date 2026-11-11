@@ -169,6 +169,55 @@ final class DocsSiteTest extends SquireTestCase
         );
     }
 
+    public function testBodyCellsCarryTheirColumnHeaderForThePhoneLayout(): void
+    {
+        $dir = $this->repo();
+        file_put_contents(
+            $dir . '/docs/guides/start.md',
+            (string) file_get_contents($dir . '/docs/guides/start.md')
+                . "\n| Variable | `Default` | Meaning &amp; \"why\" |\n|---|---|---|\n| `A` | 1 | First. |\n| `B` |  | Second. |\n",
+        );
+        $result = $this->invoke(['--root=' . $dir]);
+        self::assertSame(0, $result['code'], $result['stderr']);
+        $page = $this->page($dir, 'guides/start');
+
+        self::assertStringContainsString('<td data-label="Variable"><code>A</code></td>', $page);
+        self::assertStringContainsString('<td data-label="Default">1</td>', $page, 'markup in a header is dropped from the label');
+        self::assertStringContainsString('<td data-label="Meaning &amp; &quot;why&quot;">First.</td>', $page, 'the label is escaped once for the attribute');
+        self::assertStringContainsString('<td data-label="Default"></td>', $page, 'an empty cell still knows its column');
+        self::assertStringNotContainsString('<th data-label', $page, 'header cells are never labeled');
+
+        $css = (string) file_get_contents($dir . '/site/assets/docs.css');
+        self::assertStringContainsString('.docs-table:has(thead th:nth-child(3))', $css, 'the kit stacks tables of three or more columns on a phone');
+        self::assertStringContainsString('content: attr(data-label);', $css);
+    }
+
+    public function testALongPathInATableCellMayWrapAtItsSlashes(): void
+    {
+        $dir = $this->repo();
+        file_put_contents(
+            $dir . '/docs/guides/start.md',
+            (string) file_get_contents($dir . '/docs/guides/start.md')
+                . "\n| Variable | Default | Meaning |\n|---|---|---|\n| `SQUIRE_PROCTOR_RECORD_DIR` | `vendor/acme/policy/policy.json` | Short `a/b`, long `SQUIRE_PROCTOR_RECORD_DIR`. |\n"
+                . '| `X` | `sha256:0123456789abcdef0123456789abcdef` | `["php","health.php"]` `image-name:8.4-0.10.5` |' . "\n",
+        );
+        $result = $this->invoke(['--root=' . $dir]);
+        self::assertSame(0, $result['code'], $result['stderr']);
+        $page = $this->page($dir, 'guides/start');
+
+        self::assertStringContainsString('<td data-label="Variable"><code>SQUIRE_PROCTOR_RECORD_DIR</code></td>', $page, 'the row name stays whole');
+        self::assertStringContainsString('<code>vendor/<wbr>acme/<wbr>policy/<wbr>policy.<wbr>json</code>', $page);
+        self::assertStringContainsString('<code>SQUIRE_<wbr>PROCTOR_<wbr>RECORD_<wbr>DIR</code>', $page);
+        self::assertStringContainsString('<code>a/b</code>', $page, 'a short token is left alone');
+        self::assertStringContainsString('<code>sha256:<wbr>0123456789abcdef<wbr>0123456789abcdef</code>', $page, 'a digest breaks every 16 characters');
+        self::assertStringContainsString('<code>[&quot;php&quot;,<wbr>&quot;health.<wbr>php&quot;]</code>', $page, 'an entity is never split');
+        self::assertStringContainsString('<code>image-name:<wbr>8.4-0.10.5</code>', $page, 'a version number is never split at its dots');
+
+        $css = (string) file_get_contents($dir . '/site/assets/docs.css');
+        self::assertStringContainsString(".docs-table td code {\n  overflow-wrap: break-word;", $css);
+        self::assertStringContainsString('@container docs-table (max-width: 560px)', $css, 'the cards follow the table\'s width, not the screen\'s');
+    }
+
     public function testPrivateDocsAreSkipped(): void
     {
         $dir = $this->repo();
