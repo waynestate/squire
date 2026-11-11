@@ -127,7 +127,7 @@ Ask me before you guess.</code></pre>
       <div class="section__head">
         <p class="label">vendor/bin/squire init</p>
         <h2 id="kit-title">The packing list for deploy day</h2>
-        <p><code>squire init</code> writes the files Citadel needs from templates, for raw PHP, Laravel or a static site, and adds a Vue layer when <code>package.json</code> has Vue. It records a SHA-256 of each file in <code>.squire.json</code>. A file you edited is never written over unless you pass <code>--force</code>.</p>
+        <p><code>squire init</code> writes the files Citadel needs from templates, for raw PHP, Laravel or a static site, and adds a Vue layer when <code>package.json</code> has Vue. It records a SHA-256 of each file in <code>.squire.json</code>. A file you edited is never written over unless you pass <code class="flag">--force</code>.</p>
       </div>
 
       <div class="packer" data-packer>
@@ -248,7 +248,7 @@ Ask me before you guess.</code></pre>
         </div>
       </div>
 
-      <p class="kit-note">Every shell script runs with <code>set -euo pipefail</code>, prints a <code>[squire] ==&gt; step N</code> marker, and gives the same result when you run it twice. Pack half the bag with <code>--only=release</code> or <code>--only=parity</code>.</p>
+      <p class="kit-note">Every shell script runs with <code>set -euo pipefail</code>, prints a <code>[squire] ==&gt; step N</code> marker, and gives the same result when you run it twice. Pack half the bag with <code class="flag">--only=release</code> or <code class="flag">--only=parity</code>.</p>
     </div>
   </section>
 
@@ -287,7 +287,7 @@ Ask me before you guess.</code></pre>
             <li class="patch patch--warn" style="--i:20"><span class="patch__no">S42</span><span class="patch__txt"><code>.env</code> files stay out of git.</span></li>
             <li class="patch patch--info" style="--i:21"><span class="patch__no">S50</span><span class="patch__txt">Lock file, audit and MySQL 5.6 are PROCTOR's: run <code>proctor check</code>.</span></li>
             <li class="patch patch--fail" style="--i:21"><span class="patch__no">S55</span><span class="patch__txt">The health check never boots the framework.</span></li>
-            <li class="patch patch--warn" style="--i:22"><span class="patch__no">S57</span><span class="patch__txt">npm installs with <code>--ignore-scripts</code>.</span></li>
+            <li class="patch patch--warn" style="--i:22"><span class="patch__no">S57</span><span class="patch__txt">npm installs with <code class="flag">--ignore-scripts</code>.</span></li>
             <li class="patch patch--warn" style="--i:23"><span class="patch__no">S67</span><span class="patch__txt">Images pinned by digest.</span></li>
             <li class="patch patch--warn" style="--i:24"><span class="patch__no">S70</span><span class="patch__txt">Containers drop capabilities.</span></li>
             <li class="patch patch--warn" style="--i:25"><span class="patch__no">S71</span><span class="patch__txt">Citadel's health-check timing.</span></li>
@@ -387,7 +387,7 @@ scripts\parity.ps1 up                  <span class="t-dim"># or: scripts\parity.
           </ul>
           <p><code>pin</code> prints the digests of the images you pulled, so you can pin them. <code>reset</code> also removes the volumes.</p>
           <p>Containers drop capabilities, set <code>no-new-privileges</code> and carry memory and process limits; the database listens on loopback only. The compose file refuses to start without real passwords.</p>
-          <p class="parity__fallback">No access to the real image? <code>--fallback</code> builds an approximation from the official PHP image plus Citadel's extensions. It's fine for a practice bout. It doesn't prove parity.</p>
+          <p class="parity__fallback">No access to the real image? <code class="flag">--fallback</code> builds an approximation from the official PHP image plus Citadel's extensions. It's fine for a practice bout. It doesn't prove parity.</p>
         </div>
       </div>
     </div>

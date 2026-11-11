@@ -12,6 +12,7 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+- Site: on a phone the packing list's PACKED stamp no longer covers a long file name (`deployments/001-first-release.sh`, `scripts/release.sh`), the toast after packing spans the screen instead of folding into a narrow ribbon over the page, and an option such as `--force` in running text no longer splits at its hyphens at 320 px.
 - CI pins Preflight 0.8.0.
 - Fixed: The parity kit's HAProxy reads the engine's nameserver (`parse-resolv-conf`) instead of Docker's fixed 127.0.0.11, so Podman no longer drops the app a minute after `up` (503). Same fix as Parity 64bf3e8.
 - Added: `scripts/contract-image.sh --base-image=REF` runs the image contract on an image already on your machine instead of the fallback, above all Citadel's own `citadel/php-apache:8.5r3` (which `parity image get` loads). It never pulls, and stops when the image is missing or built for another platform. The three checks that only the base image decides (the Apache server directives and the entrypoint's `/run/secrets` loading) print `GAP:` lines there instead of failing; on the fallback they still fail. The first run on Citadel's image (2026-11-10) passed every check the kit owns and showed three gaps, recorded on the Proof and Image hardening pages.

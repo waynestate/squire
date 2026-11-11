@@ -887,6 +887,10 @@ code {
   color: var(--sq-ink-muted);
 }
 
+/* An option in running text never splits at its own hyphens: at 320 px
+   "--force" broke into "-" and "-force", which reads like two typos. */
+code.flag { white-space: nowrap; }
+
 /* The PACKED stamp: green ink, a double rule, set a little crooked. */
 .stamp {
   position: absolute;
@@ -1840,6 +1844,9 @@ code {
   left: 50%;
   bottom: 1.25rem;
   z-index: 60;
+  /* left: 50% leaves the tag only half the viewport to shrink into, so on a phone it folded into a tall, narrow
+     ribbon over the page. max-content lets it take its own width, up to the cap. */
+  width: max-content;
   max-width: min(30rem, calc(100vw - 32px));
   padding: 0.8rem 1.1rem 0.8rem 2.1rem;
   font-family: var(--sq-display);
@@ -1955,8 +1962,10 @@ code {
   .rail__tag:nth-child(odd)::before { border-radius: 5px 0 0 5px; }
   .rail__tag:nth-child(even)::before { border-radius: 0 5px 5px 0; }
   .bag__satchel { width: 160px; margin-left: -80px; left: 32%; }
-  .item__tag { padding: 2.4rem 0.9rem 0.95rem 2.4rem; }
-  .stamp { top: 0.9rem; right: 0.8rem; transform: rotate(-6deg); font-size: 0.75rem; }
+  /* The stamp sits above the file name here, with room for its tilt: a long name
+     (deployments/001-first-release.sh) used to run under the ink. */
+  .item__tag { padding: 3.1rem 0.9rem 0.95rem 2.4rem; }
+  .stamp { top: 0.75rem; right: 0.8rem; transform: rotate(-6deg); font-size: 0.75rem; }
   .packlist { padding-left: 50px; }
   .packlist::before { left: 4px; width: 20px; }
   .packlist::after { left: 13px; }
