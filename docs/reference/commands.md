@@ -40,7 +40,7 @@ Usage: `squire init [--path PATH] [--target TARGET] [--only ONLY] [--check] [--f
 | --- | --- | --- |
 | `--path=VALUE` | Path to the application. | `.` |
 | `--target=VALUE` | raw, laravel or static (default: the target recorded in .squire.json, else laravel when an artisan file exists; static must be asked for). |  |
-| `--only=VALUE` | Comma-separated groups to write: release, parity (deprecated: Parity runs Citadel locally now). (default: the groups recorded in .squire.json, else release, parity) |  |
+| `--only=VALUE` | Comma-separated groups to write: release, parity (opt-in: Parity runs Citadel locally now). (default: the groups recorded in .squire.json, else release) |  |
 | `--check` | Write nothing; report files that are missing, outdated or edited. Exit 1 on drift. |  |
 | `--force` | Overwrite files that were edited or that Squire did not write. |  |
 | `--silent` | Do not output any message |  |
