@@ -8,6 +8,7 @@ Versioning once 1.0 is out.
 ## 0.10.9 (2026-11-11)
 
 - Changed: the parity kit's HAProxy pin moves to the current `haproxy:3.0-alpine` digest (`sha256:1c15903c50d5510dcc01de755049e7015a6dd3f35bb2dc4582e888116cb71d8f`) in `docker-compose.squire.yml`, for the common and vue kits and Squire's own deploy layer. Run `squire update` to take it.
+- Changed: new apps start on the Citadel PHP line 8.5r3 and record it as `php` in .squire.json; existing apps without the key stay on 8.4r5, and `squire update` never moves them. `squire init --php <line>` picks one.
 - Added: the `{{PHP_LINE}}` token and a manifest `php` key (D-090, slice A). Templates say `{{PHP_LINE}}` where they named the Citadel PHP image line, `Catalog::content()` fills it (default `8.4r5`), and `.squire.json` can record `php`. Nothing changes for any app yet: every rendered file still says `8.4r5`.
 - Changed: `squire update --only` help calls the `parity` group opt-in, not deprecated.
 - Changed: a fresh `squire init` writes only the `release` group; the `parity` group is opt-in (`--only release,parity`), because Parity runs the app locally now (D-095). An app with a `.squire.json` keeps its recorded groups, and `init` points at `parity init --from-squire` when the group is not in play. The drift check in the ADVISOR module follows the recorded groups too.

@@ -110,7 +110,7 @@
 </table></div>
 <h3 id="squire-init"><span class="docs-heading-tail"><code>squire init</code><a class="docs-heading-link" aria-label="Link to this section" href="#squire-init">#</a></span></h3>
 <p>Write the standard Citadel scripts into an app, or report drift with --check.</p>
-<p>Usage: <code>squire init [--path PATH] [--target TARGET] [--only ONLY] [--check] [--force]</code></p>
+<p>Usage: <code>squire init [--path PATH] [--target TARGET] [--only ONLY] [--php PHP] [--check] [--force]</code></p>
 <div class="docs-table" role="region" aria-label="Table" tabindex="0"><table>
 <thead>
 <tr>
@@ -133,6 +133,11 @@
 <tr>
 <td data-label="Option"><code>--only=VALUE</code></td>
 <td data-label="Meaning">Comma-separated groups to write: release, parity (opt-in: Parity runs Citadel locally now). (default: the groups recorded in .squire.json, else release)</td>
+<td data-label="Default"></td>
+</tr>
+<tr>
+<td data-label="Option"><code>--php=VALUE</code></td>
+<td data-label="Meaning">Citadel PHP image line, such as 8.5r3 (default: the line in .squire.json, else 8.5r3 for a new app)</td>
 <td data-label="Default"></td>
 </tr>
 <tr>

@@ -39,6 +39,11 @@ final class Updater
         }
 
         $selected = $this->catalog->select($target, $groups, $layer);
+
+        // The app's recorded line. A kit without the key predates it: its record was written on the legacy line,
+        // so render there and an update never moves the app. If the record matches the default line's rendering
+        // instead, the app is left on that line: moving it would be the very thing an update must not do.
+        $phpLine = $manifest->php ?? $this->recordedLine($manifest, $selected);
         $byDestination = [];
         foreach ($selected as $template) {
             $byDestination[$template->destination] = $template;
@@ -63,7 +68,7 @@ final class Updater
                 continue;
             }
 
-            $content = $this->catalog->content($template);
+            $content = $this->catalog->content($template, $phpLine);
             $newHash = Manifest::hash($content);
             $path = $appPath . '/' . $destination;
 
@@ -135,7 +140,7 @@ final class Updater
             if (is_file($appPath . '/' . $template->destination)) {
                 continue;
             }
-            $content = $this->catalog->content($template);
+            $content = $this->catalog->content($template, $phpLine);
             if (!$dryRun) {
                 $this->writer->write($appPath . '/' . $template->destination, $content, $template->executable);
                 $written[$template->destination] = Manifest::hash($content);
@@ -172,10 +177,35 @@ final class Updater
         // Save when the files moved, or when the record still names an older release: a kit whose files already
         // match the newer release must not keep the old version.
         if (!$dryRun && ($written !== $manifest->files || $manifest->version !== Squire::version())) {
-            (new Manifest(Squire::version(), $manifest->target, $manifest->groups, $written, $manifest->layer))->save($appPath);
+            (new Manifest(Squire::version(), $manifest->target, $manifest->groups, $written, $manifest->layer, $manifest->php))->save($appPath);
         }
 
         return $results;
+    }
+
+    /**
+     * The line a kit without a php key was written on, read from its recorded hashes: the legacy line unless the
+     * record matches the default line's rendering, in which case the default line.
+     *
+     * @param list<Template> $templates
+     */
+    private function recordedLine(Manifest $manifest, array $templates): string
+    {
+        foreach ([Squire::LEGACY_PHP_LINE, Squire::DEFAULT_PHP_LINE] as $line) {
+            $matches = true;
+            foreach ($templates as $template) {
+                $recorded = $manifest->files[$template->destination] ?? null;
+                if ($recorded !== null && $recorded !== Manifest::hash($this->catalog->content($template, $line))) {
+                    $matches = false;
+                    break;
+                }
+            }
+            if ($matches) {
+                return $line;
+            }
+        }
+
+        return Squire::LEGACY_PHP_LINE;
     }
 
     /**

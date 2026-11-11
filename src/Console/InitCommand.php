@@ -29,6 +29,7 @@ final class InitCommand extends Command
             ->addOption('path', null, InputOption::VALUE_REQUIRED, 'Path to the application.', '.')
             ->addOption('target', null, InputOption::VALUE_REQUIRED, 'raw, laravel or static (default: the target recorded in .squire.json, else laravel when an artisan file exists; static must be asked for).')
             ->addOption('only', null, InputOption::VALUE_REQUIRED, 'Comma-separated groups to write: release, parity (opt-in: Parity runs Citadel locally now). (default: the groups recorded in .squire.json, else release)')
+            ->addOption('php', null, InputOption::VALUE_REQUIRED, 'Citadel PHP image line, such as 8.5r3 (default: the line in .squire.json, else 8.5r3 for a new app)')
             ->addOption('check', null, InputOption::VALUE_NONE, 'Write nothing; report files that are missing, outdated or edited. Exit 1 on drift.')
             ->addOption('force', null, InputOption::VALUE_NONE, 'Overwrite files that were edited or that Squire did not write.');
     }
@@ -46,6 +47,15 @@ final class InitCommand extends Command
         try {
             if (!is_dir($path)) {
                 throw new ToolError(sprintf('Not a directory: %s', $path));
+            }
+            // The PHP line the kit renders on. A bad line is a usage error: nothing is written.
+            $phpOption = $input->getOption('php');
+            $php = null;
+            if (is_string($phpOption) && preg_match('/^\d+\.\d+r\d+$/', $phpOption) !== 1) {
+                throw new ToolError(sprintf('--php needs a PHP line such as 8.5r3, not "%s".', $phpOption));
+            }
+            if (is_string($phpOption)) {
+                $php = $phpOption;
             }
             // An app Squire already initialized keeps its recorded target and groups: detection cannot see a
             // static app, so a plain folder would read as raw and the front controller would slip past --check,
@@ -73,7 +83,7 @@ final class InitCommand extends Command
             }
 
             $layer = Catalog::detectLayer($path);
-            $results = (new Initializer(new Catalog(Squire::templatesDir())))->run($path, $target, $groups, $force, $check, $layer);
+            $results = (new Initializer(new Catalog(Squire::templatesDir())))->run($path, $target, $groups, $force, $check, $layer, $php);
         } catch (ToolError $e) {
             $this->errorOutput($output)->writeln($e->getMessage());
 

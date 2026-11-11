@@ -1122,6 +1122,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 ### 0.10.9 (2026-11-11) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-10-9-2026-11-11)
 
 - Changed: the parity kit's HAProxy pin moves to the current `haproxy:3.0-alpine` digest (`sha256:1c15903c50d5510dcc01de755049e7015a6dd3f35bb2dc4582e888116cb71d8f`) in `docker-compose.squire.yml`, for the common and vue kits and Squire's own deploy layer. Run `squire update` to take it.
+- Changed: new apps start on the Citadel PHP line 8.5r3 and record it as `php` in .squire.json; existing apps without the key stay on 8.4r5, and `squire update` never moves them. `squire init --php <line>` picks one.
 - Added: the `{{PHP_LINE}}` token and a manifest `php` key (D-090, slice A). Templates say `{{PHP_LINE}}` where they named the Citadel PHP image line, `Catalog::content()` fills it (default `8.4r5`), and `.squire.json` can record `php`. Nothing changes for any app yet: every rendered file still says `8.4r5`.
 - Changed: `squire update --only` help calls the `parity` group opt-in, not deprecated.
 - Changed: a fresh `squire init` writes only the `release` group; the `parity` group is opt-in (`--only release,parity`), because Parity runs the app locally now (D-095). An app with a `.squire.json` keeps its recorded groups, and `init` points at `parity init --from-squire` when the group is not in play. The drift check in the ADVISOR module follows the recorded groups too.
@@ -2967,13 +2968,14 @@ Usage: `squire doctor [--path PATH] [--format FORMAT] [--] [<topic>]`
 
 Write the standard Citadel scripts into an app, or report drift with --check.
 
-Usage: `squire init [--path PATH] [--target TARGET] [--only ONLY] [--check] [--force]`
+Usage: `squire init [--path PATH] [--target TARGET] [--only ONLY] [--php PHP] [--check] [--force]`
 
 | Option | Meaning | Default |
 | --- | --- | --- |
 | `--path=VALUE` | Path to the application. | `.` |
 | `--target=VALUE` | raw, laravel or static (default: the target recorded in .squire.json, else laravel when an artisan file exists; static must be asked for). |  |
 | `--only=VALUE` | Comma-separated groups to write: release, parity (opt-in: Parity runs Citadel locally now). (default: the groups recorded in .squire.json, else release) |  |
+| `--php=VALUE` | Citadel PHP image line, such as 8.5r3 (default: the line in .squire.json, else 8.5r3 for a new app) |  |
 | `--check` | Write nothing; report files that are missing, outdated or edited. Exit 1 on drift. |  |
 | `--force` | Overwrite files that were edited or that Squire did not write. |  |
 | `--silent` | Do not output any message |  |

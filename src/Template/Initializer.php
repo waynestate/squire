@@ -23,10 +23,11 @@ final class Initializer
 
     /**
      * @param list<string> $groups
+     * @param string|null  $php the PHP line to render on, when the caller names one
      *
      * @return list<FileResult>
      */
-    public function run(string $appPath, string $target, array $groups, bool $force, bool $check, ?string $layer = null): array
+    public function run(string $appPath, string $target, array $groups, bool $force, bool $check, ?string $layer = null, ?string $php = null): array
     {
         if (!is_dir($appPath)) {
             throw new ToolError(sprintf('Not a directory: %s', $appPath));
@@ -36,11 +37,15 @@ final class Initializer
         $recorded = $manifest->files ?? [];
         $templates = $this->catalog->select($target, $groups, $layer);
 
+        // The line the files are rendered on: the caller's choice wins, then the app's recorded line, then the
+        // legacy line for an app Squire has already written and the default line for a fresh one.
+        $phpLine = $php ?? $manifest->php ?? ($manifest !== null ? Squire::LEGACY_PHP_LINE : Squire::DEFAULT_PHP_LINE);
+
         $results = [];
         $written = $recorded;
 
         foreach ($templates as $template) {
-            $content = $this->catalog->content($template);
+            $content = $this->catalog->content($template, $phpLine);
             $newHash = Manifest::hash($content);
             $path = $appPath . '/' . $template->destination;
             $previous = $recorded[$template->destination] ?? null;
@@ -124,7 +129,10 @@ final class Initializer
         }
 
         if (!$check) {
-            (new Manifest(Squire::version(), $target, $groups, $written, $layer))->save($appPath);
+            // Record the line for a new app, or when the caller named one. An existing app keeps whatever it
+            // recorded, nothing included, for a kit Squire wrote before the php key existed.
+            $recordedPhp = $manifest === null ? $phpLine : ($php ?? $manifest->php);
+            (new Manifest(Squire::version(), $target, $groups, $written, $layer, $recordedPhp))->save($appPath);
         }
 
         return $results;

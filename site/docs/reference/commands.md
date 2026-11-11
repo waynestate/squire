@@ -36,13 +36,14 @@ Usage: `squire doctor [--path PATH] [--format FORMAT] [--] [<topic>]`
 
 Write the standard Citadel scripts into an app, or report drift with --check.
 
-Usage: `squire init [--path PATH] [--target TARGET] [--only ONLY] [--check] [--force]`
+Usage: `squire init [--path PATH] [--target TARGET] [--only ONLY] [--php PHP] [--check] [--force]`
 
 | Option | Meaning | Default |
 | --- | --- | --- |
 | `--path=VALUE` | Path to the application. | `.` |
 | `--target=VALUE` | raw, laravel or static (default: the target recorded in .squire.json, else laravel when an artisan file exists; static must be asked for). |  |
 | `--only=VALUE` | Comma-separated groups to write: release, parity (opt-in: Parity runs Citadel locally now). (default: the groups recorded in .squire.json, else release) |  |
+| `--php=VALUE` | Citadel PHP image line, such as 8.5r3 (default: the line in .squire.json, else 8.5r3 for a new app) |  |
 | `--check` | Write nothing; report files that are missing, outdated or edited. Exit 1 on drift. |  |
 | `--force` | Overwrite files that were edited or that Squire did not write. |  |
 | `--silent` | Do not output any message |  |
