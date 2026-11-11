@@ -30,7 +30,7 @@ final class UpdateCommand extends Command
             ->setDescription('Take new template versions for files Squire wrote that were never edited, add the files a newer release wrote, and show a diff for the edited ones.')
             ->addOption('path', null, InputOption::VALUE_REQUIRED, 'Path to the application.', '.')
             ->addOption('target', null, InputOption::VALUE_REQUIRED, 'raw, laravel or static (default: the target recorded in .squire.json).')
-            ->addOption('only', null, InputOption::VALUE_REQUIRED, 'Comma-separated groups to update: release, parity (deprecated: Parity runs Citadel locally now). (default: the groups recorded in .squire.json)')
+            ->addOption('only', null, InputOption::VALUE_REQUIRED, 'Comma-separated groups to update: release, parity (opt-in: Parity runs Citadel locally now). (default: the groups recorded in .squire.json)')
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Print the plan; write nothing.');
     }
 

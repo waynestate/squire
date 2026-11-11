@@ -4,10 +4,19 @@ declare(strict_types=1);
 
 namespace Waynestate\Squire\Tests;
 
+use Waynestate\Squire\Console\UpdateCommand;
 use Waynestate\Squire\Squire;
 
 final class ConsoleTest extends SquireTestCase
 {
+    public function testUpdateOnlyHelpCallsParityOptIn(): void
+    {
+        $description = (new UpdateCommand())->getDefinition()->getOption('only')->getDescription();
+
+        self::assertStringContainsString('opt-in', $description);
+        self::assertStringNotContainsString('deprecated', $description);
+    }
+
     public function testInitWritesTheScriptsAndExitsZero(): void
     {
         $app = $this->app();
