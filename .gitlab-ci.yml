@@ -130,7 +130,7 @@ js-tests:
 
 oracle-images:
   stage: deploy
-  image: quay.io/buildah/stable:v1.43.5-immutable@sha256:7c2b605262748ace2c5c57c5550942d0adad57aec82ede3070927722306c0ffb
+  image: quay.io/buildah/stable:v1.45.1-immutable@sha256:e5a33092657823b0830186ea525054cf4cdeef29b6a44833444c59d86f561f29
   parallel:
     matrix:
       - FLAVOUR: ["sail", "parity"]
@@ -147,7 +147,7 @@ oracle-images:
 
 oracle-images-amd64:
   stage: deploy
-  image: quay.io/buildah/stable:v1.43.5-immutable@sha256:7c2b605262748ace2c5c57c5550942d0adad57aec82ede3070927722306c0ffb
+  image: quay.io/buildah/stable:v1.45.1-immutable@sha256:e5a33092657823b0830186ea525054cf4cdeef29b6a44833444c59d86f561f29
   parallel:
     matrix:
       - FLAVOUR: ["sail", "parity"]
@@ -169,7 +169,7 @@ oracle-images-amd64:
 oracle-images-manifest:
   extends: .oracle-platforms
   stage: deploy
-  image: quay.io/buildah/stable:v1.43.5-immutable@sha256:7c2b605262748ace2c5c57c5550942d0adad57aec82ede3070927722306c0ffb
+  image: quay.io/buildah/stable:v1.45.1-immutable@sha256:e5a33092657823b0830186ea525054cf4cdeef29b6a44833444c59d86f561f29
   parallel:
     matrix:
       - FLAVOUR: ["sail", "parity"]
@@ -193,7 +193,7 @@ oracle-images-manifest:
 # never log in or push, so they need no registry variables.
 oracle-images-dry-run:
   stage: deploy
-  image: quay.io/buildah/stable:v1.43.5-immutable@sha256:7c2b605262748ace2c5c57c5550942d0adad57aec82ede3070927722306c0ffb
+  image: quay.io/buildah/stable:v1.45.1-immutable@sha256:e5a33092657823b0830186ea525054cf4cdeef29b6a44833444c59d86f561f29
   parallel:
     matrix:
       - FLAVOUR: ["sail", "parity"]
@@ -209,7 +209,7 @@ oracle-images-dry-run:
 
 oracle-images-dry-run-amd64:
   stage: deploy
-  image: quay.io/buildah/stable:v1.43.5-immutable@sha256:7c2b605262748ace2c5c57c5550942d0adad57aec82ede3070927722306c0ffb
+  image: quay.io/buildah/stable:v1.45.1-immutable@sha256:e5a33092657823b0830186ea525054cf4cdeef29b6a44833444c59d86f561f29
   parallel:
     matrix:
       - FLAVOUR: ["sail", "parity"]
