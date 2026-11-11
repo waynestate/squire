@@ -26,7 +26,7 @@
         ".squire/vhost.conf": "0197be7c59f4caf10ade0ae223f5ddc75b9b0c962fec76d8e9dabd27408f35ff",
         "build.sh": "9a96113fe031eb15c4d3006e04df098646e07d7293a7decd6c4aac470295db1d",
         "deployments/001-first-release.sh": "adb3a9eb9a7d5b6cfa3f50043169b97253bab90c40ff37adba44201326557803",
-        "docker-compose.squire.yml": "1c24acb88eebf8c6bc72a685d18e3ec7b25eeaf526a418ee4b78f6ff8ad0c039",
+        "docker-compose.squire.yml": "b678069a0bde61b982e2acd6ff0737937df22859b442930c21f7ba8303844e07",
         "health.php": "8d3b203f53bd436ccbe7177471547866b8800471043c979ea2f0251aaae0b3b4",
         "oracle-check.php": "7a0553430bb0c5868e7c754da5fab4c0f907a3f55a0766e9fb8a9fe1a45153e4",
         "public/up.php": "84d1b3d8823fcd5519fbe92988f822ce68cdc05eff2c889814deb3f33982600a",
