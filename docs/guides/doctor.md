@@ -39,7 +39,7 @@ This page explains what `squire doctor` checks (the S-rules), how it hands off t
 | S42 | warn | `.env` and `.env.squire` are git-ignored. | Secrets stay out of git. |
 | S50 | info | Hand-off: points at `proctor check` for the lock file, composer audit and MySQL 5.6 checks, and names `proctor gate`, which the release asks for a go or no-go. | Each check has one owner; PROCTOR owns those, and `doctor` may run where PROCTOR is not installed. |
 | S55 | fail / warn | A health check that does not run `artisan` or boot the framework exists. | Citadel runs it every 5 minutes as root. |
-| S57 | warn | JavaScript packages install with `--ignore-scripts`; `.npmrc` sets `min-release-age`. | A compromised package cannot run at install time, and a version published an hour ago is not installed. |
+| S57 | warn | JavaScript packages install with `--ignore-scripts`; `.npmrc` sets `min-release-age`; `package.json` declares npm 11.10 or later. | A compromised package cannot run at install time, a version published an hour ago is not installed, and npm reads min-release-age only from version 11.10. |
 | S67 | warn | Every image in the compose file is pinned by digest. | The same bytes tomorrow as today. |
 | S70 | warn | Local containers drop capabilities and set `no-new-privileges`. | Least privilege, also locally. |
 | S71 | warn | The local health check uses Citadel's timing (5 minutes, 15 seconds). | A slow `/up` shows up before it ships. |

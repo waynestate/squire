@@ -147,6 +147,79 @@ final class DoctorTest extends SquireTestCase
         self::assertNotContains('S12:warn', $keys);
     }
 
+    public function testMinReleaseAgeWithoutAnNpmFloorWarnsS57OnPackageJson(): void
+    {
+        $app = $this->app([
+            'build.sh' => "#!/bin/sh\nset -eu\n",
+            'scripts/release.sh' => "#!/usr/bin/env bash\nset -euo pipefail\ncomposer install --no-dev --no-interaction\n",
+            '.npmrc' => "min-release-age=1440\n",
+            'package.json' => "{}\n",
+        ]);
+        $expected = '.npmrc sets min-release-age but package.json does not require npm 11.10 or later, and older npm (Node 22 ships npm 10) ignores it silently. Declare "engines": {"npm": ">=11.10"} and make the build image provide it.';
+        $matches = array_values(array_filter($this->examine($app), static fn(Finding $f): bool => $f->rule === 'S57' && $f->message === $expected));
+
+        self::assertCount(1, $matches);
+        self::assertSame(Finding::WARN, $matches[0]->status);
+    }
+
+    public function testMinReleaseAgeWithEnginesNpm1110PassesS57(): void
+    {
+        $app = $this->app([
+            'build.sh' => "#!/bin/sh\nset -eu\n",
+            'scripts/release.sh' => "#!/usr/bin/env bash\nset -euo pipefail\ncomposer install --no-dev --no-interaction\n",
+            '.npmrc' => "min-release-age=1440\n",
+            'package.json' => "{\n  \"engines\": {\n    \"npm\": \">=11.10\"\n  }\n}\n",
+        ]);
+        $expected = 'package.json declares npm 11.10 or later, so npm reads min-release-age.';
+        $matches = array_values(array_filter($this->examine($app), static fn(Finding $f): bool => $f->rule === 'S57' && $f->message === $expected));
+
+        self::assertCount(1, $matches);
+        self::assertSame(Finding::PASS, $matches[0]->status);
+    }
+
+    public function testPackageManagerNpm11120CountsAsAFloor(): void
+    {
+        $app = $this->app([
+            'build.sh' => "#!/bin/sh\nset -eu\n",
+            'scripts/release.sh' => "#!/usr/bin/env bash\nset -euo pipefail\ncomposer install --no-dev --no-interaction\n",
+            '.npmrc' => "min-release-age=1440\n",
+            'package.json' => "{\n  \"packageManager\": \"npm@11.12.0+sha512-0000000000000000000000000000000000000000000000000000000000000000\"\n}\n",
+        ]);
+        $expected = 'package.json declares npm 11.10 or later, so npm reads min-release-age.';
+        $matches = array_values(array_filter($this->examine($app), static fn(Finding $f): bool => $f->rule === 'S57' && $f->message === $expected));
+
+        self::assertCount(1, $matches);
+        self::assertSame(Finding::PASS, $matches[0]->status);
+    }
+
+    public function testEnginesNpm10WarnsS57(): void
+    {
+        $app = $this->app([
+            'build.sh' => "#!/bin/sh\nset -eu\n",
+            'scripts/release.sh' => "#!/usr/bin/env bash\nset -euo pipefail\ncomposer install --no-dev --no-interaction\n",
+            '.npmrc' => "min-release-age=1440\n",
+            'package.json' => "{\n  \"engines\": {\n    \"npm\": \">=10\"\n  }\n}\n",
+        ]);
+        $expected = '.npmrc sets min-release-age but package.json does not require npm 11.10 or later, and older npm (Node 22 ships npm 10) ignores it silently. Declare "engines": {"npm": ">=11.10"} and make the build image provide it.';
+        $matches = array_values(array_filter($this->examine($app), static fn(Finding $f): bool => $f->rule === 'S57' && $f->message === $expected));
+
+        self::assertCount(1, $matches);
+        self::assertSame(Finding::WARN, $matches[0]->status);
+    }
+
+    public function testNoPackageJsonAddsNoNpmFloorFinding(): void
+    {
+        $app = $this->app([
+            'build.sh' => "#!/bin/sh\nset -eu\n",
+            'scripts/release.sh' => "#!/usr/bin/env bash\nset -euo pipefail\ncomposer install --no-dev --no-interaction\nnpm ci --ignore-scripts\n",
+            '.npmrc' => "min-release-age=1440\n",
+            'package-lock.json' => "{}\n",
+        ]);
+        $npmFloor = array_filter($this->examine($app), static fn(Finding $f): bool => $f->rule === 'S57' && str_contains($f->message, 'npm 11.10'));
+
+        self::assertSame([], array_values($npmFloor));
+    }
+
     public function testCommentsDoNotSatisfyARule(): void
     {
         $app = $this->app([

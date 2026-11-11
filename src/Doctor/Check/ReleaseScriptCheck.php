@@ -60,6 +60,16 @@ final class ReleaseScriptCheck implements Check
             $findings[] = str_contains($npmrc, 'min-release-age')
                 ? Finding::pass('S57', '.npmrc sets min-release-age.', '.npmrc')
                 : Finding::warn('S57', 'Set min-release-age (days) in .npmrc so a version published an hour ago is not installed.', '.npmrc');
+
+            // npm reads min-release-age only from version 11.10, and a Node 22 image ships npm 10, which ignores
+            // the setting without a peep. The floor package.json declares is the only proof the guard is live.
+            if (str_contains($npmrc, 'min-release-age') && $project->has('package.json')) {
+                $floor = $this->npmFloor($project);
+                $inEffect = $floor !== null && ($floor[0] > 11 || ($floor[0] === 11 && $floor[1] >= 10));
+                $findings[] = $inEffect
+                    ? Finding::pass('S57', 'package.json declares npm 11.10 or later, so npm reads min-release-age.', 'package.json')
+                    : Finding::warn('S57', '.npmrc sets min-release-age but package.json does not require npm 11.10 or later, and older npm (Node 22 ships npm 10) ignores it silently. Declare "engines": {"npm": ">=11.10"} and make the build image provide it.', 'package.json');
+            }
         }
 
         // S14: composer audit is owned by PROCTOR, so the release runs `proctor gate` or `proctor check`
@@ -105,5 +115,61 @@ final class ReleaseScriptCheck implements Check
             : Finding::warn('S22', 'Print one marker line per step so the dashboard log viewer shows where a release stopped.', $release);
 
         return $findings;
+    }
+
+    /**
+     * The lowest npm version package.json declares, as [major, minor], or null when it declares none. A Node 22
+     * image ships npm 10, which skips min-release-age, so the declaration is all the doctor has to go on.
+     *
+     * @return array{0: int, 1: int}|null
+     */
+    private function npmFloor(Project $project): ?array
+    {
+        $raw = $project->read('package.json');
+        if ($raw === null) {
+            return null;
+        }
+
+        $json = json_decode($raw, true);
+        if (!is_array($json)) {
+            return null;
+        }
+
+        $engines = $json['engines'] ?? null;
+        if (is_array($engines) && isset($engines['npm']) && is_string($engines['npm'])) {
+            $floor = self::floorOfRange($engines['npm']);
+            if ($floor !== null) {
+                return $floor;
+            }
+        }
+
+        $packageManager = $json['packageManager'] ?? null;
+        if (is_string($packageManager)
+            && preg_match('/^npm@(\d+)\.(\d+)(?:\.\d+)?(?:\+[0-9A-Za-z._-]+)?$/', $packageManager, $m) === 1) {
+            return [(int) $m[1], (int) $m[2]];
+        }
+
+        return null;
+    }
+
+    /**
+     * The lowest version a range allows, as [major, minor]. It understands >=11.10, >=11.10.0, ^11.10.0, ~11.10.0,
+     * 11.10.0, 11.x (floor 11.0) and >=11 (floor 11.0); anything else declares no floor.
+     *
+     * @return array{0: int, 1: int}|null
+     */
+    private static function floorOfRange(string $range): ?array
+    {
+        $range = trim($range);
+
+        if (preg_match('/^(?:>=|[~^])?(\d+)(?:\.(\d+))?(?:\.\d+)?$/', $range, $m) === 1) {
+            return [(int) $m[1], (int) ($m[2] ?? 0)];
+        }
+
+        if (preg_match('/^(\d+)\.x$/', $range, $m) === 1) {
+            return [(int) $m[1], 0];
+        }
+
+        return null;
     }
 }
