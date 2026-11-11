@@ -26,10 +26,15 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
    missing-base message under PowerShell 7 as well (CI's parity-powershell job covers 7 end to end). The run caught a 5.1 bug (redirected stderr from a native command is a terminating error under
    `'Stop'`), fixed with `Invoke-NativeQuiet`. The lint (PSScriptAnalyzer) still runs on 7.4 only, and no CI job runs
    5.1; the template test pins the fix. macOS PowerShell is not run.
-6. **PROCTOR is a dev dependency.** `composer install --no-dev` removes it, so the release step needs
-   `SQUIRE_PROCTOR_BIN`. Default: the step skips with a stated reason when it is missing; the policy falls back to the
-   copy CREED ships, and to PROCTOR's own default with a notice when CREED is not installed.
-   Changes when PROCTOR ships a phar.
+6. **PROCTOR is a dev dependency.** `composer install --no-dev` removes it, so on Citadel the gate used to report
+   itself missing on every release. **Answered (Unreleased):** when no PROCTOR is found, the release installs the
+   version the app's `composer.lock` pins as a dev package into its download cache (`composer create-project`,
+   `.cache/squire/proctor/<version>`) and runs that, so the gate grades the release with the PROCTOR CI used. Each
+   version is fetched once; `SQUIRE_PROCTOR_FETCH=0` turns it off, and a failed fetch is a warning (a stop under
+   `SQUIRE_PROCTOR=enforce`). Still open: whether a Citadel host can always reach Packagist and GitHub at release time
+   (the Composer install of the app needs the same, so the answer is likely yes). PROCTOR's tagged phar (attached to
+   each GitLab Release since 0.6.0) also works through `SQUIRE_PROCTOR_BIN`, marked executable. The policy falls back to the copy CREED
+   ships, and to PROCTOR's own default with a notice when CREED is not installed.
 7. **Local proxy version.** Locally HA-Proxy 3.0; Citadel's template targets 1.5. Both add `X-Forwarded-For` and
    `X-Forwarded-Proto`; other 1.5 behaviors (connection reuse, header casing) may differ.
 8. **`cap_drop: [ALL]` on the real image.** Verified on the fallback image only (the app starts and answers `/up.php`).
@@ -116,7 +121,7 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
   image locally from `build-images/*.dockerfile`; there is no registry digest to copy. `doctor` warns (S67) until one is
   set. After building: `scripts/parity.sh pin`.
 - **PROCTOR policy file.** `SQUIRE_PROCTOR_POLICY` defaults to the policy in `vendor/waynestate/creed`, when CREED is installed. Without CREED, PROCTOR runs on its own default policy with a notice.
-- **PROCTOR phar.** PROCTOR 0.7.0 and later ship `proctor gate`, and the release script uses it when the installed PROCTOR has it. The phar is built from source but not yet published.
+- **PROCTOR on Citadel.** The release installs the PROCTOR version `composer.lock` pins (dev) when `--no-dev` left it out (question 6). PROCTOR's phar ships with each of its GitLab Releases and works as `SQUIRE_PROCTOR_BIN` too.
 - **Database passwords.** `.env.squire.example` holds `change-me-local-only` placeholders. The compose file refuses to start
   without real values.
 - **The platform's actual PHP settings.** `.squire/php.ini` holds safe defaults, not the platform's file. See question 9.

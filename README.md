@@ -725,7 +725,8 @@ Release script (`scripts/release.sh`):
 | `SQUIRE_ARTISAN_OPTIMIZE` | `1` | Laravel: `optimize`. |
 | `SQUIRE_ARTISAN_RESTART` | `1` | Laravel: tell queue workers and `schedule:work` to restart on the new code (`reload`, or `queue:restart` and `schedule:interrupt`). Report only. |
 | `SQUIRE_PROCTOR` | `auto` | `auto`, `skip` or `enforce`. The release asks `proctor gate` for a go or no-go (`proctor check` on a PROCTOR without the gate). By default a no-go is a report and never stops the release; `enforce` makes a no-go stop it, before the frontend build and the migrations. |
-| `SQUIRE_PROCTOR_BIN` | `vendor/bin/proctor`, then `PATH` | Where PROCTOR is. It is a dev dependency, so `--no-dev` removes it: point this at a copy. |
+| `SQUIRE_PROCTOR_BIN` | `vendor/bin/proctor`, then `PATH`, then the fetch below | Where PROCTOR is. It is a dev dependency, so `--no-dev` removes it; set this to use a copy of your own (PROCTOR's tagged phar works, marked executable). |
+| `SQUIRE_PROCTOR_FETCH` | `1` | When no PROCTOR is found, install the version `composer.lock` pins as a dev package into `.cache/squire/proctor/<version>` (`composer create-project --no-dev`, once per version) and run that. `0` turns it off. A failed fetch is a warning, or a stop under `enforce`. Needs `SQUIRE_CACHE_DIR` on. |
 | `SQUIRE_PROCTOR_POLICY` | `vendor/waynestate/creed/policy/policy.json`, when installed | Path to the policy file. When unset, the script falls back to the policy the CREED package ships (the deploy wizard has no environment field); when CREED is not installed, PROCTOR runs on its own default policy with a notice. An explicit value always wins. |
 | `SQUIRE_PROCTOR_RECORD_DIR` | `storage/squire` | Where the gate keeps its verdicts, relative to the app root: `proctor-gate.json` (the last verdict) and `proctor-gate-baseline.json` (the verdict of the last release that went on, the next run's baseline). The folder gets a `.gitignore` of `*`, so it never reaches git. |
 | `SQUIRE_PHP_RUNTIME` | `auto` | The PHP version the gate grades for PROCTOR's unpatched check, passed as `--php-runtime`: `auto` reads the php that runs `release.sh` (it is the one serving the app; a suffix such as `-dev` is cut), `skip` grades no runtime, and an `X.Y.Z` value is graded as given. A value that is not `X.Y.Z` is a note and grades nothing. Only `proctor gate` gets it; the older `proctor check` fallback does not. |
@@ -788,11 +789,12 @@ the WCAG 1.4.10 reflow check. It stays out of `composer ci` because CI has no br
 
 See [OPEN_QUESTIONS.md](OPEN_QUESTIONS.md). The big ones: the local `php.ini` holds safe defaults rather than the
 platform's file, the Citadel image has no digest to pin, and a full Update may not refresh `vendor/`. The release asks
-PROCTOR's `proctor gate` for a go or no-go once the installed PROCTOR has it; what is still missing on PROCTOR's side is a published phar.
+PROCTOR's `proctor gate` for a go or no-go, and installs the PROCTOR version the lock pins when `--no-dev` left it out.
 
 - The release script and the image hardening are contract-tested inside the built fallback image on GitHub (both
-  platforms) and on a maintainer's machine, not yet on the real image or on GitLab (OPEN_QUESTIONS 19, "Contract
-  suite on the real image and on GitLab").
+  platforms), and by hand on Citadel's own `citadel/php-apache:8.5r3` (`scripts/contract-image.sh --base-image`,
+  2026-11-10), not yet in CI on the real image or on GitLab (OPEN_QUESTIONS 19, "Contract suite on the real image
+  and on GitLab").
 
 ## License
 

@@ -26,11 +26,30 @@ final class ReleaseScriptTest extends SquireTestCase
         $this->log = $this->stubs . '/calls.log';
         file_put_contents($this->log, '');
 
+        // create-project installs a fetched PROCTOR: unless STUB_CREATE_PROJECT_EXIT is non-zero (then it fails and
+        // creates nothing), it writes <dir>/bin/proctor, which logs itself as fetched-proctor and behaves like the
+        // main proctor stub for gate --help, gate --record and its exit code.
         $this->stub('composer', <<<'SH'
             #!/bin/sh
             echo "composer $*" >> "$STUB_LOG"
             echo "COMPOSER_CACHE_DIR=${COMPOSER_CACHE_DIR:-}" >> "$STUB_LOG"
             if [ "$1" = "audit" ]; then exit "${STUB_AUDIT_EXIT:-0}"; fi
+            if [ "$1" = "create-project" ]; then
+            if [ -n "${STUB_CREATE_PROJECT_EXIT:-}" ] && [ "${STUB_CREATE_PROJECT_EXIT}" != "0" ]; then exit "$STUB_CREATE_PROJECT_EXIT"; fi
+            mkdir -p "$3/bin"
+            cat > "$3/bin/proctor" <<'FPROCTOR'
+            #!/bin/sh
+            echo "fetched-proctor $*" >> "$STUB_LOG"
+            if [ "$1" = "--version" ]; then echo "proctor 0.6.0"; exit 0; fi
+            if [ "$1" = "gate" ] && [ "$2" = "--help" ]; then exit 0; fi
+            prev=""; record=""
+            for a in "$@"; do if [ "$prev" = "--record" ]; then record="$a"; fi; prev="$a"; done
+            if [ -n "$record" ]; then printf '{"tool":"proctor","command":"gate","exit":%s}\n' "${STUB_PROCTOR_EXIT:-0}" > "$record"; fi
+            exit "${STUB_PROCTOR_EXIT:-0}"
+            FPROCTOR
+            chmod +x "$3/bin/proctor"
+            exit 0
+            fi
             if [ "$1" = "--version" ]; then echo "Composer version stub"; fi
             exit 0
             SH);
@@ -549,6 +568,103 @@ final class ReleaseScriptTest extends SquireTestCase
         ]);
         self::assertSame(1, $badBin['exit']);
         self::assertStringContainsString('SQUIRE_PROCTOR_BIN is not an executable file', $badBin['stderr']);
+    }
+
+    // --- fetching the locked PROCTOR into the release cache ----------------------------------------------------------
+
+    /** Takes PROCTOR off PATH and pins waynestate/proctor as a dev package in the app's composer.lock. */
+    private function lockPinsDevProctor(string $app, string $version = '0.15.1'): void
+    {
+        unlink($this->stubs . '/proctor');
+        file_put_contents($app . '/composer.lock', '{"packages":[],"packages-dev":[{"name":"waynestate/proctor","version":"' . $version . '"}]}' . "\n");
+    }
+
+    public function testAMissingProctorIsFetchedAtTheVersionTheLockPins(): void
+    {
+        $app = $this->initializedApp();
+        $this->lockPinsDevProctor($app);
+        $result = $this->exec($app, 'scripts/release.sh');
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        $root = (string) realpath($app);
+        self::assertStringContainsString(
+            'create-project waynestate/proctor ' . $root . '/.cache/squire/proctor/0.15.1 0.15.1 --no-dev --no-scripts --no-plugins --no-interaction --no-progress --prefer-dist',
+            implode("\n", $this->calls()),
+        );
+        self::assertStringContainsString('fetched into the release cache', $result['stdout']);
+        self::assertNotEmpty(array_filter($this->calls(), static fn(string $c): bool => str_starts_with($c, 'fetched-proctor gate')), 'the fetched proctor runs the gate');
+    }
+
+    public function testASecondReleaseUsesTheFetchedProctorWithoutComposer(): void
+    {
+        $app = $this->initializedApp();
+        $this->lockPinsDevProctor($app);
+
+        $first = $this->exec($app, 'scripts/release.sh');
+        self::assertSame(0, $first['exit'], $first['stdout'] . $first['stderr']);
+        self::assertStringContainsString('fetched into the release cache', $first['stdout']);
+
+        $second = $this->exec($app, 'scripts/release.sh');
+        self::assertSame(0, $second['exit'], $second['stdout'] . $second['stderr']);
+        self::assertSame(1, substr_count(implode("\n", $this->calls()), 'create-project'), 'the second release does not call composer create-project');
+        self::assertStringContainsString('from the release cache', $second['stdout']);
+        self::assertNotEmpty(array_filter($this->calls(), static fn(string $c): bool => str_starts_with($c, 'fetched-proctor gate')));
+    }
+
+    public function testAFailedFetchIsAWarningAndLeavesNothingBehind(): void
+    {
+        $app = $this->initializedApp();
+        $this->lockPinsDevProctor($app);
+        $result = $this->exec($app, 'scripts/release.sh', ['STUB_CREATE_PROJECT_EXIT' => '1']);
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertStringContainsString('could not fetch proctor 0.15.1 (composer create-project exit 1); the release goes on without the gate', $result['stderr']);
+        self::assertDirectoryDoesNotExist($app . '/.cache/squire/proctor/0.15.1');
+    }
+
+    public function testAFailedFetchStopsAnEnforcedRelease(): void
+    {
+        $app = $this->initializedApp();
+        $this->lockPinsDevProctor($app);
+        $result = $this->exec($app, 'scripts/release.sh', ['SQUIRE_PROCTOR' => 'enforce', 'STUB_CREATE_PROJECT_EXIT' => '1']);
+
+        self::assertSame(1, $result['exit']);
+        self::assertStringContainsString('could not fetch proctor 0.15.1', $result['stderr']);
+    }
+
+    public function testTheFetchCanBeTurnedOff(): void
+    {
+        $app = $this->initializedApp();
+        $this->lockPinsDevProctor($app);
+        $result = $this->exec($app, 'scripts/release.sh', ['SQUIRE_PROCTOR_FETCH' => '0']);
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertStringNotContainsString('create-project', implode("\n", $this->calls()));
+        self::assertStringContainsString('proctor fetch skipped (SQUIRE_PROCTOR_FETCH=0)', $result['stdout']);
+        self::assertStringContainsString('proctor not found', $result['stdout']);
+    }
+
+    public function testNoFetchWhenTheLockHasNoDevProctor(): void
+    {
+        $app = $this->initializedApp();
+        unlink($this->stubs . '/proctor');
+        file_put_contents($app . '/composer.lock', '{"packages":[],"packages-dev":[]}' . "\n");
+        $result = $this->exec($app, 'scripts/release.sh');
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertStringNotContainsString('create-project', implode("\n", $this->calls()));
+        self::assertStringContainsString('proctor not found', $result['stdout']);
+    }
+
+    public function testNoFetchWhenTheCacheIsOff(): void
+    {
+        $app = $this->initializedApp();
+        $this->lockPinsDevProctor($app);
+        $result = $this->exec($app, 'scripts/release.sh', ['SQUIRE_CACHE_DIR' => 'off']);
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertStringNotContainsString('create-project', implode("\n", $this->calls()));
+        self::assertStringContainsString('nowhere to keep it', $result['stdout']);
     }
 
     public function testLaravelRunsMigrateThenOptimizeAndSmokeTestsUp(): void
@@ -1153,6 +1269,10 @@ APP_ENV=testing
         $badProctor = $this->exec($this->initializedApp(), 'scripts/release.sh', ['SQUIRE_PROCTOR' => 'loud']);
         self::assertSame(1, $badProctor['exit']);
         self::assertStringContainsString('SQUIRE_PROCTOR must be auto, skip or enforce', $badProctor['stderr']);
+
+        $badFetch = $this->exec($this->initializedApp(), 'scripts/release.sh', ['SQUIRE_PROCTOR_FETCH' => 'yes']);
+        self::assertSame(1, $badFetch['exit']);
+        self::assertStringContainsString('SQUIRE_PROCTOR_FETCH must be 0 or 1', $badFetch['stderr']);
     }
 
     public function testBuildShRefusesToRunBesideAppSource(): void

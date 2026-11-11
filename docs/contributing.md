@@ -70,7 +70,7 @@ Every behavior change updates README, docs pages, CHANGELOG (Unreleased), site/l
 
 ## Known limits
 
-See OPEN_QUESTIONS.md in the repository. The big ones: the local `php.ini` holds safe defaults rather than the platform's file, the Citadel image has no digest to pin, and a full Update may not refresh `vendor/`. The release asks PROCTOR's `proctor gate` for a go or no-go once the installed PROCTOR has it; what is still missing on PROCTOR's side is a published phar. The release script is contract-tested inside the fallback image on GitHub, not yet on the real image (OPEN_QUESTIONS 19, "Contract suite on the real image and on GitLab").
+See OPEN_QUESTIONS.md in the repository. The big ones: the local `php.ini` holds safe defaults rather than the platform's file, the Citadel image has no digest to pin, and a full Update may not refresh `vendor/`. The release asks PROCTOR's `proctor gate` for a go or no-go, and installs the PROCTOR version the lock pins when `--no-dev` left it out. The release script is contract-tested inside the fallback image on GitHub and by hand on Citadel's own `citadel/php-apache:8.5r3`, not yet in CI on the real image (OPEN_QUESTIONS 19, "Contract suite on the real image and on GitLab").
 
 ## Who maintains it
 

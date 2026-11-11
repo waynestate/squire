@@ -36,6 +36,7 @@
 #   SQUIRE_ARTISAN_RESTART=1         Laravel: tell queue workers and schedule:work to restart on the new code (reload, or queue:restart and schedule:interrupt)
 #   SQUIRE_PROCTOR=auto              auto | skip | enforce (report only by default; enforce stops the release on a no-go)
 #   SQUIRE_PROCTOR_BIN=              path to proctor (default: vendor/bin/proctor, then `proctor` on PATH)
+#   SQUIRE_PROCTOR_FETCH=1           1 installs the PROCTOR version composer.lock pins (dev) when none is found; 0 does not
 #   SQUIRE_PROCTOR_POLICY=           path to the CREED policy.json (when unset: the one CREED ships, if installed; otherwise PROCTOR's own default)
 #   SQUIRE_PROCTOR_RECORD_DIR=storage/squire  where the gate's verdict (proctor-gate.json) and baseline are kept
 #   SQUIRE_PHP_RUNTIME=auto          auto | skip | X.Y.Z   the PHP version the gate grades (auto: the php that runs this script)
@@ -133,7 +134,7 @@ squire_load_settings() {
         case "$key" in
             SQUIRE_FRAMEWORK | SQUIRE_ALLOW_ROOT | SQUIRE_REQUIRE_ENV | SQUIRE_WRITABLE_DIRS | \
                 SQUIRE_COMPOSER_AUDIT | SQUIRE_NPM | SQUIRE_NPM_IGNORE_SCRIPTS | SQUIRE_NPM_REBUILD | SQUIRE_NPM_BUILD_SCRIPT | SQUIRE_CACHE_DIR | \
-                SQUIRE_MIGRATE | SQUIRE_ARTISAN_OPTIMIZE | SQUIRE_ARTISAN_RESTART | SQUIRE_PROCTOR | SQUIRE_PROCTOR_BIN | \
+                SQUIRE_MIGRATE | SQUIRE_ARTISAN_OPTIMIZE | SQUIRE_ARTISAN_RESTART | SQUIRE_PROCTOR | SQUIRE_PROCTOR_BIN | SQUIRE_PROCTOR_FETCH | \
                 SQUIRE_PROCTOR_POLICY | SQUIRE_PROCTOR_RECORD_DIR | SQUIRE_PHP_RUNTIME | SQUIRE_SMOKE | SQUIRE_SMOKE_URL | SQUIRE_SMOKE_RETRIES | SQUIRE_SMOKE_DELAY | \
                 SQUIRE_SECRETS_DIR) ;;
             *) continue ;;
@@ -174,6 +175,7 @@ squire_load_secrets
 : "${SQUIRE_ARTISAN_RESTART:=1}"
 : "${SQUIRE_PROCTOR:=auto}"
 : "${SQUIRE_PROCTOR_BIN:=}"
+: "${SQUIRE_PROCTOR_FETCH:=1}"
 : "${SQUIRE_PROCTOR_POLICY:=}"
 : "${SQUIRE_PROCTOR_RECORD_DIR:=storage/squire}"
 : "${SQUIRE_PHP_RUNTIME:=auto}"
@@ -356,6 +358,10 @@ case "$proctor_mode" in
     auto | skip | enforce) ;;
     *) fail "SQUIRE_PROCTOR must be auto, skip or enforce; got '$proctor_mode'" ;;
 esac
+case "$SQUIRE_PROCTOR_FETCH" in
+    0 | 1) ;;
+    *) fail "SQUIRE_PROCTOR_FETCH must be 0 or 1; got '$SQUIRE_PROCTOR_FETCH'" ;;
+esac
 if [ "$proctor_mode" = "enforce" ]; then
     step "PROCTOR gate (enforced, a no-go stops the release)"
 else
@@ -374,6 +380,40 @@ else
     fi
     if [ "$proctor_mode" = "enforce" ] && [ -n "$SQUIRE_PROCTOR_BIN" ] && [ ! -x "$SQUIRE_PROCTOR_BIN" ]; then
         fail "SQUIRE_PROCTOR_BIN is not an executable file: $SQUIRE_PROCTOR_BIN"
+    fi
+    if [ -z "$proctor_bin" ]; then
+        # PROCTOR is a dev dependency, so --no-dev leaves it out of vendor/. When composer.lock pins it under
+        # packages-dev, install that exact version into the release's download cache and run it from there.
+        if [ "$SQUIRE_PROCTOR_FETCH" = "0" ]; then
+            note "proctor fetch skipped (SQUIRE_PROCTOR_FETCH=0)"
+        elif [ "$SQUIRE_CACHE_DIR" = "off" ]; then
+            note "proctor fetch skipped (SQUIRE_CACHE_DIR=off, so there is nowhere to keep it)"
+        else
+            # shellcheck disable=SC2016  # the PHP program is single-quoted on purpose
+            proctor_version="$(php -r '$lock = json_decode((string) @file_get_contents($argv[1]), true); foreach (($lock["packages-dev"] ?? []) as $package) { if (($package["name"] ?? "") === "waynestate/proctor") { echo $package["version"] ?? ""; break; } }' -- composer.lock 2>/dev/null || true)"
+            if [[ "$proctor_version" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                proctor_dir="$SQUIRE_CACHE_DIR/proctor/$proctor_version"
+                if [ -x "$proctor_dir/bin/proctor" ]; then
+                    proctor_bin="$proctor_dir/bin/proctor"
+                    note "proctor $proctor_version from the release cache (composer.lock pins it as a dev package)"
+                else
+                    rm -rf "$proctor_dir"
+                    fetch_status=0
+                    composer create-project waynestate/proctor "$proctor_dir" "$proctor_version" --no-dev --no-scripts --no-plugins --no-interaction --no-progress --prefer-dist || fetch_status=$?
+                    if [ "$fetch_status" -eq 0 ] && [ -f "$proctor_dir/bin/proctor" ]; then
+                        proctor_bin="$proctor_dir/bin/proctor"
+                        note "proctor $proctor_version fetched into the release cache (composer.lock pins it as a dev package; --no-dev left it out)"
+                    else
+                        # Leave nothing behind, so the next release retries the fetch.
+                        rm -rf "$proctor_dir"
+                        if [ "$proctor_mode" = "enforce" ]; then
+                            fail "could not fetch proctor $proctor_version (composer create-project exit $fetch_status); set SQUIRE_PROCTOR_BIN or SQUIRE_PROCTOR_FETCH=0"
+                        fi
+                        warn "could not fetch proctor $proctor_version (composer create-project exit $fetch_status); the release goes on without the gate"
+                    fi
+                fi
+            fi
+        fi
     fi
     if [ -z "$proctor_bin" ]; then
         if [ "$proctor_mode" = "enforce" ]; then

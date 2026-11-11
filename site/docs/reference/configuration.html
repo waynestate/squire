@@ -166,8 +166,13 @@
 </tr>
 <tr>
 <td data-label="Variable"><code>SQUIRE_PROCTOR_BIN</code></td>
-<td data-label="Default"><code>vendor/<wbr>bin/<wbr>proctor</code>, then <code>PATH</code></td>
-<td data-label="Meaning">Where PROCTOR is. It is a dev dependency, so <code>--no-dev</code> removes it: point this at a copy.</td>
+<td data-label="Default"><code>vendor/<wbr>bin/<wbr>proctor</code>, then <code>PATH</code>, then the fetch below</td>
+<td data-label="Meaning">Where PROCTOR is. It is a dev dependency, so <code>--no-dev</code> removes it; set this to use a copy of your own (PROCTOR's tagged phar works, marked executable).</td>
+</tr>
+<tr>
+<td data-label="Variable"><code>SQUIRE_PROCTOR_FETCH</code></td>
+<td data-label="Default"><code>1</code></td>
+<td data-label="Meaning">When no PROCTOR is found, install the version <code>composer.lock</code> pins as a dev package into <code>.cache/<wbr>squire/<wbr>proctor/<wbr>&lt;version&gt;</code> (<code>composer create-project --no-dev</code>, once per version) and run that. <code>0</code> turns it off. A failed fetch is a warning, or a stop under <code>enforce</code>. Needs <code>SQUIRE_<wbr>CACHE_<wbr>DIR</code> on.</td>
 </tr>
 <tr>
 <td data-label="Variable"><code>SQUIRE_PROCTOR_POLICY</code></td>

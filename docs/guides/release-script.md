@@ -51,7 +51,7 @@ The release asks PROCTOR's deploy gate, `proctor gate`, for a go or no-go on thi
 - **The runtime.** The gate also grades the PHP that will serve the app for PROCTOR's unpatched check, passed as `--php-runtime` (`SQUIRE_PHP_RUNTIME`, default `auto`). `auto` asks the php that runs `release.sh`, because that is the one serving the app, and cuts any suffix (`8.4.27-dev` is graded as `8.4.27`); the log says `gate: grading PHP 8.4.27`. An `X.Y.Z` value is graded as given, for a host where the release runs under another php than the web server. `skip` grades no runtime. A value that is not `X.Y.Z` (say `8.4`) or a php that does not answer is a note, and the gate runs without the flag. The older `proctor check` fallback never gets it.
 - **An older PROCTOR.** When the installed PROCTOR has no `gate` command, the step prints a warning naming its version, runs `proctor check` as before (a failed check is a report, or a stop under `enforce`), and writes no record. Update `waynestate/proctor` to a release that has the gate.
 
-- The binary is `vendor/bin/proctor`, then `proctor` on PATH, or `SQUIRE_PROCTOR_BIN`. It is a dev dependency, so `--no-dev` removes it: point `SQUIRE_PROCTOR_BIN` at a copy.
+- **Which PROCTOR.** `SQUIRE_PROCTOR_BIN` when set; otherwise `vendor/bin/proctor`, then `proctor` on PATH. PROCTOR is a dev dependency, so on Citadel `--no-dev` has removed it by now, and the release fetches it: it reads the version your `composer.lock` pins under `packages-dev` (a plain release such as `0.15.1`), installs that version with `composer create-project waynestate/proctor ... --no-dev` into `.cache/squire/proctor/<version>` and runs it, so the gate grades the release with the same PROCTOR your CI ran. The log says `fetched into the release cache` the first time and `from the release cache` after that; a new version in the lock is fetched once. A failed fetch leaves nothing behind (the next release tries again) and is a warning, or a stop under `enforce`. `SQUIRE_PROCTOR_FETCH=0` turns it off, and `SQUIRE_CACHE_DIR=off` leaves it nowhere to go. With no dev PROCTOR in the lock there is nothing to fetch, and the step says PROCTOR was not found.
 - The policy is `SQUIRE_PROCTOR_POLICY` when set; otherwise the policy the CREED package ships (`vendor/waynestate/creed/policy/policy.json`, when installed); otherwise PROCTOR runs on its own default policy with a notice. An explicit value always wins.
 
 ## The Oracle check
@@ -65,7 +65,7 @@ Before the first step the script reads two sources: `./.env.squire` (the release
 Configuration is environment variables, all optional, or the same names in `./.env.squire` in the app root. On Citadel add that file as a configuration file (the configuration-files step after the wizard; the wizard has no environment field) and keep it out of git. A variable already in the environment wins over the file. See `.env.squire.example`.
 
 > [!WARNING]
-> PROCTOR is a dev dependency and the release installs with `--no-dev`, so `vendor/bin/proctor` is gone by the time the PROCTOR step runs. Set `SQUIRE_PROCTOR_BIN` to a copy that survives, or the step reports itself missing.
+> PROCTOR is a dev dependency and the release installs with `--no-dev`, so `vendor/bin/proctor` is gone by the time the PROCTOR step runs. The release then installs the version your `composer.lock` pins into its cache and uses that (`SQUIRE_PROCTOR_FETCH`, on by default); keep `waynestate/proctor` in `require-dev` and the lock committed.
 
 ## Next
 

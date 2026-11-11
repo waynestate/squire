@@ -701,7 +701,8 @@ Release script (`scripts/release.sh`):
 | `SQUIRE_ARTISAN_OPTIMIZE` | `1` | Laravel: `optimize`. |
 | `SQUIRE_ARTISAN_RESTART` | `1` | Laravel: tell queue workers and `schedule:work` to restart on the new code (`reload`, or `queue:restart` and `schedule:interrupt`). Report only. |
 | `SQUIRE_PROCTOR` | `auto` | `auto`, `skip` or `enforce`. The release asks `proctor gate` for a go or no-go (`proctor check` on a PROCTOR without the gate). By default a no-go is a report and never stops the release; `enforce` makes a no-go stop it, before the frontend build and the migrations. |
-| `SQUIRE_PROCTOR_BIN` | `vendor/bin/proctor`, then `PATH` | Where PROCTOR is. It is a dev dependency, so `--no-dev` removes it: point this at a copy. |
+| `SQUIRE_PROCTOR_BIN` | `vendor/bin/proctor`, then `PATH`, then the fetch below | Where PROCTOR is. It is a dev dependency, so `--no-dev` removes it; set this to use a copy of your own (PROCTOR's tagged phar works, marked executable). |
+| `SQUIRE_PROCTOR_FETCH` | `1` | When no PROCTOR is found, install the version `composer.lock` pins as a dev package into `.cache/squire/proctor/` (`composer create-project --no-dev`, once per version) and run that. `0` turns it off. A failed fetch is a warning, or a stop under `enforce`. Needs `SQUIRE_CACHE_DIR` on. |
 | `SQUIRE_PROCTOR_POLICY` | `vendor/waynestate/creed/policy/policy.json`, when installed | Path to the policy file. When unset, the script falls back to the policy the CREED package ships (the deploy wizard has no environment field); when CREED is not installed, PROCTOR runs on its own default policy with a notice. An explicit value always wins. |
 | `SQUIRE_PROCTOR_RECORD_DIR` | `storage/squire` | Where the gate keeps its verdicts, relative to the app root: `proctor-gate.json` (the last verdict) and `proctor-gate-baseline.json` (the verdict of the last release that went on, the next run's baseline). The folder gets a `.gitignore` of `*`, so it never reaches git. |
 | `SQUIRE_PHP_RUNTIME` | `auto` | The PHP version the gate grades for PROCTOR's unpatched check, passed as `--php-runtime`: `auto` reads the php that runs `release.sh` (it is the one serving the app; a suffix such as `-dev` is cut), `skip` grades no runtime, and an `X.Y.Z` value is graded as given. A value that is not `X.Y.Z` is a note and grades nothing. Only `proctor gate` gets it; the older `proctor check` fallback does not. |
@@ -764,11 +765,12 @@ the WCAG 1.4.10 reflow check. It stays out of `composer ci` because CI has no br
 
 See [OPEN_QUESTIONS.md](https://github.com/waynestate/squire/blob/HEAD/OPEN_QUESTIONS.md). The big ones: the local `php.ini` holds safe defaults rather than the
 platform's file, the Citadel image has no digest to pin, and a full Update may not refresh `vendor/`. The release asks
-PROCTOR's `proctor gate` for a go or no-go once the installed PROCTOR has it; what is still missing on PROCTOR's side is a published phar.
+PROCTOR's `proctor gate` for a go or no-go, and installs the PROCTOR version the lock pins when `--no-dev` left it out.
 
 - The release script and the image hardening are contract-tested inside the built fallback image on GitHub (both
-  platforms) and on a maintainer's machine, not yet on the real image or on GitLab (OPEN_QUESTIONS 19, "Contract
-  suite on the real image and on GitLab").
+  platforms), and by hand on Citadel's own `citadel/php-apache:8.5r3` (`scripts/contract-image.sh --base-image`,
+  2026-11-10), not yet in CI on the real image or on GitLab (OPEN_QUESTIONS 19, "Contract suite on the real image
+  and on GitLab").
 
 ### License
 
@@ -1118,6 +1120,8 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 ### Unreleased [#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
 - Changed: docs tables fit their column. A table of three or more columns becomes one card per row when the table itself is 560 px wide or less (a phone, or a tablet beside the sidebar; a container query, not a screen width): the first cell names the card and every other value sits under its column's header, so the column that explains everything is no longer off screen behind a sideways scroll. The builder writes each body cell's header text into a `data-label` attribute, and puts a `<wbr>` in long code tokens in cells (after slashes, underscores, commas, colons and a dot before a letter, and every 16 characters of a digest) so a path or digest wraps at a seam instead of pushing the table past the page; the first column of a wider table keeps its names whole. Measured on Squire's 34 docs tables: none overflows from 390 px up (15 did at 800 px, and one ran to 1100 px on a desktop). Tables of two columns keep their grid, the header row stays in the page for screen readers, and every site on the kit takes it with its next docs build. Squire's own theme stitches the cards apart with its dashed rule and lets a long header wrap.
+- Added: the release script fetches PROCTOR when `--no-dev` left it out, so the deploy gate runs on Citadel instead of reporting itself missing on every release. When no PROCTOR is found (`SQUIRE_PROCTOR_BIN`, `vendor/bin/proctor`, then `PATH`), it installs the version the app's `composer.lock` pins under `packages-dev` with `composer create-project waynestate/proctor <dir> <version> --no-dev --no-scripts --no-plugins` into `.cache/squire/proctor/<version>`, once per version, and gates the release with the same PROCTOR CI ran. A failed fetch leaves nothing behind and is a warning (a stop under `SQUIRE_PROCTOR=enforce`); `SQUIRE_PROCTOR_FETCH=0` turns it off, and `SQUIRE_CACHE_DIR=off` skips it. Run `squire update` to take the new `scripts/release.sh` and `.env.squire.example`.
+- Docs: OPEN_QUESTIONS, the README and the contributing page no longer say PROCTOR has no published phar (each of its GitLab Releases carries one since 0.6.0), and say the image contract has run by hand on Citadel's own `citadel/php-apache:8.5r3`.
 - Site: on a phone the packing list's PACKED stamp no longer covers a long file name (`deployments/001-first-release.sh`, `scripts/release.sh`), the toast after packing spans the screen instead of folding into a narrow ribbon over the page, and an option such as `--force` in running text no longer splits at its hyphens at 320 px.
 - CI pins Preflight 0.8.0.
 - Fixed: The parity kit's HAProxy reads the engine's nameserver (`parse-resolv-conf`) instead of Docker's fixed 127.0.0.11, so Podman no longer drops the app a minute after `up` (503). Same fix as Parity 64bf3e8.
@@ -1479,7 +1483,7 @@ Every behavior change updates README, docs pages, CHANGELOG (Unreleased), site/l
 
 ### Known limits [#](https://squire.apps.wayne.edu/docs/contributing.html#known-limits)
 
-See OPEN_QUESTIONS.md in the repository. The big ones: the local `php.ini` holds safe defaults rather than the platform's file, the Citadel image has no digest to pin, and a full Update may not refresh `vendor/`. The release asks PROCTOR's `proctor gate` for a go or no-go once the installed PROCTOR has it; what is still missing on PROCTOR's side is a published phar. The release script is contract-tested inside the fallback image on GitHub, not yet on the real image (OPEN_QUESTIONS 19, "Contract suite on the real image and on GitLab").
+See OPEN_QUESTIONS.md in the repository. The big ones: the local `php.ini` holds safe defaults rather than the platform's file, the Citadel image has no digest to pin, and a full Update may not refresh `vendor/`. The release asks PROCTOR's `proctor gate` for a go or no-go, and installs the PROCTOR version the lock pins when `--no-dev` left it out. The release script is contract-tested inside the fallback image on GitHub and by hand on Citadel's own `citadel/php-apache:8.5r3`, not yet in CI on the real image (OPEN_QUESTIONS 19, "Contract suite on the real image and on GitLab").
 
 ### Who maintains it [#](https://squire.apps.wayne.edu/docs/contributing.html#who-maintains-it)
 
@@ -2721,7 +2725,7 @@ The release asks PROCTOR's deploy gate, `proctor gate`, for a go or no-go on thi
 - **The record.** Every gated release writes its verdict to `storage/squire/proctor-gate.json` (`SQUIRE_PROCTOR_RECORD_DIR`). When the release goes on (a go, or a reported no-go, which goes live anyway) that verdict is copied to `proctor-gate-baseline.json`, and the next release passes it to the gate as `--baseline`. A stopped release leaves the baseline alone, so re-running after a stop is judged against the release that is really live. The folder gets a `.gitignore` of `*`. The first gated release has no baseline, so every failure blocks it.
 - **The runtime.** The gate also grades the PHP that will serve the app for PROCTOR's unpatched check, passed as `--php-runtime` (`SQUIRE_PHP_RUNTIME`, default `auto`). `auto` asks the php that runs `release.sh`, because that is the one serving the app, and cuts any suffix (`8.4.27-dev` is graded as `8.4.27`); the log says `gate: grading PHP 8.4.27`. An `X.Y.Z` value is graded as given, for a host where the release runs under another php than the web server. `skip` grades no runtime. A value that is not `X.Y.Z` (say `8.4`) or a php that does not answer is a note, and the gate runs without the flag. The older `proctor check` fallback never gets it.
 - **An older PROCTOR.** When the installed PROCTOR has no `gate` command, the step prints a warning naming its version, runs `proctor check` as before (a failed check is a report, or a stop under `enforce`), and writes no record. Update `waynestate/proctor` to a release that has the gate.
-- The binary is `vendor/bin/proctor`, then `proctor` on PATH, or `SQUIRE_PROCTOR_BIN`. It is a dev dependency, so `--no-dev` removes it: point `SQUIRE_PROCTOR_BIN` at a copy.
+- **Which PROCTOR.** `SQUIRE_PROCTOR_BIN` when set; otherwise `vendor/bin/proctor`, then `proctor` on PATH. PROCTOR is a dev dependency, so on Citadel `--no-dev` has removed it by now, and the release fetches it: it reads the version your `composer.lock` pins under `packages-dev` (a plain release such as `0.15.1`), installs that version with `composer create-project waynestate/proctor ... --no-dev` into `.cache/squire/proctor/<version>` and runs it, so the gate grades the release with the same PROCTOR your CI ran. The log says `fetched into the release cache` the first time and `from the release cache` after that; a new version in the lock is fetched once. A failed fetch leaves nothing behind (the next release tries again) and is a warning, or a stop under `enforce`. `SQUIRE_PROCTOR_FETCH=0` turns it off, and `SQUIRE_CACHE_DIR=off` leaves it nowhere to go. With no dev PROCTOR in the lock there is nothing to fetch, and the step says PROCTOR was not found.
 - The policy is `SQUIRE_PROCTOR_POLICY` when set; otherwise the policy the CREED package ships (`vendor/waynestate/creed/policy/policy.json`, when installed); otherwise PROCTOR runs on its own default policy with a notice. An explicit value always wins.
 
 ### The Oracle check [#](https://squire.apps.wayne.edu/docs/guides/release-script.html#the-oracle-check)
@@ -2736,7 +2740,7 @@ Configuration is environment variables, all optional, or the same names in `./.e
 
 Warning
 
-PROCTOR is a dev dependency and the release installs with `--no-dev`, so `vendor/bin/proctor` is gone by the time the PROCTOR step runs. Set `SQUIRE_PROCTOR_BIN` to a copy that survives, or the step reports itself missing.
+PROCTOR is a dev dependency and the release installs with `--no-dev`, so `vendor/bin/proctor` is gone by the time the PROCTOR step runs. The release then installs the version your `composer.lock` pins into its cache and uses that (`SQUIRE_PROCTOR_FETCH`, on by default); keep `waynestate/proctor` in `require-dev` and the lock committed.
 
 ### Next [#](https://squire.apps.wayne.edu/docs/guides/release-script.html#next)
 
@@ -3035,7 +3039,8 @@ All optional. On Citadel, add `./.env.squire` as a configuration file (the confi
 | `SQUIRE_ARTISAN_OPTIMIZE` | `1` | Laravel: `optimize`. |
 | `SQUIRE_ARTISAN_RESTART` | `1` | Laravel: tell queue workers and `schedule:work` to restart on the new code (`reload`, or `queue:restart` and `schedule:interrupt`). Report only. |
 | `SQUIRE_PROCTOR` | `auto` | `auto`, `skip` or `enforce`. The release asks `proctor gate` for a go or no-go (`proctor check` on a PROCTOR without the gate). By default a no-go is a report and never stops the release; `enforce` makes a no-go stop it, before the frontend build and the migrations. |
-| `SQUIRE_PROCTOR_BIN` | `vendor/bin/proctor`, then `PATH` | Where PROCTOR is. It is a dev dependency, so `--no-dev` removes it: point this at a copy. |
+| `SQUIRE_PROCTOR_BIN` | `vendor/bin/proctor`, then `PATH`, then the fetch below | Where PROCTOR is. It is a dev dependency, so `--no-dev` removes it; set this to use a copy of your own (PROCTOR's tagged phar works, marked executable). |
+| `SQUIRE_PROCTOR_FETCH` | `1` | When no PROCTOR is found, install the version `composer.lock` pins as a dev package into `.cache/squire/proctor/<version>` (`composer create-project --no-dev`, once per version) and run that. `0` turns it off. A failed fetch is a warning, or a stop under `enforce`. Needs `SQUIRE_CACHE_DIR` on. |
 | `SQUIRE_PROCTOR_POLICY` | `vendor/waynestate/creed/policy/policy.json`, when installed | Path to the policy file. When unset, the script falls back to the policy the CREED package ships (the deploy wizard has no environment field); when CREED is not installed, PROCTOR runs on its own default policy with a notice. An explicit value always wins. |
 | `SQUIRE_PROCTOR_RECORD_DIR` | `storage/squire` | Where the gate keeps its verdicts, relative to the app root: `proctor-gate.json` (the last verdict) and `proctor-gate-baseline.json` (the verdict of the last release that went on, the next run's baseline). The folder gets a `.gitignore` of `*`, so it never reaches git. |
 | `SQUIRE_PHP_RUNTIME` | `auto` | The PHP version the gate grades for PROCTOR's unpatched check, passed as `--php-runtime`: `auto` reads the php that runs `release.sh` (it is the one serving the app; a suffix such as `-dev` is cut), `skip` grades no runtime, and an `X.Y.Z` value is graded as given. A value that is not `X.Y.Z` is a note and grades nothing. Only `proctor gate` gets it; the older `proctor check` fallback does not. |
