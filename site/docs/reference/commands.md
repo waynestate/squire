@@ -57,7 +57,7 @@ Usage: `squire update [--path PATH] [--target TARGET] [--only ONLY] [--dry-run]`
 | --- | --- | --- |
 | `--path=VALUE` | Path to the application. | `.` |
 | `--target=VALUE` | raw, laravel or static (default: the target recorded in .squire.json). |  |
-| `--only=VALUE` | Comma-separated groups to update: release, parity (deprecated: Parity runs Citadel locally now). (default: the groups recorded in .squire.json) |  |
+| `--only=VALUE` | Comma-separated groups to update: release, parity (opt-in: Parity runs Citadel locally now). (default: the groups recorded in .squire.json) |  |
 | `--dry-run` | Print the plan; write nothing. |  |
 | `--silent` | Do not output any message |  |
 
