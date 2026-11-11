@@ -26,6 +26,12 @@ final class Squire
     /** The file in an app that records which templates Squire wrote, so `init --check` can report drift. */
     public const MANIFEST = '.squire.json';
 
+    /** The PHP line every app written before the {{PHP_LINE}} token ran on; a manifest without a php key means it. */
+    public const LEGACY_PHP_LINE = '8.4r5';
+
+    /** The PHP line new apps are written on. */
+    public const DEFAULT_PHP_LINE = '8.5r3';
+
     /** Where Parity lives: the stack's own tool for running Citadel on your computer (ADR-0022). */
     public const PARITY_URL = 'https://git.wayne.edu/enterprise-apps/parity';
 

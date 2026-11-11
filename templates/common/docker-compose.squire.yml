@@ -28,7 +28,7 @@ x-app-build: &app-build
   context: .
   dockerfile: .squire/Dockerfile
   args:
-    BASE_IMAGE: ${SQUIRE_BASE_IMAGE:-citadel/php-apache:8.4r5}
+    BASE_IMAGE: ${SQUIRE_BASE_IMAGE:-citadel/php-apache:{{PHP_LINE}}}
     CITADEL_PUBLIC_DIR: ${SQUIRE_PUBLIC_DIR:-src/public}
     CITADEL_TIME_ZONE: ${SQUIRE_TZ:-America/Detroit}
     CITADEL_SERVER_NAME: ${SQUIRE_SERVER_NAME:-app.apps.wayne.test}
@@ -41,7 +41,7 @@ x-portable-build: &portable-build
   context: ${SQUIRE_PORTABLE_CONTEXT:-.}
   dockerfile: ${SQUIRE_KIT_DIR:-.}/.squire/portable.Dockerfile
   args:
-    BASE_IMAGE: ${SQUIRE_BASE_IMAGE:-citadel/php-apache:8.4r5}
+    BASE_IMAGE: ${SQUIRE_BASE_IMAGE:-citadel/php-apache:{{PHP_LINE}}}
     SQUIRE_KIT_DIR: ${SQUIRE_KIT_DIR:-.}
     CITADEL_PUBLIC_DIR: ${SQUIRE_PUBLIC_DIR:-src/public}
     CITADEL_TIME_ZONE: ${SQUIRE_TZ:-America/Detroit}
