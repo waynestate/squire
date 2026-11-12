@@ -9,12 +9,12 @@
 #
 #   scripts/contract-image.sh [--platform=linux/arm64|linux/amd64] [--base-image=REF] [--keep]
 #
-# It makes a throwaway fixture app (squire init --target=raw, composer.json and composer.lock seeded from deploy/,
-# public/index.php and public/up.php from the raw template), builds the fallback base (unless --base-image) and the
-# app image for the platform, runs the container with a free local port, the fixture mounted at /citadel/src and the
-# least-privilege flags the kit's compose file runs the app with (every capability dropped but the seven it adds
-# back, no-new-privileges, the pids and memory limits), runs scripts/release.sh inside as the citadel user with the
-# smoke test on, and asserts:
+# It makes a throwaway fixture app (squire init --target=raw --only=release,parity, composer.json and composer.lock
+# seeded from deploy/, public/index.php and public/up.php from the raw template), builds the fallback base (unless
+# --base-image) and the app image for the platform, runs the container with a free local port, the fixture mounted
+# at /citadel/src and the least-privilege flags the kit's compose file runs the app with (every capability dropped
+# but the seven it adds back, no-new-privileges, the pids and memory limits), runs scripts/release.sh inside as the
+# citadel user with the smoke test on, and asserts:
 #
 #   - release.sh exited 0
 #   - /up.php answers HTTP 200 from the host
@@ -145,7 +145,7 @@ make_fixture() {
     cp "$REPO/deploy/composer.lock" "$FIXTURE/composer.lock"
     if command -v php >/dev/null 2>&1; then
         [ -f "$REPO/vendor/autoload.php" ] || die "php bin/squire needs vendor/autoload.php; run 'composer install' in the Squire repository first"
-        (cd "$REPO" && php bin/squire init --path="$FIXTURE" --target=raw)
+        (cd "$REPO" && php bin/squire init --path="$FIXTURE" --target=raw --only=release,parity)
     else
         # No PHP on this machine: run the initializer in Docker. The named vendor volume keeps composer install
         # out of the way and fast on later runs, the same way the composer ci check does it.
@@ -155,7 +155,7 @@ make_fixture() {
             -v squire-vendor:/app/vendor \
             -w /app \
             composer:2.11.1@sha256:8de2184c6de224f4689e8f80ed5f5edaf0030b6b8b7839a22a2bcb6722ac87d0 \
-            sh -c 'if [ ! -f vendor/autoload.php ]; then composer install --no-interaction --quiet; fi; php bin/squire init --path=/work/app --target=raw'
+            sh -c 'if [ ! -f vendor/autoload.php ]; then composer install --no-interaction --quiet; fi; php bin/squire init --path=/work/app --target=raw --only=release,parity'
     fi
     # public/index.php and public/up.php come from the raw template; init writes them, but make sure they are here.
     [ -f "$FIXTURE/public/index.php" ] || cp "$REPO/templates/raw/public/index.php" "$FIXTURE/public/index.php"
