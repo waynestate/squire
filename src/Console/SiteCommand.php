@@ -76,7 +76,11 @@ final class SiteCommand extends Command
                 // The site repo's own authored files win over the exported ones.
                 self::copyOver($root . '/docs', $tmp . '/docs');
                 self::copyOver($root . '/site', $tmp . '/site');
-                $docsExit = DocsGenerator::run($tmp);
+                // The pin's files: data the site owns outside docs/ and site/, laid over the export too.
+                self::copyPinFiles($root, $tmp, $pin->files());
+                // Blocks that run commands need the library as the site repo installed it with Composer.
+                $blockDir = self::blockCommandsDir($tmp, $root, $name, $pin);
+                $docsExit = DocsGenerator::run($tmp, $blockDir === null ? [] : ['block-dir' => $blockDir]);
                 if ($docsExit !== 0) {
                     throw new ToolError(sprintf('The docs generator failed with exit %d; see its output above.', $docsExit));
                 }
@@ -164,6 +168,106 @@ final class SiteCommand extends Command
             }
         };
         $scan($src, '');
+    }
+
+    /**
+     * Copies each path the pin's files key names from the site repo into the export tree (ADR-0023, slice 5): a
+     * file, or a folder copied whole, so the site's own data wins over exported files at the same path. A path that
+     * leaves the root or does not exist is a tool error naming it.
+     *
+     * @param list<string> $entries
+     */
+    private static function copyPinFiles(string $root, string $tmp, array $entries): void
+    {
+        foreach ($entries as $entry) {
+            $normalized = str_replace('\\', '/', $entry);
+            $source = self::inside($root, $normalized);
+            if ($source === null) {
+                throw new ToolError(sprintf('The pin\'s files entry "%s" must name a path inside the site repo.', $entry));
+            }
+            if (!is_file($source) && !is_dir($source)) {
+                throw new ToolError(sprintf('The pin\'s files entry "%s" does not exist in the site repo.', $entry));
+            }
+            $relative = self::relativeUnder($root, $normalized);
+            if (is_dir($source)) {
+                self::copyOver($source, $tmp . '/' . $relative);
+                continue;
+            }
+            $target = $tmp . '/' . $relative;
+            $dir = dirname($target);
+            if (!is_dir($dir) && !mkdir($dir, 0o755, true) && !is_dir($dir)) {
+                throw new ToolError(sprintf('Cannot create directory %s.', $dir));
+            }
+            if (copy($source, $target) === false) {
+                throw new ToolError(sprintf('Cannot copy %s to %s.', $source, $target));
+            }
+        }
+    }
+
+    /**
+     * The folder docs.json block commands run from (ADR-0023, slice 5): when the exported docs.json has a block
+     * with a non-empty run command, the library as the site repo installed it with Composer,
+     * <root>/vendor/waynestate/<name>; a missing folder is a tool error naming the blocks and the composer
+     * require line. Null for a docs.json without run commands: a theme-only build needs no vendor.
+     */
+    private static function blockCommandsDir(string $tmp, string $root, string $name, Pin $pin): ?string
+    {
+        $path = $tmp . '/docs/docs.json';
+        if (!is_file($path)) {
+            return null;
+        }
+        $data = json_decode((string) file_get_contents($path), true);
+        $blocks = is_array($data) && isset($data['blocks']) && is_array($data['blocks']) ? $data['blocks'] : [];
+        $running = [];
+        foreach ($blocks as $blockName => $block) {
+            if (is_array($block) && isset($block['run']) && is_string($block['run']) && trim($block['run']) !== '') {
+                $running[] = (string) $blockName;
+            }
+        }
+        if ($running === []) {
+            return null;
+        }
+        $dir = $root . '/vendor/waynestate/' . $name;
+        if (!is_dir($dir)) {
+            $version = str_starts_with($pin->tag(), 'v') ? substr($pin->tag(), 1) : $pin->tag();
+            throw new ToolError(sprintf(
+                'docs.json runs block commands (%s), so the site repo needs the library installed: composer require waynestate/%s:%s.',
+                implode(', ', $running),
+                $name,
+                $version,
+            ));
+        }
+
+        return $dir;
+    }
+
+    /**
+     * The path of $relative under $root once the . and .. segments are resolved, exactly as inside() resolves
+     * them; the caller must have checked inside() first. Forward slashes only.
+     */
+    private static function relativeUnder(string $root, string $relative): string
+    {
+        $prefix = '';
+        if (preg_match('/^([A-Za-z]:\/)/', $root, $matches) === 1) {
+            $prefix = $matches[1];
+        } elseif (str_starts_with($root, '/')) {
+            $prefix = '/';
+        }
+        $body = substr($root, strlen($prefix));
+        $segments = [];
+        foreach (explode('/', $body . '/' . $relative) as $segment) {
+            if ($segment === '' || $segment === '.') {
+                continue;
+            }
+            if ($segment === '..') {
+                array_pop($segments);
+                continue;
+            }
+            $segments[] = $segment;
+        }
+        $rootSegments = array_values(array_filter(explode('/', $body), static fn(string $segment): bool => $segment !== '' && $segment !== '.'));
+
+        return implode('/', array_slice($segments, count($rootSegments)));
     }
 
     /**

@@ -5,6 +5,7 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+- Added: squire site build runs docs.json block commands from the installed library and copies the pin's files into the build (ADR-0023).
 - Fixed: squire site build keeps a Windows drive letter in the output path.
 - Added: squire site build --check compares a fresh build with the committed output and writes nothing (ADR-0023).
 - Added: squire site build exports a pinned library tag and builds its docs site and agent-ready files with a sha256 manifest (ADR-0023).

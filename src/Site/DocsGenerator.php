@@ -19,7 +19,8 @@ final class DocsGenerator
      * Runs the docs-site generator against $root, the way a repo's CI runs it: Squire's PHP, the script from
      * Squire's own package directory, the root passed as --root, and the working directory set to the root.
      *
-     * @param array{check?: bool} $options check passes --check, which writes nothing and reports drift instead
+     * @param array{check?: bool, block-dir?: string} $options check passes --check, which writes nothing and
+     *        reports drift instead; block-dir passes --block-dir, the folder docs.json block commands run from
      */
     public static function run(string $root, array $options = []): int
     {
@@ -43,13 +44,17 @@ final class DocsGenerator
      * streams. A generator that cannot even start is a tool error (2), the same code the scripts themselves use
      * when they fail.
      *
-     * @param array{check?: bool} $options
+     * @param array{check?: bool, block-dir?: string} $options
      */
     private static function runScript(string $script, string $root, array $options): int
     {
         $command = [PHP_BINARY, $script, '--root=' . $root];
         if ((bool) ($options['check'] ?? false)) {
             $command[] = '--check';
+        }
+        $blockDir = $options['block-dir'] ?? null;
+        if (is_string($blockDir) && $blockDir !== '') {
+            $command[] = '--block-dir=' . $blockDir;
         }
         $process = @proc_open(
             $command,

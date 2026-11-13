@@ -968,6 +968,9 @@ final class DocsSite
 
     private bool $requireRelease = false;
 
+    /** @var string|null the folder docs.json block commands run from, when --block-dir sets one; null runs them from the root */
+    private ?string $blockDir = null;
+
     public function __construct(string $root)
     {
         if (! is_dir($root)) {
@@ -997,6 +1000,12 @@ final class DocsSite
     public function setRequireRelease(bool $require): void
     {
         $this->requireRelease = $require;
+    }
+
+    /** --block-dir: run docs.json block commands from this folder instead of the root. Off by default. */
+    public function setBlockDir(?string $dir): void
+    {
+        $this->blockDir = $dir;
     }
 
     public function rootDir(): string
@@ -2623,8 +2632,9 @@ final class DocsSite
     }
 
     /**
-     * Runs a block's command from the repo root and returns its stdout as decoded JSON. A leading "php " runs
-     * PHP_BINARY, so the same docs.json works on Windows, macOS and Linux.
+     * Runs a block's command from the block dir when --block-dir set one, else from the repo root, and returns its
+     * stdout as decoded JSON. A leading "php " runs PHP_BINARY, so the same docs.json works on Windows, macOS and
+     * Linux.
      *
      * @return array<mixed>
      */
@@ -2637,7 +2647,7 @@ final class DocsSite
         if ($argv[0] === 'php') {
             $argv = array_merge([PHP_BINARY], array_slice($argv, 1));
         }
-        $process = proc_open($argv, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, $this->root);
+        $process = proc_open($argv, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, $this->blockDir ?? $this->root);
         if (! is_resource($process)) {
             throw new DocsSiteError("Could not run the command for docs.json block \"{$name}\": {$command}");
         }
@@ -3724,7 +3734,7 @@ function docs_site_require_commonmark(string $root): void
 /** @param list<string> $argv */
 function docs_site_main(array $argv): int
 {
-    $usage = "Usage: php bin/docs-site.php [--root=.] [--check] [--require-tag] [--require-release]\n"
+    $usage = "Usage: php bin/docs-site.php [--root=.] [--check] [--require-tag] [--require-release] [--block-dir=<path>]\n"
         ."       php bin/docs-site.php [--root=.] --examples (run the tested examples; exit 1 on any finding)\n"
         ."       php bin/docs-site.php --sync-to=<repo>   (from Squire: copy the kit and this file)\n"
         ."       php bin/docs-site.php --rehash           (from Squire: record the kit's hashes)\n";
@@ -3732,6 +3742,7 @@ function docs_site_main(array $argv): int
     $check = false;
     $requireTag = false;
     $requireRelease = false;
+    $blockDir = null;
     $examples = false;
     $syncTo = null;
     $rehash = false;
@@ -3748,6 +3759,8 @@ function docs_site_main(array $argv): int
             $requireTag = true;
         } elseif ($arg === '--require-release') {
             $requireRelease = true;
+        } elseif (str_starts_with($arg, '--block-dir=')) {
+            $blockDir = substr($arg, 12);
         } elseif ($arg === '--examples') {
             $examples = true;
         } elseif ($arg === '--help' || $arg === '-h') {
@@ -3784,6 +3797,7 @@ function docs_site_main(array $argv): int
         $tool->setWriteBlocks(! $check);
         $tool->setRequireTag($requireTag);
         $tool->setRequireRelease($requireRelease);
+        $tool->setBlockDir($blockDir);
         $changelog = $tool->changelogPage();
         if ($changelog !== null && ! $check) {
             [$relative, $content] = $changelog;
