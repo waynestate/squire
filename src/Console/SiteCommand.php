@@ -37,7 +37,8 @@ final class SiteCommand extends Command
             ->addOption('pin', null, InputOption::VALUE_REQUIRED, 'The site pin, relative to --root.', 'site.json')
             ->addOption('out', null, InputOption::VALUE_REQUIRED, 'The output folder, relative to --root.', 'public')
             ->addOption('repo', null, InputOption::VALUE_REQUIRED, 'A local git repository of the library; when empty, vendor/waynestate/NAME under --root, NAME being the part of the library after the last slash.')
-            ->addOption('base', null, InputOption::VALUE_REQUIRED, 'Accepted for a later remote fetch; unused for now.');
+            ->addOption('base', null, InputOption::VALUE_REQUIRED, 'Accepted for a later remote fetch; unused for now.')
+            ->addOption('check', null, InputOption::VALUE_NONE, 'Builds into a temp folder and compares it with the output folder, printing one line per finding and writing nothing.');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -47,6 +48,7 @@ final class SiteCommand extends Command
         $root = rtrim(str_replace('\\', '/', (string) $input->getOption('root')), '/');
         $outOption = (string) $input->getOption('out');
         $repoOption = (string) $input->getOption('repo');
+        $check = (bool) $input->getOption('check');
 
         try {
             if ($action !== 'build') {
@@ -84,6 +86,10 @@ final class SiteCommand extends Command
                 }
                 if (!is_dir($tmp . '/site')) {
                     throw new ToolError('The build produced no site/ folder; nothing to write.');
+                }
+                if ($check) {
+                    // Compare the fresh build plus the manifest it would write with the committed output; write nothing.
+                    return self::checkTree($output, $tmp . '/site', $out, $pin);
                 }
                 if (is_dir($out)) {
                     self::removeTree($out);
@@ -161,12 +167,69 @@ final class SiteCommand extends Command
     }
 
     /**
+     * The --check comparison (ADR-0023, slice 4): the freshly built site folder plus the manifest it would write,
+     * byte-compared with the committed output folder. One line per finding, paths sorted and in forward slashes:
+     * "missing: <path>" for a file the build has that the output lacks, "extra: <path>" for a file the output has
+     * that the build lacks, "drift: <path>" for the same path with different bytes. Exit 1 when any finding is
+     * printed, 0 otherwise. Never writes, deletes or touches anything under the root.
+     */
+    private static function checkTree(OutputInterface $output, string $freshDir, string $out, Pin $pin): int
+    {
+        $files = self::manifestFiles($freshDir);
+        $manifest = json_encode([
+            'library' => $pin->library(),
+            'tag' => $pin->tag(),
+            'files' => $files,
+        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n";
+        $fresh = $files;
+        $fresh['manifest.json'] = 'sha256:' . hash('sha256', $manifest);
+        ksort($fresh);
+        $committed = is_dir($out) ? self::treeFiles($out) : [];
+        $paths = array_unique(array_merge(array_keys($fresh), array_keys($committed)));
+        sort($paths);
+        $findings = [];
+        foreach ($paths as $path) {
+            if (!isset($committed[$path])) {
+                $findings[] = 'missing: ' . $path;
+            } elseif (!isset($fresh[$path])) {
+                $findings[] = 'extra: ' . $path;
+            } elseif ($fresh[$path] !== $committed[$path]) {
+                $findings[] = 'drift: ' . $path;
+            }
+        }
+        if ($findings !== []) {
+            foreach ($findings as $finding) {
+                $output->writeln($finding);
+            }
+
+            return 1;
+        }
+        $output->writeln(sprintf('Site output is current: %d file(s).', count($fresh)));
+
+        return 0;
+    }
+
+    /**
      * The manifest entries for a built site folder: every file except manifest.json itself, as a sorted map of
      * forward-slash path to sha256 digest.
      *
      * @return array<string, string>
      */
     private static function manifestFiles(string $out): array
+    {
+        $files = self::treeFiles($out);
+        unset($files['manifest.json']);
+
+        return $files;
+    }
+
+    /**
+     * Every file under $dir as a sorted map of forward-slash relative path to sha256 digest, manifest.json
+     * included.
+     *
+     * @return array<string, string>
+     */
+    private static function treeFiles(string $dir): array
     {
         $files = [];
         $scan = static function (string $path, string $prefix) use (&$scan, &$files): void {
@@ -184,7 +247,7 @@ final class SiteCommand extends Command
                     $scan($full, $relative);
                     continue;
                 }
-                if (!is_file($full) || $relative === 'manifest.json') {
+                if (!is_file($full)) {
                     continue;
                 }
                 $content = file_get_contents($full);
@@ -194,7 +257,7 @@ final class SiteCommand extends Command
                 $files[$relative] = 'sha256:' . hash('sha256', $content);
             }
         };
-        $scan($out, '');
+        $scan($dir, '');
         ksort($files);
 
         return $files;

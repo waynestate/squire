@@ -5,6 +5,7 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+- Added: squire site build --check compares a fresh build with the committed output and writes nothing (ADR-0023).
 - Added: squire site build exports a pinned library tag and builds its docs site and agent-ready files with a sha256 manifest (ADR-0023).
 - Added: `src/Site` generator drivers, the first piece of squire site build (ADR-0023).
 - Added: `src/Site` pin parsing and tag export for the site build (ADR-0023).
