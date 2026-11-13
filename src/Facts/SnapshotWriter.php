@@ -13,7 +13,7 @@ use Waynestate\Squire\ToolError;
  */
 final class SnapshotWriter
 {
-    private const CREE_PACKAGE = 'waynestate/creed';
+    private const CREED_PACKAGE = 'waynestate/creed';
 
     private const ADVISOR_PACKAGE = 'waynestate/advisor';
 
@@ -92,8 +92,8 @@ final class SnapshotWriter
             'generator' => $generator,
             'sources' => [
                 'creed' => [
-                    'package' => self::CREE_PACKAGE,
-                    'version' => self::installedVersion($from, self::CREE_PACKAGE),
+                    'package' => self::CREED_PACKAGE,
+                    'version' => self::installedVersion($from, self::CREED_PACKAGE),
                     'path' => 'policy/policy.json',
                 ],
                 'advisor' => [
