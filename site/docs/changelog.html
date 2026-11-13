@@ -44,6 +44,8 @@
 Versioning once 1.0 is out.</p>
 <h2 id="unreleased"><span class="docs-heading-tail"><span>Unreleased</span><a class="docs-heading-link" aria-label="Link to this section" href="#unreleased">#</a></span></h2>
 <ul>
+<li>Added: squire site build runs docs.json block commands from the installed library and copies the pin's files into the build (ADR-0023).</li>
+<li>Fixed: squire site build keeps a Windows drive letter in the output path.</li>
 <li>Added: squire site build --check compares a fresh build with the committed output and writes nothing (ADR-0023).</li>
 <li>Added: squire site build exports a pinned library tag and builds its docs site and agent-ready files with a sha256 manifest (ADR-0023).</li>
 <li>Added: <code>src/Site</code> generator drivers, the first piece of squire site build (ADR-0023).</li>
