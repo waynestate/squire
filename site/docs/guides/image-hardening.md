@@ -140,7 +140,7 @@ for arg in PHP_IMAGE NODE_IMAGE COMPOSER_IMAGE; do
   ref=$(sed -n "s/^ARG $arg=//p" "$base")
   args="$args --build-arg $arg=$prefix/${ref#docker.io/library/}"
 done
-docker build -f "$base" $args -t squire/php-parity-base:8.4 .squire   # or: buildah bud ...
+docker build -f "$base" $args -t squire/php-parity-base:8.5r3 .squire   # the app's PHP line; or: buildah bud ...
 ```
 
 A registry mirror that keeps Docker Hub's paths takes the same loop with `$mirror/library/${ref#docker.io/library/}`. The digest still decides the bytes, so a proxy cannot hand back a different image under the same name.

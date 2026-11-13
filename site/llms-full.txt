@@ -1121,6 +1121,10 @@ Source: https://squire.apps.wayne.edu/docs/changelog.html
 
 All notable changes to Squire are recorded here. The format follows Keep a Changelog; the project follows Semantic Versioning once 1.0 is out.
 
+### \[Unreleased\] [#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
+
+- Fixed: the fallback base follows the app's PHP line: an 8.5r3 app's fallback is built on php 8.5.12, an 8.4r5 app's stays on 8.4.27 (D-113).
+
 ### 0.11.0 (2026-11-13) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-11-0-2026-11-13)
 
 - Changed: the MySQL upgrade guide now says plainly that the supported path ends at MySQL 8.4 LTS; 9.7 LTS is a later hop, revisited once Citadel has reached 8.4 and PHP and Laravel driver support for 9.7 is checked (SQUIRE-14).
@@ -1980,7 +1984,7 @@ for arg in PHP_IMAGE NODE_IMAGE COMPOSER_IMAGE; do
   ref=$(sed -n "s/^ARG $arg=//p" "$base")
   args="$args --build-arg $arg=$prefix/${ref#docker.io/library/}"
 done
-docker build -f "$base" $args -t squire/php-parity-base:8.4 .squire   # or: buildah bud ...
+docker build -f "$base" $args -t squire/php-parity-base:8.5r3 .squire   # the app's PHP line; or: buildah bud ...
 ```
 
 A registry mirror that keeps Docker Hub's paths takes the same loop with `$mirror/library/${ref#docker.io/library/}`. The digest still decides the bytes, so a proxy cannot hand back a different image under the same name.

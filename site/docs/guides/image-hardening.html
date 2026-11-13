@@ -219,7 +219,7 @@ for arg in PHP_IMAGE NODE_IMAGE COMPOSER_IMAGE; do
   ref=$(sed -n &quot;s/^ARG $arg=//p&quot; &quot;$base&quot;)
   args=&quot;$args --build-arg $arg=$prefix/${ref#docker.io/library/}&quot;
 done
-docker build -f &quot;$base&quot; $args -t squire/php-parity-base:8.4 .squire   # or: buildah bud ...
+docker build -f &quot;$base&quot; $args -t squire/php-parity-base:8.5r3 .squire   # the app's PHP line; or: buildah bud ...
 </code></pre>
 <p>A registry mirror that keeps Docker Hub's paths takes the same loop with <code>$mirror/library/${ref#docker.io/library/}</code>. The digest still decides the bytes, so a proxy cannot hand back a different image under the same name.</p>
 <p>To bump one, read the new list's digest and check it lists both platforms, then replace the whole reference:</p>

@@ -10,6 +10,10 @@ generator: Squire agent-ready
 
 All notable changes to Squire are recorded here. The format follows Keep a Changelog; the project follows Semantic Versioning once 1.0 is out.
 
+## \[Unreleased\] [#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
+
+- Fixed: the fallback base follows the app's PHP line: an 8.5r3 app's fallback is built on php 8.5.12, an 8.4r5 app's stays on 8.4.27 (D-113).
+
 ## 0.11.0 (2026-11-13) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-11-0-2026-11-13)
 
 - Changed: the MySQL upgrade guide now says plainly that the supported path ends at MySQL 8.4 LTS; 9.7 LTS is a later hop, revisited once Citadel has reached 8.4 and PHP and Laravel driver support for 9.7 is checked (SQUIRE-14).
