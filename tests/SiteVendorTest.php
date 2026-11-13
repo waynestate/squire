@@ -119,7 +119,10 @@ final class SiteVendorTest extends SquireTestCase
         $ready = $this->invoke([PHP_BINARY, $squire . '/bin/agent-ready.php', '--sync-to=' . $dir]);
         self::assertSame(0, $ready['code'], $ready['stderr']);
         if ($withBlock) {
-            $this->put($dir, 'docs/docs.json', <<<'JSON'
+            $this->put(
+                $dir,
+                'docs/docs.json',
+                <<<'JSON'
 {
     "theme": {},
     "blocks": {
@@ -134,7 +137,7 @@ final class SiteVendorTest extends SquireTestCase
         }
     }
 }
-JSON
+JSON,
             );
             $this->put($dir, 'docs/index.md', "# Top heading\n\nThe demo project, in one place. Open [the start guide](guides/start.md) when you are ready.\n\n## About\n\nThis page has an h2 so the \"On this page\" list is not empty.\n\n## Tool\n\n<!-- generated:tool -->\nplaceholder\n<!-- /generated -->\n");
         }
