@@ -12,6 +12,8 @@ Versioning once 1.0 is out.
 
 ## [Unreleased]
 
+## 0.11.1 (2026-11-13)
+
 - Fixed: the fallback base follows the app's PHP line: an 8.5r3 app's fallback is built on php 8.5.12, an 8.4r5 app's stays on 8.4.27 (D-113).
 
 ## 0.11.0 (2026-11-13)

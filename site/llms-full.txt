@@ -27,7 +27,7 @@ Squire is the Citadel kit: build.sh, the release script, the health check, and l
 Front page: [`site/index.html`](https://github.com/waynestate/squire/blob/HEAD/site/index.html), a static page you can serve from anywhere.
 On Citadel it is served by the raw-PHP deploy layer in [`deploy/`](https://github.com/waynestate/squire/blob/HEAD/deploy/): a Squire kit whose front controller serves `site/` behind HELMET's security headers. For local development, keep serving `site/` directly.
 
-Status: 0.11.0, tagged and on Packagist.
+Status: 0.11.1, tagged and on Packagist.
 
 ### Where the code lives
 
@@ -1062,7 +1062,7 @@ Known limits
 
 ### Scuffs on the leather
 
-Squire 0.11.0 is tagged and on Packagist. Where we had to guess how Citadel behaves, `OPEN_QUESTIONS.md` lists each guess and the default it chose.
+Squire 0.11.1 is tagged and on Packagist. Where we had to guess how Citadel behaves, `OPEN_QUESTIONS.md` lists each guess and the default it chose.
 
 - The local `php.ini` holds the safe defaults HELMET also enforces at runtime, not the platform's file.
 - The Citadel image has no registry digest to pin yet; doctor warns under S67 until you run `pin`.
@@ -1122,6 +1122,8 @@ Source: https://squire.apps.wayne.edu/docs/changelog.html
 All notable changes to Squire are recorded here. The format follows Keep a Changelog; the project follows Semantic Versioning once 1.0 is out.
 
 ### \[Unreleased\] [#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
+
+### 0.11.1 (2026-11-13) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-11-1-2026-11-13)
 
 - Fixed: the fallback base follows the app's PHP line: an 8.5r3 app's fallback is built on php 8.5.12, an 8.4r5 app's stays on 8.4.27 (D-113).
 
