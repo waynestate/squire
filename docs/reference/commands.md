@@ -67,7 +67,7 @@ Usage: `squire init [--path PATH] [--target TARGET] [--only ONLY] [--php PHP] [-
 
 Builds the docs site and agent-ready files from the pinned library tag, with a sha256 manifest
 
-Usage: `squire site [--root ROOT] [--pin PIN] [--out OUT] [--repo REPO] [--base BASE] [--] [<action>]`
+Usage: `squire site [--root ROOT] [--pin PIN] [--out OUT] [--repo REPO] [--base BASE] [--check] [--] [<action>]`
 
 | Argument | Required | Meaning |
 | --- | --- | --- |
@@ -80,6 +80,7 @@ Usage: `squire site [--root ROOT] [--pin PIN] [--out OUT] [--repo REPO] [--base 
 | `--out=VALUE` | The output folder, relative to --root. | `public` |
 | `--repo=VALUE` | A local git repository of the library; when empty, vendor/waynestate/NAME under --root, NAME being the part of the library after the last slash. |  |
 | `--base=VALUE` | Accepted for a later remote fetch; unused for now. |  |
+| `--check` | Builds into a temp folder and compares it with the output folder, printing one line per finding and writing nothing. |  |
 | `--silent` | Do not output any message |  |
 
 ### `squire update`

@@ -211,7 +211,7 @@
 </table></div>
 <h3 id="squire-site"><span class="docs-heading-tail"><code>squire site</code><a class="docs-heading-link" aria-label="Link to this section" href="#squire-site">#</a></span></h3>
 <p>Builds the docs site and agent-ready files from the pinned library tag, with a sha256 manifest</p>
-<p>Usage: <code>squire site [--root ROOT] [--pin PIN] [--out OUT] [--repo REPO] [--base BASE] [--] [&lt;action&gt;]</code></p>
+<p>Usage: <code>squire site [--root ROOT] [--pin PIN] [--out OUT] [--repo REPO] [--base BASE] [--check] [--] [&lt;action&gt;]</code></p>
 <div class="docs-table" role="region" aria-label="Table" tabindex="0"><table>
 <thead>
 <tr>
@@ -260,6 +260,11 @@
 <tr>
 <td data-label="Option"><code>--base=VALUE</code></td>
 <td data-label="Meaning">Accepted for a later remote fetch; unused for now.</td>
+<td data-label="Default"></td>
+</tr>
+<tr>
+<td data-label="Option"><code>--check</code></td>
+<td data-label="Meaning">Builds into a temp folder and compares it with the output folder, printing one line per finding and writing nothing.</td>
 <td data-label="Default"></td>
 </tr>
 <tr>
