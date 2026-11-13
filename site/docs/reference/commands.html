@@ -62,6 +62,10 @@
 <td data-label="What it does">Write the standard Citadel scripts into an app, or report drift with --check.</td>
 </tr>
 <tr>
+<td data-label="Command"><code>squire site</code></td>
+<td data-label="What it does">Builds the docs site and agent-ready files from the pinned library tag, with a sha256 manifest</td>
+</tr>
+<tr>
 <td data-label="Command"><code>squire update</code></td>
 <td data-label="What it does">Take new template versions for files Squire wrote that were never edited, add the files a newer release wrote, and show a diff for the edited ones.</td>
 </tr>
@@ -205,6 +209,66 @@
 </tr>
 </tbody>
 </table></div>
+<h3 id="squire-site"><span class="docs-heading-tail"><code>squire site</code><a class="docs-heading-link" aria-label="Link to this section" href="#squire-site">#</a></span></h3>
+<p>Builds the docs site and agent-ready files from the pinned library tag, with a sha256 manifest</p>
+<p>Usage: <code>squire site [--root ROOT] [--pin PIN] [--out OUT] [--repo REPO] [--base BASE] [--] [&lt;action&gt;]</code></p>
+<div class="docs-table" role="region" aria-label="Table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Required</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="Argument"><code>action</code></td>
+<td data-label="Required">no</td>
+<td data-label="Meaning">The site action to run; build for now.</td>
+</tr>
+</tbody>
+</table></div>
+<div class="docs-table" role="region" aria-label="Table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Meaning</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="Option"><code>--root=VALUE</code></td>
+<td data-label="Meaning">Path to the site repository.</td>
+<td data-label="Default"><code>.</code></td>
+</tr>
+<tr>
+<td data-label="Option"><code>--pin=VALUE</code></td>
+<td data-label="Meaning">The site pin, relative to --root.</td>
+<td data-label="Default"><code>site.json</code></td>
+</tr>
+<tr>
+<td data-label="Option"><code>--out=VALUE</code></td>
+<td data-label="Meaning">The output folder, relative to --root.</td>
+<td data-label="Default"><code>public</code></td>
+</tr>
+<tr>
+<td data-label="Option"><code>--repo=VALUE</code></td>
+<td data-label="Meaning">A local git repository of the library; when empty, vendor/waynestate/NAME under --root, NAME being the part of the library after the last slash.</td>
+<td data-label="Default"></td>
+</tr>
+<tr>
+<td data-label="Option"><code>--base=VALUE</code></td>
+<td data-label="Meaning">Accepted for a later remote fetch; unused for now.</td>
+<td data-label="Default"></td>
+</tr>
+<tr>
+<td data-label="Option"><code>--silent</code></td>
+<td data-label="Meaning">Do not output any message</td>
+<td data-label="Default"></td>
+</tr>
+</tbody>
+</table></div>
 <h3 id="squire-update"><span class="docs-heading-tail"><code>squire update</code><a class="docs-heading-link" aria-label="Link to this section" href="#squire-update">#</a></span></h3>
 <p>Take new template versions for files Squire wrote that were never edited, add the files a newer release wrote, and show a diff for the edited ones.</p>
 <p>Usage: <code>squire update [--path PATH] [--target TARGET] [--only ONLY] [--dry-run]</code></p>
@@ -302,7 +366,7 @@
     </main>
     <nav class="docs-pager" aria-label="Pages"><a class="docs-pager__link" href="../../docs/guides/docs-builder.html"><span class="docs-pager__dir">Previous</span><span class="docs-pager__title">The docs builder</span></a><a class="docs-pager__link docs-pager__link--next" href="../../docs/reference/configuration.html"><span class="docs-pager__dir">Next</span><span class="docs-pager__title">Configuration</span></a></nav>
   </div>
-  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item docs-toc__item--sub"><a href="#squire-doctor">squire doctor</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#squire-facts">squire facts</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#squire-init">squire init</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#squire-update">squire update</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#options-every-command-accepts">Options every command accepts</a></li><li class="docs-toc__item"><a href="#exit-codes">Exit codes</a></li><li class="docs-toc__item"><a href="#the-parity-group-is-deprecated">The parity group is deprecated</a></li><li class="docs-toc__item"><a href="#doctor-oracle">doctor oracle</a></li></ul></nav>
+  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item docs-toc__item--sub"><a href="#squire-doctor">squire doctor</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#squire-facts">squire facts</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#squire-init">squire init</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#squire-site">squire site</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#squire-update">squire update</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#options-every-command-accepts">Options every command accepts</a></li><li class="docs-toc__item"><a href="#exit-codes">Exit codes</a></li><li class="docs-toc__item"><a href="#the-parity-group-is-deprecated">The parity group is deprecated</a></li><li class="docs-toc__item"><a href="#doctor-oracle">doctor oracle</a></li></ul></nav>
 </div>
 <footer class="docs-footer">
   <span>Documents Squire <span data-docs-version>0.10.9</span></span>

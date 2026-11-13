@@ -5,6 +5,7 @@ Versioning once 1.0 is out.
 
 ## Unreleased
 
+- Added: squire site build exports a pinned library tag and builds its docs site and agent-ready files with a sha256 manifest (ADR-0023).
 - Added: `src/Site` generator drivers, the first piece of squire site build (ADR-0023).
 - Added: `src/Site` pin parsing and tag export for the site build (ADR-0023).
 - Added: `squire facts --snapshot` rebuilds `.squire/facts.json` offline from the CREED policy and ADVISOR project data in vendor, with the first three regions (`cast-md`, `php-supported-md`, `preflight-pin`).

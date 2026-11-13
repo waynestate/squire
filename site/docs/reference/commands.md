@@ -15,6 +15,7 @@ The block below is owned by the docs builder: it lists every command the CLI kee
 | `squire doctor` | Check an app's Citadel release setup against the Squire rules (S1 to S78). |
 | `squire facts` | Fills the squire-facts regions from .squire/facts.json (--check: report drift, write nothing) |
 | `squire init` | Write the standard Citadel scripts into an app, or report drift with --check. |
+| `squire site` | Builds the docs site and agent-ready files from the pinned library tag, with a sha256 manifest |
 | `squire update` | Take new template versions for files Squire wrote that were never edited, add the files a newer release wrote, and show a diff for the edited ones. |
 
 ### `squire doctor` [#](https://squire.apps.wayne.edu/docs/reference/commands.html#squire-doctor)
@@ -62,6 +63,25 @@ Usage: `squire init [--path PATH] [--target TARGET] [--only ONLY] [--php PHP] [-
 | `--php=VALUE` | Citadel PHP image line, such as 8.5r3 (default: the line in .squire.json, else 8.5r3 for a new app) |  |
 | `--check` | Write nothing; report files that are missing, outdated or edited. Exit 1 on drift. |  |
 | `--force` | Overwrite files that were edited or that Squire did not write. |  |
+| `--silent` | Do not output any message |  |
+
+### `squire site` [#](https://squire.apps.wayne.edu/docs/reference/commands.html#squire-site)
+
+Builds the docs site and agent-ready files from the pinned library tag, with a sha256 manifest
+
+Usage: `squire site [--root ROOT] [--pin PIN] [--out OUT] [--repo REPO] [--base BASE] [--] [<action>]`
+
+| Argument | Required | Meaning |
+| --- | --- | --- |
+| `action` | no | The site action to run; build for now. |
+
+| Option | Meaning | Default |
+| --- | --- | --- |
+| `--root=VALUE` | Path to the site repository. | `.` |
+| `--pin=VALUE` | The site pin, relative to --root. | `site.json` |
+| `--out=VALUE` | The output folder, relative to --root. | `public` |
+| `--repo=VALUE` | A local git repository of the library; when empty, vendor/waynestate/NAME under --root, NAME being the part of the library after the last slash. |  |
+| `--base=VALUE` | Accepted for a later remote fetch; unused for now. |  |
 | `--silent` | Do not output any message |  |
 
 ### `squire update` [#](https://squire.apps.wayne.edu/docs/reference/commands.html#squire-update)
