@@ -52,6 +52,8 @@ The pages under `docs/` build into the committed site at `site/docs/`: rebuild w
   It never overwrites your edits, and it runs the same in CI and on a laptop.
 - `squire doctor` checks an app against the best practices a machine can decide ([BEST_PRACTICES.md](https://github.com/waynestate/squire/blob/HEAD/BEST_PRACTICES.md)).
   The lock file, composer audit and MySQL 5.6 checks are owned by PROCTOR; `doctor` hands off to it (S50) instead of repeating them.
+- `squire facts` fills the marked `squire-facts:` regions in your files from the committed `.squire/facts.json`
+  snapshot; `squire facts --check` writes nothing and exits `1` when a region has drifted, so CI can gate on it.
 - A local setup that runs your app on the Citadel PHP image, behind a proxy like Citadel's, with the same MySQL 5.6.
   Deprecated as of 0.10.5: [Parity](https://git.wayne.edu/enterprise-apps/parity) does this job now.
 - Squire's maintainers send platform improvement proposals to the platform team privately. Squire never touches a server.
@@ -1120,6 +1122,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 ### Unreleased [#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
 - Fixed: the GitHub contract legs (`contract-parity-sh`, `contract-parity-pwsh`, and `contract-image` on linux/amd64 and linux/arm64) failed since `squire init` stopped writing the `parity` group by default (D-095): the fixture had no `.squire/Dockerfile` or `.env.squire.example`. The workflow and `scripts/contract-image.sh` now ask for it with `--only=release,parity`.
+- Added: `squire facts` fills marked regions from a committed `.squire/facts.json`, and `squire facts --check` fails CI on drift (D-109; the snapshot writer comes next).
 
 ### 0.10.9 (2026-11-11) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-10-9-2026-11-11)
 
@@ -2947,6 +2950,7 @@ The block below is owned by the docs builder: it lists every command the CLI kee
 | Command | What it does |
 | --- | --- |
 | `squire doctor` | Check an app's Citadel release setup against the Squire rules (S1 to S78). |
+| `squire facts` | Fills the squire-facts regions from .squire/facts.json (--check: report drift, write nothing) |
 | `squire init` | Write the standard Citadel scripts into an app, or report drift with --check. |
 | `squire update` | Take new template versions for files Squire wrote that were never edited, add the files a newer release wrote, and show a diff for the edited ones. |
 
@@ -2964,6 +2968,18 @@ Usage: `squire doctor [--path PATH] [--format FORMAT] [--] [<topic>]`
 | --- | --- | --- |
 | `--path=VALUE` | Path to the application. | `.` |
 | `--format=VALUE` | Output format: text or json. | `text` |
+| `--silent` | Do not output any message |  |
+
+#### `squire facts` [#](https://squire.apps.wayne.edu/docs/reference/commands.html#squire-facts)
+
+Fills the squire-facts regions from .squire/facts.json (--check: report drift, write nothing)
+
+Usage: `squire facts [--check] [--path PATH]`
+
+| Option | Meaning | Default |
+| --- | --- | --- |
+| `--check` | Write nothing; report regions that are out of date. Exit 1 on drift. |  |
+| `--path=VALUE` | Path to the folder holding .squire/facts.json. | `.` |
 | `--silent` | Do not output any message |  |
 
 #### `squire init` [#](https://squire.apps.wayne.edu/docs/reference/commands.html#squire-init)

@@ -13,6 +13,7 @@ Versioning once 1.0 is out.
 ## Unreleased
 
 - Fixed: the GitHub contract legs (`contract-parity-sh`, `contract-parity-pwsh`, and `contract-image` on linux/amd64 and linux/arm64) failed since `squire init` stopped writing the `parity` group by default (D-095): the fixture had no `.squire/Dockerfile` or `.env.squire.example`. The workflow and `scripts/contract-image.sh` now ask for it with `--only=release,parity`.
+- Added: `squire facts` fills marked regions from a committed `.squire/facts.json`, and `squire facts --check` fails CI on drift (D-109; the snapshot writer comes next).
 
 ## 0.10.9 (2026-11-11)
 

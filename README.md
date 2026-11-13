@@ -69,6 +69,8 @@ The pages under `docs/` build into the committed site at `site/docs/`: rebuild w
   It never overwrites your edits, and it runs the same in CI and on a laptop.
 - `squire doctor` checks an app against the best practices a machine can decide ([BEST_PRACTICES.md](BEST_PRACTICES.md)).
   The lock file, composer audit and MySQL 5.6 checks are owned by PROCTOR; `doctor` hands off to it (S50) instead of repeating them.
+- `squire facts` fills the marked `squire-facts:` regions in your files from the committed `.squire/facts.json`
+  snapshot; `squire facts --check` writes nothing and exits `1` when a region has drifted, so CI can gate on it.
 - A local setup that runs your app on the Citadel PHP image, behind a proxy like Citadel's, with the same MySQL 5.6.
   Deprecated as of 0.10.5: [Parity](https://git.wayne.edu/enterprise-apps/parity) does this job now.
 - Squire's maintainers send platform improvement proposals to the platform team privately. Squire never touches a server.
