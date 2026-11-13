@@ -1,0 +1,23 @@
+{
+    "components": {
+        "php": {
+            "versions": {
+                "8.1": {
+                    "security_until": "2025-12-31",
+                    "images": {
+                        "docker": "php:8.1-cli-bullseye"
+                    }
+                },
+                "8.3": {
+                    "security_until": "2027-12-31",
+                    "images": {
+                        "docker": "php:8.3-cli-trixie"
+                    }
+                },
+                "8.4": {
+                    "security_until": "2028-12-31"
+                }
+            }
+        }
+    }
+}

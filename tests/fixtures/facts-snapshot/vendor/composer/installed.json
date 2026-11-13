@@ -1,0 +1,14 @@
+{
+    "packages": [
+        {
+            "name": "waynestate/creed",
+            "version": "0.1.11"
+        },
+        {
+            "name": "waynestate/advisor",
+            "version": "0.3.1"
+        }
+    ],
+    "dev": true,
+    "dev-package-names": []
+}

@@ -37,12 +37,15 @@ Usage: `squire doctor [--path PATH] [--format FORMAT] [--] [<topic>]`
 
 Fills the squire-facts regions from .squire/facts.json (--check: report drift, write nothing)
 
-Usage: `squire facts [--check] [--path PATH]`
+Usage: `squire facts [--check] [--path PATH] [--snapshot] [--from FROM] [--today TODAY]`
 
 | Option | Meaning | Default |
 | --- | --- | --- |
 | `--check` | Write nothing; report regions that are out of date. Exit 1 on drift. |  |
 | `--path=VALUE` | Path to the folder holding .squire/facts.json. | `.` |
+| `--snapshot` | Rebuild .squire/facts.json from vendor/waynestate/creed and vendor/waynestate/advisor first |  |
+| `--from=VALUE` | The folder holding creed/ and advisor/ |  |
+| `--today=VALUE` | The date to stamp and to judge PHP support by; default today |  |
 | `--silent` | Do not output any message |  |
 
 ### `squire init` [#](https://squire.apps.wayne.edu/docs/reference/commands.html#squire-init)

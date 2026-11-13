@@ -12,6 +12,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ## Unreleased [#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+- Added: `squire facts --snapshot` rebuilds `.squire/facts.json` offline from the CREED policy and ADVISOR project data in vendor, with the first three regions (`cast-md`, `php-supported-md`, `preflight-pin`).
 - Fixed: the GitHub contract legs (`contract-parity-sh`, `contract-parity-pwsh`, and `contract-image` on linux/amd64 and linux/arm64) failed since `squire init` stopped writing the `parity` group by default (D-095): the fixture had no `.squire/Dockerfile` or `.env.squire.example`. The workflow and `scripts/contract-image.sh` now ask for it with `--only=release,parity`.
 - Added: `squire facts` fills marked regions from a committed `.squire/facts.json`, and `squire facts --check` fails CI on drift (D-109; the snapshot writer comes next).
 

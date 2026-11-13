@@ -1,0 +1,59 @@
+{
+    "schema_version": 1,
+    "generated_on": "2026-11-11",
+    "generator": "squire facts TEST",
+    "sources": {
+        "creed": {
+            "package": "waynestate/creed",
+            "version": "0.1.11",
+            "path": "policy/policy.json"
+        },
+        "advisor": {
+            "package": "waynestate/advisor",
+            "version": "0.3.1",
+            "path": "data/projects.json"
+        }
+    },
+    "facts": {
+        "projects": [
+            {
+                "id": "wayne-ui",
+                "name": "WayneUI",
+                "tagline": "The interface layer every other project builds on.",
+                "version": "0.9.0",
+                "package": "wayne-ui/wayne-ui"
+            },
+            {
+                "id": "creed",
+                "name": "CREED",
+                "tagline": "The standards handbook of the WSU app stack.",
+                "version": "0.1.11",
+                "package": "waynestate/creed"
+            },
+            {
+                "id": "preflight",
+                "name": "Preflight",
+                "tagline": "CI templates that fly on any GitLab.",
+                "version": "0.8.0",
+                "package": "waynestate/preflight"
+            }
+        ],
+        "preflight_pin": "0.8.0",
+        "php_supported": [
+            {
+                "version": "8.3",
+                "security_until": "2027-12-31",
+                "image": "php:8.3-cli-trixie"
+            },
+            {
+                "version": "8.4",
+                "security_until": "2028-12-31"
+            }
+        ]
+    },
+    "regions": {
+        "cast-md": "- **WayneUI**: The interface layer every other project builds on.\n- **CREED**: The standards handbook of the WSU app stack.\n- **Preflight**: CI templates that fly on any GitLab.",
+        "php-supported-md": "- PHP 8.3, security fixes until 2027-12-31 (image php:8.3-cli-trixie)\n- PHP 8.4, security fixes until 2028-12-31",
+        "preflight-pin": "0.8.0"
+    }
+}

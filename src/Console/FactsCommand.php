@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Waynestate\Squire\Console;
 
+use DateTimeImmutable;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -11,6 +12,8 @@ use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Waynestate\Squire\Facts\Regions;
 use Waynestate\Squire\Facts\Snapshot;
+use Waynestate\Squire\Facts\SnapshotWriter;
+use Waynestate\Squire\Squire;
 use Waynestate\Squire\ToolError;
 
 /**
@@ -29,7 +32,10 @@ final class FactsCommand extends Command
             ->setName('facts')
             ->setDescription('Fills the squire-facts regions from .squire/facts.json (--check: report drift, write nothing)')
             ->addOption('check', null, InputOption::VALUE_NONE, 'Write nothing; report regions that are out of date. Exit 1 on drift.')
-            ->addOption('path', null, InputOption::VALUE_REQUIRED, 'Path to the folder holding .squire/facts.json.', '.');
+            ->addOption('path', null, InputOption::VALUE_REQUIRED, 'Path to the folder holding .squire/facts.json.', '.')
+            ->addOption('snapshot', null, InputOption::VALUE_NONE, 'Rebuild .squire/facts.json from vendor/waynestate/creed and vendor/waynestate/advisor first')
+            ->addOption('from', null, InputOption::VALUE_REQUIRED, 'The folder holding creed/ and advisor/')
+            ->addOption('today', null, InputOption::VALUE_REQUIRED, 'The date to stamp and to judge PHP support by; default today');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -41,6 +47,15 @@ final class FactsCommand extends Command
         try {
             if (!is_dir($root)) {
                 throw new ToolError(sprintf('Path "%s" is not a directory.', $root));
+            }
+
+            // Slice S2: rebuild (or check) the snapshot from vendor before the fill. Without --snapshot this
+            // whole branch stays out, and --from and --today are ignored, so S1 behaviour is byte for byte.
+            if ($input->getOption('snapshot')) {
+                $exit = $this->snapshot($input, $output, $root);
+                if ($exit !== null) {
+                    return $exit;
+                }
             }
 
             // Walk once, parse only what could hold a marker, keep what actually does.
@@ -122,6 +137,71 @@ final class FactsCommand extends Command
 
             return 2;
         }
+    }
+
+    /**
+     * Rebuilds .squire/facts.json from the CREED and ADVISOR data in vendor, or under --check compares the build
+     * to the committed file without writing a byte. Returns an exit code when the run ends here (drift under
+     * --check), or null to fall through to the normal fill.
+     */
+    private function snapshot(InputInterface $input, OutputInterface $output, string $root): ?int
+    {
+        $file = $root . '/.squire/facts.json';
+        $fromOption = $input->getOption('from');
+        $from = is_string($fromOption) && $fromOption !== '' ? rtrim($fromOption, '/\\') : $root . '/vendor/waynestate';
+        $text = SnapshotWriter::build($from, $this->today($input), 'squire facts ' . Squire::version());
+
+        if ((bool) $input->getOption('check')) {
+            $committed = is_file($file) ? (string) file_get_contents($file) : null;
+            if ($committed !== $text) {
+                $output->writeln('.squire/facts.json is out of date (run vendor/bin/squire facts --snapshot)');
+
+                return 1;
+            }
+
+            return null;
+        }
+
+        if (is_file($file) && (string) file_get_contents($file) === $text) {
+            $output->writeln('squire facts: .squire/facts.json is current');
+
+            return null;
+        }
+        $dir = dirname($file);
+        if (!is_dir($dir) && mkdir($dir, 0o755, true) === false) {
+            throw new ToolError(sprintf('Cannot create %s.', $dir));
+        }
+        if (file_put_contents($file, $text) === false) {
+            throw new ToolError(sprintf('Cannot write %s.', $file));
+        }
+        $data = json_decode($text, true);
+        $creed = (string) ($data['sources']['creed']['version'] ?? 'unknown');
+        $advisor = (string) ($data['sources']['advisor']['version'] ?? 'unknown');
+        $output->writeln(sprintf('squire facts: wrote .squire/facts.json from creed %s and advisor %s', $creed, $advisor));
+
+        return null;
+    }
+
+    /**
+     * The --today value, validated: a bad date is a tool error, because a wrong stamp would judge PHP support
+     * against the wrong day and poison the snapshot.
+     */
+    private function today(InputInterface $input): string
+    {
+        $value = $input->getOption('today');
+        if ($value === null || $value === '') {
+            return date('Y-m-d');
+        }
+        if (!is_string($value) || preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) !== 1) {
+            throw new ToolError(sprintf('--today expects YYYY-MM-DD, got "%s".', $value));
+        }
+        $date = DateTimeImmutable::createFromFormat('Y-m-d', $value);
+        // createFromFormat rolls 2026-02-31 over to March; the round trip catches it.
+        if ($date === false || $date->format('Y-m-d') !== $value) {
+            throw new ToolError(sprintf('--today expects YYYY-MM-DD, got "%s".', $value));
+        }
+
+        return $value;
     }
 
     /**

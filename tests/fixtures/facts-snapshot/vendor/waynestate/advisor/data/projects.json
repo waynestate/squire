@@ -1,0 +1,26 @@
+{
+    "projects": [
+        {
+            "id": "wayne-ui",
+            "name": "WayneUI",
+            "tagline": "The interface layer every other project builds on.",
+            "version": "0.9.0",
+            "package": "wayne-ui/wayne-ui",
+            "status": "built"
+        },
+        {
+            "id": "creed",
+            "name": "CREED",
+            "tagline": "The standards handbook of the WSU app stack.",
+            "version": "0.1.11",
+            "package": "waynestate/creed"
+        },
+        {
+            "id": "preflight",
+            "name": "Preflight",
+            "tagline": "CI templates that fly on any GitLab.",
+            "version": "0.8.0",
+            "package": "waynestate/preflight"
+        }
+    ]
+}

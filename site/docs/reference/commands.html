@@ -114,7 +114,7 @@
 </table></div>
 <h3 id="squire-facts"><span class="docs-heading-tail"><code>squire facts</code><a class="docs-heading-link" aria-label="Link to this section" href="#squire-facts">#</a></span></h3>
 <p>Fills the squire-facts regions from .squire/facts.json (--check: report drift, write nothing)</p>
-<p>Usage: <code>squire facts [--check] [--path PATH]</code></p>
+<p>Usage: <code>squire facts [--check] [--path PATH] [--snapshot] [--from FROM] [--today TODAY]</code></p>
 <div class="docs-table" role="region" aria-label="Table" tabindex="0"><table>
 <thead>
 <tr>
@@ -133,6 +133,21 @@
 <td data-label="Option"><code>--path=VALUE</code></td>
 <td data-label="Meaning">Path to the folder holding .squire/facts.json.</td>
 <td data-label="Default"><code>.</code></td>
+</tr>
+<tr>
+<td data-label="Option"><code>--snapshot</code></td>
+<td data-label="Meaning">Rebuild .squire/facts.json from vendor/waynestate/creed and vendor/waynestate/advisor first</td>
+<td data-label="Default"></td>
+</tr>
+<tr>
+<td data-label="Option"><code>--from=VALUE</code></td>
+<td data-label="Meaning">The folder holding creed/ and advisor/</td>
+<td data-label="Default"></td>
+</tr>
+<tr>
+<td data-label="Option"><code>--today=VALUE</code></td>
+<td data-label="Meaning">The date to stamp and to judge PHP support by; default today</td>
+<td data-label="Default"></td>
 </tr>
 <tr>
 <td data-label="Option"><code>--silent</code></td>
