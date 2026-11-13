@@ -44,6 +44,7 @@
 Versioning once 1.0 is out.</p>
 <h2 id="unreleased"><span class="docs-heading-tail"><span>Unreleased</span><a class="docs-heading-link" aria-label="Link to this section" href="#unreleased">#</a></span></h2>
 <ul>
+<li>Added: <code>src/Site</code> generator drivers, the first piece of squire site build (ADR-0023).</li>
 <li>Added: <code>squire facts --snapshot</code> rebuilds <code>.squire/facts.json</code> offline from the CREED policy and ADVISOR project data in vendor, with the first three regions (<code>cast-md</code>, <code>php-supported-md</code>, <code>preflight-pin</code>).</li>
 <li>Fixed: the GitHub contract legs (<code>contract-parity-sh</code>, <code>contract-parity-pwsh</code>, and <code>contract-image</code> on linux/amd64 and linux/arm64) failed since <code>squire init</code> stopped writing the <code>parity</code> group by default (D-095): the fixture had no <code>.squire/Dockerfile</code> or <code>.env.squire.example</code>. The workflow and <code>scripts/contract-image.sh</code> now ask for it with <code>--only=release,parity</code>.</li>
 <li>Added: <code>squire facts</code> fills marked regions from a committed <code>.squire/facts.json</code>, and <code>squire facts --check</code> fails CI on drift (D-109; the snapshot writer comes next).</li>
