@@ -1,0 +1,8 @@
+{
+  "title": "Demo",
+  "tagline": "A tiny docs site.",
+  "items": [
+    { "title": "Overview", "path": "index" },
+    { "title": "Guides", "items": [ { "title": "Start", "path": "guides/start" } ] }
+  ]
+}
