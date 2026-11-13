@@ -6,6 +6,8 @@ namespace Waynestate\Squire\Tests;
 
 use Waynestate\Squire\Squire;
 use Waynestate\Squire\Template\Catalog;
+use Waynestate\Squire\Template\Template;
+use Waynestate\Squire\ToolError;
 
 /**
  * The hardening the image files promise, checked in the files themselves. scripts/contract-image.sh checks the same
@@ -41,6 +43,30 @@ final class ImageHardeningTest extends SquireTestCase
         }
 
         return false;
+    }
+
+    /** The catalog's copy of the fallback base template. */
+    private function fallbackTemplate(): Template
+    {
+        foreach (Catalog::all() as $template) {
+            if ($template->destination === '.squire/base-fallback.Dockerfile') {
+                return $template;
+            }
+        }
+
+        self::fail('the catalog lost the fallback base template');
+    }
+
+    /** The fallback base rendered for every line Squire has a pin for. @return array<string, string> */
+    private function fallbackRendered(): array
+    {
+        $catalog = new Catalog(Squire::templatesDir());
+        $rendered = [];
+        foreach (Squire::FALLBACK_PHP_IMAGES as $line => $image) {
+            $rendered[$line] = $catalog->content($this->fallbackTemplate(), $line);
+        }
+
+        return $rendered;
     }
 
     // --- Apache says less about itself -------------------------------------------------------------------------------
@@ -383,6 +409,16 @@ final class ImageHardeningTest extends SquireTestCase
     {
         // A file that pulls only local names (the app image on ${BASE_IMAGE}, Sail on sail-base) has nothing to pin.
         $this->addToAssertionCount(1);
+        if ($path === 'templates/common/.squire/base-fallback.Dockerfile') {
+            // The template's PHP image is the {{PHP_FALLBACK_IMAGE}} token; check what each line renders.
+            foreach ($this->fallbackRendered() as $line => $text) {
+                foreach ($this->pulledImages($text) as $ref) {
+                    self::assertMatchesRegularExpression(self::PINNED, $ref, $line . ': ' . $ref . ' moves under you without a digest');
+                }
+            }
+
+            return;
+        }
         foreach ($this->pulledImages($this->repoFile($path)) as $ref) {
             self::assertMatchesRegularExpression(self::PINNED, $ref, $path . ': ' . $ref . ' moves under you without a digest');
         }
@@ -390,10 +426,31 @@ final class ImageHardeningTest extends SquireTestCase
 
     public function testTheFallbackBasePinsPhpNodeAndComposer(): void
     {
-        $images = $this->pulledImages($this->read('common/.squire/base-fallback.Dockerfile'));
+        // The template's PHP image is the {{PHP_FALLBACK_IMAGE}} token, so check what each line renders.
+        foreach ($this->fallbackRendered() as $line => $text) {
+            $images = $this->pulledImages($text);
+            $phpPrefix = 'docker.io/library/php:' . explode('r', $line, 2)[0] . '.';
+            foreach ([$phpPrefix, 'docker.io/library/node:22.', 'docker.io/library/composer:2.'] as $prefix) {
+                self::assertNotEmpty(array_filter($images, static fn(string $r): bool => str_starts_with($r, $prefix)), $line . ': ' . $prefix . ' is pinned in the fallback base');
+            }
+        }
+    }
 
-        foreach (['docker.io/library/php:8.4.', 'docker.io/library/node:22.', 'docker.io/library/composer:2.'] as $prefix) {
-            self::assertNotEmpty(array_filter($images, static fn(string $r): bool => str_starts_with($r, $prefix)), $prefix . ' is pinned in the fallback base');
+    public function testTheFallbackBaseRendersTheLineSOfficialImage(): void
+    {
+        foreach (Squire::FALLBACK_PHP_IMAGES as $line => $image) {
+            self::assertStringContainsString('ARG PHP_IMAGE=' . $image, $this->fallbackRendered()[$line], $line . ' renders its own official image');
+        }
+    }
+
+    public function testTheFallbackBaseRefusesALineWhoseMinorItDoesNotKnow(): void
+    {
+        try {
+            (new Catalog(Squire::templatesDir()))->content($this->fallbackTemplate(), '8.9r1');
+            self::fail('a line Squire does not know threw no ToolError');
+        } catch (ToolError $e) {
+            self::assertStringContainsString('8.4r5', $e->getMessage());
+            self::assertStringContainsString('8.5r3', $e->getMessage());
         }
     }
 
@@ -418,8 +475,18 @@ final class ImageHardeningTest extends SquireTestCase
     {
         // Buildah and Podman refuse a short name such as composer:2 in COPY --from (and in FROM, unless an alias
         // happens to exist) where their short-name mode is enforcing. A full name works for Docker too.
-        $text = $this->repoFile($path);
         $this->addToAssertionCount(1);
+        if ($path === 'templates/common/.squire/base-fallback.Dockerfile') {
+            // The template's PHP image is the {{PHP_FALLBACK_IMAGE}} token; check what each line renders.
+            foreach ($this->fallbackRendered() as $line => $text) {
+                foreach ($this->pulledImages($text) as $ref) {
+                    self::assertMatchesRegularExpression('#^[a-z0-9.-]+\.[a-z]+(:\d+)?/#', $ref, $line . ': ' . $ref . ' is a short name; write its registry too');
+                }
+            }
+
+            return;
+        }
+        $text = $this->repoFile($path);
         foreach ($this->pulledImages($text) as $ref) {
             self::assertMatchesRegularExpression('#^[a-z0-9.-]+\.[a-z]+(:\d+)?/#', $ref, $path . ': ' . $ref . ' is a short name; write its registry too');
         }
@@ -428,14 +495,16 @@ final class ImageHardeningTest extends SquireTestCase
     public function testTheFallbackBaseTakesEveryImageAsABuildArgument(): void
     {
         // A pull-through proxy or mirror swaps the registry part with a build argument; an image named inline in
-        // COPY --from could not be swapped without editing the file.
-        $base = $this->read('common/.squire/base-fallback.Dockerfile');
-        foreach (['PHP_IMAGE', 'NODE_IMAGE', 'COMPOSER_IMAGE'] as $arg) {
-            self::assertMatchesRegularExpression('#^ARG ' . $arg . '=docker\.io/library/\S+@sha256:[0-9a-f]{64}$#m', $base, $arg . ' defaults to a full, pinned name');
+        // COPY --from could not be swapped without editing the file. The PHP image is the {{PHP_FALLBACK_IMAGE}}
+        // token, so check what each line renders.
+        foreach ($this->fallbackRendered() as $line => $base) {
+            foreach (['PHP_IMAGE', 'NODE_IMAGE', 'COMPOSER_IMAGE'] as $arg) {
+                self::assertMatchesRegularExpression('#^ARG ' . $arg . '=docker\.io/library/\S+@sha256:[0-9a-f]{64}$#m', $base, $line . ': ' . $arg . ' defaults to a full, pinned name');
+            }
+            self::assertStringContainsString('FROM ${COMPOSER_IMAGE} AS composer', $base);
+            self::assertStringContainsString('COPY --from=composer /usr/bin/composer /usr/local/bin/composer', $base);
+            self::assertDoesNotMatchRegularExpression('/--from=\S*:/', $base, 'COPY --from names a stage, never an image');
         }
-        self::assertStringContainsString('FROM ${COMPOSER_IMAGE} AS composer', $base);
-        self::assertStringContainsString('COPY --from=composer /usr/bin/composer /usr/local/bin/composer', $base);
-        self::assertDoesNotMatchRegularExpression('/--from=\S*:/', $base, 'COPY --from names a stage, never an image');
     }
 
     public function testTheOracleParityLinesArePinnedAndTheDefaultIsThe84Row(): void

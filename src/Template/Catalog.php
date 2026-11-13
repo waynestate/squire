@@ -188,6 +188,9 @@ final class Catalog
     /**
      * The template's content, with LF line endings so a checkout with CRLF compares equal. Every {{PHP_LINE}}
      * becomes the app's PHP line; the legacy default keeps callers that do not name one on the line they have.
+     * {{PHP_FALLBACK_IMAGE}} becomes the official php image the line's Citadel image is built on (D-113), so the
+     * fallback base follows the app's line: a line Squire has not pinned rides the pin of the known line with its
+     * minor, and a minor Squire does not know is refused by name.
      */
     public function content(Template $template, string $phpLine = Squire::LEGACY_PHP_LINE): string
     {
@@ -197,7 +200,35 @@ final class Catalog
             throw new ToolError(sprintf('Template file is missing from the package: %s', $template->source()));
         }
 
-        return str_replace('{{PHP_LINE}}', $phpLine, self::normalize($content));
+        return str_replace(
+            ['{{PHP_LINE}}', '{{PHP_FALLBACK_IMAGE}}'],
+            [$phpLine, self::fallbackImage($phpLine)],
+            self::normalize($content),
+        );
+    }
+
+    /**
+     * The fallback base image for a PHP line: the line's own pin when Squire has one, else the pin of the known
+     * line with the same minor (8.5r4 rides 8.5r3's image). A minor Squire does not know is a tool error naming
+     * the lines it does.
+     */
+    private static function fallbackImage(string $phpLine): string
+    {
+        if (isset(Squire::FALLBACK_PHP_IMAGES[$phpLine])) {
+            return Squire::FALLBACK_PHP_IMAGES[$phpLine];
+        }
+        $minor = explode('r', $phpLine, 2)[0];
+        foreach (Squire::FALLBACK_PHP_IMAGES as $line => $image) {
+            if (explode('r', $line, 2)[0] === $minor) {
+                return $image;
+            }
+        }
+
+        throw new ToolError(sprintf(
+            'No fallback base image for PHP line "%s". Squire knows: %s.',
+            $phpLine,
+            implode(', ', array_keys(Squire::FALLBACK_PHP_IMAGES)),
+        ));
     }
 
     public static function normalize(string $content): string

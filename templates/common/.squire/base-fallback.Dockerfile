@@ -1,11 +1,11 @@
 # syntax=docker/dockerfile:1
 #
-# FALLBACK base image: an approximation of Citadel's PHP 8.4 image
-# for developers who cannot build or pull the real one. Same official php:8.4.x-apache base, same users, Apache
-# modules, PHP extensions and Node 22. It leaves out what local work rarely needs: Oracle Instant Client (oci8),
-# imagick and ssmtp. It is NOT the real image, so run the real one before you trust a release (S35).
+# FALLBACK base image: an approximation of Citadel's PHP image for the app's line
+# (citadel/php-apache:{{PHP_LINE}}) for developers who cannot build or pull the real one. Same official php image,
+# same users, Apache modules, PHP extensions and Node 22. It leaves out what local work rarely needs: Oracle
+# Instant Client (oci8), imagick and ssmtp. It is NOT the real image, so run the real one before you trust a release (S35).
 # scripts/parity.sh and parity.ps1 build it for you with `--fallback`:
-#   docker build -f .squire/base-fallback.Dockerfile -t squire/php-parity-base:8.4 .squire
+#   docker build -f .squire/base-fallback.Dockerfile -t squire/php-parity-base:{{PHP_LINE}} .squire
 
 # Pinned by the digest of each multi-arch list, so the same bytes build on an arm64 laptop or CI runner
 # and an amd64 server. To bump one, see Image hardening in the docs: read the new list's digest with
@@ -13,7 +13,7 @@
 # Every name is written in full, registry and all, because Buildah and Podman refuse a short name (`composer:2`)
 # where their short-name mode is enforcing. Each one is a build argument, so a pull-through proxy or a mirror swaps
 # only the registry part and keeps the tag and digest (Image hardening in the docs has the recipe).
-ARG PHP_IMAGE=docker.io/library/php:8.4.27-apache@sha256:884f64b47174de2c0e813270fe7b24a18605729fcebe201302d98c38805530d0
+ARG PHP_IMAGE={{PHP_FALLBACK_IMAGE}}
 ARG NODE_IMAGE=docker.io/library/node:22.23.4-trixie-slim@sha256:be1e2a3dc2c4fd68cdfadad2a696a280e0d2749098bee509230174d72fb768c6
 ARG COMPOSER_IMAGE=docker.io/library/composer:2.11.2@sha256:5bcb28b8d0edc4091125f8218f9d088f998bdfc843f8fbb9a4beb4dcd8625684
 FROM ${NODE_IMAGE} AS node

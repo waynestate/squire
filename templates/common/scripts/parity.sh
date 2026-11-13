@@ -17,7 +17,7 @@ cd "$(dirname "$0")/.."
 
 COMPOSE_FILE="docker-compose.squire.yml"
 ENV_FILE=".env.squire"
-FALLBACK_TAG="squire/php-parity-base:8.4"
+FALLBACK_TAG="squire/php-parity-base:{{PHP_LINE}}"
 
 die() {
     echo "parity: $*" >&2

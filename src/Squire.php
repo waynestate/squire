@@ -32,6 +32,12 @@ final class Squire
     /** The PHP line new apps are written on. */
     public const DEFAULT_PHP_LINE = '8.5r3';
 
+    /** the official php image each Citadel line is built on, for the fallback base. */
+    public const FALLBACK_PHP_IMAGES = [
+        '8.4r5' => 'docker.io/library/php:8.4.27-apache@sha256:884f64b47174de2c0e813270fe7b24a18605729fcebe201302d98c38805530d0',
+        '8.5r3' => 'docker.io/library/php:8.5.12-apache@sha256:08af36df144462d84c7f16190557eec06cb9f656882685610b712a15eec54d46',
+    ];
+
     /** Where Parity lives: the stack's own tool for running Citadel on your computer (ADR-0022). */
     public const PARITY_URL = 'https://git.wayne.edu/enterprise-apps/parity';
 

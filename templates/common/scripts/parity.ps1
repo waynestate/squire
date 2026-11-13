@@ -35,7 +35,7 @@ Set-Location -LiteralPath (Join-Path -Path $PSScriptRoot -ChildPath '..')
 
 $ComposeFile = 'docker-compose.squire.yml'
 $EnvFile = '.env.squire'
-$FallbackTag = 'squire/php-parity-base:8.4'
+$FallbackTag = 'squire/php-parity-base:{{PHP_LINE}}'
 
 function Exit-Parity {
     param([string]$Message)
