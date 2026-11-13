@@ -264,15 +264,25 @@ final class SiteCommand extends Command
     }
 
     /**
-     * Joins $root and $relative and removes dot segments; null when the result leaves $root or climbs above it.
-     * Purely lexical: $out may not exist yet.
+     * Resolves $relative against $root and returns the joined path with the root's prefix kept: a Windows drive
+     * letter (C: or c:, followed by /), a leading / for an absolute root, or nothing for a relative root; forward
+     * slashes only. Null when $relative is absolute (starts with / or a drive letter), names the root itself, or
+     * climbs to the root or above through .. segments. Purely lexical: the output may not exist yet.
      */
-    private static function inside(string $root, string $relative): ?string
+    public static function inside(string $root, string $relative): ?string
     {
-        $joined = $root . '/' . $relative;
-        $absolute = str_starts_with($joined, '/') || preg_match('/^[A-Za-z]:/', $joined) === 1;
+        if (str_starts_with($relative, '/') || preg_match('/^[A-Za-z]:/', $relative) === 1) {
+            return null;
+        }
+        $prefix = '';
+        if (preg_match('/^([A-Za-z]:\/)/', $root, $matches) === 1) {
+            $prefix = $matches[1];
+        } elseif (str_starts_with($root, '/')) {
+            $prefix = '/';
+        }
+        $body = substr($root, strlen($prefix));
         $segments = [];
-        foreach (explode('/', $joined) as $segment) {
+        foreach (explode('/', $body . '/' . $relative) as $segment) {
             if ($segment === '' || $segment === '.') {
                 continue;
             }
@@ -282,13 +292,12 @@ final class SiteCommand extends Command
             }
             $segments[] = $segment;
         }
-        $rootSegments = array_values(array_filter(explode('/', $root), static fn(string $segment): bool => $segment !== '' && $segment !== '.'));
+        $rootSegments = array_values(array_filter(explode('/', $body), static fn(string $segment): bool => $segment !== '' && $segment !== '.'));
         if (count($segments) <= count($rootSegments) || array_slice($segments, 0, count($rootSegments)) !== $rootSegments) {
             return null;
         }
-        $out = implode('/', $segments);
 
-        return $absolute ? '/' . $out : $out;
+        return $prefix . implode('/', $segments);
     }
 
     /** Removes a folder tree; a missing folder is fine. */
