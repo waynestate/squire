@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MySQL upgrade path | Squire docs</title>
 <meta name="description" content="How to move an app&#039;s database from MySQL 5.6.51 to 8.4 LTS one series at a time: the checks to run before each hop, a backup you can trust, the driver and Laravel floor, a read-only pre-upgrade script, and a rollback for every hop, since MySQL cannot downgrade in place across series.">
-<meta name="docs-version" content="0.10.9">
+<meta name="docs-version" content="0.11.0">
 <link rel="stylesheet" href="../../assets/wayne-ui/wayne-ui.css">
 <link rel="stylesheet" href="../../assets/docs.css">
 <link rel="stylesheet" href="../../docs/theme/squire.css">
@@ -28,7 +28,7 @@
       <a href="../../index.html#party">The party</a>
       <a href="../../docs/index.html" aria-current="page">Documentation</a>
     </nav>
-    <span class="brand__version">v0.10.9</span>
+    <span class="brand__version">v0.11.0</span>
   </div>
 </header><div class="docs-layout docs-layout--toc">
   <details class="docs-menu">
@@ -73,7 +73,7 @@
 </tr>
 </tbody>
 </table></div>
-<p>The path stops at 8.4. MySQL 9.7 became the next LTS on 2026-04-21, and the 8.4 manual lists &quot;next LTS series&quot; as a supported step, so 8.4 to 9.7 would be a fourth hop later. Whether the plan continues to 9.7 is an open decision, and this guide does not make it. Whether PHP's MySQL drivers and Laravel are tested against 9.7 has not been checked.</p>
+<p>The supported path ends at MySQL 8.4 LTS. MySQL 9.7 became the next LTS on 2026-04-21, and the 8.4 manual lists &quot;next LTS series&quot; as a supported step, so 8.4 to 9.7 would be a fourth hop later. That hop is not part of this plan: it is revisited once Citadel has reached 8.4 and PHP's MySQL driver and Laravel support for 9.7 has been checked (SQUIRE-14). Until then, plan on three hops and stay on 8.4.</p>
 <p>Whether one app can skip the hops by dumping its own database from 5.6 and loading it into a fresh 8.4 server has not been confirmed. That is an experiment, recorded <a href="#the-dump-to-fresh-server-experiment">at the end of this page</a>; until it has a result, plan on the three hops.</p>
 <h2 id="before-you-start">Before you <span class="docs-heading-tail"><span>start</span><a class="docs-heading-link" aria-label="Link to this section" href="#before-you-start">#</a></span></h2>
 <ul>
@@ -218,7 +218,7 @@ docker run --rm -it -v &quot;${PWD}:/backup&quot; mysql:5.6.51 \
 <h3 id="rollback-2"><span class="docs-heading-tail"><span>Rollback</span><a class="docs-heading-link" aria-label="Link to this section" href="#rollback-2">#</a></span></h3>
 <p>This is the one hop with a documented way back other than a restore. Going from 8.4 to 8.0 works by logical dump and load or by replication, &quot;only supported for rollback purposes&quot; and only while no new 8.4 server features have been applied to the data. So: restore the 8.0 dump to a fresh 8.0 server, or keep an 8.0 server one hop behind, fed by replication from 8.4, until you are sure. Do not adopt 8.4-only features until the rollback window has closed.</p>
 <h2 id="after-8-4">After <span class="docs-heading-tail"><span>8.4</span><a class="docs-heading-link" aria-label="Link to this section" href="#after-8-4">#</a></span></h2>
-<p>Stay on 8.4 and take its patch releases (the latest was 8.4.13, 2026-09-30); an in-place move within the 8.4 series, up or down, is supported. Whether to continue to 9.7 LTS is an open decision (see <a href="#the-path-and-why-it-has-three-hops">the path</a>).</p>
+<p>Stay on 8.4 and take its patch releases (the latest was 8.4.13, 2026-09-30); an in-place move within the 8.4 series, up or down, is supported. The supported path ends here: 9.7 LTS is a later hop, revisited once Citadel has reached 8.4 and PHP and Laravel driver support for 9.7 is checked (see <a href="#the-path-and-why-it-has-three-hops">the path</a>).</p>
 <h2 id="the-dump-to-fresh-server-experiment">The dump-to-fresh-server <span class="docs-heading-tail"><span>experiment</span><a class="docs-heading-link" aria-label="Link to this section" href="#the-dump-to-fresh-server-experiment">#</a></span></h2>
 <p>The open question: can one app dump its own schema from 5.6.51 (with the 5.6.51 client) and load it straight into a fresh 8.4 server, skipping the hops for that app's data? MySQL documents the series-by-series path for upgrading a server, and this shortcut is not confirmed. The experiment loads a real app's dump into a fresh 8.4 server, runs its migrations and test suite against it, and records what failed. Until it has a result here, follow the three hops.</p>
 <h3 id="result"><span class="docs-heading-tail"><span>Result</span><a class="docs-heading-link" aria-label="Link to this section" href="#result">#</a></span></h3>
@@ -250,7 +250,7 @@ docker run --rm -it -v &quot;${PWD}:/backup&quot; mysql:5.6.51 \
   <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item"><a href="#the-path-and-why-it-has-three-hops">The path, and why it has three hops</a></li><li class="docs-toc__item"><a href="#before-you-start">Before you start</a></li><li class="docs-toc__item"><a href="#three-tools-you-will-use">Three tools you will use</a></li><li class="docs-toc__item"><a href="#the-pre-upgrade-script">The pre-upgrade script</a></li><li class="docs-toc__item"><a href="#what-a-backup-means-here">What a backup means here</a></li><li class="docs-toc__item"><a href="#rollback-for-every-hop">Rollback, for every hop</a></li><li class="docs-toc__item"><a href="#hop-1-5-6-51-to-5-7">Hop 1: 5.6.51 to 5.7</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#check-first">Check first</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#back-up">Back up</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#driver-and-laravel-floor">Driver and Laravel floor</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#rollback">Rollback</a></li><li class="docs-toc__item"><a href="#hop-2-5-7-to-8-0">Hop 2: 5.7 to 8.0</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#check-first-1">Check first</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#character-set-and-collation-on-purpose">Character set and collation, on purpose</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#back-up-1">Back up</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#driver-and-laravel-floor-1">Driver and Laravel floor</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#rollback-1">Rollback</a></li><li class="docs-toc__item"><a href="#hop-3-8-0-to-8-4-lts">Hop 3: 8.0 to 8.4 LTS</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#check-first-2">Check first</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#back-up-2">Back up</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#driver-and-laravel-floor-2">Driver and Laravel floor</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#rollback-2">Rollback</a></li><li class="docs-toc__item"><a href="#after-8-4">After 8.4</a></li><li class="docs-toc__item"><a href="#the-dump-to-fresh-server-experiment">The dump-to-fresh-server experiment</a></li><li class="docs-toc__item docs-toc__item--sub"><a href="#result">Result</a></li><li class="docs-toc__item"><a href="#not-verified">Not verified</a></li><li class="docs-toc__item"><a href="#sources">Sources</a></li></ul></nav>
 </div>
 <footer class="docs-footer">
-  <span>Documents Squire <span data-docs-version>0.10.9</span></span>
+  <span>Documents Squire <span data-docs-version>0.11.0</span></span>
   <span><a rel="noopener" href="https://github.com/waynestate/squire">Source</a> <a href="mysql-upgrade-path.md">Markdown</a></span>
 </footer>
 </body>

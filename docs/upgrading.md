@@ -1,6 +1,6 @@
 ---
 title: "Upgrading"
-description: "What changed in each released minor of Squire (0.10.9, 0.10.8, 0.10.5, 0.10.4, 0.10.3, 0.10.2, 0.10.1, 0.10.0, 0.9.0, 0.8.0, 0.7.1, 0.7.0, 0.6.0, 0.5.0, 0.4.0 and the 0.3.x line), the steps to move an app to them, and how to verify the upgrade held."
+description: "What changed in each released minor of Squire (0.11.0, 0.10.9, 0.10.8, 0.10.5, 0.10.4, 0.10.3, 0.10.2, 0.10.1, 0.10.0, 0.9.0, 0.8.0, 0.7.1, 0.7.0, 0.6.0, 0.5.0, 0.4.0 and the 0.3.x line), the steps to move an app to them, and how to verify the upgrade held."
 ---
 
 # Upgrading
@@ -16,6 +16,22 @@ vendor/bin/squire init --check
 vendor/bin/squire update --dry-run
 
 `squire init --check` reports when your copies have drifted from the templates; it exits `0` when they match and `1` when they have. `squire update --dry-run` prints the plan and writes nothing; it exits `1` when an edited file still differs from the template. Exit `2` means the tool itself could not run. For the full command reference, see [Commands](reference/commands.md).
+
+## 0.11.0 (2026-11-13)
+
+No breaks, and no template changes in the kits, so `squire update` has nothing new to take. What is new:
+
+- `squire facts` fills marked regions from a committed `.squire/facts.json`, `squire facts --check` fails CI on drift, and `squire facts --snapshot` rebuilds the file offline from CREED and ADVISOR data in vendor.
+- `squire site build` builds a pinned library's docs site and agent-ready files from its tag, with `--check` to compare against the committed output (ADR-0023).
+- The MySQL upgrade guide says the supported path ends at 8.4 LTS.
+
+### Steps
+
+1. `composer update waynestate/squire` (the `^0.10` constraint does not take 0.11; widen it to `^0.11`).
+
+### How to verify
+
+`squire init --check` exits `0`, and `squire update --dry-run` lists nothing left to take.
 
 ## 0.10.9 (2026-11-11)
 

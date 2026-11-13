@@ -19,7 +19,7 @@ MySQL supports upgrading one release series at a time. Its manual says an upgrad
 | 2 | 5.7 | 8.0 | The next series. 8.0 left extended support on 2026-04-30, so it is a stepping stone, never a place to stay. |
 | 3 | 8.0 | 8.4 LTS | The target. Premier support to 2029, extended support to 2032 ([endoflife.date](https://endoflife.date/mysql)). |
 
-The path stops at 8.4. MySQL 9.7 became the next LTS on 2026-04-21, and the 8.4 manual lists "next LTS series" as a supported step, so 8.4 to 9.7 would be a fourth hop later. Whether the plan continues to 9.7 is an open decision, and this guide does not make it. Whether PHP's MySQL drivers and Laravel are tested against 9.7 has not been checked.
+The supported path ends at MySQL 8.4 LTS. MySQL 9.7 became the next LTS on 2026-04-21, and the 8.4 manual lists "next LTS series" as a supported step, so 8.4 to 9.7 would be a fourth hop later. That hop is not part of this plan: it is revisited once Citadel has reached 8.4 and PHP's MySQL driver and Laravel support for 9.7 has been checked (SQUIRE-14). Until then, plan on three hops and stay on 8.4.
 
 Whether one app can skip the hops by dumping its own database from 5.6 and loading it into a fresh 8.4 server has not been confirmed. That is an experiment, recorded [at the end of this page](#the-dump-to-fresh-server-experiment); until it has a result, plan on the three hops.
 
@@ -181,7 +181,7 @@ This is the one hop with a documented way back other than a restore. Going from 
 
 ## After 8.4
 
-Stay on 8.4 and take its patch releases (the latest was 8.4.13, 2026-09-30); an in-place move within the 8.4 series, up or down, is supported. Whether to continue to 9.7 LTS is an open decision (see [the path](#the-path-and-why-it-has-three-hops)).
+Stay on 8.4 and take its patch releases (the latest was 8.4.13, 2026-09-30); an in-place move within the 8.4 series, up or down, is supported. The supported path ends here: 9.7 LTS is a later hop, revisited once Citadel has reached 8.4 and PHP and Laravel driver support for 9.7 is checked (see [the path](#the-path-and-why-it-has-three-hops)).
 
 ## The dump-to-fresh-server experiment
 

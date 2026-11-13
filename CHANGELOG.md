@@ -3,8 +3,9 @@
 All notable changes to Squire are recorded here. The format follows Keep a Changelog; the project follows Semantic
 Versioning once 1.0 is out.
 
-## Unreleased
+## 0.11.0 (2026-11-13)
 
+- Changed: the MySQL upgrade guide now says plainly that the supported path ends at MySQL 8.4 LTS; 9.7 LTS is a later hop, revisited once Citadel has reached 8.4 and PHP and Laravel driver support for 9.7 is checked (SQUIRE-14).
 - Added: squire site build runs docs.json block commands from the installed library and copies the pin's files into the build (ADR-0023).
 - Fixed: squire site build keeps a Windows drive letter in the output path.
 - Added: squire site build --check compares a fresh build with the committed output and writes nothing (ADR-0023).
