@@ -14,6 +14,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 - Changed: Squire's own `deploy/` takes the 0.11.1 templates (`squire update`): the fallback base names its line (8.4r5), the release script, the parity scripts with their deprecation note, and the compose and env examples (D-113 step 1).
 - Changed: CI pins Preflight 0.9.0 (components and the a11y checker copy).
+- CI: the GitHub workflow calls Preflight 0.9.0's reusable workflow (commit fb73b53), the release the GitLab pipeline pins.
 
 ## 0.11.1 (2026-11-13) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-11-1-2026-11-13)
 
