@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e7488ea45a6266a49528f6c181382be8",
+    "content-hash": "fc3f4ad12b5c2c299af085b2a3365329",
     "packages": [
         {
             "name": "psr/container",
@@ -956,16 +956,16 @@
         },
         {
             "name": "laravel/pint",
-            "version": "v1.32.1",
+            "version": "v1.32.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/pint.git",
-                "reference": "006bd7825eb01daf92959d060b89cd9514fe4253"
+                "reference": "1cf8e0320bed4b3c6e51df92039a5636c3887728"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/pint/zipball/006bd7825eb01daf92959d060b89cd9514fe4253",
-                "reference": "006bd7825eb01daf92959d060b89cd9514fe4253",
+                "url": "https://api.github.com/repos/laravel/pint/zipball/1cf8e0320bed4b3c6e51df92039a5636c3887728",
+                "reference": "1cf8e0320bed4b3c6e51df92039a5636c3887728",
                 "shasum": ""
             },
             "require": {
@@ -976,15 +976,15 @@
                 "php": "^8.3.0"
             },
             "require-dev": {
-                "composer/semver": "^3.4.4",
-                "friendsofphp/php-cs-fixer": "^3.95.25",
-                "illuminate/view": "^13.31.0",
-                "larastan/larastan": "^3.11.0",
+                "composer/semver": "^3.6.0",
+                "friendsofphp/php-cs-fixer": "^3.95.30",
+                "illuminate/view": "^13.42.0",
+                "larastan/larastan": "^3.15.0",
                 "laravel-zero/framework": "^13.0.0",
-                "laravel/agent-detector": "^2.0.2",
-                "laravel/prompts": "^0.3.24",
+                "laravel/agent-detector": "^2.0.5",
+                "laravel/prompts": "^0.3.27",
                 "mockery/mockery": "^1.6.15",
-                "nunomaduro/termwind": "^2.4.0",
+                "nunomaduro/termwind": "^2.4.1",
                 "pestphp/pest": "^4.7.8"
             },
             "bin": [
@@ -1022,8 +1022,8 @@
                 "issues": "https://github.com/laravel/pint/issues",
                 "source": "https://github.com/laravel/pint"
             },
-            "time": "2026-09-10T10:47:55+00:00",
-            "published-time": "2026-09-10T10:48:31+00:00"
+            "time": "2026-11-11T16:45:13+00:00",
+            "published-time": "2026-11-11T16:45:39+00:00"
         },
         {
             "name": "league/commonmark",
@@ -4353,16 +4353,16 @@
         },
         {
             "name": "spaze/phpstan-disallowed-calls",
-            "version": "v4.15.0",
+            "version": "v4.15.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spaze/phpstan-disallowed-calls.git",
-                "reference": "388075908225e22c46b9622177d1629203d41c1f"
+                "reference": "8eb041156055055e4aced679e9c166f4b0a4eba6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spaze/phpstan-disallowed-calls/zipball/388075908225e22c46b9622177d1629203d41c1f",
-                "reference": "388075908225e22c46b9622177d1629203d41c1f",
+                "url": "https://api.github.com/repos/spaze/phpstan-disallowed-calls/zipball/8eb041156055055e4aced679e9c166f4b0a4eba6",
+                "reference": "8eb041156055055e4aced679e9c166f4b0a4eba6",
                 "shasum": ""
             },
             "require": {
@@ -4408,7 +4408,7 @@
             ],
             "support": {
                 "issues": "https://github.com/spaze/phpstan-disallowed-calls/issues",
-                "source": "https://github.com/spaze/phpstan-disallowed-calls/tree/v4.15.0"
+                "source": "https://github.com/spaze/phpstan-disallowed-calls/tree/v4.15.1"
             },
             "funding": [
                 {
@@ -4416,8 +4416,8 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-10-13T00:31:30+00:00",
-            "published-time": "2026-10-13T00:56:49+00:00"
+            "time": "2026-11-12T11:38:35+00:00",
+            "published-time": "2026-11-12T11:41:52+00:00"
         },
         {
             "name": "staabm/side-effects-detector",
@@ -4967,16 +4967,16 @@
         },
         {
             "name": "waynestate/pinstripe",
-            "version": "0.3.1",
+            "version": "0.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/waynestate/pinstripe.git",
-                "reference": "7f2d774b11c12c050ca8d2b22ee03cf081fdcd22"
+                "reference": "8572c46f2dc0f627664c05ea3412ad7fedf2196c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/waynestate/pinstripe/zipball/7f2d774b11c12c050ca8d2b22ee03cf081fdcd22",
-                "reference": "7f2d774b11c12c050ca8d2b22ee03cf081fdcd22",
+                "url": "https://api.github.com/repos/waynestate/pinstripe/zipball/8572c46f2dc0f627664c05ea3412ad7fedf2196c",
+                "reference": "8572c46f2dc0f627664c05ea3412ad7fedf2196c",
                 "shasum": ""
             },
             "require": {
@@ -4998,7 +4998,7 @@
             },
             "suggest": {
                 "larastan/larastan": "^3.13 (Laravel apps: include phpstan/laravel.neon)",
-                "rector/rector": "^2.8 (apps: use rector/base.php from your rector.php)"
+                "rector/rector": "^2.8 (apps: use rector/base.php from your rector.php, rector/strict-types.php to declare strict types file by file, and rector/levels.php to climb one rule level at a time)"
             },
             "bin": [
                 "bin/pinstripe-baseline"
@@ -5024,8 +5024,8 @@
                 "issues": "https://git.wayne.edu/enterprise-apps/pinstripe/-/issues",
                 "source": "https://github.com/waynestate/pinstripe"
             },
-            "time": "2026-11-10T02:31:59+00:00",
-            "published-time": "2026-11-10T02:52:13+00:00"
+            "time": "2026-11-11T12:38:31+00:00",
+            "published-time": "2026-11-11T23:28:29+00:00"
         },
         {
             "name": "webmozart/assert",
