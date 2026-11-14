@@ -13,6 +13,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 ## \[Unreleased\] [#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
 - Changed: Squire's own `deploy/` takes the 0.11.1 templates (`squire update`): the fallback base names its line (8.4r5), the release script, the parity scripts with their deprecation note, and the compose and env examples (D-113 step 1).
+- Changed: CI pins Preflight 0.9.0 (components and the a11y checker copy).
 
 ## 0.11.1 (2026-11-13) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-11-1-2026-11-13)
 
