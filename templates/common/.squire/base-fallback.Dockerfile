@@ -14,7 +14,7 @@
 # where their short-name mode is enforcing. Each one is a build argument, so a pull-through proxy or a mirror swaps
 # only the registry part and keeps the tag and digest (Image hardening in the docs has the recipe).
 ARG PHP_IMAGE={{PHP_FALLBACK_IMAGE}}
-ARG NODE_IMAGE=docker.io/library/node:22.23.4-trixie-slim@sha256:be1e2a3dc2c4fd68cdfadad2a696a280e0d2749098bee509230174d72fb768c6
+ARG NODE_IMAGE=docker.io/library/node:22.23.5-trixie-slim@sha256:68c76cfad89921b927eae28ba21407475e29d0ce450afcdbe70c1532db042b64
 ARG COMPOSER_IMAGE=docker.io/library/composer:2.11.2@sha256:5bcb28b8d0edc4091125f8218f9d088f998bdfc843f8fbb9a4beb4dcd8625684
 FROM ${NODE_IMAGE} AS node
 
