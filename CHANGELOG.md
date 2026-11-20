@@ -5,6 +5,8 @@ Versioning once 1.0 is out.
 
 ## [Unreleased]
 
+- Added: PHP line 8.6r1 is selectable (`squire init --php 8.6r1`): the fallback base for it is the official `php:8.6.0-apache`, pinned by its multi-arch list digest. The default line stays 8.5r3. Citadel's 8.6r1 is ZTS with Apache prefork, with PEAR/PECL, mbstring, oci8, and redis and imagick built with remirepo patches; it has no xdebug, pcov or apcu. The fallback stand-in has none of those extensions and is not proven with the container contract yet.
+
 ## 0.11.2 (2026-11-19)
 
 - Changed: the kit templates take newer pins: the HAProxy digest in `docker-compose.squire.yml` (common and vue kits) and the Node 22.23.5 digest in `.squire/base-fallback.Dockerfile`. Run `squire update` to take them.

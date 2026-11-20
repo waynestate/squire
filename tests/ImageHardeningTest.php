@@ -451,6 +451,19 @@ final class ImageHardeningTest extends SquireTestCase
         } catch (ToolError $e) {
             self::assertStringContainsString('8.4r5', $e->getMessage());
             self::assertStringContainsString('8.5r3', $e->getMessage());
+            self::assertStringContainsString('8.6r1', $e->getMessage());
+        }
+    }
+
+    public function testTheFallbackBaseLetsALaterRevisionRideTheKnownMinorPin(): void
+    {
+        // A revision Squire has not pinned rides the pin of the known line with its minor, as 8.5r4 rides 8.5r3.
+        $catalog = new Catalog(Squire::templatesDir());
+        $pin = Squire::FALLBACK_PHP_IMAGES['8.6r1'];
+        foreach (['8.6r1', '8.6r2'] as $line) {
+            $base = $catalog->content($this->fallbackTemplate(), $line);
+            self::assertStringContainsString('ARG PHP_IMAGE=', $base, $line . ' renders a PHP image build argument');
+            self::assertStringContainsString('ARG PHP_IMAGE=' . $pin, $base, $line . ' rides the 8.6r1 pin');
         }
     }
 
