@@ -11,7 +11,9 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
    `composer.lock` on a full Update has no install step. Default: tell teams to also use `scripts/release.sh` as the Quick
     Update post-script. Needs a Citadel maintainer's answer.
 3. **Is the public directory `src/public`?** Default for local parity: `SQUIRE_PUBLIC_DIR=src/public`. The dashboard passes
-   the real value; check it matches.
+   the real value; check it matches. Citadel's own source confirms the mechanism (2026-11-19): the dashboard's public
+   path becomes CITADEL_PUBLIC_DIR, it is required for the PHP and Apache base images, and a deploy stops with "Invalid
+   CitadelFile: CITADEL_PUBLIC_DIR does not exist" when the folder is missing (bootstrap/lib/abstracts/RunsDeploymentTasks.php).
 4. **Can a secret be mounted?** Still unanswered for Citadel: whether its containers can mount a secret file has not
    been confirmed. What Squire does meanwhile: `scripts/release.sh` and the portable image's entrypoint read a folder
    of secret files (`SQUIRE_SECRETS_DIR`, default `/run/secrets`; each file named like a variable becomes that
@@ -27,7 +29,7 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
    `'Stop'`), fixed with `Invoke-NativeQuiet`. The lint (PSScriptAnalyzer) still runs on 7.4 only, and no CI job runs
    5.1; the template test pins the fix. macOS PowerShell is not run.
 6. **PROCTOR is a dev dependency.** `composer install --no-dev` removes it, so on Citadel the gate used to report
-   itself missing on every release. **Answered (Unreleased):** when no PROCTOR is found, the release installs the
+   itself missing on every release. **Answered (0.10.9):** when no PROCTOR is found, the release installs the
    version the app's `composer.lock` pins as a dev package into its download cache (`composer create-project`,
    `.cache/squire/proctor/<version>`) and runs that, so the gate grades the release with the PROCTOR CI used. Each
    version is fetched once; `SQUIRE_PROCTOR_FETCH=0` turns it off, and a failed fetch is a warning (a stop under
@@ -71,8 +73,13 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
     answered. Default: documented in the README; `SQUIRE_SOURCE_UID` and `SQUIRE_SOURCE_GID` match the user on Linux. Not
     solved for Docker Desktop folders that are root-owned. See README Local parity: keep the source in the WSL 2
     filesystem on Windows.
-16. **Which Citadel health check value.** The dashboard wizard value is assumed to be `["php","health.php"]`. Confirm the
-    exact form.
+16. **Which Citadel health check value.** **Answered 2026-11-19** from Citadel's own source: the dashboard accepts the
+    health check either as a path relative to the project root (for example `./health-check`) or as a JSON array of
+    strings (its help text gives `["php", "artisan", "health:check"]` as the example), and validates a value that starts
+    with `[` as JSON (`dashboard/src/app/Generator.php`, `validDeployment`; `dashboard/src/resources/lang/en/help/deployment.php`).
+    `["php","health.php"]` is therefore a valid value, and the build writes it as the image's `HEALTHCHECK` command
+    (`bootstrap/lib/views/Dockerfile.php`: every 5 minutes, 15 second timeout). What stays unconfirmed is only that the
+    deployed dashboard runs the same code as this clone.
 17. **Runner amd64 emulation.** The CI runner is linux/arm64; building the Oracle images for linux/amd64 needs qemu
     binfmt emulation and buildah running inside a container. Default: amd64 stays off (`SQUIRE_BUILD_AMD64` unset)
     until a run of the `oracle-images-dry-run` job with `SQUIRE_BUILD_AMD64=1` passes on a branch. See 18.
@@ -95,7 +102,7 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
     publish linux/arm64 only, both flavors, PHP 8.3 to 8.5, and the amd64 legs do not run; amd64 users,
     Citadel-shaped hosts included, build locally with `scripts/oracle-image-build.sh`. Later the runner host gets
     qemu-user-static, and the CI variable `SQUIRE_BUILD_AMD64=1` (the one switch; MAINTAINING.md, Publishing the
-    Oracle images) turns amd64 back on. Open until then. **Answered 2026-11-10: (b).** The GitLab administrator
+    Oracle images) turns amd64 back on. **Answered 2026-11-10: (b).** The GitLab administrator
     added a native amd64 runner (tag `amd64`); the amd64 half builds there and the arm64 runner stitches the list.
     The first tag that publishes both is recorded in MAINTAINING.md.
 19. **Contract suite on the real image and on GitLab.** What runs today: the three GitHub jobs in
