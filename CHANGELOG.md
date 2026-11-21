@@ -5,6 +5,8 @@ Versioning once 1.0 is out.
 
 ## [Unreleased]
 
+- Added: an update notice: after any command, one line on stderr when a newer stable release exists, with the command that updates this install (Packagist, at most one check a day per machine, cached in the user cache dir). Silent in CI, under `WAYNE_NO_UPDATE_CHECK=1`, with `--quiet` or `-q`, and on non-release builds; stdout and exit codes are never touched.
+
 ## 0.11.2 (2026-11-19)
 
 - Changed: the kit templates take newer pins: the HAProxy digest in `docker-compose.squire.yml` (common and vue kits) and the Node 22.23.5 digest in `.squire/base-fallback.Dockerfile`. Run `squire update` to take them.

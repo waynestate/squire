@@ -1,11 +1,11 @@
 ---
 title: "Configuration reference"
-description: "Every SQUIRE_* setting Squire reads, the file it lives in, and its default."
+description: "Every setting Squire reads: the SQUIRE_* groups by script, plus the CLI's update-check opt-out."
 ---
 
 # Configuration reference
 
-Every `SQUIRE_*` setting Squire reads, grouped by the script that reads it, with the file each group lives in and its default. All settings are optional. Next, see [Commands](commands.md) for the CLI flags and [Files](files.md) for what Squire writes.
+Every `SQUIRE_*` setting Squire reads, grouped by the script that reads it, with the file each group lives in and its default. All settings are optional. The CLI itself reads one more variable, `WAYNE_NO_UPDATE_CHECK`, listed at the bottom. Next, see [Commands](commands.md) for the CLI flags and [Files](files.md) for what Squire writes.
 
 > [!WARNING]
 > A real environment variable wins. `release.sh` reads the release options from the file, but a variable already in the environment wins. Locally, the same file holds the parity settings.
@@ -129,3 +129,11 @@ PHP reads these from the container's environment when it starts (PHP 8.3 and lat
 | `SQUIRE_KIT_DIR` | `.` | The `portable` profile: the kit's folder inside that context (`deploy` for WELD). |
 
 The Vue layer's compose file also reads `SQUIRE_NODE_IMAGE` (default `node:22.23.4-bookworm-slim`, pinned by digest), `SQUIRE_NODE_ENV` (default `production`) and `SQUIRE_NODE_MEMORY` (default `512m`). The compose file refuses to start without the two passwords. See `.env.squire.example`; it holds placeholders only.
+
+## CLI (`bin/squire`)
+
+One variable outside the `SQUIRE_*` groups, read by the CLI itself after any command finishes.
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `WAYNE_NO_UPDATE_CHECK` | not set | `1` turns off the update notice: the stderr line that a newer stable release exists, with the command that updates this install. The check asks Packagist at most once a day per machine and keeps the answer in the user cache dir (`waynestate/squire/update-check.json`). `CI` set to anything other than empty, `0` or `false`, and `--quiet`/`-q` stay silent too. |

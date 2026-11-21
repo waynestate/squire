@@ -28,9 +28,9 @@ final class UpdateNotice
     private const DAY = 86400;
 
     /**
-     * @param string         $tool        the tool's name, as printed in the line
-     * @param string         $packageRoot the folder holding bin/ and src/
-     * @param \Closure(): int $clock      current unix time, injected so tests need no real clock
+     * @param string          $tool        the tool's name, as printed in the line
+     * @param string          $packageRoot the folder holding bin/ and src/
+     * @param callable(): int $clock       current unix time, injected so tests need no real clock
      */
     public function __construct(
         private readonly string $tool,
@@ -69,6 +69,10 @@ final class UpdateNotice
         if (self::ciEnabled($env) || self::optedOut($env) || self::quiet($argv) || !self::plainVersion($version)) {
             return;
         }
+
+        // Plain from here on: digits and dots, so version_compare and the
+        // major check see the same shape the newest release has.
+        $version = self::normalizeVersion($version);
 
         $path = $this->cache->path($env);
         $cached = $this->cache->read($path);

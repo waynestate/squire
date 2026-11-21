@@ -372,7 +372,8 @@ final class UpdateNoticeTest extends TestCase
     public function testIgnoresPrereleases(): void
     {
         // dev, alpha, beta and rc versions (any case) are dropped, so the
-        // line names the highest stable release.
+        // line names the highest stable release: here 0.11.1, not the
+        // prereleases of 0.11.3 or 1.0.0 that sort above it.
         $env = $this->env();
         $entries = [
             ['version' => '1.0.0-beta1'],
@@ -386,9 +387,9 @@ final class UpdateNoticeTest extends TestCase
         [$notice] = $this->notice(InstallKind::SourceCheckout, $entries, self::NOW, '');
         [$write, $sink] = $this->stderr();
 
-        $notice->run($env, ['squire', 'list'], '0.11.2', $write);
+        $notice->run($env, ['squire', 'list'], '0.11.0', $write);
 
-        self::assertSame("squire 0.11.2 is out of date: 0.11.1 is the newest release. Update: git pull\n", $sink['text']);
+        self::assertSame("squire 0.11.0 is out of date: 0.11.1 is the newest release. Update: git pull\n", $sink['text']);
     }
 
     public function testMajorBumpAddsUpgradingLink(): void
