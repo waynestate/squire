@@ -159,7 +159,7 @@ async function buildCast() {
 
 /* ---------------------------------------------------------------- 2. badges */
 
-// Facts are read, never typed: php and the licence from composer.json, the
+// Facts are read, never typed: php and the license from composer.json, the
 // exit-code contract from the README's own "Exit codes:" paragraph. A badge
 // that lies is a bag with the wrong tag on it.
 function buildBadges() {
@@ -171,7 +171,7 @@ function buildBadges() {
   if (codes.length < 3) fail("could not read the exit codes from README.md");
   const defs = [
     { key: "php", label: "php", message: composer.require?.php },
-    { key: "license", label: "licence", message: composer.license },
+    { key: "license", label: "license", message: composer.license },
     { key: "exit-codes", label: "exit codes", message: codes.join(" · ") },
   ];
   for (const d of defs) {
