@@ -3,8 +3,8 @@
 # FALLBACK base image: an approximation of Citadel's PHP image for the app's line
 # (citadel/php-apache:{{PHP_LINE}}) for developers who cannot build or pull the real one. Same official php image,
 # same users, Apache modules, PHP extensions and Node 22. It leaves out what local work rarely needs: Oracle
-# Instant Client (oci8), imagick and ssmtp. It is NOT the real image, so run the real one before you trust a release (S35).
-# scripts/parity.sh and parity.ps1 build it for you with `--fallback`:
+# Instant Client (oci8), imagick and ssmtp. It is NOT the real image, so run the real one before you trust a release.
+# Build it, then pass it to .squire/Dockerfile or .squire/portable.Dockerfile as BASE_IMAGE:
 #   docker build -f .squire/base-fallback.Dockerfile -t squire/php-parity-base:{{PHP_LINE}} .squire
 
 # Pinned by the digest of each multi-arch list, so the same bytes build on an arm64 laptop or CI runner

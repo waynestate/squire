@@ -40,8 +40,8 @@ final class RepositoryCheck implements Check
         if ($project->has('auth.json') && !$ignored('auth.json')) {
             $findings[] = Finding::fail('S15', 'auth.json holds Composer credentials and is not in .gitignore.', 'auth.json');
         }
-        if ($project->has('docker-compose.squire.yml') && !$ignored('.env.squire')) {
-            $findings[] = Finding::warn('S42', '.gitignore does not ignore .env.squire, which holds the local database passwords.', '.gitignore');
+        if (($project->has('.env.squire') || $project->has('docker-compose.squire.yml')) && !$ignored('.env.squire')) {
+            $findings[] = Finding::warn('S42', '.gitignore does not ignore .env.squire, which can hold the release options and, from the old parity kit, local database passwords.', '.gitignore');
         }
 
         return $findings;

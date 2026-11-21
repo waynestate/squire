@@ -87,7 +87,8 @@ final class ExporterTest extends SquireTestCase
         self::assertSame('755', $manifest['files']['raw/build.sh']['mode']);
         self::assertSame('644', $manifest['files']['raw/health.php']['mode']);
         self::assertSame('644', $manifest['files']['raw/oracle-check.php']['mode']);
-        self::assertSame('755', $manifest['files']['laravel/scripts/parity.sh']['mode']);
+        self::assertSame('755', $manifest['files']['laravel/.squire/portable/squire-entrypoint.sh']['mode']);
+        self::assertArrayNotHasKey('laravel/scripts/parity.sh', $manifest['files'], 'the parity kit left in 0.12.0');
         self::assertSame('644', $manifest['files']['static/public/index.php']['mode']);
         self::assertSame('644', $manifest['files']['static/public/.htaccess']['mode']);
         self::assertSame('644', $manifest['files']['raw/public/index.php']['mode']);
@@ -136,34 +137,30 @@ final class ExporterTest extends SquireTestCase
         self::assertFileExists($dir . '/vue/.npmrc');
         self::assertStringContainsString('min-release-age=1', (string) file_get_contents($dir . '/vue/.npmrc'));
         self::assertFileDoesNotExist($dir . '/vue/scripts/release.sh');
-        self::assertFileExists($dir . '/vue/docker-compose.squire.yml');
-        self::assertStringContainsString('image: ${SQUIRE_NODE_IMAGE:-node:22.23.4-bookworm-slim@sha256:5ec23b7c622b00547753bc6ffd78085dd868a68aeb41c8e0a1418f033e13d96d}', (string) file_get_contents($dir . '/vue/docker-compose.squire.yml'));
+        self::assertFileDoesNotExist($dir . '/vue/docker-compose.squire.yml', 'the parity kit left in 0.12.0');
 
         $catalog = json_decode((string) file_get_contents($dir . '/catalog.json'), true);
         self::assertIsArray($catalog);
         self::assertArrayHasKey('vue', $catalog);
-        self::assertSame(['.npmrc', 'docker-compose.squire.yml'], array_column($catalog['vue'], 'path'));
+        self::assertSame(['.npmrc'], array_column($catalog['vue'], 'path'));
 
         $manifest = json_decode((string) file_get_contents($dir . '/manifest.json'), true);
         self::assertIsArray($manifest);
         self::assertArrayHasKey('vue/.npmrc', $manifest['files']);
         self::assertArrayNotHasKey('vue/scripts/release.sh', $manifest['files']);
-        self::assertArrayHasKey('vue/docker-compose.squire.yml', $manifest['files']);
         self::assertSame('644', $manifest['files']['vue/.npmrc']['mode']);
-        self::assertSame('644', $manifest['files']['vue/docker-compose.squire.yml']['mode']);
     }
 
-    public function testEveryTargetExportKeepsTheCommonReleaseAndComposeFiles(): void
+    public function testEveryTargetExportKeepsTheCommonReleaseScriptAndNoKit(): void
     {
         $dir = $this->tempDir();
         $this->exporter()->export($dir);
 
         foreach (Catalog::TARGETS as $kind) {
             $release = (string) file_get_contents($dir . '/' . $kind . '/scripts/release.sh');
-            $compose = (string) file_get_contents($dir . '/' . $kind . '/docker-compose.squire.yml');
 
             self::assertStringContainsString('step "frontend install and build"', $release, $kind);
-            self::assertStringNotContainsString('node:22.23.4-bookworm-slim', $compose, $kind);
+            self::assertFileDoesNotExist($dir . '/' . $kind . '/docker-compose.squire.yml', $kind);
         }
     }
 

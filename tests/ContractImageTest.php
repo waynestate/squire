@@ -92,16 +92,13 @@ final class ContractImageTest extends SquireTestCase
         self::assertStringNotContainsString(md5('never-printed'), $out, 'the md5 is compared, never printed');
     }
 
-    public function testTheDriverRunsTheAppWithTheComposeFilesLeastPrivilege(): void
+    public function testTheDriverRunsTheAppWithLeastPrivilege(): void
     {
         $driver = $this->repoFile('scripts/contract-image.sh');
-        $compose = $this->repoFile('templates/common/docker-compose.squire.yml');
 
-        // The app service's cap_add list sits under its S70 comment (MySQL has a shorter one of its own, and the
-        // portable services add nothing back).
-        self::assertSame(1, preg_match('/S70: least privilege\..*?\n\s+cap_drop: \[ALL\]\n\s+cap_add: \[([A-Z_, ]+)\]\n/s', $compose, $m), 'the app service drops every capability and adds a list back');
-        $caps = array_map('trim', explode(',', $m[1]));
-        self::assertContains('NET_BIND_SERVICE', $caps, 'the app service list, not MySQL\'s');
+        // The seven capabilities Apache and the entrypoint need, in the order the parity kit's compose file gave
+        // them before the kit left in 0.12.0. Pinned here so the list never grows by accident.
+        $caps = ['CHOWN', 'DAC_OVERRIDE', 'FOWNER', 'SETUID', 'SETGID', 'NET_BIND_SERVICE', 'KILL'];
         self::assertSame(1, preg_match('/^RUN_LIMITS="([^"]+)"$/m', $driver, $limits), 'the driver keeps its flags in RUN_LIMITS');
         $flags = explode(' ', $limits[1]);
         $driverCaps = [];
@@ -110,13 +107,11 @@ final class ContractImageTest extends SquireTestCase
                 $driverCaps[] = substr($flag, strlen('--cap-add='));
             }
         }
-        self::assertSame($caps, $driverCaps, 'the driver adds back exactly what the compose file adds back, in its order');
+        self::assertSame($caps, $driverCaps, 'the driver adds back exactly the seven, in their order');
         self::assertContains('--cap-drop=ALL', $flags);
         self::assertContains('--security-opt=no-new-privileges:true', $flags);
         self::assertContains('--pids-limit=256', $flags);
-        self::assertContains('--memory=512m', $flags, 'the compose default for SQUIRE_APP_MEMORY');
-        self::assertStringContainsString('mem_limit: ${SQUIRE_APP_MEMORY:-512m}', $compose);
-        self::assertStringContainsString('pids_limit: 256', $compose);
+        self::assertContains('--memory=512m', $flags);
         // Both app containers run with them: the mounted one and the baked one.
         self::assertSame(2, substr_count($driver, 'docker run -d $RUN_LIMITS'));
     }

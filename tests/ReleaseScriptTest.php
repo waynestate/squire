@@ -1308,7 +1308,6 @@ APP_ENV=testing
             'build.sh' => ['common/build.sh', 'sh'],
             'hook' => ['common/deployments/001-first-release.sh', 'bash'],
             'release.sh' => ['common/scripts/release.sh', 'bash'],
-            'parity.sh' => ['common/scripts/parity.sh', 'bash'],
             'fallback entrypoint' => ['common/.squire/fallback/citadel-apache-entrypoint', 'bash'],
             'fallback deploy' => ['common/.squire/fallback/citadel-deploy', 'bash'],
         ];

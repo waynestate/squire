@@ -61,6 +61,9 @@ final class Updater
         foreach ($files as $destination => $recordedHash) {
             $template = $byDestination[$destination] ?? null;
             if ($template === null) {
+                if (in_array($destination, Catalog::LEFTOVER_KIT_FILES, true)) {
+                    continue; // the parity kit: reported below, never touched
+                }
                 if (isset($known[$destination])) {
                     continue; // outside this run's target or groups
                 }
@@ -156,8 +159,18 @@ final class Updater
             $results[] = $result;
         }
 
+        // The parity kit left Squire in 0.12.0. Its files are never deleted here: each one the record names is
+        // reported and dropped from the record, so the owner can run `parity init --from-squire` and delete them.
+        foreach (Initializer::leftovers($appPath, $manifest->files) as $leftover) {
+            if (!$dryRun) {
+                unset($written[$leftover->path]);
+            }
+            $results[] = $leftover;
+        }
+
         // The .gitignore never sits in the record, so update cannot touch it: once the team edits it, it is theirs.
-        // It can still point out a hole in the wall, because the local secrets file must stay out of git.
+        // It can still point out a hole in the wall, because `.env.squire` (the release options on Citadel) must stay
+        // out of git.
         $gitignorePath = $appPath . '/.gitignore';
         $gitignore = null;
         if (is_file($gitignorePath)) {
@@ -174,10 +187,11 @@ final class Updater
             );
         }
 
-        // Save when the files moved, or when the record still names an older release: a kit whose files already
-        // match the newer release must not keep the old version.
-        if (!$dryRun && ($written !== $manifest->files || $manifest->version !== Squire::version())) {
-            (new Manifest(Squire::version(), $manifest->target, $manifest->groups, $written, $manifest->layer, $manifest->php))->save($appPath);
+        // Save when the files moved, when the groups changed (an old `parity` record reads as `images`), or when
+        // the record still names an older release: a kit whose files already match must not keep the old version.
+        $groups = Catalog::resolveGroups($manifest->groups, true);
+        if (!$dryRun && ($written !== $manifest->files || $groups !== $manifest->groups || $manifest->version !== Squire::version())) {
+            (new Manifest(Squire::version(), $manifest->target, $groups, $written, $manifest->layer, $manifest->php))->save($appPath);
         }
 
         return $results;

@@ -43,10 +43,10 @@ final class Squire
     public const PARITY_URL = 'https://git.wayne.edu/enterprise-apps/parity';
 
     /**
-     * The one line `init` and `update` print when the parity group is in play. The group is deprecated since
-     * 0.10.5 and leaves no sooner than two minors and 60 days later (ADR-0022): 0.12.0, not before 2027-01-08.
+     * The one line `init` and `update` print when the app still has parity kit files. The kit was deprecated in
+     * 0.10.5 and left in 0.12.0 (Adam, 2026-11-20, ahead of ADR-0022's 2027-01-08 date).
      */
-    public const PARITY_POINTER = 'Parity: the parity group is deprecated (removed no sooner than 0.12.0). Parity runs Citadel on your computer now; `parity init --from-squire` carries this kit over: ' . self::PARITY_URL;
+    public const PARITY_POINTER = 'Parity: the parity kit left Squire in 0.12.0, and Squire deleted none of its files. Run `parity init --from-squire` (it carries the kit\'s settings over), then delete the kit-leftover files above: ' . self::PARITY_URL;
 
     private function __construct() {}
 

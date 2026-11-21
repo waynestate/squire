@@ -23,10 +23,53 @@ final class Catalog
     public const EXTENDS = ['static' => 'raw'];
 
     /** Every group Squire knows; `--only` may name any of them. */
-    public const GROUPS = [Template::GROUP_RELEASE, Template::GROUP_PARITY];
+    public const GROUPS = [Template::GROUP_RELEASE, Template::GROUP_IMAGES];
 
-    /** The groups a fresh `squire init` writes when no manifest and no --only say otherwise: release only. Parity is opt-in. */
+    /** The groups a fresh `squire init` writes when no manifest and no --only say otherwise: release only. Images are opt-in. */
     public const DEFAULT_GROUPS = [Template::GROUP_RELEASE];
+
+    /**
+     * The local-run kit's files, which left Squire in 0.12.0. Squire never deletes them: Parity reads them once
+     * (`parity init --from-squire`), and then the owner deletes them. init and update report them, drop them from
+     * the record, and doctor (S35) notes any that are still on disk. Like a squire returning borrowed armor: it
+     * says where it goes, and lets the knight carry it there.
+     */
+    public const LEFTOVER_KIT_FILES = [
+        'docker-compose.squire.yml',
+        '.squire/haproxy.cfg',
+        'scripts/parity.sh',
+        'scripts/parity.ps1',
+        '.env.squire.example',
+    ];
+
+    /**
+     * The groups to work with, from `--only` or a record. A record that names the old `parity` group reads as
+     * `images` (the image files it held stay with Squire). `--only=parity` is a usage error: the kit is gone.
+     *
+     * @param list<string> $groups
+     *
+     * @return list<string>
+     */
+    public static function resolveGroups(array $groups, bool $fromRecord): array
+    {
+        $resolved = [];
+        foreach ($groups as $group) {
+            if ($group === Template::LEGACY_GROUP_PARITY) {
+                if (!$fromRecord) {
+                    throw new ToolError(sprintf(
+                        'The parity group left Squire in 0.12.0. Parity runs Citadel on your computer: parity init --from-squire, then parity up (%s). The image files are --only=images.',
+                        Squire::PARITY_URL,
+                    ));
+                }
+                $group = Template::GROUP_IMAGES;
+            }
+            if (!in_array($group, $resolved, true)) {
+                $resolved[] = $group;
+            }
+        }
+
+        return $resolved;
+    }
 
     // A Vue/Inertia app is a layer on raw or laravel, not a third target: the PHP app still deploys the same way, and
     // the export keeps its raw/ and laravel/ layout for Sourdough.
@@ -42,7 +85,7 @@ final class Catalog
     public static function all(): array
     {
         $release = Template::GROUP_RELEASE;
-        $parity = Template::GROUP_PARITY;
+        $images = Template::GROUP_IMAGES;
 
         return [
             new Template('build.sh', $release, true),
@@ -58,31 +101,26 @@ final class Catalog
             new Template('public/index.php', $release, false, 'static'),
             new Template('public/.htaccess', $release, false, 'static'),
 
-            new Template('docker-compose.squire.yml', $parity),
-            new Template('.squire/Dockerfile', $parity),
-            new Template('.squire/Dockerfile.dockerignore', $parity),
-            new Template('.squire/base-fallback.Dockerfile', $parity),
-            new Template('.squire/apache-hardening.conf', $parity),
-            new Template('.squire/fallback/citadel-apache-entrypoint', $parity, true),
-            new Template('.squire/fallback/citadel-deploy', $parity, true),
-            new Template('.squire/haproxy.cfg', $parity),
-            new Template('.squire/php.ini', $parity),
-            new Template('.squire/php-web.ini', $parity),
-            new Template('.squire/vhost.conf', $parity),
+            // The image files: the mirror of the Dockerfile Citadel generates, the fallback base for when the real
+            // image is out of reach, and the PHP settings both share. Opt-in (`--only=release,images`).
+            new Template('.squire/Dockerfile', $images),
+            new Template('.squire/Dockerfile.dockerignore', $images),
+            new Template('.squire/base-fallback.Dockerfile', $images),
+            new Template('.squire/apache-hardening.conf', $images),
+            new Template('.squire/fallback/citadel-apache-entrypoint', $images, true),
+            new Template('.squire/fallback/citadel-deploy', $images, true),
+            new Template('.squire/php.ini', $images),
+            new Template('.squire/php-web.ini', $images),
+            new Template('.squire/vhost.conf', $images),
             // The portable image (ADR-0010): the same base, baked code, one image for web, worker, scheduler and
             // migrate, a non-root user in group 0 on 8080. Citadel never reads these files.
-            new Template('.squire/portable.Dockerfile', $parity),
-            new Template('.squire/portable.Dockerfile.dockerignore', $parity),
-            new Template('.squire/portable/squire-entrypoint.sh', $parity, true),
-            new Template('.squire/portable/ports.conf', $parity),
-            new Template('.squire/portable/vhost.conf', $parity),
-            new Template('scripts/parity.sh', $parity, true),
-            new Template('scripts/parity.ps1', $parity),
-            new Template('.env.squire.example', $parity, false, 'raw'),
-            new Template('.env.squire.example', $parity, false, 'laravel'),
+            new Template('.squire/portable.Dockerfile', $images),
+            new Template('.squire/portable.Dockerfile.dockerignore', $images),
+            new Template('.squire/portable/squire-entrypoint.sh', $images, true),
+            new Template('.squire/portable/ports.conf', $images),
+            new Template('.squire/portable/vhost.conf', $images),
 
             new Template('.npmrc', $release, false, null, Template::LAYER_VUE),
-            new Template('docker-compose.squire.yml', $parity, false, null, Template::LAYER_VUE),
         ];
     }
 

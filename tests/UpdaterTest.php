@@ -24,7 +24,7 @@ final class UpdaterTest extends SquireTestCase
         $templates = $this->copyTemplates();
         $catalog = new Catalog($templates);
         $app = $this->app();
-        (new Initializer($catalog))->run($app, 'raw', ['release', 'parity'], false, false);
+        (new Initializer($catalog))->run($app, 'raw', ['release', 'images'], false, false);
 
         return [$app, new Updater($catalog), $templates];
     }
@@ -39,7 +39,7 @@ final class UpdaterTest extends SquireTestCase
         $templates = $this->copyTemplates();
         $catalog = new Catalog($templates);
         $app = $this->vueApp();
-        (new Initializer($catalog))->run($app, 'raw', ['release', 'parity'], false, false, Catalog::detectLayer($app));
+        (new Initializer($catalog))->run($app, 'raw', ['release', 'images'], false, false, Catalog::detectLayer($app));
 
         return [$app, new Updater($catalog), $templates];
     }
@@ -49,7 +49,7 @@ final class UpdaterTest extends SquireTestCase
         [$app, $updater, $templates] = $this->movableApp();
         file_put_contents($templates . '/common/build.sh', "#!/bin/sh\n# version two\n");
 
-        $results = $updater->run($app, 'raw', ['release', 'parity'], false);
+        $results = $updater->run($app, 'raw', ['release', 'images'], false);
         $states = $this->states($results);
 
         self::assertSame(FileResult::UPDATED, $states['build.sh']);
@@ -69,7 +69,7 @@ final class UpdaterTest extends SquireTestCase
         file_put_contents($app . '/build.sh', "#!/bin/sh\n# my edit\n");
         file_put_contents($templates . '/common/build.sh', "#!/bin/sh\n# version two\n");
 
-        $results = $updater->run($app, 'raw', ['release', 'parity'], false);
+        $results = $updater->run($app, 'raw', ['release', 'images'], false);
         $states = $this->states($results);
 
         self::assertSame(FileResult::EDITED, $states['build.sh']);
@@ -98,7 +98,7 @@ final class UpdaterTest extends SquireTestCase
         file_put_contents($app . '/build.sh', $content);
         file_put_contents($templates . '/common/build.sh', $content);
 
-        $results = $updater->run($app, 'raw', ['release', 'parity'], false);
+        $results = $updater->run($app, 'raw', ['release', 'images'], false);
         $states = $this->states($results);
 
         self::assertSame(FileResult::CURRENT, $states['build.sh']);
@@ -107,7 +107,7 @@ final class UpdaterTest extends SquireTestCase
         self::assertNotNull($manifest);
         self::assertSame(Manifest::hash("#!/bin/sh\n# version two\n"), $manifest->files['build.sh'], 'the new hash is recorded');
 
-        $second = $this->states($updater->run($app, 'raw', ['release', 'parity'], false));
+        $second = $this->states($updater->run($app, 'raw', ['release', 'images'], false));
         self::assertSame(FileResult::CURRENT, $second['build.sh'], 'once adopted, the file stays current');
     }
 
@@ -121,7 +121,7 @@ final class UpdaterTest extends SquireTestCase
         file_put_contents($app . '/build.sh', $content);
         file_put_contents($templates . '/common/build.sh', $content);
 
-        $results = $updater->run($app, 'raw', ['release', 'parity'], true);
+        $results = $updater->run($app, 'raw', ['release', 'images'], true);
         $states = $this->states($results);
 
         self::assertSame(FileResult::CURRENT, $states['build.sh']);
@@ -135,7 +135,7 @@ final class UpdaterTest extends SquireTestCase
         [$app, $updater] = $this->movableApp();
         $manifestBefore = (string) file_get_contents($app . '/' . Squire::MANIFEST);
 
-        $results = $updater->run($app, 'raw', ['release', 'parity'], false);
+        $results = $updater->run($app, 'raw', ['release', 'images'], false);
 
         self::assertSame([FileResult::CURRENT], array_values(array_unique(array_map(static fn(FileResult $r): string => $r->state, $results))));
         self::assertSame($manifestBefore, (string) file_get_contents($app . '/' . Squire::MANIFEST), 'nothing written, no manifest churn');
@@ -148,7 +148,7 @@ final class UpdaterTest extends SquireTestCase
         self::assertNotNull($manifest);
         (new Manifest('0.0.1', $manifest->target, $manifest->groups, $manifest->files, $manifest->layer))->save($app);
 
-        $results = $updater->run($app, 'raw', ['release', 'parity'], false);
+        $results = $updater->run($app, 'raw', ['release', 'images'], false);
 
         self::assertSame([FileResult::CURRENT], array_values(array_unique(array_map(static fn(FileResult $r): string => $r->state, $results))), 'a version-only save adds no per-file result');
         $manifest = Manifest::load($app);
@@ -163,7 +163,7 @@ final class UpdaterTest extends SquireTestCase
         self::assertNotNull($manifest);
         (new Manifest('0.0.1', $manifest->target, $manifest->groups, $manifest->files, $manifest->layer))->save($app);
 
-        $updater->run($app, 'raw', ['release', 'parity'], true);
+        $updater->run($app, 'raw', ['release', 'images'], true);
 
         $manifest = Manifest::load($app);
         self::assertNotNull($manifest);
@@ -175,7 +175,7 @@ final class UpdaterTest extends SquireTestCase
         [$app, $updater] = $this->movableApp();
         file_put_contents($app . '/build.sh', "#!/bin/sh\n# my edit\n");
 
-        $results = $updater->run($app, 'raw', ['release', 'parity'], false);
+        $results = $updater->run($app, 'raw', ['release', 'images'], false);
         $states = $this->states($results);
 
         self::assertSame(FileResult::CURRENT, $states['build.sh']);
@@ -187,7 +187,7 @@ final class UpdaterTest extends SquireTestCase
         [$app, $updater, $templates] = $this->movableApp();
         unlink($app . '/build.sh');
 
-        $results = $updater->run($app, 'raw', ['release', 'parity'], false);
+        $results = $updater->run($app, 'raw', ['release', 'images'], false);
         $states = $this->states($results);
 
         self::assertSame(FileResult::RESTORED, $states['build.sh']);
@@ -218,7 +218,7 @@ final class UpdaterTest extends SquireTestCase
         unlink($app . '/oracle-check.php');
         $this->forget($app, 'oracle-check.php');
 
-        $results = $updater->run($app, 'raw', ['release', 'parity'], false);
+        $results = $updater->run($app, 'raw', ['release', 'images'], false);
         $states = $this->states($results);
 
         self::assertSame(FileResult::ADDED, $states['oracle-check.php']);
@@ -237,8 +237,8 @@ final class UpdaterTest extends SquireTestCase
         unlink($app . '/oracle-check.php');
         $this->forget($app, 'oracle-check.php');
 
-        $first = $this->states($updater->run($app, 'raw', ['release', 'parity'], false));
-        $second = $this->states($updater->run($app, 'raw', ['release', 'parity'], false));
+        $first = $this->states($updater->run($app, 'raw', ['release', 'images'], false));
+        $second = $this->states($updater->run($app, 'raw', ['release', 'images'], false));
 
         self::assertSame(FileResult::ADDED, $first['oracle-check.php']);
         self::assertSame(FileResult::CURRENT, $second['oracle-check.php'], 'once recorded, the file is part of the kit');
@@ -250,7 +250,7 @@ final class UpdaterTest extends SquireTestCase
         file_put_contents($app . '/oracle-check.php', "<?php\n// the app's own\n");
         $this->forget($app, 'oracle-check.php');
 
-        $results = $updater->run($app, 'raw', ['release', 'parity'], false);
+        $results = $updater->run($app, 'raw', ['release', 'images'], false);
         $states = $this->states($results);
 
         self::assertArrayNotHasKey('oracle-check.php', $states, 'a file Squire did not write is not in the plan');
@@ -267,7 +267,7 @@ final class UpdaterTest extends SquireTestCase
         $this->forget($app, 'oracle-check.php');
         $manifestBefore = (string) file_get_contents($app . '/' . Squire::MANIFEST);
 
-        $results = $updater->run($app, 'raw', ['release', 'parity'], true);
+        $results = $updater->run($app, 'raw', ['release', 'images'], true);
         $states = $this->states($results);
 
         self::assertSame(FileResult::ADDED, $states['oracle-check.php']);
@@ -285,7 +285,7 @@ final class UpdaterTest extends SquireTestCase
         $manifestBefore = (string) file_get_contents($app . '/' . Squire::MANIFEST);
         $editedBefore = (string) file_get_contents($app . '/health.php');
 
-        $results = $updater->run($app, 'raw', ['release', 'parity'], true);
+        $results = $updater->run($app, 'raw', ['release', 'images'], true);
         $states = $this->states($results);
 
         self::assertSame(FileResult::UPDATED, $states['build.sh']);
@@ -331,12 +331,12 @@ final class UpdaterTest extends SquireTestCase
     {
         [$app, $updater, $templates] = $this->movableApp();
         file_put_contents($templates . '/common/build.sh', "#!/bin/sh\n# version two\n");
-        file_put_contents($templates . '/common/docker-compose.squire.yml', "# version two\n");
+        file_put_contents($templates . '/common/.squire/Dockerfile', "# version two\n");
 
         $states = $this->states($updater->run($app, 'raw', ['release'], false));
 
         self::assertSame(FileResult::UPDATED, $states['build.sh']);
-        self::assertArrayNotHasKey('docker-compose.squire.yml', $states, 'parity is out of scope for this run');
+        self::assertArrayNotHasKey('.squire/Dockerfile', $states, 'images is out of scope for this run');
     }
 
     public function testUpdateWithoutAManifestIsAToolError(): void
@@ -351,11 +351,11 @@ final class UpdaterTest extends SquireTestCase
     {
         $layer = $this->deployLayer(['.gitignore' => "/vendor/\n# the team's line\n"]);
         $catalog = new Catalog(Squire::templatesDir());
-        (new Initializer($catalog))->run($layer, 'raw', ['release', 'parity'], false, false);
+        (new Initializer($catalog))->run($layer, 'raw', ['release', 'images'], false, false);
         file_put_contents($layer . '/.gitignore', "/vendor/\n# the team's line\n");
         $before = (string) file_get_contents($layer . '/.gitignore');
 
-        $results = (new Updater($catalog))->run($layer, 'raw', ['release', 'parity'], false);
+        $results = (new Updater($catalog))->run($layer, 'raw', ['release', 'images'], false);
 
         self::assertSame($before, (string) file_get_contents($layer . '/.gitignore'), "an edited .gitignore is the app's; update leaves it alone");
         $notes = array_values(array_filter($results, static fn(FileResult $r): bool => $r->path === '.gitignore'));
@@ -383,7 +383,7 @@ final class UpdaterTest extends SquireTestCase
         [$app, $updater, $templates] = $this->movableVueApp();
         file_put_contents($templates . '/vue/.npmrc', "# version two\nmin-release-age=2\n");
 
-        $results = $updater->run($app, 'raw', ['release', 'parity'], false, Catalog::detectLayer($app));
+        $results = $updater->run($app, 'raw', ['release', 'images'], false, Catalog::detectLayer($app));
         $states = $this->states($results);
 
         self::assertSame(FileResult::UPDATED, $states['.npmrc']);

@@ -28,7 +28,7 @@ final class InitCommand extends Command
             ->setDescription('Write the standard Citadel scripts into an app, or report drift with --check.')
             ->addOption('path', null, InputOption::VALUE_REQUIRED, 'Path to the application.', '.')
             ->addOption('target', null, InputOption::VALUE_REQUIRED, 'raw, laravel or static (default: the target recorded in .squire.json, else laravel when an artisan file exists; static must be asked for).')
-            ->addOption('only', null, InputOption::VALUE_REQUIRED, 'Comma-separated groups to write: release, parity (opt-in: Parity runs Citadel locally now). (default: the groups recorded in .squire.json, else release)')
+            ->addOption('only', null, InputOption::VALUE_REQUIRED, 'Comma-separated groups to write: release, images (opt-in: the Citadel mirror, the fallback base and the portable image). (default: the groups recorded in .squire.json, else release)')
             ->addOption('php', null, InputOption::VALUE_REQUIRED, 'Citadel PHP image line, such as 8.5r3 (default: the line in .squire.json, else 8.5r3 for a new app)')
             ->addOption('check', null, InputOption::VALUE_NONE, 'Write nothing; report files that are missing, outdated or edited. Exit 1 on drift.')
             ->addOption('force', null, InputOption::VALUE_NONE, 'Overwrite files that were edited or that Squire did not write.');
@@ -74,12 +74,15 @@ final class InitCommand extends Command
             if (is_string($onlyOption) && $onlyOption !== '') {
                 $groups = array_values(array_filter(array_map('trim', explode(',', $onlyOption)), static fn(string $g): bool => $g !== ''));
                 if ($groups === []) {
-                    throw new ToolError('--only needs at least one group: release, parity.');
+                    throw new ToolError('--only needs at least one group: release, images.');
                 }
+                $groups = Catalog::resolveGroups($groups, false);
             } else {
-                // A fresh app gets the default groups (release only): parity is opt-in, because Parity runs the
-                // app locally now (D-082) and the kit should not ship a second local-run path by default.
-                $groups = $manifest !== null && $manifest->groups !== [] ? $manifest->groups : Catalog::DEFAULT_GROUPS;
+                // A fresh app gets the default groups (release only); the image files are opt-in. A record that
+                // still names the old parity group reads as images: the local-run kit left in 0.12.0 (D-082).
+                $groups = $manifest !== null && $manifest->groups !== []
+                    ? Catalog::resolveGroups($manifest->groups, true)
+                    : Catalog::DEFAULT_GROUPS;
             }
 
             $layer = Catalog::detectLayer($path);
@@ -112,12 +115,12 @@ final class InitCommand extends Command
         );
         $output->writeln('Next: git update-index --chmod=+x ' . implode(' ', $executables));
         $output->writeln('      (Git on Windows does not record the executable bit; Citadel also marks deployments/ and Quick Update scripts executable.)');
-        if (in_array(Template::GROUP_PARITY, $groups, true)) {
-            $output->writeln(Squire::PARITY_POINTER);
-        } else {
-            // The kit no longer ships a local-run path by default (D-082): point at Parity, which runs the app locally.
-            $output->writeln(sprintf('Run it locally with Parity: parity init --from-squire, then parity up (%s).', Squire::PARITY_URL));
-        }
+        // Squire writes no local-run path (D-082): Parity runs the app locally. An app with kit files left over
+        // hears how to carry them over; every other app hears where Parity is.
+        $leftover = array_filter($results, static fn(FileResult $r): bool => $r->state === FileResult::KIT_LEFTOVER);
+        $output->writeln($leftover !== []
+            ? Squire::PARITY_POINTER
+            : sprintf('Run it locally with Parity: parity init, then parity up (%s).', Squire::PARITY_URL));
 
         // The release script stops at step 1 without these two files, so the first deploy would fail. Say so now,
         // not in the deployment log. Found by the 2026-11-05 proof run: 31 of 82 Wayne State apps had no lock file.

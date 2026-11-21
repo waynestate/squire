@@ -35,7 +35,7 @@ final class InitializerTest extends SquireTestCase
     public function testInitWritesEveryFileAndTheManifest(): void
     {
         $app = $this->kitApp();
-        $results = $this->initializer()->run($app, 'raw', ['release', 'parity'], false, false);
+        $results = $this->initializer()->run($app, 'raw', ['release', 'images'], false, false);
 
         foreach ($results as $result) {
             self::assertSame(FileResult::CREATED, $result->state, $result->path);
@@ -51,10 +51,10 @@ final class InitializerTest extends SquireTestCase
     public function testRunningInitTwiceChangesNothing(): void
     {
         $app = $this->kitApp();
-        $this->initializer()->run($app, 'raw', ['release', 'parity'], false, false);
+        $this->initializer()->run($app, 'raw', ['release', 'images'], false, false);
         $manifestBefore = (string) file_get_contents($app . '/' . Squire::MANIFEST);
 
-        $second = $this->initializer()->run($app, 'raw', ['release', 'parity'], false, false);
+        $second = $this->initializer()->run($app, 'raw', ['release', 'images'], false, false);
 
         self::assertSame([FileResult::UNCHANGED], array_values(array_unique(array_map(static fn(FileResult $r): string => $r->state, $second))));
         self::assertSame($manifestBefore, (string) file_get_contents($app . '/' . Squire::MANIFEST));
@@ -153,19 +153,19 @@ final class InitializerTest extends SquireTestCase
         self::assertFalse(is_executable($app . '/health.php'));
     }
 
-    public function testALaravelAppGetsTheLaravelEnvFileAndNoRawHealthPage(): void
+    public function testALaravelAppGetsNoRawHealthPageAndNoKitEnvFile(): void
     {
         $app = $this->app([], true);
-        $this->initializer()->run($app, 'laravel', ['release', 'parity'], false, false);
+        $this->initializer()->run($app, 'laravel', ['release', 'images'], false, false);
 
         self::assertFileDoesNotExist($app . '/public/up.php');
-        self::assertStringContainsString('DB_HOST=mysql', (string) file_get_contents($app . '/.env.squire.example'));
+        self::assertFileDoesNotExist($app . '/.env.squire.example', 'the parity kit left in 0.12.0');
     }
 
     public function testAStaticAppGetsTheRawKitPlusTheFrontController(): void
     {
         $app = $this->kitApp();
-        $results = $this->initializer()->run($app, 'static', ['release', 'parity'], false, false);
+        $results = $this->initializer()->run($app, 'static', ['release', 'images'], false, false);
 
         foreach ($results as $result) {
             self::assertSame(FileResult::CREATED, $result->state, $result->path);
@@ -299,11 +299,11 @@ echo 'my own front door';
     public function testInitWritesTheVueLayerOnlyWhenVueIsDetected(): void
     {
         $plain = $this->kitApp();
-        $this->initializer()->run($plain, 'raw', ['release', 'parity'], false, false, Catalog::detectLayer($plain));
+        $this->initializer()->run($plain, 'raw', ['release', 'images'], false, false, Catalog::detectLayer($plain));
         self::assertFileDoesNotExist($plain . '/.npmrc');
 
         $vue = $this->kitApp(['package.json' => '{"dependencies":{"vue":"^3.0.0"}}' . "\n"]);
-        $results = $this->initializer()->run($vue, 'raw', ['release', 'parity'], false, false, Catalog::detectLayer($vue));
+        $results = $this->initializer()->run($vue, 'raw', ['release', 'images'], false, false, Catalog::detectLayer($vue));
         self::assertFileExists($vue . '/.npmrc');
         self::assertStringContainsString('min-release-age=1', (string) file_get_contents($vue . '/.npmrc'));
 
@@ -317,20 +317,19 @@ echo 'my own front door';
     public function testInitWritesTheVueLayerForLaravelToo(): void
     {
         $app = $this->vueApp(true);
-        $this->initializer()->run($app, 'laravel', ['release', 'parity'], false, false, Catalog::detectLayer($app));
+        $this->initializer()->run($app, 'laravel', ['release', 'images'], false, false, Catalog::detectLayer($app));
 
         self::assertFileExists($app . '/.npmrc');
         self::assertFileDoesNotExist($app . '/public/up.php');
-        self::assertStringContainsString('DB_HOST=mysql', (string) file_get_contents($app . '/.env.squire.example'));
     }
 
     public function testRunningVueInitTwiceChangesNothing(): void
     {
         $app = $this->kitApp(['package.json' => '{"dependencies":{"vue":"^3.0.0"}}' . "\n"]);
-        $this->initializer()->run($app, 'raw', ['release', 'parity'], false, false, Catalog::detectLayer($app));
+        $this->initializer()->run($app, 'raw', ['release', 'images'], false, false, Catalog::detectLayer($app));
         $manifestBefore = (string) file_get_contents($app . '/' . Squire::MANIFEST);
 
-        $second = $this->initializer()->run($app, 'raw', ['release', 'parity'], false, false, Catalog::detectLayer($app));
+        $second = $this->initializer()->run($app, 'raw', ['release', 'images'], false, false, Catalog::detectLayer($app));
 
         self::assertSame([FileResult::UNCHANGED], array_values(array_unique(array_map(static fn(FileResult $r): string => $r->state, $second))));
         self::assertSame($manifestBefore, (string) file_get_contents($app . '/' . Squire::MANIFEST));
@@ -339,7 +338,7 @@ echo 'my own front door';
     public function testInitInADeployLayerCreatesTheGitignoreWithAllThreeLines(): void
     {
         $layer = $this->deployLayer();
-        $states = $this->states($this->initializer()->run($layer, 'raw', ['release', 'parity'], false, false));
+        $states = $this->states($this->initializer()->run($layer, 'raw', ['release', 'images'], false, false));
 
         self::assertSame(FileResult::CREATED, $states['.gitignore']);
         $lines = file($layer . '/.gitignore', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
@@ -396,7 +395,7 @@ echo 'my own front door';
             mkdir($app . '/.git');
             $before = (string) file_get_contents($app . '/.gitignore');
 
-            $states = $this->states($this->initializer()->run($app, $laravel ? 'laravel' : 'raw', ['release', 'parity'], false, false));
+            $states = $this->states($this->initializer()->run($app, $laravel ? 'laravel' : 'raw', ['release', 'images'], false, false));
 
             self::assertSame($before, (string) file_get_contents($app . '/.gitignore'), 'the repository root belongs to the app');
             self::assertArrayNotHasKey('.gitignore', $states, 'Squire reports nothing it did not do');
@@ -404,5 +403,35 @@ echo 'my own front door';
             self::assertNotNull($manifest);
             self::assertArrayNotHasKey('.gitignore', $manifest->files);
         }
+    }
+
+    public function testRecordedKitFilesAreReportedNeverDeletedAndLeaveTheRecord(): void
+    {
+        $app = $this->kitApp();
+        $this->initializer()->run($app, 'raw', ['release', 'images'], false, false);
+        $path = $app . '/' . Squire::MANIFEST;
+        $manifest = json_decode((string) file_get_contents($path), true);
+        $manifest['groups'] = ['release', 'parity'];
+        file_put_contents($app . '/docker-compose.squire.yml', "services: {}\n");
+        $manifest['files']['docker-compose.squire.yml'] = Manifest::hash("services: {}\n");
+        $manifest['files']['scripts/parity.ps1'] = Manifest::hash("gone\n");
+        file_put_contents($path, json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
+
+        $results = $this->initializer()->run($app, 'raw', \Waynestate\Squire\Template\Catalog::resolveGroups(['release', 'parity'], true), false, false);
+        $byPath = [];
+        foreach ($results as $result) {
+            $byPath[$result->path] = $result;
+        }
+
+        self::assertSame(FileResult::KIT_LEFTOVER, $byPath['docker-compose.squire.yml']->state);
+        self::assertSame(FileResult::KIT_LEFTOVER_DETAIL, $byPath['docker-compose.squire.yml']->detail);
+        self::assertSame(FileResult::KIT_LEFTOVER, $byPath['scripts/parity.ps1']->state);
+        self::assertStringContainsString('already gone', $byPath['scripts/parity.ps1']->detail);
+        self::assertFileExists($app . '/docker-compose.squire.yml', 'never deleted');
+        $after = Manifest::load($app);
+        self::assertNotNull($after);
+        self::assertSame(['release', 'images'], $after->groups);
+        self::assertArrayNotHasKey('docker-compose.squire.yml', $after->files);
+        self::assertArrayNotHasKey('scripts/parity.ps1', $after->files);
     }
 }

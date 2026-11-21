@@ -121,11 +121,11 @@ final class DirectoryWalkTest extends SquireTestCase
 
         // Strays nested where an iterator might miss them; .git stays invisible.
         $this->put($dir, 'raw/deep/nested/extra.txt', "stray\n");
-        $this->put($dir, 'laravel/scripts/parity-notes.md', "stray\n");
+        $this->put($dir, 'laravel/scripts/release-notes.md', "stray\n");
         $this->put($dir, '.git/hooks/post-commit', "stray\n");
 
         self::assertSame([
-            'laravel/scripts/parity-notes.md (unexpected)',
+            'laravel/scripts/release-notes.md (unexpected)',
             'raw/deep/nested/extra.txt (unexpected)',
         ], $exporter->check($dir));
     }

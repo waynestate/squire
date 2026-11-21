@@ -9,11 +9,11 @@
 #
 #   scripts/contract-image.sh [--platform=linux/arm64|linux/amd64] [--base-image=REF] [--keep]
 #
-# It makes a throwaway fixture app (squire init --target=raw --only=release,parity, composer.json and composer.lock
+# It makes a throwaway fixture app (squire init --target=raw --only=release,images, composer.json and composer.lock
 # seeded from deploy/, public/index.php and public/up.php from the raw template), builds the fallback base (unless
 # --base-image) and the app image for the platform, runs the container with a free local port, the fixture mounted
-# at /citadel/src and the least-privilege flags the kit's compose file runs the app with (every capability dropped
-# but the seven it adds back, no-new-privileges, the pids and memory limits), runs scripts/release.sh inside as the
+# at /citadel/src and the least-privilege flags Citadel-shaped hosts run the app with (every capability dropped
+# but the seven Apache needs back, no-new-privileges, the pids and memory limits), runs scripts/release.sh inside as the
 # citadel user with the smoke test on, and asserts:
 #
 #   - release.sh exited 0
@@ -71,17 +71,17 @@ GAPS=0
 # Whose base this is, for contract-image-checks.php: the kit's fallback, or an image the caller named.
 CONTRACT_BASE="fallback"
 
-# The app service's least privilege, the same flags docker-compose.squire.yml gives it (S70): every capability
-# dropped but the seven Apache and the entrypoint need, no-new-privileges, and the pids and memory limits.
-# tests/ContractImageTest.php fails when this list and the compose file's cap_add disagree.
+# The app's least privilege (the flags the parity kit's compose file used, before the kit left in 0.12.0): every
+# capability dropped but the seven Apache and the entrypoint need, no-new-privileges, and the pids and memory limits.
+# tests/ContractImageTest.php pins this list.
 RUN_LIMITS="--cap-drop=ALL --cap-add=CHOWN --cap-add=DAC_OVERRIDE --cap-add=FOWNER --cap-add=SETUID --cap-add=SETGID --cap-add=NET_BIND_SERVICE --cap-add=KILL --security-opt=no-new-privileges:true --pids-limit=256 --memory=512m"
 
 usage() {
     printf 'usage: scripts/contract-image.sh [--platform=linux/arm64|linux/amd64] [--base-image=REF] [--keep]\n'
     printf '\n'
     printf 'Proves that scripts/release.sh runs inside an image: builds a fixture app, builds the fallback base\n'
-    printf '(or takes --base-image) and the app image for the platform, runs the container with the compose\n'
-    printf 'file%s least privilege, runs release.sh as citadel with the smoke test on, and asserts the smoke URL,\n' "'s"
+    printf '(or takes --base-image) and the app image for the platform, runs the container with least\n'
+    printf 'privilege, runs release.sh as citadel with the smoke test on, and asserts the smoke URL,\n'
     printf 'health.php, the first-release log and the hardening inside the running image.\n'
     printf '\n'
     printf '  --platform=linux/arm64|linux/amd64  build and run for this platform (default: the machine%s)\n' \
@@ -145,7 +145,7 @@ make_fixture() {
     cp "$REPO/deploy/composer.lock" "$FIXTURE/composer.lock"
     if command -v php >/dev/null 2>&1; then
         [ -f "$REPO/vendor/autoload.php" ] || die "php bin/squire needs vendor/autoload.php; run 'composer install' in the Squire repository first"
-        (cd "$REPO" && php bin/squire init --path="$FIXTURE" --target=raw --only=release,parity)
+        (cd "$REPO" && php bin/squire init --path="$FIXTURE" --target=raw --only=release,images)
     else
         # No PHP on this machine: run the initializer in Docker. The named vendor volume keeps composer install
         # out of the way and fast on later runs, the same way the composer ci check does it.
@@ -155,7 +155,7 @@ make_fixture() {
             -v squire-vendor:/app/vendor \
             -w /app \
             composer:2.11.1@sha256:8de2184c6de224f4689e8f80ed5f5edaf0030b6b8b7839a22a2bcb6722ac87d0 \
-            sh -c 'if [ ! -f vendor/autoload.php ]; then composer install --no-interaction --quiet; fi; php bin/squire init --path=/work/app --target=raw --only=release,parity'
+            sh -c 'if [ ! -f vendor/autoload.php ]; then composer install --no-interaction --quiet; fi; php bin/squire init --path=/work/app --target=raw --only=release,images'
     fi
     # public/index.php and public/up.php come from the raw template; init writes them, but make sure they are here.
     [ -f "$FIXTURE/public/index.php" ] || cp "$REPO/templates/raw/public/index.php" "$FIXTURE/public/index.php"
@@ -204,12 +204,12 @@ build_images() {
 run_container() {
     PORT="$(pick_port)"
     docker volume create "$LOGVOL" >/dev/null
-    # The kit's compose file starts a one-shot logs-init container that makes the log dirs with the right owners.
+    # A one-shot logs-init container makes the log dirs with the right owners, as Citadel's own setup does.
     docker run --rm --entrypoint sh \
         -v "$LOGVOL":/citadel/logs \
         "$APP_TAG" \
         -c 'mkdir -p /citadel/logs/deployments /citadel/logs/apache && chown citadel:citadel /citadel/logs/deployments && chown -R prisoner:prisoner /citadel/logs/apache 2>/dev/null || true'
-    # The app source, as the kit's compose file mounts it, plus the logs volume, with the compose file's limits.
+    # The app source, mounted where Citadel keeps it, plus the logs volume, with the limits above.
     # shellcheck disable=SC2086  # RUN_LIMITS is a list of flags and splits on purpose
     docker run -d $RUN_LIMITS \
         --name "$CID" \

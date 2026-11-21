@@ -21,7 +21,7 @@ final class PhpLineTest extends SquireTestCase
     /**
      * Runs `squire init` in-process and returns the exit code and display.
      *
-     * @param array<string, string> $options option name (with dashes) => value, e.g. ['--only' => 'release,parity']
+     * @param array<string, string> $options option name (with dashes) => value, e.g. ['--only' => 'release,images']
      *
      * @return array{exit: int, stdout: string}
      */
@@ -36,14 +36,13 @@ final class PhpLineTest extends SquireTestCase
     public function testANewAppIsWrittenOnTheDefaultLine(): void
     {
         $app = $this->app();
-        $result = $this->init($app, ['--only' => 'release,parity']);
+        $result = $this->init($app, ['--only' => 'release,images']);
 
         self::assertSame(0, $result['exit'], $result['stdout']);
-        $compose = (string) file_get_contents($app . '/docker-compose.squire.yml');
+        $compose = (string) file_get_contents($app . '/.squire/Dockerfile');
         self::assertStringContainsString('citadel/php-apache:' . Squire::DEFAULT_PHP_LINE, $compose);
         self::assertStringNotContainsString('{{PHP_LINE}}', $compose);
-        $env = (string) file_get_contents($app . '/.env.squire.example');
-        self::assertStringContainsString('citadel/php-apache:' . Squire::DEFAULT_PHP_LINE, $env);
+        self::assertStringContainsString('squire/php-parity-base:' . Squire::DEFAULT_PHP_LINE, (string) file_get_contents($app . '/.squire/base-fallback.Dockerfile'));
         $data = json_decode((string) file_get_contents($app . '/' . Squire::MANIFEST), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame(Squire::DEFAULT_PHP_LINE, $data['php']);
     }
@@ -51,7 +50,7 @@ final class PhpLineTest extends SquireTestCase
     public function testAnExistingManifestWithoutAPhpKeyStaysOnTheLegacyLine(): void
     {
         $app = $this->app();
-        $first = $this->init($app, ['--only' => 'release,parity']);
+        $first = $this->init($app, ['--only' => 'release,images']);
         self::assertSame(0, $first['exit'], $first['stdout']);
 
         // An app written before the php key existed: no key in the manifest, files re-rendered on the legacy line.
@@ -60,14 +59,14 @@ final class PhpLineTest extends SquireTestCase
         (new Manifest($manifest->version, $manifest->target, $manifest->groups, $manifest->files, $manifest->layer))->save($app);
         $second = $this->init($app);
         self::assertSame(0, $second['exit'], $second['stdout']);
-        self::assertStringContainsString('citadel/php-apache:' . Squire::LEGACY_PHP_LINE, (string) file_get_contents($app . '/docker-compose.squire.yml'));
+        self::assertStringContainsString('citadel/php-apache:' . Squire::LEGACY_PHP_LINE, (string) file_get_contents($app . '/.squire/Dockerfile'));
 
-        $results = (new Updater(new Catalog(Squire::templatesDir())))->run($app, 'raw', ['release', 'parity'], false);
+        $results = (new Updater(new Catalog(Squire::templatesDir())))->run($app, 'raw', ['release', 'images'], false);
         $states = $this->states($results);
 
         self::assertFalse(in_array(FileResult::UPDATED, $states, true), 'update does not move a legacy app to another line');
         self::assertFalse(in_array(FileResult::EDITED, $states, true), 'update reports no drift on an untouched legacy app');
-        $compose = (string) file_get_contents($app . '/docker-compose.squire.yml');
+        $compose = (string) file_get_contents($app . '/.squire/Dockerfile');
         self::assertStringContainsString('citadel/php-apache:' . Squire::LEGACY_PHP_LINE, $compose);
         self::assertStringNotContainsString('citadel/php-apache:' . Squire::DEFAULT_PHP_LINE, $compose);
         $data = json_decode((string) file_get_contents($app . '/' . Squire::MANIFEST), true, 512, JSON_THROW_ON_ERROR);
@@ -77,10 +76,10 @@ final class PhpLineTest extends SquireTestCase
     public function testAnExplicitPhpFlagWins(): void
     {
         $app = $this->app();
-        $result = $this->init($app, ['--only' => 'release,parity', '--php' => Squire::LEGACY_PHP_LINE]);
+        $result = $this->init($app, ['--only' => 'release,images', '--php' => Squire::LEGACY_PHP_LINE]);
 
         self::assertSame(0, $result['exit'], $result['stdout']);
-        $compose = (string) file_get_contents($app . '/docker-compose.squire.yml');
+        $compose = (string) file_get_contents($app . '/.squire/Dockerfile');
         self::assertStringContainsString('citadel/php-apache:' . Squire::LEGACY_PHP_LINE, $compose);
         self::assertStringNotContainsString('citadel/php-apache:' . Squire::DEFAULT_PHP_LINE, $compose);
         $data = json_decode((string) file_get_contents($app . '/' . Squire::MANIFEST), true, 512, JSON_THROW_ON_ERROR);
@@ -90,11 +89,11 @@ final class PhpLineTest extends SquireTestCase
     public function testABadPhpLineIsRefused(): void
     {
         $app = $this->app();
-        $result = $this->init($app, ['--only' => 'release,parity', '--php' => 'latest']);
+        $result = $this->init($app, ['--only' => 'release,images', '--php' => 'latest']);
 
         self::assertSame(2, $result['exit'], $result['stdout']);
         self::assertFileDoesNotExist($app . '/' . Squire::MANIFEST, 'a usage error writes nothing');
-        self::assertFileDoesNotExist($app . '/docker-compose.squire.yml');
+        self::assertFileDoesNotExist($app . '/.squire/Dockerfile');
         self::assertFileDoesNotExist($app . '/build.sh');
     }
 }

@@ -9,7 +9,7 @@ use Waynestate\Squire\Squire;
 
 final class ConsoleTest extends SquireTestCase
 {
-    public function testUpdateOnlyHelpCallsParityOptIn(): void
+    public function testUpdateOnlyHelpCallsImagesOptIn(): void
     {
         $description = (new UpdateCommand())->getDefinition()->getOption('only')->getDescription();
 
@@ -50,7 +50,7 @@ final class ConsoleTest extends SquireTestCase
 
         $app = $this->app();
         unlink($app . '/composer.lock');
-        $result = $this->runSquire(['init', '--path=' . $app, '--only=parity']);
+        $result = $this->runSquire(['init', '--path=' . $app, '--only=images']);
         self::assertStringNotContainsString('Heads up', $result['stdout']);
     }
 
@@ -159,33 +159,34 @@ final class ConsoleTest extends SquireTestCase
         $this->runSquire(['init', '--only=release', '--path=' . $app]);
 
         self::assertFileExists($app . '/build.sh');
-        self::assertFileDoesNotExist($app . '/docker-compose.squire.yml');
+        self::assertFileDoesNotExist($app . '/.squire/Dockerfile');
     }
 
     public function testBareInitOnAnExistingKitDefaultsToTheRecordedGroups(): void
     {
         $app = $this->app();
         $this->runSquire(['init', '--only=release', '--path=' . $app]);
-        self::assertFileDoesNotExist($app . '/docker-compose.squire.yml');
+        self::assertFileDoesNotExist($app . '/.squire/Dockerfile');
 
         $result = $this->runSquire(['init', '--path=' . $app]);
 
         self::assertSame(0, $result['exit'], $result['stderr']);
-        self::assertFileDoesNotExist($app . '/docker-compose.squire.yml', 'the recorded groups win over the fresh-app default');
+        self::assertFileDoesNotExist($app . '/.squire/Dockerfile', 'the recorded groups win over the fresh-app default');
         $manifest = json_decode((string) file_get_contents($app . '/' . Squire::MANIFEST), true);
         self::assertSame(['release'], $manifest['groups']);
     }
 
-    public function testExplicitGroupsStillWriteReleaseAndParity(): void
+    public function testExplicitGroupsStillWriteReleaseAndImages(): void
     {
         $app = $this->app();
-        $result = $this->runSquire(['init', '--only=release,parity', '--path=' . $app]);
+        $result = $this->runSquire(['init', '--only=release,images', '--path=' . $app]);
 
         self::assertSame(0, $result['exit'], $result['stderr']);
         self::assertFileExists($app . '/build.sh');
-        self::assertFileExists($app . '/docker-compose.squire.yml');
+        self::assertFileExists($app . '/.squire/Dockerfile');
+        self::assertFileDoesNotExist($app . '/docker-compose.squire.yml', 'the parity kit left in 0.12.0');
         $manifest = json_decode((string) file_get_contents($app . '/' . Squire::MANIFEST), true);
-        self::assertSame(['release', 'parity'], $manifest['groups']);
+        self::assertSame(['release', 'images'], $manifest['groups']);
     }
 
     public function testOnlyStillWinsOverTheRecordedGroups(): void
@@ -193,58 +194,103 @@ final class ConsoleTest extends SquireTestCase
         $app = $this->app();
         $this->runSquire(['init', '--only=release', '--path=' . $app]);
 
-        $result = $this->runSquire(['init', '--only=parity', '--path=' . $app]);
+        $result = $this->runSquire(['init', '--only=images', '--path=' . $app]);
 
         self::assertSame(0, $result['exit'], $result['stderr']);
-        self::assertFileExists($app . '/docker-compose.squire.yml');
+        self::assertFileExists($app . '/.squire/Dockerfile');
         $manifest = json_decode((string) file_get_contents($app . '/' . Squire::MANIFEST), true);
-        self::assertSame(['parity'], $manifest['groups']);
+        self::assertSame(['images'], $manifest['groups']);
     }
 
-    public function testInitAndUpdatePointAtParityWhenTheParityGroupIsInPlay(): void
+    public function testOnlyParityIsRefusedWithAPointerAtParity(): void
+    {
+        foreach (['init', 'update'] as $command) {
+            $app = $this->initializedApp();
+            $result = $this->runSquire([$command, '--only=release,parity', '--path=' . $app]);
+
+            self::assertSame(2, $result['exit'], $command . ': ' . $result['stdout']);
+            self::assertStringContainsString('The parity group left Squire in 0.12.0', $result['stderr'] . $result['stdout']);
+            self::assertStringContainsString('parity init --from-squire', $result['stderr'] . $result['stdout']);
+            self::assertFileDoesNotExist($app . '/docker-compose.squire.yml');
+        }
+    }
+
+    /**
+     * An app initialized before 0.12.0 with the parity group: the record names `parity` and lists the kit's files.
+     */
+    private function oldKitApp(): string
+    {
+        $app = $this->initializedApp();
+        $manifestPath = $app . '/' . Squire::MANIFEST;
+        $manifest = json_decode((string) file_get_contents($manifestPath), true);
+        $manifest['groups'] = ['release', 'parity'];
+        $manifest['version'] = '0.11.2';
+        foreach (['docker-compose.squire.yml' => "services: {}\n", 'scripts/parity.sh' => "#!/bin/sh\n", '.env.squire.example' => "APP_PORT=8080\n"] as $path => $body) {
+            @mkdir(dirname($app . '/' . $path), 0777, true);
+            file_put_contents($app . '/' . $path, $body);
+            $manifest['files'][$path] = hash('sha256', $body);
+        }
+        file_put_contents($manifestPath, json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
+
+        return $app;
+    }
+
+    public function testUpdateReportsTheOldKitFilesAndDeletesNone(): void
+    {
+        $app = $this->oldKitApp();
+
+        $update = $this->runSquire(['update', '--path=' . $app]);
+
+        self::assertSame(0, $update['exit'], $update['stdout'] . $update['stderr']);
+        self::assertStringContainsString('kit-leftover', $update['stdout']);
+        self::assertStringContainsString('docker-compose.squire.yml', $update['stdout']);
+        self::assertStringContainsString(Squire::PARITY_POINTER, $update['stdout']);
+        self::assertStringContainsString('parity init --from-squire', Squire::PARITY_POINTER);
+        self::assertStringContainsString(Squire::PARITY_URL, Squire::PARITY_POINTER);
+        self::assertStringNotContainsString("\n", Squire::PARITY_POINTER, 'one line');
+        foreach (['docker-compose.squire.yml', 'scripts/parity.sh', '.env.squire.example'] as $path) {
+            self::assertFileExists($app . '/' . $path, $path . ' is never deleted');
+        }
+
+        $manifest = json_decode((string) file_get_contents($app . '/' . Squire::MANIFEST), true);
+        self::assertSame(['release', 'images'], $manifest['groups'], 'the record\'s parity group reads as images');
+        self::assertArrayNotHasKey('docker-compose.squire.yml', $manifest['files'], 'the kit files leave the record');
+        self::assertArrayNotHasKey('scripts/parity.sh', $manifest['files']);
+        self::assertArrayHasKey('.squire/Dockerfile', $manifest['files'], 'the image files stay');
+
+        // A second update has nothing to report: the files are out of the record.
+        $again = $this->runSquire(['update', '--path=' . $app]);
+        self::assertSame(0, $again['exit'], $again['stdout']);
+        self::assertStringNotContainsString('kit-leftover', $again['stdout']);
+    }
+
+    public function testInitPointsAtParityForAFreshApp(): void
     {
         $app = $this->app();
-        $init = $this->runSquire(['init', '--only=release,parity', '--path=' . $app]);
+        $init = $this->runSquire(['init', '--only=release', '--path=' . $app]);
         self::assertSame(0, $init['exit'], $init['stderr']);
-        self::assertStringContainsString(Squire::PARITY_POINTER . "\n", $init['stdout']);
-        self::assertStringContainsString('https://git.wayne.edu/enterprise-apps/parity', Squire::PARITY_POINTER);
-        self::assertStringContainsString('parity init --from-squire', Squire::PARITY_POINTER);
-        self::assertStringContainsString('0.12.0', Squire::PARITY_POINTER);
+        self::assertStringNotContainsString(Squire::PARITY_POINTER, $init['stdout']);
+        self::assertStringContainsString('Run it locally with Parity: parity init, then parity up (' . Squire::PARITY_URL . ').', $init['stdout']);
 
-        // One line, and update says it before RESULT so RESULT stays last.
-        self::assertStringNotContainsString("\n", Squire::PARITY_POINTER);
         $update = $this->runSquire(['update', '--path=' . $app]);
-        self::assertSame(0, $update['exit'], $update['stdout']);
-        self::assertStringContainsString(Squire::PARITY_POINTER . "\nRESULT: pass", $update['stdout']);
+        self::assertStringNotContainsString('Parity:', $update['stdout']);
 
         // --check stays a plain drift report.
         $check = $this->runSquire(['init', '--check', '--path=' . $app]);
         self::assertStringNotContainsString('Parity:', $check['stdout']);
     }
 
-    public function testInitAndUpdateOmitTheParityPointerWithoutTheParityGroup(): void
+    public function testDoctorFlagsLeftoverKitFilesAsInfo(): void
     {
-        $app = $this->app();
-        $init = $this->runSquire(['init', '--only=release', '--path=' . $app]);
-        self::assertSame(0, $init['exit'], $init['stderr']);
-        self::assertStringNotContainsString(Squire::PARITY_POINTER, $init['stdout']);
-        // The kit no longer ships a local-run path by default, so init points at Parity instead.
-        self::assertStringContainsString('Run it locally with Parity: parity init --from-squire, then parity up (' . Squire::PARITY_URL . ').', $init['stdout']);
-
-        $update = $this->runSquire(['update', '--path=' . $app]);
-        self::assertStringNotContainsString('Parity:', $update['stdout']);
-    }
-
-    public function testDoctorPointsAtParity(): void
-    {
-        $kit = $this->runSquire(['doctor', '--path=' . $this->initializedApp()]);
-        self::assertStringContainsString('INFO S35  The parity kit is deprecated', $kit['stdout']);
-        self::assertStringContainsString(Squire::PARITY_URL, $kit['stdout']);
+        $left = $this->runSquire(['doctor', '--path=' . $this->oldKitApp()]);
+        self::assertStringContainsString('INFO S35  Parity kit files left over: docker-compose.squire.yml', $left['stdout']);
+        self::assertStringContainsString('then delete them; use Parity', $left['stdout']);
+        self::assertStringContainsString(Squire::PARITY_URL, $left['stdout']);
 
         $app = $this->app();
         $this->runSquire(['init', '--only=release', '--path=' . $app]);
         $none = $this->runSquire(['doctor', '--path=' . $app]);
-        self::assertStringContainsString('INFO S35  No local parity setup. Parity runs Citadel on your computer', $none['stdout']);
+        self::assertStringContainsString('S35  No parity kit files left over.', $none['stdout']);
         self::assertStringNotContainsString('squire init --only=parity', $none['stdout']);
     }
 

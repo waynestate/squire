@@ -33,7 +33,7 @@ final class DriftCheck implements Check
         }
 
         $layer = $manifest->layer ?? Catalog::detectLayer($project->path);
-        $results = (new Initializer($this->catalog))->run($project->path, $manifest->target, $manifest->groups, false, true, $layer);
+        $results = (new Initializer($this->catalog))->run($project->path, $manifest->target, Catalog::resolveGroups($manifest->groups, true), false, true, $layer);
 
         $findings = [];
         foreach ($results as $result) {
