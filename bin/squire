@@ -37,6 +37,7 @@ foreach ($autoloaders as $autoload) {
         /** @var list<string> $argv */
         $argv = $GLOBALS['argv'] ?? [];
         $application = new Application();
+        $application->setAutoExit(false);
         $code = $application->run();
         try {
             $notice->run(getenv() ?: [], $argv, $version, STDERR);
