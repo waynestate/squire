@@ -12,6 +12,7 @@ Versioning once 1.0 is out.
 ### Fixed
 
 - The PSScriptAnalyzer CI job analyzes scripts/ (it pointed at templates/, which holds no .ps1 files, and passed without checking anything); a listed folder with no .ps1 files now fails the job.
+- Docs: current pages no longer name the stack's internal GitLab host.
 
 ## 0.12.0 (2026-11-20)
 
