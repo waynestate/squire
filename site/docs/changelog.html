@@ -73,6 +73,7 @@ Versioning once 1.0 is out.</p>
 <ul>
 <li>Squire describes itself as the Citadel kit everywhere: the Composer description, the README, the docs and the front page. The front page's packing list holds the five release tags (<code>oracle-check.php</code> took the parity kit's place), and its &quot;Run it locally&quot; section shows Parity's commands. The Local parity docs page is now <a rel="noopener" href="https://squire.apps.wayne.edu/docs/guides/local-parity.html">Moved to Parity</a>.</li>
 <li>Squire's own <code>deploy/</code> takes the 0.12.0 templates (<code>squire update</code>), records <code>release,images</code>, and deletes its own five kit files by hand, as the upgrade steps say.</li>
+<li>Added: an update notice: after any command, one line on stderr when a newer stable release exists, with the command that updates this install (Packagist, at most one check a day per machine, cached in the user cache dir). Silent in CI, under <code>WAYNE_NO_UPDATE_CHECK=1</code>, with <code>--quiet</code> or <code>-q</code>, and on non-release builds; stdout and exit codes are never touched.</li>
 </ul>
 <h2 id="0-11-2-2026-11-19">0.11.2 <span class="docs-heading-tail"><span>(2026-11-19)</span><a class="docs-heading-link" aria-label="Link to this section" href="#0-11-2-2026-11-19">#</a></span></h2>
 <ul>

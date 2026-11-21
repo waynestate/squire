@@ -44,6 +44,7 @@ Squire is the Citadel kit now: `build.sh`, the release script and the health che
 
 - Squire describes itself as the Citadel kit everywhere: the Composer description, the README, the docs and the front page. The front page's packing list holds the five release tags (`oracle-check.php` took the parity kit's place), and its "Run it locally" section shows Parity's commands. The Local parity docs page is now [Moved to Parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html).
 - Squire's own `deploy/` takes the 0.12.0 templates (`squire update`), records `release,images`, and deletes its own five kit files by hand, as the upgrade steps say.
+- Added: an update notice: after any command, one line on stderr when a newer stable release exists, with the command that updates this install (Packagist, at most one check a day per machine, cached in the user cache dir). Silent in CI, under `WAYNE_NO_UPDATE_CHECK=1`, with `--quiet` or `-q`, and on non-release builds; stdout and exit codes are never touched.
 
 ## 0.11.2 (2026-11-19) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-11-2-2026-11-19)
 

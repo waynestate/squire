@@ -72,6 +72,15 @@ vendor/bin/squire doctor
 PHP `^8.3`. Tested on 8.3, 8.4 and 8.5. The package runs on your machine or in CI, not on Citadel; what lands on Citadel
 is the scripts it wrote.
 
+### Update notice
+
+After any command finishes, Squire prints one line on stderr when a newer stable release exists, with the command that
+updates this install: `squire 0.11.2 is out of date: 0.11.3 is the newest release. Update: composer update
+waynestate/squire`. It asks Packagist at most once a day per machine and keeps the answer in the user cache dir
+(`waynestate/squire/update-check.json`), so an offline machine stays quiet and tries again the next day. Nothing is
+printed when `CI` is set to anything other than empty, `0` or `false`, when `WAYNE_NO_UPDATE_CHECK=1`, when the command
+runs with `--quiet` or `-q`, or when the running copy is not a plain release; stdout and exit codes are never touched.
+
 ### Commands
 
 ```
@@ -1061,6 +1070,7 @@ Squire is the Citadel kit now: `build.sh`, the release script and the health che
 
 - Squire describes itself as the Citadel kit everywhere: the Composer description, the README, the docs and the front page. The front page's packing list holds the five release tags (`oracle-check.php` took the parity kit's place), and its "Run it locally" section shows Parity's commands. The Local parity docs page is now [Moved to Parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html).
 - Squire's own `deploy/` takes the 0.12.0 templates (`squire update`), records `release,images`, and deletes its own five kit files by hand, as the upgrade steps say.
+- Added: an update notice: after any command, one line on stderr when a newer stable release exists, with the command that updates this install (Packagist, at most one check a day per machine, cached in the user cache dir). Silent in CI, under `WAYNE_NO_UPDATE_CHECK=1`, with `--quiet` or `-q`, and on non-release builds; stdout and exit codes are never touched.
 
 ### 0.11.2 (2026-11-19) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-11-2-2026-11-19)
 
@@ -2862,6 +2872,10 @@ vendor/bin/squire doctor
 ### Verify [#](https://squire.apps.wayne.edu/docs/install.html#verify)
 
 `vendor/bin/squire doctor` checks the app against the best practices a machine can decide. Exit codes: `0` pass, `1` findings (`init --check`: drift; `update`: an edited file still differs from the template; `doctor`: a failed rule), `2` the tool itself could not run.
+
+### Update notice [#](https://squire.apps.wayne.edu/docs/install.html#update-notice)
+
+After any command finishes, Squire prints one line on stderr when a newer stable release exists, with the command that updates this install, for example `squire 0.11.2 is out of date: 0.11.3 is the newest release. Update: composer update waynestate/squire`. The newest release comes from Packagist, checked at most once a day per machine; the answer sits in the user cache dir as `waynestate/squire/update-check.json`, so an offline machine stays quiet and tries again the next day. Nothing is printed when `CI` is set to anything other than empty, `0` or `false`, when `WAYNE_NO_UPDATE_CHECK=1`, when the command runs with `--quiet` or `-q`, or when the running copy is not a plain release. Stdout and exit codes are never touched. The variable is listed in the [Configuration reference](https://squire.apps.wayne.edu/docs/reference/configuration.html).
 
 Next: the [command reference](https://squire.apps.wayne.edu/docs/reference/commands.html).
 
