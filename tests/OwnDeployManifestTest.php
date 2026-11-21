@@ -9,7 +9,7 @@ use Waynestate\Squire\Template\Manifest;
 /**
  * Squire's own deploy layer is one Squire wrote: every hash its .squire.json records must match the file it holds,
  * or `squire update` on this repo refuses the file as locally edited. The hashes are taken the way Squire takes
- * them (Manifest::hash normalizes line endings), so a CRLF checkout of parity.ps1 is not drift.
+ * them (Manifest::hash normalizes line endings), so a CRLF checkout of a script is not drift.
  */
 final class OwnDeployManifestTest extends SquireTestCase
 {

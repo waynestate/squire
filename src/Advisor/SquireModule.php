@@ -125,7 +125,7 @@ final class SquireModule implements Module
                     // detection and the default groups; the detected layer.
                     $manifest = Manifest::load($app);
                     $target = $manifest !== null ? $manifest->target : Catalog::detectTarget($app);
-                    $groups = $manifest !== null && $manifest->groups !== [] ? $manifest->groups : self::GROUPS;
+                    $groups = $manifest !== null && $manifest->groups !== [] ? Catalog::resolveGroups($manifest->groups, true) : self::GROUPS;
                     $layer = Catalog::detectLayer($app);
                     $results = (new Initializer(new Catalog(Squire::templatesDir())))->run($app, $target, $groups, false, true, $layer);
                 } catch (ToolError $e) {

@@ -62,7 +62,7 @@ final class PhpLineManifestTest extends SquireTestCase
     public function testContentReplacesTheToken(): void
     {
         $catalog = new Catalog(Squire::templatesDir());
-        $compose = new Template('docker-compose.squire.yml', Template::GROUP_PARITY);
+        $compose = new Template('.squire/Dockerfile', Template::GROUP_IMAGES);
 
         $next = $catalog->content($compose, '8.5r3');
         self::assertStringContainsString('citadel/php-apache:8.5r3', $next);

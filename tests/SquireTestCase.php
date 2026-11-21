@@ -100,7 +100,7 @@ abstract class SquireTestCase extends TestCase
     protected function initializedApp(bool $laravel = false): string
     {
         $dir = $this->app([], $laravel);
-        (new Initializer(new Catalog(Squire::templatesDir())))->run($dir, $laravel ? 'laravel' : 'raw', ['release', 'parity'], false, false);
+        (new Initializer(new Catalog(Squire::templatesDir())))->run($dir, $laravel ? 'laravel' : 'raw', ['release', 'images'], false, false);
 
         return $dir;
     }
@@ -115,7 +115,7 @@ abstract class SquireTestCase extends TestCase
     protected function initializedVueApp(bool $laravel = false): string
     {
         $dir = $this->vueApp($laravel);
-        (new Initializer(new Catalog(Squire::templatesDir())))->run($dir, $laravel ? 'laravel' : 'raw', ['release', 'parity'], false, false, Catalog::detectLayer($dir));
+        (new Initializer(new Catalog(Squire::templatesDir())))->run($dir, $laravel ? 'laravel' : 'raw', ['release', 'images'], false, false, Catalog::detectLayer($dir));
 
         return $dir;
     }

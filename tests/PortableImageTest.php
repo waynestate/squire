@@ -38,96 +38,15 @@ final class PortableImageTest extends SquireTestCase
         self::assertStringContainsString('EXPOSE 80', $this->read('common/.squire/base-fallback.Dockerfile'));
     }
 
-    /** @return iterable<string, array{string}> */
-    public static function composeFiles(): iterable
-    {
-        yield 'common' => ['common/docker-compose.squire.yml'];
-        yield 'vue' => ['vue/docker-compose.squire.yml'];
-    }
+    // The compose file's portable profile (one image as four services) left with the parity kit in 0.12.0; the image
+    // and its four roles stay, and each role is one `docker run` (docs/guides/portable-image.md).
 
-    /**
-     * The services of a compose file, name => its indented block.
-     *
-     * @return array<string, string>
-     */
-    private function services(string $compose): array
-    {
-        $body = substr($compose, (int) strpos($compose, "\nservices:\n") + strlen("\nservices:\n"));
-        $body = substr($body, 0, (int) strpos($body, "\nvolumes:\n"));
-        preg_match_all('/^  ([a-z][a-z0-9-]*):\n((?:(?:    .*|\s*|  #.*)\n)*)/m', $body . "\n", $m, PREG_SET_ORDER);
-        $services = [];
-        foreach ($m as $match) {
-            $services[$match[1]] = $match[2];
-        }
-
-        return $services;
-    }
-
-    #[DataProvider('composeFiles')]
-    public function testTheDefaultComposeStackIsStillTheCitadelParityStack(string $source): void
-    {
-        $services = $this->services($this->read($source));
-        foreach (['logs-init', 'app', 'proxy', 'mysql'] as $name) {
-            self::assertArrayHasKey($name, $services, $source . ' lost the ' . $name . ' service');
-            self::assertStringNotContainsString('<<: *portable', $services[$name], $source . ': ' . $name . ' is a parity service');
-            self::assertStringNotContainsString('profiles:', $services[$name], $source . ': ' . $name . ' starts with a plain `up`, as before');
-        }
-        self::assertStringContainsString('dockerfile: .squire/Dockerfile', $this->read($source), 'the parity app still builds the Citadel mirror');
-    }
-
-    // --- one image, four process types (W8) ------------------------------------------------------------------------
-
-    #[DataProvider('composeFiles')]
-    public function testThePortableProfileRunsOneImageAsFourRoles(string $source): void
-    {
-        $compose = $this->read($source);
-        $services = $this->services($compose);
-
-        $anchor = substr($compose, (int) strpos($compose, 'x-portable: &portable'));
-        $anchor = substr($anchor, 0, (int) strpos($anchor, "\nservices:\n"));
-        self::assertStringContainsString('image: squire-local/portable:${SQUIRE_PROJECT:-squire-app}', $anchor, 'one image for every role');
-        self::assertStringContainsString('build: *portable-build', $anchor);
-        self::assertStringContainsString('profiles: [portable]', $anchor, 'nothing portable starts unless asked for');
-        self::assertStringContainsString('user: "${SQUIRE_PORTABLE_USER:-10001:0}"', $anchor);
-        self::assertStringContainsString('cap_drop: [ALL]', $anchor);
-        self::assertStringNotContainsString('cap_add', $anchor, 'a non-root process on 8080 needs no capability at all');
-        self::assertStringContainsString('no-new-privileges:true', $anchor);
-        self::assertStringContainsString('dockerfile: ${SQUIRE_KIT_DIR:-.}/.squire/portable.Dockerfile', $compose);
-
-        foreach (self::ROLES as $role) {
-            self::assertArrayHasKey($role, $services, $source . ' has no ' . $role . ' service');
-            self::assertStringContainsString('<<: *portable', $services[$role], $role . ' takes the shared portable block');
-            self::assertStringContainsString('SQUIRE_ROLE: ' . $role, $services[$role], $role . ' differs only by its role');
-            self::assertStringNotContainsString('image:', $services[$role], $role . ' must not name its own image');
-            self::assertStringNotContainsString('build:', $services[$role], $role . ' must not build its own image');
-        }
-        self::assertStringContainsString('"127.0.0.1:${SQUIRE_PORTABLE_HTTP_PORT:-8081}:8080"', $services['web']);
-        self::assertStringContainsString('QUEUE_WORKER_MODE: none', $services['scheduler'], 'the worker service has the queue, so the scheduler must not start short workers too');
-        self::assertStringContainsString('restart: "no"', $services['migrate'], 'migrations run once per release (W24)');
-        foreach (['web', 'worker', 'scheduler'] as $role) {
-            self::assertStringContainsString("migrate:\n        condition: service_completed_successfully", $services[$role], $role . ' waits for the migrations');
-            self::assertStringContainsString('restart: unless-stopped', $services[$role], $role . ' comes back after queue:work --max-time ends it');
-        }
-    }
-
-    public function testTheVueComposeCarriesTheSamePortableProfile(): void
-    {
-        $common = $this->read('common/docker-compose.squire.yml');
-        $vue = $this->read('vue/docker-compose.squire.yml');
-        foreach (['x-portable-build: &portable-build', '  # --- the portable profile'] as $start) {
-            $a = substr($common, (int) strpos($common, $start));
-            $b = substr($vue, (int) strpos($vue, $start));
-            $end = $start === '  # --- the portable profile' ? "\nvolumes:\n" : "\nservices:\n";
-            self::assertSame(substr($a, 0, (int) strpos($a, $end)), substr($b, 0, (int) strpos($b, $end)), 'the two compose files keep one portable profile');
-        }
-    }
-
-    public function testThePortableFilesShipWithTheParityKit(): void
+    public function testThePortableFilesShipWithTheImagesGroup(): void
     {
         $found = [];
         foreach (Catalog::all() as $template) {
             if (str_contains($template->destination, 'portable')) {
-                self::assertSame(Template::GROUP_PARITY, $template->group, $template->destination);
+                self::assertSame(Template::GROUP_IMAGES, $template->group, $template->destination);
                 self::assertNull($template->target, $template->destination . ' is the same for raw, Laravel and static apps');
                 $found[$template->destination] = $template->executable;
             }

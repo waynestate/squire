@@ -1,6 +1,6 @@
 # Squire: everything in one file
 
-> Squire is the deploy kit for Citadel. It writes your app's build, release and health-check scripts from templates, checks them with squire doctor, and runs the app locally on Citadel's PHP image behind the same kind of proxy.
+> Squire is the deploy kit for Citadel. It writes your app's build, release and health-check scripts from templates, and checks them with squire doctor. Running the app on your computer is Parity's job.
 
 The README and the Markdown twin of every page, joined. The index is https://squire.apps.wayne.edu/llms.txt. Written by Squire's agent-ready kit; do not edit.
 
@@ -18,7 +18,7 @@ Documentation: [squire.apps.wayne.edu/docs/](https://squire.apps.wayne.edu/docs/
 
 Checks: `composer ci` (the same command runs on GitLab and GitHub).
 
-Squire is the Citadel kit: build.sh, the release script, the health check, and local parity on the real images. Its docs builder turns `docs/` into the committed pages under `site/docs/`, with a changelog page generated from `CHANGELOG.md` when the nav lists one. It is part of WELD, the Wayne State application stack, beside WayneUI (project 0, the interface layer), CREED, PROCTOR, Preflight, SESAME, HELMET, Pinstripe, Sourdough and [Parity](https://git.wayne.edu/enterprise-apps/parity). Squire gets the app onto Citadel; Parity runs Citadel on your computer, and takes over from Squire's own parity kit, which is deprecated (see [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html)).
+Squire is the Citadel kit: build.sh, the release script and the health check, from templates, checked by `squire doctor`. Its docs builder turns `docs/` into the committed pages under `site/docs/`, with a changelog page generated from `CHANGELOG.md` when the nav lists one. It is part of WELD, the Wayne State application stack, beside WayneUI (project 0, the interface layer), CREED, PROCTOR, Preflight, SESAME, HELMET, Pinstripe, Sourdough and [Parity](https://git.wayne.edu/enterprise-apps/parity). Squire gets the app onto Citadel; Parity runs Citadel on your computer, and took over from Squire's own parity kit, which left in 0.12.0 (see [Moved to Parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html)).
 
 **Not to be confused with:** `squire doctor` checks deploy setup only; standards checks are PROCTOR's.
 
@@ -27,7 +27,7 @@ Squire is the Citadel kit: build.sh, the release script, the health check, and l
 Front page: [`site/index.html`](https://github.com/waynestate/squire/blob/HEAD/site/index.html), a static page you can serve from anywhere.
 On Citadel it is served by the raw-PHP deploy layer in [`deploy/`](https://github.com/waynestate/squire/blob/HEAD/deploy/): a Squire kit whose front controller serves `site/` behind HELMET's security headers. For local development, keep serving `site/` directly.
 
-Status: 0.11.2, tagged and on Packagist.
+Status: 0.12.0, tagged and on Packagist.
 
 ### Where the code lives
 
@@ -42,7 +42,7 @@ The pages under `docs/` build into the committed site at `site/docs/`: rebuild w
 ### What it does
 
 - `squire init` writes the scripts a Citadel app needs from templates, for raw PHP, Laravel or a static site, and detects
-  a Vue/Inertia layer from `package.json`, adding the layer's release script and Node 22 parity service. `squire init
+  a Vue/Inertia layer from `package.json`, adding the layer's `.npmrc`. `squire init
   --check` reports when your copies have drifted from the templates (depend, do not copy). In a directory below the
   repository root (a `deploy/` layer, say), `init` also keeps the `.gitignore` honest: it appends `/vendor/`, `.env` and
   `.env.squire` when they are missing, never touches a line the app added, and leaves the repository root's `.gitignore`
@@ -56,8 +56,9 @@ The pages under `docs/` build into the committed site at `site/docs/`: rebuild w
   snapshot; `squire facts --check` writes nothing and exits `1` when a region has drifted, so CI can gate on it.
   `squire facts --snapshot` rebuilds the snapshot itself from the CREED policy and the ADVISOR project data in
   vendor, so a scheduled bot can keep it honest while CI only checks.
-- A local setup that runs your app on the Citadel PHP image, behind a proxy like Citadel's, with the same MySQL 5.6.
-  Deprecated as of 0.10.5: [Parity](https://git.wayne.edu/enterprise-apps/parity) does this job now.
+- Opt-in image files (`--only=release,images`): a mirror of Citadel's image, a fallback base for machines without it,
+  and a portable image for OpenShift, Coolify and raw Docker. Running Citadel on your computer is
+  [Parity](https://git.wayne.edu/enterprise-apps/parity)'s job; Squire's own parity kit left in 0.12.0.
 - Squire's maintainers send platform improvement proposals to the platform team privately. Squire never touches a server.
 
 ### Install
@@ -74,8 +75,8 @@ is the scripts it wrote.
 ### Commands
 
 ```
-vendor/bin/squire init   [--path=.] [--target=auto|raw|laravel|static] [--only=release|parity] [--check] [--force]
-vendor/bin/squire update [--path=.] [--target=raw|laravel|static] [--only=release|parity] [--dry-run]
+vendor/bin/squire init   [--path=.] [--target=auto|raw|laravel|static] [--only=release|images] [--check] [--force]
+vendor/bin/squire update [--path=.] [--target=raw|laravel|static] [--only=release|images] [--dry-run]
 vendor/bin/squire doctor [--path=.] [--format=text|json]
 ```
 
@@ -88,21 +89,23 @@ environment and the app's `.env`, prints setting names and never values, and sta
 settings. Add `-v` for the client version.
 
 `init` never overwrites a file you edited, or a file it did not write, unless you pass `--force`. It records a SHA-256 of
-each file in `.squire.json`; commit that file. `--only=release` writes just the Citadel scripts, `--only=parity` just the
-local setup. When the parity group is in play, `init` and `update` end with one line that says it is deprecated and
-points at Parity, and `doctor` adds an S35 info line that says the same.
+each file in `.squire.json`; commit that file. A fresh `init` writes the Citadel scripts (the `release` group); `--only=release,images`
+adds the image files. `--only=parity` exits 2: the parity kit left in 0.12.0. On an app that still has its files,
+`init` and `update` list them as `kit-leftover`, drop them from `.squire.json` and delete none, and end with one line
+that points at `parity init --from-squire`; `doctor` notes them under S35.
 The release installs from the lock file, so when the app has no `composer.json` or no `composer.lock`, `init` ends with a "Heads up" line: commit both before the first deploy (`composer init`, then `composer update`), or the release stops at step 1.
 
 A Vue/Inertia app is a layer on `raw`, `laravel` or `static`, not a fourth target: `init` detects `vue` in `package.json`
-(dependencies or devDependencies) and writes the layer's `.npmrc` and its `docker-compose.squire.yml` (with a Node 22 service) beside the target's files.
+(dependencies or devDependencies) and writes the layer's `.npmrc` beside the target's files.
 Every app, Vue or not, gets the one common `scripts/release.sh`, which installs the frontend from the lock file and runs
 the `build` script whenever there is a `package.json`.
 
 A raw PHP app (`--target=raw`, the default without an `artisan` file) gets a front controller, `public/index.php`, and an
 `.htaccess` that sends every request to it. The front controller has three answers:
 
-- a real file in `public/` (CSS, images, fonts, an HTML page) is served with its type, an ETag and an hour of cache,
-  with HELMET's headers when HELMET is installed, and HELMET's CSP nonce on every `` of an HTML page;
+- a real file in `public/` (CSS, images, fonts, an HTML page) is served with its type and an ETag: images and fonts
+  keep an hour of cache, while scripts, styles and data revalidate on every load (`no-cache`, a 304 when nothing
+  changed), so a fresh page never runs last release's script; with HELMET's headers when HELMET is installed, and HELMET's CSP nonce on every `` of an HTML page;
 - a 404 for a dot file (`.htaccess`, `.git`), a NUL byte, a path that climbs out of `public/`, any `.php` or `.phar`
   other than the front controller, and any file that is not a site asset (a `.sql` dump, a `.bak`, a `.md` with no
   `.html` beside it);
@@ -139,7 +142,7 @@ Several stack commands sound alike (`weld:doctor`, `squire doctor`, `proctor che
 |---|---|---|---|
 | `composer ci` | **Will my pipeline pass?** The repo's own CI contract, the same command the pipeline runs: validation, the tests, Pint, PHPStan, `composer audit` and whatever checks the repo adds. | Before every push. | App repo, CI |
 | `bin/weld.sh doctor` or `.\bin\weld.ps1 doctor` (both run `php artisan weld:doctor`) | **Does my WELD app hold together?** The app key, writable `storage` and `bootstrap/cache`, the database connection and pending migrations. One PASS, WARN or FAIL line each; exit 1 on a FAIL. Standards are PROCTOR's. | After `up`, when the app will not start, and after every deploy off Citadel. | App repo (in the app container), deploy host (in the app container) |
-| `vendor/bin/squire doctor` | **Is my Citadel release setup right?** `build.sh`, the release scripts, the health check, script hygiene, line endings, secrets kept out of git and the local parity setup, against Squire's rules. Exit 1 on a failed rule. The lock file, audit and MySQL 5.6 checks are handed to PROCTOR. | After `squire init` or `squire update`, and before the first deploy. | App repo, CI |
+| `vendor/bin/squire doctor` | **Is my Citadel release setup right?** `build.sh`, the release scripts, the health check, script hygiene, line endings and secrets kept out of git, against Squire's rules. Exit 1 on a failed rule. The lock file, audit and MySQL 5.6 checks are handed to PROCTOR. | After `squire init` or `squire update`, and before the first deploy. | App repo, CI |
 | `vendor/bin/squire init --check` | **Have the files Squire wrote drifted from its templates?** Missing, outdated or edited copies. Writes nothing; exit 1 on drift. | After you upgrade Squire (then run `squire update`), and in CI. | App repo, CI |
 | `vendor/bin/squire doctor oracle`, or `php artisan oracle:check` in WELD and Sourdough's Laravel apps | **Can my app reach Oracle?** The `ORACLE_*` settings, the host, the port, the `oci8` driver and the login, in plain language, printing setting names and never values. Silent when the app has no Oracle settings. | After you fill in the `ORACLE_*` settings, or when a connection fails. Squire's `release.sh` runs the same check on every release, as a report. | App repo, deploy host |
 | `vendor/bin/proctor check` (`composer proctor` in WELD and Sourdough's apps) | **Does my app meet CREED's policy?** The PHP floor, Laravel, Node and MySQL end of life, the committed lock, `composer audit`, open-ended constraints, portability, MySQL 5.6 safety, overrides and the rest of its checks. Exit 1 on a FAIL. | Before you merge; the pipeline runs it too. | App repo, CI |
@@ -167,9 +170,8 @@ The canonical copy of this table is in WELD's docs: [Which command when](https:/
 | `public/index.php` | Raw: the front controller that serves `public/` files safely and hands the rest to the app's entry. Static: the one that serves the committed site with HELMET's headers. Never written over an app's own. |
 | `public/.htaccess` | Raw: sends every request but `index.php` and `up.php` to the front controller. Static: routes every request that is not a real file to it. |
 | `.npmrc` | Vue layer only: sets `min-release-age=1` for the frontend install. |
-| Vue `docker-compose.squire.yml` | Vue layer only: the common parity compose plus a Node 22 service for frontend tooling. |
-| `docker-compose.squire.yml`, `.squire/`, `.env.squire.example`, `scripts/parity.sh`, `scripts/parity.ps1` | Local parity. |
-| `.squire/portable.Dockerfile`, `.squire/portable/` | The portable image for platforms other than Citadel: one image as web, worker, scheduler or migrate, non-root in group 0 on 8080. Citadel never reads it. |
+| `.squire/Dockerfile`, `.squire/base-fallback.Dockerfile`, `.squire/php.ini`, `.squire/php-web.ini` | With `--only=release,images`: the Citadel mirror, the fallback base and the images' hardened PHP settings. |
+| `.squire/portable.Dockerfile`, `.squire/portable/` | With `--only=release,images`: the portable image for platforms other than Citadel: one image as web, worker, scheduler or migrate, non-root in group 0 on 8080. Citadel never reads it. |
 
 Every shell script uses `set -euo pipefail` (`build.sh` uses `set -eu`, because Citadel runs it with `/bin/sh`), prints a
 `[squire] ==> step N: ...` marker for each step, and can be run twice with the same result.
@@ -547,71 +549,25 @@ can tell you where the armor is dented; only the knight gets to charge.
    (`Dotenv\Dotenv::createUnsafeImmutable($root)->safeLoad()`), so `getenv()` sees the values and a real environment
    variable wins.
 
-### Local parity
+### Run it locally: Parity
 
 **Use [Parity](https://git.wayne.edu/enterprise-apps/parity) to run Citadel on your computer.** It is the stack's own
 tool for this job: one program for Windows, macOS and Linux, for any app, with or without Squire, on Docker or Podman
 (Podman recommended), with Citadel's PHP image, Citadel's proxy and MySQL 5.6. It runs the files Squire writes the way
-Citadel does, applies the app's `sign_in` setting and runs its Citadel-style cron entries. Coming from this kit, run
-`parity init --from-squire` in the app's folder: it carries the kit's settings over (never its passwords) and deletes
-nothing. Then `parity image get` and `parity up`. Full page:
-[Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html).
+Citadel does. In the app's folder: `parity init`, then `parity up`.
 
-**Squire's parity kit is deprecated** as of 0.10.5. It still works. It is removed no sooner than two minor releases
-and 60 days later, so Squire 0.12.0 and not before 2027-01-08 (the stack's ADR-0022); `squire update` will then remove
-only the kit files you never edited. The portable image files stay with Squire, in a group of their own. The rest of
-this section is the kit, for teams still on it.
+**Squire's parity kit left in 0.12.0.** An app that still has it runs `parity init --from-squire` (it carries the kit's
+settings over, never its passwords, and deletes nothing), `parity image get` and `parity up`, then deletes the kit's
+files: `docker-compose.squire.yml`, `.squire/haproxy.cfg`, `scripts/parity.sh`, `scripts/parity.ps1` and
+`.env.squire.example`. Squire never deletes them: `squire update` lists them as `kit-leftover` and `squire doctor`
+notes them under S35 until they are gone. The squire has hung up the traveling armor. Full page:
+[Moved to Parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html).
 
-Needs Docker with Compose v2. Windows needs Docker Desktop with the WSL 2 backend; no shell other than PowerShell is
-required.
+### The image files (opt-in)
 
-**On Windows, keep the source in the WSL 2 filesystem.** Advice, not a requirement: keep the app's source tree inside
-the WSL 2 Linux filesystem (for example under `~/src` in your WSL distribution) and run `scripts/parity.sh` from there,
-not from a Windows folder such as `C:\Users\you\...` reached through `/mnt/c`. Bind mounts from the Windows side are much
-slower (Composer and npm installs feel it most), and file ownership and permissions do not map cleanly; that is the cause
-of the `Permission denied` failure described under the bind-mount question (OPEN_QUESTIONS 15). The PowerShell
-`scripts\parity.ps1` still works from a Windows folder, only slower.
-
-#### Engines and licenses
-
-Squire needs any engine that runs Docker Compose v2 compatible files. The ones named here:
-
-- **Docker Engine on Linux**: open source, Apache 2.0.
-- **Docker Desktop on Windows** with the WSL 2 backend: a commercial product, free for small business, personal and
-  educational use, and paid for larger organizations, so check your own license.
-- **Podman** with a Compose v2 compatible provider, and **Colima** on macOS: expected to work, not tested here.
-
-Only Docker Desktop and Docker Engine have been run.
-
-```
-# Linux and macOS
-cp .env.squire.example .env.squire     # then set the passwords
-scripts/parity.sh up                   # or: scripts/parity.sh up --fallback
-
-# Windows (PowerShell 5.1 or 7)
-Copy-Item .env.squire.example .env.squire
-scripts\parity.ps1 up                  # or: scripts\parity.ps1 up -Fallback
-```
-
-`parity.ps1` has run end to end on Windows PowerShell 5.1 (2026-11-10); apps made earlier take the 5.1 fix with
-`squire update`. Give each app its own `SQUIRE_PROJECT` in `.env.squire`: apps on one name share the database and the
-record of which `deployments/` files already ran, so the second app's release never runs. `up` warns while the name is
-the default `squire-app`.
-
-Commands: `up`, `down`, `reset` (also removes volumes), `logs [service]`, `shell [service]`, `status`, `pin` (prints the
-digests of the images you have pulled, so you can pin them).
-
-It starts the app container from the Citadel image (built by Citadel's `build_images` command, or pulled from wherever you
-keep it) with your source mounted at `/citadel/src`, runs your `deployments/` as the `citadel` user the way Citadel does,
-and puts an HA-Proxy in front that adds the same forwarding headers. MySQL 5.6.51 is reachable from the app as host
-`mysql` and from your machine on `127.0.0.1:3307`. Containers drop capabilities, set `no-new-privileges`, and carry memory
-and process limits. The database port is bound to loopback only. The Vue layer's compose file adds a Node 22 service,
-pinned to the same major as the Citadel image, for frontend tooling.
-
-No access to the real image? `--fallback` builds an approximation from the official `php` image plus Citadel's extensions.
-It is good for trying Squire out and not for proving parity. If the build step fails with a permission error writing
-`vendor/`, the source folder is not writable by the container's `citadel` user (uid 1000 by default); on Linux set
-`SQUIRE_SOURCE_UID` and `SQUIRE_SOURCE_GID` to yours.
+`squire init --only=release,images` adds the image files to `.squire/`: the Citadel mirror (`.squire/Dockerfile`, the
+app image on Citadel's own base), the fallback base for machines without that image, the hardened `php.ini` and
+`php-web.ini`, and the portable image. Citadel never reads them.
 
 #### Image hardening
 
@@ -641,8 +597,8 @@ first argument or `SQUIRE_ROLE`: `web` (Apache on 8080), `worker` (`php artisan 
 --sleep=3`), `scheduler` (`php artisan schedule:work`) and `migrate` (once per release). It runs as `USER 10001:0`, and
 every folder it writes belongs to group 0 and is group-writable, so OpenShift's arbitrary UID runs it as it is
 (`docker run --user 1000123:0` shows the same). It stops gracefully on `SIGTERM`, logs to stdout and stderr, and caches
-Laravel's config when a container starts, never at build. The compose file's `portable` profile runs the four roles from
-one image; a plain `up` still starts only the parity stack. Full page:
+Laravel's config when a container starts, never at build. Run the four roles side by side with `docker run`, one
+container each. Full page:
 [The portable image](https://squire.apps.wayne.edu/docs/guides/portable-image.html).
 
 ### Oracle-ready images (local)
@@ -684,7 +640,7 @@ scripts/oracle-image-test.sh --flavour all --platform linux/amd64
 
 All optional. On Citadel, add `./.env.squire` as a configuration file (the configuration-files step after the wizard;
 the wizard has no environment field) and keep it out of git. `release.sh` reads the release options from it, and a
-variable already in the environment wins. Locally, the same file holds the parity settings.
+variable already in the environment wins.
 
 Release script (`scripts/release.sh`):
 
@@ -726,13 +682,8 @@ PHP in the image (`.squire/php.ini`, read from the container's environment): `SQ
 image that bakes its code in), `SQUIRE_OPCACHE_MEMORY` (`128`), `SQUIRE_OPCACHE_MAX_FILES` (`20000`), `SQUIRE_PHP_DISABLE_FUNCTIONS` (the web's list, from
 `.squire/php-web.ini`; `none` disables nothing).
 
-Local parity (`.env.squire`): `SQUIRE_PROJECT`, `SQUIRE_BASE_IMAGE`, `SQUIRE_PROXY_IMAGE`, `SQUIRE_MYSQL_IMAGE`,
-`SQUIRE_PUBLIC_DIR`, `SQUIRE_SERVER_NAME`, `SQUIRE_TZ`, `SQUIRE_ENVIRONMENT`, `SQUIRE_DEPLOYMENTS`, `SQUIRE_HTTP_PORT`,
-`SQUIRE_APP_MEMORY`, `SQUIRE_SOURCE_UID`, `SQUIRE_SOURCE_GID`, `SQUIRE_DB_NAME`, `SQUIRE_DB_USER`, `SQUIRE_DB_PASSWORD`,
-`SQUIRE_DB_ROOT_PASSWORD`, `SQUIRE_DB_PORT`, `SQUIRE_DB_MEMORY`. The Vue layer's compose file also reads
-`SQUIRE_NODE_IMAGE` (default `node:22.23.4-bookworm-slim`, pinned by digest), `SQUIRE_NODE_ENV` (default `production`) and `SQUIRE_NODE_MEMORY`
-(default `512m`). The compose file refuses to start without the two passwords. See `.env.squire.example`; it holds
-placeholders only.
+The parity kit's settings (`SQUIRE_PROJECT`, `SQUIRE_DB_PASSWORD` and the rest) left with the kit in 0.12.0; Parity
+keeps its own in `parity.json`.
 
 ### Development
 
@@ -790,7 +741,7 @@ The Citadel kit
 
 Suits you up for the Citadel.
 
-A squire carries the knight's kit. This one carries your app's. `squire init` writes the scripts Citadel runs when you deploy and `squire doctor` checks them. To run your app on your laptop on the same PHP image and MySQL 5.6 as Citadel, behind the same kind of proxy, Squire rides with [Parity](https://parity.apps.wayne.edu/).
+A squire carries the knight's kit. This one carries your app's. `squire init` writes the scripts Citadel runs when you deploy and `squire doctor` checks them. To run your app on your laptop on the same PHP image and MySQL 5.6 as Citadel, behind the same kind of proxy, Squire rides with [Parity](https://parity.apps.wayne.edu/), which took that job over in Squire 0.12.0.
 
 `$ composer require waynestate/squire --dev`
 
@@ -800,7 +751,7 @@ Already packed into every [Sourdough](https://sourdough.apps.wayne.edu/) app, an
 
 #### Get started with Squire
 
-Pack your app for the Citadel and try it at home first.
+Pack your app for the Citadel; Parity lets you try it at home first.
 
 A prompt for your coding agent. Copy it as it stands:
 
@@ -820,11 +771,11 @@ vendor/bin/squire init
 2. `deployments/001-first-release.sh` Runs once per app and calls the release with the smoke test off; Apache is not up yet.
 3. `scripts/release.sh` The idempotent release: install from the lock file, audit, ask PROCTOR's gate for a go or no-go, build, migrate, smoke-test `/up`. Also your Quick Update post-script.
 4. `health.php` Citadel's health check: one request to `/up`, never boots the framework.
-5. `The parity kit 19 files` `docker-compose.squire.yml`, `.squire/`, `.env.squire.example`, `scripts/parity.sh` and `scripts/parity.ps1`: Citadel on your machine, and the portable image for everywhere else. The local half is deprecated: Parity takes it over.
+5. `oracle-check.php` The plain-language Oracle connection check the release runs: settings, host, port, driver, login. A report, never a gate. `.gitattributes` rides in the same pocket and keeps every script LF.
 
 ![Squire's satchel](https://squire.apps.wayne.edu/brand/squire-avatar-512.png)
 
-**To** the Citadel **From** my-app **Holds** 25 files
+**To** the Citadel **From** my-app **Holds** 6 files
 
 5 of 5 packed, buckled for deploy day
 
@@ -846,51 +797,13 @@ created oracle-check.php (written from the template)
 
 created .gitattributes (written from the template)
 
-created docker-compose.squire.yml (written from the template)
-
-created .squire/Dockerfile (written from the template)
-
-created .squire/Dockerfile.dockerignore (written from the template)
-
-created .squire/base-fallback.Dockerfile (written from the template)
-
-created .squire/apache-hardening.conf (written from the template)
-
-created .squire/fallback/citadel-apache-entrypoint (written from the template)
-
-created .squire/fallback/citadel-deploy (written from the template)
-
-created .squire/haproxy.cfg (written from the template)
-
-created .squire/php.ini (written from the template)
-
-created .squire/php-web.ini (written from the template)
-
-created .squire/vhost.conf (written from the template)
-
-created .squire/portable.Dockerfile (written from the template)
-
-created .squire/portable.Dockerfile.dockerignore (written from the template)
-
-created .squire/portable/squire-entrypoint.sh (written from the template)
-
-created .squire/portable/ports.conf (written from the template)
-
-created .squire/portable/vhost.conf (written from the template)
-
-created scripts/parity.sh (written from the template)
-
-created scripts/parity.ps1 (written from the template)
-
-created .env.squire.example (written from the template)
-
 Target: laravel. Wrote .squire.json.
 
-Next: git update-index --chmod=+x build.sh deployments/001-first-release.sh scripts/release.sh .squire/fallback/citadel-apache-entrypoint .squire/fallback/citadel-deploy .squire/portable/squire-entrypoint.sh scripts/parity.sh
+Next: git update-index --chmod=+x build.sh deployments/001-first-release.sh scripts/release.sh
 
-Parity: the parity group is deprecated (removed no sooner than 0.12.0). Parity runs Citadel on your computer now; \`parity init --from-squire\` carries this kit over: https://git.wayne.edu/enterprise-apps/parity
+Run it locally with Parity: parity init, then parity up (https://git.wayne.edu/enterprise-apps/parity).
 
-Every shell script runs with `set -euo pipefail`, prints a `[squire] ==> step N` marker, and gives the same result when you run it twice. Pack half the bag with `--only=release` or `--only=parity`.
+Every shell script runs with `set -euo pipefail`, prints a `[squire] ==> step N` marker, and gives the same result when you run it twice. Building images too? `--only=release,images` adds the opt-in image files: the Citadel mirror, the fallback base and the portable image for OpenShift, Coolify and raw Docker.
 
 vendor/bin/squire doctor
 
@@ -914,17 +827,11 @@ fail exits 1 warn reported info noted
 - S20PROCTOR is a report, never a bare command.
 - S21The release requests `/up` at the end.
 - S22One marker per step.
-- S35Locally, the Citadel PHP image.
-- S36A forwarding proxy in front.
-- S37Locally, MySQL 5.6.
-- S41The Docker socket is not mounted.
+- S35No parity kit left over: use Parity.
 - S42`.env` files stay out of git.
 - S50Lock file, audit and MySQL 5.6 are PROCTOR's: run `proctor check`.
 - S55The health check never boots the framework.
 - S57npm installs with `--ignore-scripts`.
-- S67Images pinned by digest.
-- S70Containers drop capabilities.
-- S71Citadel's health-check timing.
 - S78A Vue app keeps `node_modules/` out of git.
 
 Every rule, its level and why it matters: `BEST_PRACTICES.md`. Drift from the templates is a warning under S9, never a failure; your copies are yours to edit.
@@ -943,64 +850,63 @@ PASS S20 PROCTOR runs as a report and cannot stop the release.
 
 PASS S55 health.php is an artisan-free health check. \[health.php\]
 
+PASS S35 No parity kit files left over. Parity runs the app on your computer: https://git.wayne.edu/enterprise-apps/parity
+
 WARN S8 .gitattributes does not force LF for shell scripts. Add \`\*.sh text eol=lf\`, and \`\*.conf text eol=lf\`, \`Dockerfile text eol=lf\` and \`\*.Dockerfile text eol=lf\`, which PROCTOR checks too.
 
-WARN S67 Not pinned by digest: citadel/php-apache:8.4r5. Run \`scripts/parity.sh pin\` and put the digests in .env.squire.
+RESULT: pass (0 fail, 1 warn, 0 info, 6 pass)
 
-RESULT: pass (0 fail, 2 warn, 0 info, 5 pass)
-
-Local parity
+Run it locally
 
 ### Practice on the real field
 
-The parity kit runs your app on the Citadel PHP image, behind an HA-Proxy that adds the same forwarding headers, with MySQL 5.6.51 beside it. If something would only break on Citadel, you should see it on your laptop first.
+[Parity](https://parity.apps.wayne.edu/) runs your app on Citadel's own PHP image, behind the same HAProxy that adds the forwarding headers, with MySQL 5.6.51 beside it. If something would only break on Citadel, you should see it on your laptop first.
 
-Squire hands this job on
+Squire handed this job on
 
-#### Parity runs Citadel on your computer now
+#### Parity runs Citadel on your computer
 
-[Parity](https://parity.apps.wayne.edu/) 0.1.0 is the stack's own tool for this: one program for Windows, macOS and Linux that runs Citadel's PHP image, its proxy and MySQL 5.6 for any app, with or without Squire, on Docker or Podman (Podman recommended). `parity init --from-squire` carries this kit's settings over and deletes nothing.
+Parity is the stack's own tool for this: one program for Windows, macOS and Linux, for any app, with or without Squire, on Docker or Podman (Podman recommended). Squire dresses the knight for the castle; Parity builds a practice castle in your yard.
 
-The kit below still works, and is deprecated as of Squire 0.10.5. It leaves no sooner than Squire 0.12.0, and not before 2027-01-08. The portable image stays with Squire.
+Squire's own parity kit left in 0.12.0. An app that still has it runs `parity init --from-squire`, then deletes the kit's files. `squire update` lists them and never deletes them; [Moved to Parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html) has the four commands.
 
 1. Your browser on localhost
-2. HA-Proxy adds X-Forwarded-For and -Proto
+2. HAProxy adds X-Forwarded-For and -Proto
 3. Your app Citadel PHP image, run as `citadel`
 4. MySQL 5.6.51 `mysql` inside, `127.0.0.1:3307` outside
 
 **Linux and macOS**
 
-Docker with Compose v2.
+Docker or Podman. Install Parity once, then in your app's folder:
 
 ```
-cp .env.squire.example .env.squire     # then set the passwords
-scripts/parity.sh up                   # or: scripts/parity.sh up --fallback
+curl -fsSL https://parity.apps.wayne.edu/install.sh | sh
+parity init                            # or: parity init --from-squire
+parity up
 ```
 
 **Windows**
 
-Docker Desktop with the WSL 2 backend. PowerShell 5.1 or 7; no other shell needed.
+Podman Desktop or Docker Desktop, in PowerShell. Install Parity once, then in your app's folder:
 
 ```
-Copy-Item .env.squire.example .env.squire
-scripts\parity.ps1 up                  # or: scripts\parity.ps1 up -Fallback
+irm https://parity.apps.wayne.edu/install.ps1 | iex
+parity init                            # or: parity init --from-squire
+parity up
 ```
 
 #### Commands
 
+- `check`
+- `init`
+- `image get`
 - `up`
+- `test`
 - `down`
-- `reset`
-- `logs`
-- `shell`
-- `status`
-- `pin`
 
-`pin` prints the digests of the images you pulled, so you can pin them. `reset` also removes the volumes.
+`check` tells you what to fix on this computer, one finding per line. `image get` downloads Citadel's image and checks it is Citadel's, byte for byte. `down` stops the app and keeps your data.
 
-Containers drop capabilities, set `no-new-privileges` and carry memory and process limits; the database listens on loopback only. The compose file refuses to start without real passwords.
-
-No access to the real image? `--fallback` builds an approximation from the official PHP image plus Citadel's extensions. It's fine for a practice bout. It doesn't prove parity.
+Building the images too? Squire's opt-in `images` group still writes the Citadel mirror, the fallback base and the portable image. Parity runs Citadel's own image and nothing else.
 
 Citadel setup
 
@@ -1062,10 +968,10 @@ Known limits
 
 ### Scuffs on the leather
 
-Squire 0.11.2 is tagged and on Packagist. Where we had to guess how Citadel behaves, `OPEN_QUESTIONS.md` lists each guess and the default it chose.
+Squire 0.12.0 is tagged and on Packagist. Where we had to guess how Citadel behaves, `OPEN_QUESTIONS.md` lists each guess and the default it chose.
 
-- The local `php.ini` holds the safe defaults HELMET also enforces at runtime, not the platform's file.
-- The Citadel image has no registry digest to pin yet; doctor warns under S67 until you run `pin`.
+- The images group's `php.ini` holds the safe defaults HELMET also enforces at runtime, not the platform's file.
+- Old parity kit files are listed, never deleted. Once Parity runs the app, delete them yourself; doctor notes them under S35 until you do.
 - A full Update may not refresh `vendor/`. Use `scripts/release.sh` as the Quick Update post-script too.
 - The release asks `proctor gate` for a go or no-go. A no-go is a report by default; set `SQUIRE_PROCTOR=enforce` and it stops the release before the build and the migrations.
 
@@ -1122,6 +1028,35 @@ Source: https://squire.apps.wayne.edu/docs/changelog.html
 All notable changes to Squire are recorded here. The format follows Keep a Changelog; the project follows Semantic Versioning once 1.0 is out.
 
 ### \[Unreleased\] [#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
+
+### 0.12.0 (2026-11-20) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-12-0-2026-11-20)
+
+Squire is the Citadel kit now: `build.sh`, the release script and the health check, from templates, checked by `squire doctor`. Running Citadel on your computer is [Parity](https://git.wayne.edu/enterprise-apps/parity)'s job. The upgrade steps are in [Upgrading](https://squire.apps.wayne.edu/docs/upgrading.html#0-12-0-2026-11-20).
+
+#### Breaking [#](https://squire.apps.wayne.edu/docs/changelog.html#breaking)
+
+- `squire init --only=parity` and `squire update --only=parity` stop with exit 2 and say where Parity is. The `parity` group is gone. The image files it held (the Citadel mirror `.squire/Dockerfile`, the fallback base, the hardened `php.ini` and `php-web.ini`, and the portable image) are a group of their own, `images`, still opt-in: `--only=release,images`.
+- An app whose `.squire.json` records the `parity` group keeps working: Squire reads that record as `release,images`. On its next `squire init` or `squire update`, each kit file the record lists is reported as `kit-leftover`, dropped from the record, and left on disk. Squire deletes none of them. Run `parity init --from-squire` (it reads them), then delete them yourself.
+- The kit's checks in `squire doctor` are retired with it: S36, S37, S41, S67, S70 and S71. S35 now notes any kit file still in the app (info, never a failure) and says to run `parity init --from-squire` and delete them.
+- The compose file's `portable` profile (the portable image as four services) left with the compose file. The portable image and its four roles stay; run each role with `docker run`, as [the portable image guide](https://squire.apps.wayne.edu/docs/guides/portable-image.html) shows, or on the platform that hosts the app.
+
+#### Removed [#](https://squire.apps.wayne.edu/docs/changelog.html#removed)
+
+- The parity kit, announced as deprecated in 0.10.5 and planned for removal no sooner than 2027-01-08 (ADR-0022). The maintainer brought the date forward to 0.12.0, because Parity now covers everything the kit did. Removed: `docker-compose.squire.yml` (and the Vue layer's copy with its Node 22 service), `.squire/haproxy.cfg`, `scripts/parity.sh`, `scripts/parity.ps1` and `.env.squire.example` (raw and Laravel).
+- The GitHub CI legs `contract-parity-sh` and `contract-parity-pwsh`. The `contract-image` leg stays and now asks for `--only=release,images`.
+
+#### Fixed [#](https://squire.apps.wayne.edu/docs/changelog.html#fixed)
+
+- The raw and static front controllers send scripts, styles and data (`.css`, `.js`, `.mjs`, `.json`, `.md`, `.txt`, `.xml`, `.webmanifest`) with `Cache-Control: no-cache` and their ETag, so the browser asks on every load and gets a 304 when nothing changed. They had an hour of cache, and the HTML is never cached, so for up to an hour after a release a browser ran the old script on the new page (CREED found it). Images and fonts keep their hour. `public/index.php` is the app's own file, so `squire update` never rewrites it: an app that already has one takes the change by hand (the diff is in [Upgrading](https://squire.apps.wayne.edu/docs/upgrading.html#0-12-0-2026-11-20)).
+
+#### Added [#](https://squire.apps.wayne.edu/docs/changelog.html#added)
+
+- PHP line 8.6r1 is selectable (`squire init --php 8.6r1`): the fallback base for it is the official `php:8.6.0-apache`, pinned by its multi-arch list digest. The default line stays 8.5r3. Citadel's 8.6r1 is ZTS with Apache prefork, with PEAR/PECL, mbstring, oci8, and redis and imagick built with remirepo patches; it has no xdebug, pcov or apcu. The fallback stand-in has none of those extensions and is not proven with the container contract yet.
+
+#### Changed [#](https://squire.apps.wayne.edu/docs/changelog.html#changed)
+
+- Squire describes itself as the Citadel kit everywhere: the Composer description, the README, the docs and the front page. The front page's packing list holds the five release tags (`oracle-check.php` took the parity kit's place), and its "Run it locally" section shows Parity's commands. The Local parity docs page is now [Moved to Parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html).
+- Squire's own `deploy/` takes the 0.12.0 templates (`squire update`), records `release,images`, and deletes its own five kit files by hand, as the upgrade steps say.
 
 ### 0.11.2 (2026-11-19) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-11-2-2026-11-19)
 
@@ -1423,26 +1358,26 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ### 0.2.1 (2026-10-29) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-2-1-2026-10-29)
 
-#### Fixed [#](https://squire.apps.wayne.edu/docs/changelog.html#fixed)
+#### Fixed [#](https://squire.apps.wayne.edu/docs/changelog.html#fixed-1)
 
 - Fixed: SQUIRE reported 0.1.0 after the 0.2.0 release.
 
 ### 0.2.0 (2026-10-29) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-2-0-2026-10-29)
 
-#### Added [#](https://squire.apps.wayne.edu/docs/changelog.html#added)
+#### Added [#](https://squire.apps.wayne.edu/docs/changelog.html#added-1)
 
 - `--target=static`: writes everything the `raw` target writes plus a front controller (`public/index.php`) and an `.htaccess` that serve a committed static site behind HELMET. The site folder is `../../site` by default; point `SQUIRE_STATIC_ROOT` at another. `squire init --check` and `squire update` cover the new files, and the template export carries them under `static/`.
 - `SQUIRE_PROCTOR=enforce`: a failed PROCTOR check now stops the release. The default stays report-only, so existing apps are unaffected.
 - `SQUIRE_PROCTOR_POLICY` defaults to `vendor/waynestate/creed/policy/policy.json` when unset and present, so a static site needs no environment variables in the deploy wizard. When CREED is not installed, PROCTOR runs on its own default policy with a notice instead of the release failing. An explicit value always wins.
 
-#### Changed [#](https://squire.apps.wayne.edu/docs/changelog.html#changed)
+#### Changed [#](https://squire.apps.wayne.edu/docs/changelog.html#changed-1)
 
 - PHPStan now includes Pinstripe's raw PHP preset (`waynestate/pinstripe` 0.1) instead of carrying a hand copy of the settings; `phpstan.neon` keeps only SQUIRE's own paths and PHP version range, and the preset's deprecation checks come along with it.
 - `symfony/console` floor raised to `^7.4`: `Application::add()` is deprecated since 7.4, and the CLI now calls `addCommand()`.
 
 ### 0.1.0 (2026-10-29) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-1-0-2026-10-29)
 
-#### Added [#](https://squire.apps.wayne.edu/docs/changelog.html#added-1)
+#### Added [#](https://squire.apps.wayne.edu/docs/changelog.html#added-2)
 
 - `squire init` with `--target`, `--only`, `--check` and `--force`; a `.squire.json` manifest of SHA-256 hashes.
 - `squire doctor` with text and JSON output, checking 26 rules (see `BEST_PRACTICES.md`).
@@ -1452,7 +1387,7 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 - CI for GitLab and GitHub: `composer ci`, shellcheck and PSScriptAnalyzer, run in Docker.
 - `bin/export-templates.php`: export a generated copy of SQUIRE's templates (for Sourdough and other projects that cannot `composer require` SQUIRE), with a `catalog.json` and a `manifest.json`; `--check` verifies the copy and exits 1 on drift.
 
-#### Changed [#](https://squire.apps.wayne.edu/docs/changelog.html#changed-1)
+#### Changed [#](https://squire.apps.wayne.edu/docs/changelog.html#changed-2)
 
 ---
 
@@ -1482,7 +1417,6 @@ The other gates, by platform:
 | --- | --- | --- |
 | Lint the shell templates (ShellCheck in Docker) | `scripts\lint-shell.ps1` | `scripts/lint-shell.sh` |
 | Lint the PowerShell templates (PSScriptAnalyzer) | `scripts\lint-powershell.ps1` | `pwsh -File scripts/lint-powershell.ps1` |
-| Local parity, in an app (deprecated: use Parity, `parity up`) | `scripts\parity.ps1 up` | `scripts/parity.sh up` |
 | Front page accessibility gate (Preflight's a11y checker, in Docker) | `scripts\a11y.ps1` | `scripts/a11y.sh` |
 | Docs kit JavaScript tests (needs Node, or Docker) | `npm ci && npm test` | `npm ci && npm test` |
 
@@ -1504,7 +1438,7 @@ They run the same way locally and in CI (the `js-tests` job on GitLab and GitHub
 
 #### The contract suite [#](https://squire.apps.wayne.edu/docs/contributing.html#the-contract-suite)
 
-`scripts/contract-image.sh` proves that `release.sh` runs inside an image. The real Citadel image is internal, so it uses the fallback base Squire already builds for local parity (`.squire/base-fallback.Dockerfile`, tag `squire/php-parity-base:8.4`): php:8.4-apache plus Node 22, multi-arch. It makes a throwaway fixture app, builds the fallback base and the app image for the platform, runs `release.sh` as the `citadel` user with the smoke test on, and prints one PASS or FAIL line per assertion. A green run is a contract, not a certificate: the fallback has no `oci8`, `imagick` or `ssmtp`, its HA-Proxy differs from Citadel's, and nothing here touches Citadel itself. See [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html) for the stack the fallback stands in for.
+`scripts/contract-image.sh` proves that `release.sh` runs inside an image. The real Citadel image is internal, so it uses the fallback base the `images` group ships (`.squire/base-fallback.Dockerfile`, tag `squire/php-parity-base:8.4`): php:8.4-apache plus Node 22, multi-arch. It makes a throwaway fixture app, builds the fallback base and the app image for the platform, runs `release.sh` as the `citadel` user with the smoke test on, and prints one PASS or FAIL line per assertion. A green run is a contract, not a certificate: the fallback has no `oci8`, `imagick` or `ssmtp`, and nothing here touches Citadel itself. For Citadel's own image on your computer, use [Parity](https://git.wayne.edu/enterprise-apps/parity).
 
 ### Keeping the docs honest [#](https://squire.apps.wayne.edu/docs/contributing.html#keeping-the-docs-honest)
 
@@ -1608,7 +1542,7 @@ Source: https://squire.apps.wayne.edu/docs/guides/citadel-setup.html
 
 ## Citadel setup [#](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html#citadel-setup)
 
-This page lists the numbered steps that connect a new app to the scripts Squire wrote: what to set in the dashboard, what to commit, and where the configuration lives. Finish the steps below, then read [The release script](https://squire.apps.wayne.edu/docs/guides/release-script.html) to see what runs on every deploy, or try [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html) first.
+This page lists the numbered steps that connect a new app to the scripts Squire wrote: what to set in the dashboard, what to commit, and where the configuration lives. Finish the steps below, then read [The release script](https://squire.apps.wayne.edu/docs/guides/release-script.html) to see what runs on every deploy, or run it on your computer first with [Parity](https://git.wayne.edu/enterprise-apps/parity).
 
 ### The steps [#](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html#the-steps)
 
@@ -1627,17 +1561,17 @@ Citadel runs the scripts as files, so git must record them as executable. Step 3
 
 ### ./.env.squire [#](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html#env-squire)
 
-`./.env.squire` is Squire's file: the release options for `scripts/release.sh`, and locally the parity settings. All of its values are optional. On Citadel, add `./.env.squire` as a configuration file (the configuration-files step after the wizard; the wizard has no environment field) and keep it out of git. `release.sh` reads the release options from it, and a variable already in the environment wins. Locally, the same file holds the parity settings. See `.env.squire.example` in the app; it holds placeholders only.
+`./.env.squire` is Squire's file: the release options for `scripts/release.sh`. All of its values are optional. On Citadel, add `./.env.squire` as a configuration file (the configuration-files step after the wizard; the wizard has no environment field) and keep it out of git. `release.sh` reads the release options from it, and a variable already in the environment wins. The options are listed at the top of `scripts/release.sh` and in [Configuration](https://squire.apps.wayne.edu/docs/reference/configuration.html).
 
 Note
 
 \[!IMPORTANT\] Secrets (a database password, `APP_KEY`, an Oracle login) go in `./.env`, never in the repository, `build.sh` or a Dockerfile: the configuration-files step writes `./.env` into the source tree when the app deploys, so it never lands in an image layer. `build.sh` runs as root while the image builds, with no app source, so it must never fetch a secret either. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#secrets-files-at-run-time-never-in-a-layer).
 
-> Two files, two owners. `./.env` is yours and the app reads it; `./.env.squire` is Squire's and the release script and the parity kit read it. Neither belongs in git.
+> Two files, two owners. `./.env` is yours and the app reads it; `./.env.squire` is Squire's and the release script reads it. Neither belongs in git.
 
 ### Next [#](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html#next)
 
-Read [The release script](https://squire.apps.wayne.edu/docs/guides/release-script.html) for what `scripts/release.sh` does step by step, or [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html) to run the same setup on your machine.
+Read [The release script](https://squire.apps.wayne.edu/docs/guides/release-script.html) for what `scripts/release.sh` does step by step, or [Parity](https://git.wayne.edu/enterprise-apps/parity) to run the same setup on your machine.
 
 ---
 
@@ -1822,20 +1756,14 @@ Note
 | S20 | fail / warn | PROCTOR runs as a report (the command is followed by an OR branch that records the status), never as a bare command. | After a Quick Update the new commit is already live; a failing post-script cannot undo it. |
 | S21 | warn | The release requests `/up` at the end. | A release that cannot answer a request did not ship. |
 | S22 | warn | The release prints a marker per step. | The dashboard log shows where it stopped. |
-| S35 | warn | The compose file uses a `citadel/php-apache` image. | Same PHP and extensions as production. |
-| S36 | warn | A proxy that adds `X-Forwarded-For` and `X-Forwarded-Proto` is in front of the app. | Trusted-proxy and HTTPS detection bugs only show behind one. |
-| S37 | warn | The local database is MySQL 5.6. | Its limits then show up locally. |
-| S41 | fail | The Docker socket is not mounted. | It is root on the host. |
+| S35 | info | No parity kit file is left in the app (`docker-compose.squire.yml`, `.squire/haproxy.cfg`, `scripts/parity.sh`, `scripts/parity.ps1`, `.env.squire.example`). | The kit left Squire in 0.12.0; Parity runs Citadel on your computer. |
 | S42 | warn | `.env` and `.env.squire` are git-ignored. | Secrets stay out of git. |
 | S50 | info | Hand-off: points at `proctor check` for the lock file, composer audit and MySQL 5.6 checks, and names `proctor gate`, which the release asks for a go or no-go. | Each check has one owner; PROCTOR owns those, and `doctor` may run where PROCTOR is not installed. |
 | S55 | fail / warn | A health check that does not run `artisan` or boot the framework exists. | Citadel runs it every 5 minutes as root. |
 | S57 | warn | JavaScript packages install with `--ignore-scripts`; `.npmrc` sets `min-release-age`; `package.json` declares npm 11.10 or later. | A compromised package cannot run at install time, a version published an hour ago is not installed, and npm reads min-release-age only from version 11.10. |
-| S67 | warn | Every image in the compose file is pinned by digest. | The same bytes tomorrow as today. |
-| S70 | warn | Local containers drop capabilities and set `no-new-privileges`. | Least privilege, also locally. |
-| S71 | warn | The local health check uses Citadel's timing (5 minutes, 15 seconds). | A slow `/up` shows up before it ships. |
 | S78 | warn | A Vue app does not track `node_modules/` in git. | Dependencies are rebuilt from the lock file; the tree is not source. |
 
-The local parity rules (S35 to S37, S41, S67, S70, S71) check Squire's parity kit, which is deprecated as of 0.10.5. When the kit is there, `doctor` adds one S35 info line that points at [Parity](https://git.wayne.edu/enterprise-apps/parity); when it is not, the S35 info line says how to start with Parity instead. Neither changes the exit code. Parity runs its own checks (`parity check`); see [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html).
+The parity kit left Squire in 0.12.0, and its rules (S36, S37, S41, S67, S70, S71) went with it. S35 stays, as a note: when a kit file is still in the app, `doctor` lists them in one info line that says to run `parity init --from-squire` and then delete them; when none is, S35 passes. Neither changes the exit code. [Parity](https://git.wayne.edu/enterprise-apps/parity) runs its own checks (`parity check`); see [Moved to Parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html).
 
 ### Handoff to PROCTOR (S50) [#](https://squire.apps.wayne.edu/docs/guides/doctor.html#handoff-to-proctor-s50)
 
@@ -1863,7 +1791,7 @@ Source: https://squire.apps.wayne.edu/docs/guides/image-hardening.html
 
 ## Image hardening [#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#image-hardening)
 
-This page lists what the kit's images harden, where each setting lives, and the switch that turns it down when an app needs that. Every item has a test that reads the file, and the [image contract suite](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#the-image-contract-suite) checks it again inside the built image. Read [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html) first for the images themselves.
+This page lists what the kit's images harden, where each setting lives, and the switch that turns it down when an app needs that. Every item has a test that reads the file, and the [image contract suite](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#the-image-contract-suite) checks it again inside the built image. The images are Squire's opt-in `images` group (`squire init --only=release,images`): the Citadel mirror `.squire/Dockerfile`, the fallback base and [the portable image](https://squire.apps.wayne.edu/docs/guides/portable-image.html).
 
 Two kinds of file carry the hardening. The **base** (`.squire/base-fallback.Dockerfile`) stands in for the Citadel image; what it sets is what Squire asks the real image to set, and the real image keeps deciding on Citadel. The **app image** (`.squire/Dockerfile`) is the local copy of the Dockerfile Citadel generates, and runs on either base.
 
@@ -1916,7 +1844,7 @@ A web request should never shell out. `.squire/php-web.ini` holds the settings o
 
 `proc_open` and `popen` stay: Symfony Mailer's sendmail transport, Laravel's `Process` and PHPMailer use them on the web. A test runs PHP on the same two files and checks both sides: the web list is gone, and the CLI and the mail functions are still there.
 
-**The switch.** `SQUIRE_PHP_DISABLE_FUNCTIONS` replaces the list, and `none` (a name no function has) disables nothing: the way out for an older app that calls `exec` from a page while you move that work to a queued job. Leave it unset for the default list: PHP falls back only when the variable is unset, so an empty value disables nothing as well, and the parity compose files pass it by name only for that reason. Locally, put `SQUIRE_PHP_DISABLE_FUNCTIONS=none` in `.env.squire`.
+**The switch.** `SQUIRE_PHP_DISABLE_FUNCTIONS` replaces the list, and `none` (a name no function has) disables nothing: the way out for an older app that calls `exec` from a page while you move that work to a queued job. Leave it unset for the default list: PHP falls back only when the variable is unset, so an empty value disables nothing as well, so pass it by name only (`-e SQUIRE_PHP_DISABLE_FUNCTIONS`), never as an empty value.
 
 `disable_classes` is not set. It never stopped a caller who could reach another class, and PHP 8.5 removed it.
 
@@ -1977,7 +1905,7 @@ npm install --min-release-age=0 some-package@1.2.3
 
 ### Base images: pinned by digest [#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#base-images-pinned-by-digest)
 
-A tag such as `php:8.4-apache` moves: two builds of the same commit a week apart can get different bytes. Every image the kit's files pull is pinned by the digest of its multi-arch list instead, `php:8.4.27-apache@sha256:...`, which names the same bytes on an arm64 laptop or CI runner and on an amd64 server: the fallback base's PHP, Node and Composer, the Vue layer's Node service, HA-Proxy and MySQL in the compose files, and the Oracle parity bases. A test fails on any reference without a digest.
+A tag such as `php:8.4-apache` moves: two builds of the same commit a week apart can get different bytes. Every image the kit's files pull is pinned by the digest of its multi-arch list instead, `php:8.4.27-apache@sha256:...`, which names the same bytes on an arm64 laptop or CI runner and on an amd64 server: the fallback base's PHP, Node and Composer, and the Oracle parity bases. A test fails on any reference without a digest.
 
 The kit's Composer (the fallback base and the Oracle parity image) is 2.11.1, `composer:2.11.1@sha256:8de2184c...`; 2.10 is no longer maintained. Composer 2.11's `policy.cooldown` is off by default, and the kit does not turn it on.
 
@@ -2007,6 +1935,14 @@ docker buildx imagetools inspect php:8.4.28-apache
 ```
 
 Look for the `Digest:` line, and for `linux/amd64` and `linux/arm64/v8` under Manifests. Then run the tests and the image contract suite on both platforms. Maintainers have the full procedure in `MAINTAINING.md`. Two references are yours, not the kit's: the real Citadel image (`SQUIRE_BASE_IMAGE`, pin it once you have its digest) and any `SQUIRE_NODE_IMAGE`, `SQUIRE_PROXY_IMAGE` or `SQUIRE_MYSQL_IMAGE` override.
+
+### PHP 8.6r1 [#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#php-8-6r1)
+
+Citadel now offers `citadel/php-apache:8.6r1`, built from the official `php:8.6.0-apache`. That image is ZTS, and Apache stays on `mpm_prefork`, so apps behave the same as on the other lines. PEAR and PECL are restored, `mbstring` is built in, `oci8` 3.4.1 is installed, and `redis` 6.3.0 and `imagick` 3.8.1 are built with Remi Collet's patches (Citadel drops them once upstream releases). `xdebug`, `pcov` and `apcu` are not in the image.
+
+The default line stays 8.5r3; choose 8.6r1 with `squire init --php 8.6r1`.
+
+The fallback base for 8.6r1 is a public stand-in on the official image, pinned by its multi-arch list digest. It has none of those extensions or PECL (no `mbstring`), and it has not been proven with the container contract yet, so use the real image.
 
 ### The image contract suite [#](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#the-image-contract-suite)
 
@@ -2047,88 +1983,44 @@ On 2026-11-10 `citadel/php-apache:8.5r3` (image id `950dcf67937a`) passed every 
 
 Source: https://squire.apps.wayne.edu/docs/guides/local-parity.html
 
-## Local parity [#](https://squire.apps.wayne.edu/docs/guides/local-parity.html#local-parity)
+## Moved to Parity [#](https://squire.apps.wayne.edu/docs/guides/local-parity.html#moved-to-parity)
 
-To run your app on Citadel's own PHP image, behind Citadel's proxy, with MySQL 5.6 beside it, use [Parity](https://git.wayne.edu/enterprise-apps/parity). The rest of this page is Squire's older parity kit, which is deprecated.
+Squire 0.12.0 removed its parity kit. To run your app on Citadel's own PHP image on your computer, behind Citadel's proxy, with MySQL 5.6 beside it, use [Parity](https://git.wayne.edu/enterprise-apps/parity). Squire still writes the files Citadel runs (`build.sh`, the release script, the health check) and checks them with `squire doctor`. Squire gets the app onto Citadel; Parity brings Citadel to your desk. The squire has hung up the traveling armor: it only dresses the knight for the castle now.
 
-### Use Parity [#](https://squire.apps.wayne.edu/docs/guides/local-parity.html#use-parity)
+### Move an app over [#](https://squire.apps.wayne.edu/docs/guides/local-parity.html#move-an-app-over)
 
-Parity is the stack's tool for running Citadel on your computer: one program, `parity`, for Windows, macOS and Linux (x64 and arm64), for any app, with or without Squire. It runs on Docker or Podman (Podman is recommended) and needs no PHP or Composer on your computer. It uses Citadel's own PHP image (checked against Citadel's, byte for byte), Citadel's `vhost.conf` and `php.ini`, an HAProxy that adds the same forwarding headers, and MySQL 5.6. It runs the files Squire writes (`build.sh`, `deployments/`, the health check) the way Citadel does, applies the app's `sign_in` setting, and runs its Citadel-style cron entries. Its commands are `check`, `init`, `up`, `down`, `status`, `logs`, `shell`, `image` and `test`.
-
-Coming from this kit, in the app's folder:
+Parity is one program, `parity`, for Windows, macOS and Linux (x64 and arm64). It runs on Docker or Podman (Podman is recommended) and needs no PHP or Composer on your computer. [Parity's README](https://git.wayne.edu/enterprise-apps/parity) has the install line for each OS. Then, in the app's folder:
 
 ```sh
 parity check                 # what to fix on this computer, one finding per line
-parity init --from-squire    # writes parity.json from docker-compose.squire.yml and .env.squire
-parity image get             # Citadel's image, checked against Citadel's
+parity init --from-squire    # writes parity.json from the kit's files (it reads them, deletes none)
+parity image get             # Citadel's image, checked against Citadel's, byte for byte
 parity up                    # build, start, and print the address
 ```
 
-`parity init --from-squire` carries the kit's settings over (base image, public folder, ports, database name, time zone, deployments) and leaves passwords and every other value behind; Parity makes its own local passwords. It lists the kit's files and deletes none of them. Two differences to expect: Parity runs Citadel's own `php.ini`, not the kit's hardened one, and the kit's `scheduler` and `worker` services become one cron entry that runs Laravel's scheduler every minute, because Citadel has cron and no services. Parity's [README](https://git.wayne.edu/enterprise-apps/parity) has the install line for each OS and the full command list.
+`parity init --from-squire` reads `docker-compose.squire.yml`, `.env.squire.example` and `.env.squire`. It carries the kit's settings over (base image, public folder, ports, database name, time zone, deployments) and leaves passwords and every other value behind; Parity makes its own local passwords. Two differences to expect: Parity runs Citadel's own `php.ini`, not the kit's hardened one, and the kit's `scheduler` and `worker` services become one cron entry that runs Laravel's scheduler every minute, because Citadel has cron and no services.
 
-Squire still does its own job: it writes the files Citadel runs and checks them with `squire doctor`. Squire gets the app onto Citadel; Parity runs Citadel on your computer.
+An app with no kit (a fresh `squire init` writes none) starts with plain `parity init`.
 
-In CI, the same MySQL pin checks every merge: Preflight's [`mysql56-migrate` component](https://preflight.apps.wayne.edu/docs/guides/component-mysql56-migrate.html) (0.6.0) runs the app's migrations against `mysql:5.6.51` on an amd64 runner, and PROCTOR's `mysql56-ci` check warns when an app with migrations has no such job. Parity catches a bad migration on your computer; the pipeline catches the one that slipped past.
+### Then delete the kit files [#](https://squire.apps.wayne.edu/docs/guides/local-parity.html#then-delete-the-kit-files)
 
-### The parity kit is deprecated [#](https://squire.apps.wayne.edu/docs/guides/local-parity.html#the-parity-kit-is-deprecated)
-
-Warning
-
-Squire's `parity` group (`docker-compose.squire.yml`, `.squire/`, `.env.squire.example`, `scripts/parity.sh` and `scripts/parity.ps1`) is deprecated as of Squire 0.10.5. It still works, and `squire init`, `squire update` and `squire doctor` say so in one line. It is removed no sooner than two minor releases and 60 days later: Squire 0.12.0, and not before 2027-01-08 (the stack's ADR-0022). When it goes, `squire update` removes only the kit files you never edited and prints where Parity is. The portable image files (`.squire/portable.Dockerfile`, `.squire/portable/`) are not leaving: they move to a group of their own.
-
-The rest of this page sets up the kit for teams that still use it: your app on the Citadel image, behind an HA-Proxy that adds the same forwarding headers, with MySQL 5.6.51 beside it. Finish [Citadel setup](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html) first if you have not run `squire init` yet.
-
-### Requirements [#](https://squire.apps.wayne.edu/docs/guides/local-parity.html#requirements)
-
-Needs Docker with Compose v2. Windows needs Docker Desktop with the WSL 2 backend; no shell other than PowerShell is required.
-
-**On Windows, keep the source in the WSL 2 filesystem.** Advice, not a requirement: keep the app's source tree inside the WSL 2 Linux filesystem (for example under `~/src` in your WSL distribution) and run `scripts/parity.sh` from there, not from a Windows folder such as `C:\Users\you\...` reached through `/mnt/c`. Bind mounts from the Windows side are much slower (Composer and npm installs feel it most), and file ownership and permissions do not map cleanly; that is the cause of the `Permission denied` failure described under the bind-mount question (OPEN_QUESTIONS 15). The PowerShell `scripts\parity.ps1` still works from a Windows folder, only slower.
-
-### Engines and licenses [#](https://squire.apps.wayne.edu/docs/guides/local-parity.html#engines-and-licenses)
-
-Squire needs any engine that runs Docker Compose v2 compatible files. The ones named here:
-
-- **Docker Engine on Linux**: open source, Apache 2.0.
-- **Docker Desktop on Windows** with the WSL 2 backend: a commercial product, free for small business, personal and educational use, and paid for larger organizations, so check your own license.
-- **Podman** with a Compose v2 compatible provider, and **Colima** on macOS: expected to work, not tested here.
-
-Only Docker Desktop and Docker Engine have been run.
-
-### Starting parity [#](https://squire.apps.wayne.edu/docs/guides/local-parity.html#starting-parity)
+Once `parity up` serves the app, delete what is left of the kit and commit:
 
 ```sh
-# Linux and macOS
-cp .env.squire.example .env.squire     # then set the passwords
-scripts/parity.sh up                   # or: scripts/parity.sh up --fallback
-
-# Windows (PowerShell 5.1 or 7)
-Copy-Item .env.squire.example .env.squire
-scripts\parity.ps1 up                  # or: scripts\parity.ps1 up -Fallback
+git rm docker-compose.squire.yml .squire/haproxy.cfg scripts/parity.sh scripts/parity.ps1 .env.squire.example
 ```
 
-Give each app its own `SQUIRE_PROJECT` in `.env.squire`. Apps on one name are one compose project: they share the database and the record of which `deployments/` files already ran, so the second app's release is skipped as already run (see [Troubleshooting](https://squire.apps.wayne.edu/docs/troubleshooting.html#parity-never-turns-healthy-vendor-autoload-php-is-missing)). `up` warns while the name is the default `squire-app`.
+Delete only the ones you have; `squire update` lists them as `kit-leftover`, and `squire doctor` notes them under S35 until they are gone. Squire never deletes them for you. Keep `.env.squire` if it holds release options: `scripts/release.sh` reads it on Citadel.
 
-`parity.ps1` has been run end to end on Windows PowerShell 5.1 (2026-11-10, on the fallback and on Citadel's `citadel/php-apache:8.5r3`); CI runs it on PowerShell 7. An app made before that fix gets it with `squire update`: on 5.1 the old script stopped on a raw `NativeCommandError` where it meant to say the base image is missing.
+The rest of `.squire/` is not the kit. The Citadel mirror (`.squire/Dockerfile`), the fallback base, the hardened `php.ini` and `php-web.ini`, and [the portable image](https://squire.apps.wayne.edu/docs/guides/portable-image.html) are Squire's `images` group, opt-in with `squire init --only=release,images`. Keep them if you build those images.
 
-Commands: `up`, `down`, `reset` (also removes volumes), `logs [service]`, `shell [service]`, `status`, `pin` (prints the digests of the images you have pulled, so you can pin them).
+### In CI [#](https://squire.apps.wayne.edu/docs/guides/local-parity.html#in-ci)
 
-### What it starts [#](https://squire.apps.wayne.edu/docs/guides/local-parity.html#what-it-starts)
-
-It starts the app container from the Citadel image (built by Citadel's `build_images` command, or pulled from wherever you keep it) with your source mounted at `/citadel/src`, runs your `deployments/` as the `citadel` user the way Citadel does, and puts an HA-Proxy in front that adds the same forwarding headers. MySQL 5.6.51 is reachable from the app as host `mysql` and from your machine on `127.0.0.1:3307`. Containers drop capabilities, set `no-new-privileges`, and carry memory and process limits. The database port is bound to loopback only. The Vue layer's compose file adds a Node 22 service, pinned to the same major as the Citadel image, for frontend tooling.
-
-The compose file's `portable` profile starts nothing on a plain `up`. Named, it runs [the portable image](https://squire.apps.wayne.edu/docs/guides/portable-image.html) instead: the code baked in, one image as `migrate`, `web`, `worker` and `scheduler`, as a non-root user in group 0 on 8080, the way a platform other than Citadel runs it.
-
-### No access to the real image? [#](https://squire.apps.wayne.edu/docs/guides/local-parity.html#no-access-to-the-real-image)
-
-`--fallback` builds an approximation from the official `php` image plus Citadel's extensions. It is good for trying Squire out and not for proving parity. If the build step fails with a permission error writing `vendor/`, the source folder is not writable by the container's `citadel` user (uid 1000 by default); on Linux set `SQUIRE_SOURCE_UID` and `SQUIRE_SOURCE_GID` to yours.
-
-Note
-
-The compose file refuses to start without the two passwords. Set them in `.env.squire` after copying `.env.squire.example`; the example holds placeholders only.
+The same MySQL pin checks every merge: Preflight's [`mysql56-migrate` component](https://preflight.apps.wayne.edu/docs/guides/component-mysql56-migrate.html) runs the app's migrations against `mysql:5.6.51` on an amd64 runner, and PROCTOR's `mysql56-ci` check warns when an app with migrations has no such job. Parity catches a bad migration on your computer; the pipeline catches the one that slipped past.
 
 ### Next [#](https://squire.apps.wayne.edu/docs/guides/local-parity.html#next)
 
-Read [The release script](https://squire.apps.wayne.edu/docs/guides/release-script.html) for what runs inside the app container, or [Citadel setup](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html) for the dashboard side of the same pipeline.
+[Upgrading](https://squire.apps.wayne.edu/docs/upgrading.html#0-12-0-2026-11-20) has the whole 0.12.0 move, and [Citadel setup](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html) the dashboard side of the pipeline.
 
 ---
 
@@ -2237,7 +2129,7 @@ The smallest hop for your code and the biggest for your safety: everything after
 
 #### Back up [#](https://squire.apps.wayne.edu/docs/guides/mysql-upgrade-path.html#back-up)
 
-A `mysqldump` from the 5.6.51 client, [as above](https://squire.apps.wayne.edu/docs/guides/mysql-upgrade-path.html#what-a-backup-means-here), restored once on a fresh 5.6.51 server. Squire's [local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html) kit already runs MySQL 5.6.51, so it can be that fresh server.
+A `mysqldump` from the 5.6.51 client, [as above](https://squire.apps.wayne.edu/docs/guides/mysql-upgrade-path.html#what-a-backup-means-here), restored once on a fresh 5.6.51 server. [Parity](https://git.wayne.edu/enterprise-apps/parity) already runs MySQL 5.6.51 on your computer, so it can be that fresh server.
 
 #### Driver and Laravel floor [#](https://squire.apps.wayne.edu/docs/guides/mysql-upgrade-path.html#driver-and-laravel-floor)
 
@@ -2345,7 +2237,7 @@ Source: https://squire.apps.wayne.edu/docs/guides/oracle.html
 
 ## Oracle [#](https://squire.apps.wayne.edu/docs/guides/oracle.html#oracle)
 
-This page covers the plain-language Oracle connection check that `release.sh` runs on Citadel and that `squire doctor oracle` runs from your terminal, and the two opt-in Oracle-ready Docker images Squire ships for local work. Next, read [Citadel setup](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html) to wire the release script into the dashboard, or [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html) to run the app on the real images.
+This page covers the plain-language Oracle connection check that `release.sh` runs on Citadel and that `squire doctor oracle` runs from your terminal, and the two opt-in Oracle-ready Docker images Squire ships for local work. Next, read [Citadel setup](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html) to wire the release script into the dashboard, or [Parity](https://git.wayne.edu/enterprise-apps/parity) to run the app on the real images.
 
 ### The connection check [#](https://squire.apps.wayne.edu/docs/guides/oracle.html#the-connection-check)
 
@@ -2406,7 +2298,7 @@ Source: https://squire.apps.wayne.edu/docs/guides/portable-image.html
 
 Citadel builds its own image, and `.squire/Dockerfile` mirrors that one and stays a mirror. Everywhere else (OpenShift, Coolify, a plain `docker run`, ADR-0010's portable path) an app needs an image it can take with it: the code inside, one image for every process type, and no assumption that it starts as root. That is `.squire/portable.Dockerfile`. A squire packs one saddlebag that fits every horse.
 
-Read [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html) first for the base image, and [Queue workers on Citadel](https://squire.apps.wayne.edu/docs/guides/queue-workers.html) for the Citadel side of the same worker.
+Read [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html) first for the base image, and [Queue workers on Citadel](https://squire.apps.wayne.edu/docs/guides/queue-workers.html) for the Citadel side of the same worker. The image files are Squire's opt-in images group: `squire init --only=release,images`.
 
 ### What differs from the Citadel mirror [#](https://squire.apps.wayne.edu/docs/guides/portable-image.html#what-differs-from-the-citadel-mirror)
 
@@ -2476,22 +2368,29 @@ A raw PHP app has no `artisan`, so it names its own worker and scheduler; the ro
 
 A bad setting stops the container before anything starts, with exit 64 and one line that says what to change: a port that is not a number, a port below 1024 for a user that is not root, an unknown role, an empty named command.
 
-### Compose: the `portable` profile [#](https://squire.apps.wayne.edu/docs/guides/portable-image.html#compose-the-portable-profile)
+### Run the four roles together [#](https://squire.apps.wayne.edu/docs/guides/portable-image.html#run-the-four-roles-together)
 
-`docker-compose.squire.yml` carries the same four roles as a profile beside the parity stack. A plain `up` still starts only the Citadel parity services; the profile starts nothing until you name it:
+One image, four containers that differ only in their role. Up to Squire 0.11, `docker-compose.squire.yml` carried them as a `portable` profile; that file left with the parity kit in 0.12.0, so here they are as plain `docker run` lines. A platform (OpenShift, Coolify) runs the same four from its own service definitions.
 
 ```sh
-docker compose -f docker-compose.squire.yml --env-file .env.squire --profile portable up -d --build web worker scheduler
+docker network create my-app
+# migrate once per release, and wait for it: the other three start after it exits 0
+docker run --rm --network my-app --user 1000123:0 --cap-drop ALL --security-opt no-new-privileges:true \
+  --env-file .env my-app migrate
+docker run -d --name my-app-web --network my-app --user 1000123:0 --cap-drop ALL --security-opt no-new-privileges:true \
+  --env-file .env -p 127.0.0.1:8081:8080 --restart unless-stopped my-app web
+docker run -d --name my-app-worker --network my-app --user 1000123:0 --cap-drop ALL --security-opt no-new-privileges:true \
+  --env-file .env --restart unless-stopped my-app worker
+docker run -d --name my-app-scheduler --network my-app --user 1000123:0 --cap-drop ALL --security-opt no-new-privileges:true \
+  --env-file .env -e QUEUE_WORKER_MODE=none --restart unless-stopped my-app scheduler
 ```
 
-- **One image.** Every service builds and runs `squire-local/portable:<project>`; they differ only in `SQUIRE_ROLE`.
-- **migrate** runs once, after MySQL is healthy, and the other three wait for it to finish successfully (`restart: "no"`).
-- **web** is published on `127.0.0.1:${SQUIRE_PORTABLE_HTTP_PORT:-8081}`, beside the parity proxy on 8080.
-- **worker** comes back after `--max-time` ends it, through `restart: unless-stopped`.
-- **scheduler** sets `QUEUE_WORKER_MODE=none`: Sourdough's Laravel shapes schedule a short queue worker by default, and here the worker service has the queue.
-- Every service runs as `${SQUIRE_PORTABLE_USER:-10001:0}` with `cap_drop: [ALL]`, `no-new-privileges`, and memory and process limits, reads the app's settings from `${SQUIRE_PORTABLE_ENV_FILE:-.env}` (never baked in), and logs to stderr.
+- **migrate** runs once and exits; start the rest only when it exits `0`.
+- **worker** comes back after `--max-time` ends it, through `--restart unless-stopped`.
+- **scheduler** sets `QUEUE_WORKER_MODE=none`: Sourdough's Laravel shapes schedule a short queue worker by default, and here the worker container has the queue.
+- The app's settings come from its `.env` at run time and are never baked in. Every role logs to stderr.
 
-The settings are in `.env.squire.example` under "the portable image". WELD sets `SQUIRE_PORTABLE_CONTEXT=..` and `SQUIRE_KIT_DIR=deploy`, because its app sits one folder up from the kit.
+To run the app on Citadel's own image on your computer instead, use [Parity](https://git.wayne.edu/enterprise-apps/parity).
 
 ### Deploys and signals [#](https://squire.apps.wayne.edu/docs/guides/portable-image.html#deploys-and-signals)
 
@@ -2509,7 +2408,7 @@ The image's `HEALTHCHECK` runs `squire-entrypoint health`. For `web` that is `he
 
 ### How it was checked [#](https://squire.apps.wayne.edu/docs/guides/portable-image.html#how-it-was-checked)
 
-`tests/PortableImageTest.php` reads every portable file and runs the entrypoint in bash with stand-ins for `php`, `apache2-foreground` and `id`: each role, the argument and setting precedence, the refusals, the health check, the secrets loader, and `SIGTERM` reaching Apache as its graceful stop. On 2026-11-08 the image was also built and run for real, for a raw PHP app and for WELD: `docker run --user 1000123:0` answered `/up` with 200 on 8080 from Apache running as `1000123:0`; the compose profile ran `migrate` (exit 0), then `web`, `worker` and `scheduler` healthy as `1000123:0`; the worker ran a queued job; and `docker stop` ended all three in about two seconds, each with exit 0. On 2026-11-09, for 0.10.2, Buildah 1.43 (short-name mode enforcing) refused the 0.10.1 fallback base at its `COPY --from=composer:...` and built the new one with no build arguments; WELD's portable image then built on it under Buildah and under Docker with no `node_modules/` left in it (1.38 GB with `SQUIRE_KEEP_NODE_MODULES=1`, 1.20 GB without), and served `/up` and its front page with the built assets, as `1000123:0`.
+`tests/PortableImageTest.php` reads every portable file and runs the entrypoint in bash with stand-ins for `php`, `apache2-foreground` and `id`: each role, the argument and setting precedence, the refusals, the health check, the secrets loader, and `SIGTERM` reaching Apache as its graceful stop. On 2026-11-08 the image was also built and run for real, for a raw PHP app and for WELD: `docker run --user 1000123:0` answered `/up` with 200 on 8080 from Apache running as `1000123:0`; the compose profile Squire carried then ran `migrate` (exit 0), then `web`, `worker` and `scheduler` healthy as `1000123:0`; the worker ran a queued job; and `docker stop` ended all three in about two seconds, each with exit 0. On 2026-11-09, for 0.10.2, Buildah 1.43 (short-name mode enforcing) refused the 0.10.1 fallback base at its `COPY --from=composer:...` and built the new one with no build arguments; WELD's portable image then built on it under Buildah and under Docker with no `node_modules/` left in it (1.38 GB with `SQUIRE_KEEP_NODE_MODULES=1`, 1.20 GB without), and served `/up` and its front page with the built assets, as `1000123:0`.
 
 ### Next [#](https://squire.apps.wayne.edu/docs/guides/portable-image.html#next)
 
@@ -2625,7 +2524,7 @@ composer require waynestate/squire --dev
 
 ### 2. Run squire init [#](https://squire.apps.wayne.edu/docs/guides/quick-start.html#2-run-squire-init)
 
-`init` picks the target from your app: `laravel` when there is an `artisan` file, `raw` without one, or set it yourself with `--target`. It detects a Vue/Inertia layer from `package.json` and adds the layer's release script and Node 22 parity service.
+`init` picks the target from your app: `laravel` when there is an `artisan` file, `raw` without one, or set it yourself with `--target`. It detects a Vue/Inertia layer from `package.json` and adds the layer's `.npmrc`.
 
 ```bash
 vendor/bin/squire init
@@ -2634,10 +2533,10 @@ vendor/bin/squire init
 The full option set:
 
 ```text
-vendor/bin/squire init   [--path=.] [--target=auto|raw|laravel|static] [--only=release|parity] [--check] [--force]
+vendor/bin/squire init   [--path=.] [--target=auto|raw|laravel|static] [--only=release|images] [--check] [--force]
 ```
 
-`init` never overwrites a file you edited, or a file it did not write, unless you pass `--force`. It records a SHA-256 of each file in `.squire.json`. `--only=release` writes just the Citadel scripts, `--only=parity` just the local setup. The release installs from the lock file, so when the app has no `composer.json` or no `composer.lock`, `init` ends with a "Heads up" line: commit both before the first deploy (`composer init`, then `composer update`), or the release stops at step 1.
+`init` never overwrites a file you edited, or a file it did not write, unless you pass `--force`. It records a SHA-256 of each file in `.squire.json`. A fresh `init` writes the Citadel scripts (the `release` group); `--only=release,images` adds the image files (the Citadel mirror, the fallback base and the portable image). To run the app on your computer, use [Parity](https://git.wayne.edu/enterprise-apps/parity): `parity init`, then `parity up`. The release installs from the lock file, so when the app has no `composer.json` or no `composer.lock`, `init` ends with a "Heads up" line: commit both before the first deploy (`composer init`, then `composer update`), or the release stops at step 1.
 
 ### 3. Run squire doctor [#](https://squire.apps.wayne.edu/docs/guides/quick-start.html#3-run-squire-doctor)
 
@@ -2666,8 +2565,7 @@ Commit the `.squire.json` record file. `update` reads it to know which files Squ
 | `public/index.php` | Raw: the front controller that serves `public/` files safely and hands the rest to the app's entry. Static: the one that serves the committed site with HELMET's headers. Never written over an app's own. |
 | `public/.htaccess` | Raw: sends every request but `index.php` and `up.php` to the front controller. Static: routes every request that is not a real file to it. |
 | `.npmrc` | Vue layer only: sets `min-release-age=1` for the frontend install. |
-| Vue `docker-compose.squire.yml` | Vue layer only: the common parity compose plus a Node 22 service for frontend tooling. |
-| `docker-compose.squire.yml`, `.squire/`, `.env.squire.example`, `scripts/parity.sh`, `scripts/parity.ps1` | Local parity. Deprecated: [Parity](https://git.wayne.edu/enterprise-apps/parity) takes over (see [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html)). |
+| `.squire/` | With `--only=release,images` only: the Citadel mirror, the fallback base and [the portable image](https://squire.apps.wayne.edu/docs/guides/portable-image.html). |
 
 Every shell script uses `set -euo pipefail` (`build.sh` uses `set -eu`, because Citadel runs it with `/bin/sh`), prints a `[squire] ==> step N: ...` marker for each step, and can be run twice with the same result.
 
@@ -2690,7 +2588,7 @@ For a Laravel target, `init` writes `health.php` and `oracle-check.php` at the a
 - [Static site](https://squire.apps.wayne.edu/docs/guides/static-site.html)
 - [Citadel setup](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html)
 - [Release script](https://squire.apps.wayne.edu/docs/guides/release-script.html)
-- [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html)
+- [Moved to Parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html), for the old parity kit
 - [Doctor](https://squire.apps.wayne.edu/docs/guides/doctor.html)
 - [Update and drift](https://squire.apps.wayne.edu/docs/guides/update-and-drift.html)
 - [Commands](https://squire.apps.wayne.edu/docs/reference/commands.html) and [Files](https://squire.apps.wayne.edu/docs/reference/files.html)
@@ -2709,7 +2607,7 @@ A raw PHP app (`--target=raw`, the default without an `artisan` file) gets a fro
 
 ### The front controller's three answers [#](https://squire.apps.wayne.edu/docs/guides/raw-php-app.html#the-front-controller-s-three-answers)
 
-- a real file in `public/` (CSS, images, fonts, an HTML page) is served with its type, an ETag and an hour of cache, with HELMET's headers when HELMET is installed, and HELMET's CSP nonce on every `<script>` of an HTML page;
+- a real file in `public/` (CSS, images, fonts, an HTML page) is served with its type and an ETag; images and fonts keep an hour of cache, while scripts, styles and data revalidate on every load (`no-cache`, a 304 when unchanged), so a fresh page never runs last release's script, with HELMET's headers when HELMET is installed, and HELMET's CSP nonce on every `<script>` of an HTML page;
 - a 404 for a dot file (`.htaccess`, `.git`), a NUL byte, a path that climbs out of `public/`, any `.php` or `.phar` other than the front controller, and any file that is not a site asset (a `.sql` dump, a `.bak`, a `.md` with no `.html` beside it);
 - everything else goes to the app's entry: `app.php` beside `public/`, or the file `SQUIRE_APP_ENTRY` names (relative to the app directory, for example `src/bootstrap.php`). A `POST`, `PUT` or `DELETE` always goes to the entry.
 
@@ -2787,7 +2685,7 @@ The release also runs an Oracle connection check (`oracle-check.php`) after the 
 
 Before the first step the script reads two sources: `./.env.squire` (the release options) and the secrets folder, `SQUIRE_SECRETS_DIR` (default `/run/secrets`), where each file named like a variable becomes that variable unless the environment already sets it. Only names are printed. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#secrets-files-at-run-time-never-in-a-layer).
 
-Configuration is environment variables, all optional, or the same names in `./.env.squire` in the app root. On Citadel add that file as a configuration file (the configuration-files step after the wizard; the wizard has no environment field) and keep it out of git. A variable already in the environment wins over the file. See `.env.squire.example`.
+Configuration is environment variables, all optional, or the same names in `./.env.squire` in the app root. On Citadel add that file as a configuration file (the configuration-files step after the wizard; the wizard has no environment field) and keep it out of git. A variable already in the environment wins over the file. Every option is listed at the top of `scripts/release.sh` and in [Configuration](https://squire.apps.wayne.edu/docs/reference/configuration.html).
 
 Warning
 
@@ -2795,7 +2693,7 @@ PROCTOR is a dev dependency and the release installs with `--no-dev`, so `vendor
 
 ### Next [#](https://squire.apps.wayne.edu/docs/guides/release-script.html#next)
 
-Read [Citadel setup](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html) for the dashboard steps that make this script run, or [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html) to watch the same pipeline on your machine.
+Read [Citadel setup](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html) for the dashboard steps that make this script run, or [Parity](https://git.wayne.edu/enterprise-apps/parity) to watch the same pipeline on your machine.
 
 ---
 
@@ -2815,10 +2713,9 @@ The site folder is `../../site` by default (the app lives in `deploy/` beside it
 
 ### The Vue/Inertia layer [#](https://squire.apps.wayne.edu/docs/guides/static-site.html#the-vue-inertia-layer)
 
-A Vue/Inertia app is a layer on `raw`, `laravel` or `static`, not a fourth target: `init` detects `vue` in `package.json` (dependencies or devDependencies) and writes the layer's `.npmrc` and its `docker-compose.squire.yml` (with a Node 22 service) beside the target's files.
+A Vue/Inertia app is a layer on `raw`, `laravel` or `static`, not a fourth target: `init` detects `vue` in `package.json` (dependencies or devDependencies) and writes the layer's `.npmrc` beside the target's files.
 
 - `.npmrc` sets `min-release-age=1` for the frontend install.
-- The Vue `docker-compose.squire.yml` is the common parity compose plus a Node 22 service for frontend tooling, pinned to the same major as the Citadel image.
 
 Every app, Vue or not, gets the one common `scripts/release.sh`, which installs the frontend from the lock file and runs the `build` script whenever there is a `package.json`.
 
@@ -2895,8 +2792,8 @@ This page explains how Squire tracks the files it writes (the `.squire.json` SHA
 `update` reads the record: a file you never edited takes the new template, a file you edited is left alone and shown as a diff, a file a newer release added to a recorded group is written and recorded, and a file Squire did not write is never touched. A file you edited that now matches the new template exactly (your change was taken upstream) is reported current and recorded, so it is never drift. A squire polishes the armor; the knight keeps the sword. `--dry-run` prints the plan and writes nothing.
 
 ```
-vendor/bin/squire init   [--path=.] [--target=auto|raw|laravel|static] [--only=release|parity] [--check] [--force]
-vendor/bin/squire update [--path=.] [--target=raw|laravel|static] [--only=release|parity] [--dry-run]
+vendor/bin/squire init   [--path=.] [--target=auto|raw|laravel|static] [--only=release|images] [--check] [--force]
+vendor/bin/squire update [--path=.] [--target=raw|laravel|static] [--only=release|images] [--dry-run]
 ```
 
 ### App-owned files and `--force` [#](https://squire.apps.wayne.edu/docs/guides/update-and-drift.html#app-owned-files-and-force)
@@ -2920,14 +2817,14 @@ Source: https://squire.apps.wayne.edu/docs/
 
 ## Overview [#](https://squire.apps.wayne.edu/docs/#overview)
 
-Squire is the Citadel kit: the standard `build.sh`, the release script, the health check, and a local setup that runs your app on the real Citadel images, behind a proxy like Citadel's. The next step is [installing it](https://squire.apps.wayne.edu/docs/install.html), which takes a minute and ends with a doctor check.
+Squire is the Citadel kit: the standard `build.sh`, the release script and the health check, written from templates and checked by `squire doctor`. Running Citadel on your computer is [Parity](https://git.wayne.edu/enterprise-apps/parity)'s job. The next step is [installing it](https://squire.apps.wayne.edu/docs/install.html), which takes a minute and ends with a doctor check.
 
 ### What it does [#](https://squire.apps.wayne.edu/docs/#what-it-does)
 
-- `squire init` writes the scripts a Citadel app needs from templates, for raw PHP, Laravel or a static site, and detects a Vue/Inertia layer from `package.json`, adding the layer's release script and Node 22 parity service. `squire init --check` reports when your copies have drifted from the templates (depend, do not copy). In a directory below the repository root (a `deploy/` layer, say), `init` also keeps the `.gitignore` honest: it appends `/vendor/`, `.env` and `.env.squire` when they are missing, never touches a line the app added, and leaves the repository root's `.gitignore` to the app.
+- `squire init` writes the scripts a Citadel app needs from templates, for raw PHP, Laravel or a static site, and detects a Vue/Inertia layer from `package.json`, adding the layer's `.npmrc`. `squire init --check` reports when your copies have drifted from the templates (depend, do not copy). In a directory below the repository root (a `deploy/` layer, say), `init` also keeps the `.gitignore` honest: it appends `/vendor/`, `.env` and `.env.squire` when they are missing, never touches a line the app added, and leaves the repository root's `.gitignore` to the app.
 - `squire update` takes the new template versions for the files you never edited, writes the template files a newer release added to a group the kit records (recording them in `.squire.json`), and shows a diff for the ones you did. It never overwrites your edits, and it runs the same in CI and on a laptop.
 - `squire doctor` checks an app against the best practices a machine can decide. The lock file, composer audit and MySQL 5.6 checks are owned by PROCTOR; `doctor` hands off to it (S50) instead of repeating them.
-- A local setup that runs your app on the Citadel PHP image, behind a proxy like Citadel's, with the same MySQL 5.6.
+- Opt-in image files (`--only=release,images`): a mirror of Citadel's image, a fallback base for machines without it, and a portable image for OpenShift, Coolify and raw Docker.
 - Squire's maintainers send platform improvement proposals to the platform team privately. Squire never touches a server.
 
 ### Where the code lives [#](https://squire.apps.wayne.edu/docs/#where-the-code-lives)
@@ -3021,7 +2918,7 @@ Usage: `squire init [--path PATH] [--target TARGET] [--only ONLY] [--php PHP] [-
 | --- | --- | --- |
 | `--path=VALUE` | Path to the application. | `.` |
 | `--target=VALUE` | raw, laravel or static (default: the target recorded in .squire.json, else laravel when an artisan file exists; static must be asked for). |  |
-| `--only=VALUE` | Comma-separated groups to write: release, parity (opt-in: Parity runs Citadel locally now). (default: the groups recorded in .squire.json, else release) |  |
+| `--only=VALUE` | Comma-separated groups to write: release, images (opt-in: the Citadel mirror, the fallback base and the portable image). (default: the groups recorded in .squire.json, else release) |  |
 | `--php=VALUE` | Citadel PHP image line, such as 8.5r3 (default: the line in .squire.json, else 8.5r3 for a new app) |  |
 | `--check` | Write nothing; report files that are missing, outdated or edited. Exit 1 on drift. |  |
 | `--force` | Overwrite files that were edited or that Squire did not write. |  |
@@ -3057,7 +2954,7 @@ Usage: `squire update [--path PATH] [--target TARGET] [--only ONLY] [--dry-run]`
 | --- | --- | --- |
 | `--path=VALUE` | Path to the application. | `.` |
 | `--target=VALUE` | raw, laravel or static (default: the target recorded in .squire.json). |  |
-| `--only=VALUE` | Comma-separated groups to update: release, parity (opt-in: Parity runs Citadel locally now). (default: the groups recorded in .squire.json) |  |
+| `--only=VALUE` | Comma-separated groups to update: release, images (opt-in: the Citadel mirror, the fallback base and the portable image). (default: the groups recorded in .squire.json) |  |
 | `--dry-run` | Print the plan; write nothing. |  |
 | `--silent` | Do not output any message |  |
 
@@ -3077,9 +2974,9 @@ Usage: `squire update [--path PATH] [--target TARGET] [--only ONLY] [--dry-run]`
 
 `0` pass, `1` findings (`init --check`: drift; `update`: an edited file still differs from the template; `doctor`: a failed rule), `2` the tool itself could not run.
 
-### The parity group is deprecated [#](https://squire.apps.wayne.edu/docs/reference/commands.html#the-parity-group-is-deprecated)
+### The parity group is gone [#](https://squire.apps.wayne.edu/docs/reference/commands.html#the-parity-group-is-gone)
 
-When the `parity` group is in play, `init` (not `init --check`) and `update` print one line before they finish, and `doctor` adds an S35 info finding that says the same: the group is deprecated, it is removed no sooner than Squire 0.12.0, and [Parity](https://git.wayne.edu/enterprise-apps/parity) runs Citadel on your computer now (`parity init --from-squire` carries the kit over). The exit codes do not change. See [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html).
+The `parity` group left Squire in 0.12.0. `--only=parity` exits `2` and names [Parity](https://git.wayne.edu/enterprise-apps/parity), which runs Citadel on your computer now; the image files the group held are `--only=images`. A `.squire.json` that still records `parity` reads as `release,images`. Each kit file it lists is printed as `kit-leftover`, dropped from the record and left on disk, and `init` (not `init --check`) and `update` end with one line that says to run `parity init --from-squire` and delete them. `doctor` notes the same files under S35. The exit codes do not change. See [Moved to Parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html).
 
 ### doctor oracle [#](https://squire.apps.wayne.edu/docs/reference/commands.html#doctor-oracle)
 
@@ -3095,18 +2992,17 @@ Every `SQUIRE_*` setting Squire reads, grouped by the script that reads it, with
 
 Warning
 
-A real environment variable wins. `release.sh` reads the release options from the file, but a variable already in the environment wins. Locally, the same file holds the parity settings.
+A real environment variable wins. `release.sh` reads the release options from the file, but a variable already in the environment wins.
 
 ### Where the settings live [#](https://squire.apps.wayne.edu/docs/reference/configuration.html#where-the-settings-live)
 
-All optional. On Citadel, add `./.env.squire` as a configuration file (the configuration-files step after the wizard; the wizard has no environment field) and keep it out of git. `release.sh` reads the release options from it, and a variable already in the environment wins. Locally, the same file holds the parity settings.
+All optional. On Citadel, add `./.env.squire` as a configuration file (the configuration-files step after the wizard; the wizard has no environment field) and keep it out of git. `release.sh` reads the release options from it, and a variable already in the environment wins.
 
 | Group | Reader | File |
 | --- | --- | --- |
 | Release script | `scripts/release.sh` | `./.env.squire` (on Citadel, added as a configuration file and kept out of git) |
 | Front controller | raw `public/index.php`, static `public/index.php` | the app's environment |
 | Health check | `health.php` | the app's environment |
-| Local parity | the parity compose file | `.env.squire` (see `.env.squire.example`; it holds placeholders only) |
 | Portable image | `.squire/portable/squire-entrypoint.sh`, `docker build` | the container's environment, and build arguments |
 
 ### Release script (`scripts/release.sh`) [#](https://squire.apps.wayne.edu/docs/reference/configuration.html#release-script-scripts-release-sh)
@@ -3177,7 +3073,7 @@ The entrypoint reads these when a container starts; the build arguments are read
 
 ### PHP in the image (`.squire/php.ini`) [#](https://squire.apps.wayne.edu/docs/reference/configuration.html#php-in-the-image-squire-php-ini)
 
-PHP reads these from the container's environment when it starts (PHP 8.3 and later). The parity compose file passes `SQUIRE_OPCACHE_VALIDATE` and `SQUIRE_PHP_DISABLE_FUNCTIONS` from `.env.squire`; on Citadel the platform's own `php.ini` decides. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html).
+PHP reads these from the container's environment when it starts (PHP 8.3 and later), in the images built from `.squire/Dockerfile` and `.squire/portable.Dockerfile`; on Citadel the platform's own `php.ini` decides. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html).
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
@@ -3186,36 +3082,9 @@ PHP reads these from the container's environment when it starts (PHP 8.3 and lat
 | `SQUIRE_OPCACHE_MAX_FILES` | `20000` | How many scripts opcache keeps. |
 | `SQUIRE_PHP_DISABLE_FUNCTIONS` | `exec,passthru,shell_exec,system,pcntl_exec,phpinfo,show_source,highlight_file` | The web's `disable_functions` list (`.squire/php-web.ini`; the CLI disables nothing). It replaces the list; `none` disables nothing. Leave it unset for the default: an empty value disables nothing too. |
 
-### Local parity (`.env.squire`) [#](https://squire.apps.wayne.edu/docs/reference/configuration.html#local-parity-env-squire)
+### Local parity: moved to Parity [#](https://squire.apps.wayne.edu/docs/reference/configuration.html#local-parity-moved-to-parity)
 
-| Variable | Default | Meaning |
-| --- | --- | --- |
-| `SQUIRE_PROJECT` | not stated | Local parity: the project name. |
-| `SQUIRE_BASE_IMAGE` | not stated | Local parity: the app image. |
-| `SQUIRE_PROXY_IMAGE` | not stated | Local parity: the proxy image. |
-| `SQUIRE_MYSQL_IMAGE` | not stated | Local parity: the MySQL image. |
-| `SQUIRE_PUBLIC_DIR` | not stated | Local parity: the public directory. |
-| `SQUIRE_SERVER_NAME` | not stated | Local parity: the server name. |
-| `SQUIRE_TZ` | not stated | Local parity: the timezone. |
-| `SQUIRE_ENVIRONMENT` | not stated | Local parity: the environment. |
-| `SQUIRE_DEPLOYMENTS` | not stated | Local parity: the deployments path. |
-| `SQUIRE_HTTP_PORT` | not stated | Local parity: the HTTP port. |
-| `SQUIRE_APP_MEMORY` | not stated | Local parity: the app memory limit. |
-| `SQUIRE_SOURCE_UID` | not stated | Local parity: the uid that owns the mounted source. |
-| `SQUIRE_SOURCE_GID` | not stated | Local parity: the gid that owns the mounted source. |
-| `SQUIRE_DB_NAME` | not stated | Local parity: the database name. |
-| `SQUIRE_DB_USER` | not stated | Local parity: the database user. |
-| `SQUIRE_DB_PASSWORD` | not stated | Local parity: the database password. |
-| `SQUIRE_DB_ROOT_PASSWORD` | not stated | Local parity: the database root password. |
-| `SQUIRE_DB_PORT` | not stated | Local parity: the database port. |
-| `SQUIRE_DB_MEMORY` | not stated | Local parity: the database memory limit. |
-| `SQUIRE_PORTABLE_HTTP_PORT` | `8081` | The `portable` profile: where the web container is published on loopback. |
-| `SQUIRE_PORTABLE_USER` | `10001:0` | The `portable` profile: the UID and group the containers run as (try `1000123:0`). |
-| `SQUIRE_PORTABLE_ENV_FILE` | `.env` | The `portable` profile: the app's env file, read at run time and never baked in. |
-| `SQUIRE_PORTABLE_CONTEXT` | `.` | The `portable` profile: the build context, relative to the compose file (`..` for WELD). |
-| `SQUIRE_KIT_DIR` | `.` | The `portable` profile: the kit's folder inside that context (`deploy` for WELD). |
-
-The Vue layer's compose file also reads `SQUIRE_NODE_IMAGE` (default `node:22.23.4-bookworm-slim`, pinned by digest), `SQUIRE_NODE_ENV` (default `production`) and `SQUIRE_NODE_MEMORY` (default `512m`). The compose file refuses to start without the two passwords. See `.env.squire.example`; it holds placeholders only.
+The parity kit's settings (`SQUIRE_PROJECT`, `SQUIRE_DB_PASSWORD`, `SQUIRE_HTTP_PORT`, the `portable` profile's `SQUIRE_PORTABLE_*` and the Vue layer's `SQUIRE_NODE_*`) left with the kit in 0.12.0; nothing in Squire reads them. `parity init --from-squire` carries the ones that matter into `parity.json`. See [Moved to Parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html).
 
 ---
 
@@ -3239,13 +3108,14 @@ What `squire init` writes into your app, which target or layer each file belongs
 | `public/index.php` | Raw: the front controller that serves `public/` files safely and hands the rest to the app's entry. Static: the one that serves the committed site with HELMET's headers. Never written over an app's own. | Raw and static |
 | `public/.htaccess` | Raw: sends every request but `index.php` and `up.php` to the front controller. Static: routes every request that is not a real file to it. | Raw and static |
 | `.npmrc` | Sets `min-release-age=1` (days) for the frontend install, with the escape hatches in its comments. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#npm-no-install-scripts-no-day-old-versions). | Vue layer only |
-| `docker-compose.squire.yml` | The common parity compose plus a Node 22 service for frontend tooling. | Vue layer only |
-| `docker-compose.squire.yml`, `.squire/`, `.env.squire.example`, `scripts/parity.sh`, `scripts/parity.ps1` | Local parity. Deprecated as of 0.10.5: [Parity](https://git.wayne.edu/enterprise-apps/parity) runs Citadel on your computer now (see [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html)). | Local parity kit |
-| `.squire/apache-hardening.conf` | `ServerTokens Prod`, `ServerSignature Off` and `TraceEnable Off`, enabled by the fallback base. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html). | Local parity kit |
-| `.squire/portable.Dockerfile`, `.squire/portable.Dockerfile.dockerignore` | The portable image for platforms other than Citadel: the code baked in, `USER 10001:0`, group-0 writable folders, port 8080, `STOPSIGNAL SIGTERM`. Its ignore file keeps `.env`, secrets, `.git`, `vendor/` and `node_modules/` out of the build. See [The portable image](https://squire.apps.wayne.edu/docs/guides/portable-image.html). | Local parity kit |
-| `.squire/portable/squire-entrypoint.sh` | The portable image's entrypoint: the `web`, `worker`, `scheduler`, `migrate` and `health` roles, picked by argument or `SQUIRE_ROLE`. | Local parity kit |
-| `.squire/portable/ports.conf`, `.squire/portable/vhost.conf` | Apache for the portable image: `Listen ${SQUIRE_PORT}`, the same document root as Citadel's vhost, logs to stdout and stderr. | Local parity kit |
-| `.squire/php-web.ini` | The web's own settings: the `disable_functions` list. The app image appends it to `php.ini` as `php-apache2handler.ini`, so the CLI keeps every function. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html). | Local parity kit |
+| `.squire/Dockerfile`, `.squire/Dockerfile.dockerignore`, `.squire/vhost.conf` | The Citadel mirror: the app image on Citadel's own base, the code mounted at `/citadel/src`, Apache on 80. | Images group (opt-in) |
+| `.squire/base-fallback.Dockerfile`, `.squire/fallback/` | The fallback base: an approximation of Citadel's PHP image for the app's line, built from the official `php` image, for machines without the real one. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html). | Images group (opt-in) |
+| `.squire/php.ini` | The images' `php.ini`: production opcache, safe session cookies, no `disable_classes`. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html). | Images group (opt-in) |
+| `.squire/apache-hardening.conf` | `ServerTokens Prod`, `ServerSignature Off` and `TraceEnable Off`, enabled by the fallback base. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html). | Images group (opt-in) |
+| `.squire/portable.Dockerfile`, `.squire/portable.Dockerfile.dockerignore` | The portable image for platforms other than Citadel: the code baked in, `USER 10001:0`, group-0 writable folders, port 8080, `STOPSIGNAL SIGTERM`. Its ignore file keeps `.env`, secrets, `.git`, `vendor/` and `node_modules/` out of the build. See [The portable image](https://squire.apps.wayne.edu/docs/guides/portable-image.html). | Images group (opt-in) |
+| `.squire/portable/squire-entrypoint.sh` | The portable image's entrypoint: the `web`, `worker`, `scheduler`, `migrate` and `health` roles, picked by argument or `SQUIRE_ROLE`. | Images group (opt-in) |
+| `.squire/portable/ports.conf`, `.squire/portable/vhost.conf` | Apache for the portable image: `Listen ${SQUIRE_PORT}`, the same document root as Citadel's vhost, logs to stdout and stderr. | Images group (opt-in) |
+| `.squire/php-web.ini` | The web's own settings: the `disable_functions` list. The app image appends it to `php.ini` as `php-apache2handler.ini`, so the CLI keeps every function. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html). | Images group (opt-in) |
 
 ### The .gitignore lines init keeps [#](https://squire.apps.wayne.edu/docs/reference/files.html#the-gitignore-lines-init-keeps)
 
@@ -3265,7 +3135,7 @@ Source: https://squire.apps.wayne.edu/docs/reference/proof.html
 
 ## Proof [#](https://squire.apps.wayne.edu/docs/reference/proof.html#proof)
 
-This page says how Squire was proven on real Wayne State applications: what ran, what held, what the run caught in Squire itself, and what it does not prove yet. Next, see [Doctor](https://squire.apps.wayne.edu/docs/guides/doctor.html) for the rules the run checked and [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html) for the setup the boots used.
+This page says how Squire was proven on real Wayne State applications: what ran, what held, what the run caught in Squire itself, and what it does not prove yet. Next, see [Doctor](https://squire.apps.wayne.edu/docs/guides/doctor.html) for the rules the run checked The boots used Squire's parity kit, which left Squire in 0.12.0; [Parity](https://git.wayne.edu/enterprise-apps/parity) runs them now.
 
 A squire is judged on the field, not in the tent. So on 2026-11-05 Squire went out to every PHP application in the stack's shared proof corpus, the same set PROCTOR and Preflight are measured on.
 
@@ -3281,7 +3151,7 @@ The table below records the most recent time the checks on this page were run ag
 | Image contract on Citadel's own image (`contract-image.sh --base-image=citadel/php-apache:8.5r3`, image id `950dcf67937a`) | 2026-11-10 | the same | pass: 23 checks passed, 3 gaps that only the image can close (below) | 1m 20s |
 | Local parity rig on Windows PowerShell 5.1.26100 (`parity.ps1 up -Fallback`, then `up` on `citadel/php-apache:8.5r3`, `status`, `pin`, `reset`) | 2026-11-10 | the same plus the 5.1 fix | pass: `/up.php` answered 200 with body `ok` through the proxy on both bases; before the fix, `up` with no base image died on a raw `NativeCommandError` instead of its own message | 49s fallback, 26s Citadel's image |
 
-To refresh this section, rerun `composer ci` and the local parity rig from [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html), then rewrite the table. The 82-app corpus run and the four real-app boots were not rerun: they need the shared proof corpus and the internal app repositories, which are not available on this machine, so the parity row uses the synthetic fixture that `squire init` writes, the same way CI does.
+To refresh this section, rerun `composer ci` and boot the fixture with [Parity](https://git.wayne.edu/enterprise-apps/parity) (the kit's own rig left in 0.12.0), then rewrite the table. The 82-app corpus run and the four real-app boots were not rerun: they need the shared proof corpus and the internal app repositories, which are not available on this machine, so the parity row uses the synthetic fixture that `squire init` writes, the same way CI does.
 
 ### What ran [#](https://squire.apps.wayne.edu/docs/reference/proof.html#what-ran)
 
@@ -3320,7 +3190,7 @@ An app **passes** when every step does what it should and `doctor` ends with exi
 
 ### Four apps on local parity [#](https://squire.apps.wayne.edu/docs/reference/proof.html#four-apps-on-local-parity)
 
-Doctor reads files; it never runs an app. To see whether the kit actually brings an app up, four apps of different shapes were booted on [local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html) with the fallback base image, HAProxy in front and MySQL 5.6.51 behind, with every Wayne State host mapped to `127.0.0.1` so no app could reach a real service.
+Doctor reads files; it never runs an app. To see whether the kit actually brings an app up, four apps of different shapes were booted on Squire's parity kit (removed in 0.12.0) with the fallback base image, HAProxy in front and MySQL 5.6.51 behind, with every Wayne State host mapped to `127.0.0.1` so no app could reach a real service.
 
 | App shape | What happened |
 | --- | --- |
@@ -3367,24 +3237,17 @@ vendor/bin/squire init --check
 vendor/bin/squire doctor
 ```
 
-Then bring it up on local parity:
-
-Linux / macOS
+Then bring it up on your computer with [Parity](https://git.wayne.edu/enterprise-apps/parity):
 
 ```sh
-scripts/parity.sh up --fallback
-```
-
-Windows
-
-```powershell
-scripts\parity.ps1 up -Fallback
+parity init
+parity up
 ```
 
 ### Related [#](https://squire.apps.wayne.edu/docs/reference/proof.html#related)
 
 - [Doctor](https://squire.apps.wayne.edu/docs/guides/doctor.html)
-- [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html)
+- [Moved to Parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html)
 - [The release script](https://squire.apps.wayne.edu/docs/guides/release-script.html)
 - [Troubleshooting](https://squire.apps.wayne.edu/docs/troubleshooting.html)
 
@@ -3394,7 +3257,7 @@ Source: https://squire.apps.wayne.edu/docs/troubleshooting.html
 
 ## Troubleshooting [#](https://squire.apps.wayne.edu/docs/troubleshooting.html#troubleshooting)
 
-Symptoms you may meet setting up a Squire app, each with its cause, a fix and a check command. Only what the README and the open questions ground is listed here. Next, see [Doctor](https://squire.apps.wayne.edu/docs/guides/doctor.html) for the full rule list and [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html) for the parity setup. The `scripts/parity.sh` symptoms below belong to Squire's deprecated parity kit; [Parity](https://git.wayne.edu/enterprise-apps/parity), which replaces it, has its own `parity check`.
+Symptoms you may meet setting up a Squire app, each with its cause, a fix and a check command. Only what the README and the open questions ground is listed here. Next, see [Doctor](https://squire.apps.wayne.edu/docs/guides/doctor.html) for the full rule list Running the app on your computer is [Parity](https://git.wayne.edu/enterprise-apps/parity)'s job, and `parity check` covers its own symptoms; the parity kit's old ones left with it in 0.12.0 ([Moved to Parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html)).
 
 ### Symptoms [#](https://squire.apps.wayne.edu/docs/troubleshooting.html#symptoms)
 
@@ -3409,33 +3272,6 @@ Check:
 ```sh
 ls composer.json composer.lock
 vendor/bin/squire init --check
-```
-
-#### Permission error writing vendor/ [#](https://squire.apps.wayne.edu/docs/troubleshooting.html#permission-error-writing-vendor)
-
-Cause: on the first end-to-end run, the release hook failed with `Permission denied` writing `vendor/composer/installed.json` because the source folder (created on the host by another tool, owned by root) was not writable by the container's `citadel` user (OPEN_QUESTIONS 15). If the build step fails with a permission error writing `vendor/`, the source folder is not writable by the container's `citadel` user (uid 1000 by default).
-
-Fix: on Linux set `SQUIRE_SOURCE_UID` and `SQUIRE_SOURCE_GID` to yours. After making it writable the hook ran, the app became healthy and the proxy answered. Not solved for Docker Desktop folders that are root-owned.
-
-Check:
-
-```sh
-ls -ld <your-source-folder>
-scripts/parity.sh status
-```
-
-#### uid or gid mismatch between host and container [#](https://squire.apps.wayne.edu/docs/troubleshooting.html#uid-or-gid-mismatch-between-host-and-container)
-
-Cause: the parity container runs as the `citadel` user, uid 1000 by default. When your host user does not match, the mounted source is not writable and the release hook fails with `Permission denied` (OPEN_QUESTIONS 15).
-
-Fix: set `SQUIRE_SOURCE_UID` and `SQUIRE_SOURCE_GID` in `.env.squire` to your host uid and gid, then bring the stack back up.
-
-Check:
-
-```sh
-id -u
-id -g
-scripts/parity.sh status
 ```
 
 #### init refuses to overwrite a file [#](https://squire.apps.wayne.edu/docs/troubleshooting.html#init-refuses-to-overwrite-a-file)
@@ -3463,28 +3299,40 @@ vendor/bin/squire doctor --format=json
 echo $?
 ```
 
-#### Bind mounts on Windows [#](https://squire.apps.wayne.edu/docs/troubleshooting.html#bind-mounts-on-windows)
+#### squire update lists kit-leftover files [#](https://squire.apps.wayne.edu/docs/troubleshooting.html#squire-update-lists-kit-leftover-files)
 
-Cause: bind mounts from the Windows side are much slower (Composer and npm installs feel it most), and file ownership and permissions do not map cleanly; that is the cause of the `Permission denied` failure described under the bind-mount question (OPEN_QUESTIONS 15).
+Cause: the app was set up with Squire's parity kit, which left Squire in 0.12.0. Its `.squire.json` still names the kit's files (`docker-compose.squire.yml`, `.squire/haproxy.cfg`, `scripts/parity.sh`, `scripts/parity.ps1`, `.env.squire.example`). Squire reports each one as `kit-leftover`, drops it from the record, and never deletes it.
 
-Fix: keep the app's source tree inside the WSL 2 Linux filesystem (for example under `~/src` in your WSL distribution) and run `scripts/parity.sh` from there, not from a Windows folder such as `C:\Users\you\...` reached through `/mnt/c`. Advice, not a requirement. The PowerShell `scripts\parity.ps1` still works from a Windows folder, only slower.
+Fix: move the app to [Parity](https://git.wayne.edu/enterprise-apps/parity) (`parity init --from-squire`, then `parity up`), then delete the files and commit ([Moved to Parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html)).
 
 Check:
 
 ```sh
-scripts/parity.sh status
+vendor/bin/squire doctor    # S35 passes once no kit file is left
+```
+
+#### --only=parity exits 2 [#](https://squire.apps.wayne.edu/docs/troubleshooting.html#only-parity-exits-2)
+
+Cause: the `parity` group left Squire in 0.12.0. A script or CI job still asks for it.
+
+Fix: ask for `--only=release,images` when you want the image files (the Citadel mirror, the fallback base, the portable image), or plain `--only=release`. To run the app on your computer, use Parity.
+
+Check:
+
+```sh
+vendor/bin/squire init --check --only=release,images
 ```
 
 #### No access to the real image [#](https://squire.apps.wayne.edu/docs/troubleshooting.html#no-access-to-the-real-image)
 
 Cause: the real Citadel image is internal and has no pullable digest to pin (OPEN_QUESTIONS 19 and the missing configuration list).
 
-Fix: `--fallback` builds an approximation from the official `php` image plus Citadel's extensions. It is good for trying Squire out and not for proving parity.
+Fix: on your computer, `parity image get` loads Citadel's own image, checked byte for byte. Where Parity cannot reach it, the `images` group's fallback base (`.squire/base-fallback.Dockerfile`) builds an approximation from the official `php` image plus Citadel's extensions; it is good for trying an image build and not for proving parity.
 
 Check:
 
 ```sh
-scripts/parity.sh up --fallback
+docker build -f .squire/base-fallback.Dockerfile -t squire/php-parity-base:8.5r3 .squire
 ```
 
 #### Scripts lose their executable bit on Windows [#](https://squire.apps.wayne.edu/docs/troubleshooting.html#scripts-lose-their-executable-bit-on-windows)
@@ -3501,39 +3349,6 @@ Check:
 
 ```sh
 git ls-files -s build.sh scripts/*.sh deployments/*.sh
-```
-
-#### Parity never turns healthy: vendor/autoload.php is missing [#](https://squire.apps.wayne.edu/docs/troubleshooting.html#parity-never-turns-healthy-vendor-autoload-php-is-missing)
-
-Cause: another app on this machine ran parity under the same `SQUIRE_PROJECT` (both left on the default `squire-app`). One name is one compose project, so the two apps share the database and the logs volume, and the logs volume holds the record of which `deployments/` files already ran. Citadel runs each file once, so this app's first release is skipped as already run, and the health check reports `vendor/autoload.php is missing; the release did not finish`. Since 2026-11-10 `parity up` warns when the name is the default.
-
-Fix: give the app its own name in `.env.squire` (for example `SQUIRE_PROJECT=my-app`), then start it again. Nothing of the other app's is touched; its stack stays under the old name.
-
-```sh
-scripts/parity.sh down
-scripts/parity.sh up
-```
-
-Check:
-
-```sh
-scripts/parity.sh status
-```
-
-#### Parity compose refuses to start [#](https://squire.apps.wayne.edu/docs/troubleshooting.html#parity-compose-refuses-to-start)
-
-Cause: `.env.squire.example` holds `change-me-local-only` placeholders, and the compose file refuses to start without the two passwords.
-
-Fix: copy the example to `.env.squire` and set the passwords.
-
-```sh
-cp .env.squire.example .env.squire
-```
-
-Check:
-
-```sh
-scripts/parity.sh status
 ```
 
 #### A full Update does not refresh vendor/ [#](https://squire.apps.wayne.edu/docs/troubleshooting.html#a-full-update-does-not-refresh-vendor)
@@ -3564,6 +3379,41 @@ vendor/bin/squire init --check vendor/bin/squire update --dry-run
 
 `squire init --check` reports when your copies have drifted from the templates; it exits `0` when they match and `1` when they have. `squire update --dry-run` prints the plan and writes nothing; it exits `1` when an edited file still differs from the template. Exit `2` means the tool itself could not run. For the full command reference, see [Commands](https://squire.apps.wayne.edu/docs/reference/commands.html).
 
+### 0.12.0 (2026-11-20) [#](https://squire.apps.wayne.edu/docs/upgrading.html#0-12-0-2026-11-20)
+
+#### Breaking [#](https://squire.apps.wayne.edu/docs/upgrading.html#breaking)
+
+Squire's parity kit is gone: Squire is the Citadel kit (`build.sh`, the release script, the health check), and [Parity](https://git.wayne.edu/enterprise-apps/parity) runs Citadel on your computer. The 0.10.5 notice said not before 2027-01-08; the maintainer brought it forward to this release, because Parity covers everything the kit did.
+
+- `--only=parity` stops with exit 2 and a pointer at Parity. The image files the group held (`.squire/Dockerfile`, the fallback base, `php.ini`, `php-web.ini`, the portable image) are now the `images` group, still opt-in: `--only=release,images`.
+- An app whose `.squire.json` records `parity` needs no edit: Squire reads it as `release,images`. Its next `squire update` lists `docker-compose.squire.yml`, `.squire/haproxy.cfg`, `scripts/parity.sh`, `scripts/parity.ps1` and `.env.squire.example` as `kit-leftover`, drops them from `.squire.json`, and deletes none of them.
+- `squire doctor` retires the kit's rules (S36, S37, S41, S67, S70, S71). S35 notes leftover kit files as info.
+- The compose file's `portable` profile went with it. The portable image still runs its four roles; [the portable image guide](https://squire.apps.wayne.edu/docs/guides/portable-image.html#run-the-four-roles-together) has them as `docker run` lines.
+
+#### Fixed [#](https://squire.apps.wayne.edu/docs/upgrading.html#fixed)
+
+The raw and static front controllers (`public/index.php`) send `.css`, `.js`, `.mjs`, `.json`, `.md`, `.txt`, `.xml` and `.webmanifest` with `Cache-Control: no-cache` and their ETag (a 304 when nothing changed), where they had an hour of cache. Images and fonts keep their hour. Before, for up to an hour after a release, a browser ran the old script under the new page.
+
+#### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps)
+
+1. `composer update waynestate/squire` after widening the constraint to `^0.12` (`^0.11` does not take 0.12).
+2. Using the kit locally? Move to Parity first, in the app's folder: `parity init --from-squire`, `parity image get`, `parity up` ([Moved to Parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html)).
+3. `vendor/bin/squire update`. It takes the reworded `scripts/release.sh`, `.squire/php.ini` and `.squire/base-fallback.Dockerfile` where you never edited them, and lists the kit files as `kit-leftover`.
+4. Delete the leftover files you have (`git rm docker-compose.squire.yml .squire/haproxy.cfg scripts/parity.sh scripts/parity.ps1 .env.squire.example`) and commit them with `.squire.json`. Keep `.env.squire` if it holds release options.
+5. `public/index.php` is the app's own file, so `squire update` never rewrites it. Take the cache fix by hand: below the HTML branch, add the two lines and use `$cacheControl` in both places that set `Cache-Control` for a served file (the 304 and the 200). In the raw template the extension variable is `$served`; in the static one it is `$extension`.
+   ```php
+   $revalidate = ['css', 'js', 'mjs', 'json', 'md', 'txt', 'xml', 'webmanifest'];
+   $cacheControl = in_array($extension, $revalidate, true) ? 'no-cache' : 'public, max-age=3600';
+   // ...
+   header('Cache-Control: ' . $cacheControl);
+   ```
+6. Stack repos: refresh `deploy/` the same way. Sourdough: refresh its generated copy with `php bin/export-templates.php --to=templates/squire`.
+7. A CI job that ran `--only=release,parity` asks for `--only=release,images`.
+
+#### How to verify [#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify)
+
+Run the two checks above: `squire init --check` exits `0`, and `squire update --dry-run` lists nothing left to take. `squire doctor` shows `PASS S35 No parity kit files left over.` once the files are gone. `curl -sI https://<app>/<a script>.js` shows `Cache-Control: no-cache` and an `ETag`.
+
 ### 0.11.0 (2026-11-13) [#](https://squire.apps.wayne.edu/docs/upgrading.html#0-11-0-2026-11-13)
 
 No breaks, and no template changes in the kits, so `squire update` has nothing new to take. What is new:
@@ -3572,11 +3422,11 @@ No breaks, and no template changes in the kits, so `squire update` has nothing n
 - `squire site build` builds a pinned library's docs site and agent-ready files from its tag, with `--check` to compare against the committed output (ADR-0023).
 - The MySQL upgrade guide says the supported path ends at 8.4 LTS.
 
-#### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps)
+#### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-1)
 
 1. `composer update waynestate/squire` (the `^0.10` constraint does not take 0.11; widen it to `^0.11`).
 
-#### How to verify [#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify)
+#### How to verify [#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-1)
 
 `squire init --check` exits `0`, and `squire update --dry-run` lists nothing left to take.
 
@@ -3591,12 +3441,12 @@ No breaks for an app that already has a `.squire.json`: it keeps its recorded gr
 - The parity kit's HAProxy runs on the current `haproxy:3.0-alpine` digest and reads the engine's nameserver, so Podman no longer drops the app a minute after `up`.
 - Every tag gets a GitLab Release with the tag's changelog section as its notes.
 
-#### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-1)
+#### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-2)
 
 1. `composer update waynestate/squire` (the `^0.10` constraint takes it).
 2. `vendor/bin/squire update` to take the new `scripts/release.sh` and `.env.squire.example`, and, if your app has the `parity` group, `scripts\parity.ps1` and `docker-compose.squire.yml`.
 
-#### How to verify [#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-1)
+#### How to verify [#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-2)
 
 Run the two checks above: `squire init --check` exits `0`, and `squire update --dry-run` lists nothing left to take.
 
@@ -3607,12 +3457,12 @@ No breaks: a patch, and no template changes in the kits, so `squire update` has 
 - `squire update` no longer reports drift for a file whose edit already matches the new template byte for byte (an edit you took upstream); it reports the file current and records it.
 - The published Oracle images are multi-arch again: the amd64 half is built natively, so an amd64 host can pull them instead of building them with `scripts/oracle-image-build.sh`.
 
-#### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-2)
+#### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-3)
 
 1. `composer update waynestate/squire` (the `^0.10` constraint takes it).
 2. On amd64, you may switch from building the Oracle images to pulling them ([Oracle](https://squire.apps.wayne.edu/docs/guides/oracle.html)).
 
-#### How to verify [#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-2)
+#### How to verify [#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-3)
 
 Run the two checks above: `squire init --check` exits `0`, and `squire update --dry-run` lists no file you had already brought up to the template.
 
@@ -3620,13 +3470,13 @@ Run the two checks above: `squire init --check` exits `0`, and `squire update --
 
 No breaks: a patch on 0.10.4, and no kit file changes, so `squire update` has nothing to take. Squire's `parity` group is deprecated: [Parity](https://git.wayne.edu/enterprise-apps/parity), the stack's own tool, runs Citadel on your computer now, and `init`, `update` and `doctor` each say so in one line when the group is in play. The kit still works and is removed no sooner than Squire 0.12.0, and not before 2027-01-08. The PHP 8.5 Oracle images build again, and tags publish the Oracle images for linux/arm64 only (amd64 users build them locally).
 
-#### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-3)
+#### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-4)
 
 1. Update the `waynestate/squire` dev dependency: `composer update waynestate/squire` when the app already requires `^0.10`, otherwise `composer require --dev waynestate/squire:^0.10.5`.
 2. If the app uses Squire's parity kit, move to Parity before 0.12.0: install it, then run `parity init --from-squire`, `parity image get` and `parity up` in the app's folder ([Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html)). Keep the kit files until you have; nothing deletes them yet.
 3. On an Apple silicon Mac or an arm64 Linux host, an app can pull the published Oracle images instead of building them ([Oracle](https://squire.apps.wayne.edu/docs/guides/oracle.html)). On amd64, keep building them with `scripts/oracle-image-build.sh`.
 
-#### How to verify [#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-3)
+#### How to verify [#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-4)
 
 Run the two checks at the top of this page; both exit `0`. `squire update --dry-run` on an app with the parity group ends with the Parity line, and `squire doctor` shows an S35 info line pointing at Parity.
 
@@ -3634,12 +3484,12 @@ Run the two checks at the top of this page; both exit `0`. `squire update --dry-
 
 No breaks: a patch on 0.10.3, and no kit file changes, so `squire update` has nothing to take. The Oracle-ready local images build on linux/arm64 again (Apple silicon, arm64 Linux): `images/oracle/install-oracle.sh` unpacked the Instant Client SDK over the Basic Light files and stopped at a "replace?" prompt, which failed every arm64 build of both flavors. PHP 8.5 builds still fail in 0.10.4 on every architecture (PHP 8.5 quotes the path `php --ini` prints; fixed on main for the next release), so build the 8.3 or 8.4 line until then. The CI publish script for those images also stops failing on its Sail flavor. The published images are still not available: the CI runner cannot build linux/amd64 (MAINTAINING.md has the details), so build them locally with `scripts/oracle-image-build.sh`.
 
-#### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-4)
+#### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-5)
 
 1. Update the `waynestate/squire` dev dependency: `composer update waynestate/squire` when the app already requires `^0.10`, otherwise `composer require --dev waynestate/squire:^0.10.4`.
 2. If you build the Oracle images on an arm64 machine, build them again as the [Oracle guide](https://squire.apps.wayne.edu/docs/guides/oracle.html) shows (`scripts/oracle-image-build.sh --flavour parity --php 8.4`, or `--flavour sail`).
 
-#### How to verify [#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-4)
+#### How to verify [#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-5)
 
 Run the two checks at the top of this page; both exit `0`. On arm64, `scripts/oracle-image-test.sh --flavour all --platform linux/arm64` exits `0`.
 
@@ -3647,14 +3497,14 @@ Run the two checks at the top of this page; both exit `0`. On arm64, `scripts/or
 
 No breaks: a patch on 0.10.2, and comments only. The kit files every app copies stop citing Squire's internal item IDs and say in plain words what each comment meant (the opcache switch, the web's `disable_functions` list, secrets as files, the digest pins, the npm install-script escape hatch, the Oracle check). No setting, default or behavior changes. The files that change: `.squire/Dockerfile`, `.squire/apache-hardening.conf`, `.squire/base-fallback.Dockerfile`, `.squire/fallback/citadel-apache-entrypoint`, `.squire/php-web.ini`, `.squire/php.ini`, `.squire/portable.Dockerfile`, `.squire/portable.Dockerfile.dockerignore`, `.squire/portable/squire-entrypoint.sh`, `docker-compose.squire.yml`, `oracle-check.php` and `scripts/release.sh`.
 
-#### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-5)
+#### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-6)
 
 1. Update the `waynestate/squire` dev dependency: `composer update waynestate/squire` when the app already requires `^0.10`, otherwise `composer require --dev waynestate/squire:^0.10.3`.
 2. Run `vendor/bin/squire update`: it takes the reworded files the app never edited, and shows a diff for any it did.
 3. Commit the changed kit files and `.squire.json`.
 4. Stack repos: refresh `deploy/` the same way. Sourdough: refresh its generated copy with `php bin/export-templates.php --to=templates/squire`.
 
-#### How to verify [#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-5)
+#### How to verify [#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-6)
 
 Run the two checks at the top of this page; both exit `0`.
 
@@ -3662,7 +3512,7 @@ Run the two checks at the top of this page; both exit `0`.
 
 No breaks for an app that builds with Docker: a patch on 0.10.1. Three kit files change. Raw PHP apps get SameSite=Lax session cookies: the kit's `php.ini` sets `session.cookie_samesite = Lax` (it was empty), next to the `session.cookie_httponly = 1` and `session.cookie_secure = 1` it already set, so an app that never calls `helmet_boot()` sends a session cookie SESAME has nothing to warn about (wherever the kit's `php.ini` is used: local parity and the portable image; on Citadel the platform's `php.ini` decides). The kit's Dockerfiles name every image in full (`docker.io/library/php:...`), so Buildah and Podman build them with short-name mode enforcing, and the fallback base takes its Composer image as a build argument (`COMPOSER_IMAGE`) like PHP and Node. The portable image drops `node_modules/` after the frontend build.
 
-#### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-6)
+#### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-7)
 
 1. Update the `waynestate/squire` dev dependency: `composer update waynestate/squire` when the app already requires `^0.10`, otherwise `composer require --dev waynestate/squire:^0.10.2`.
 2. Run `vendor/bin/squire update`: it takes the new `.squire/php.ini`, `.squire/base-fallback.Dockerfile` and `.squire/portable.Dockerfile` when the app never edited them, and shows a diff when it did.
@@ -3671,7 +3521,7 @@ No breaks for an app that builds with Docker: a patch on 0.10.1. Three kit files
 5. An app whose session must survive a cross-site POST (a form another site posts to, or a SAML ACS that reads the session on the POST itself) sets `session.cookie_samesite` back for that app, or parks the POST and finishes on a GET the way SESAME's SAML driver does. A CAS ticket and an OIDC code come back on a top-level GET, which still carries a Lax cookie.
 6. Stack repos: refresh `deploy/` the same way. Sourdough: refresh its generated copy with `php bin/export-templates.php --to=templates/squire`.
 
-#### How to verify [#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-6)
+#### How to verify [#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-7)
 
 Run the two checks at the top of this page; both exit `0`. `.squire/php.ini` sets `session.cookie_samesite = Lax`, `.squire/base-fallback.Dockerfile` has an `ARG COMPOSER_IMAGE=docker.io/library/composer:2.11.1@sha256:...` line, and a built portable image has no `/citadel/src/node_modules`.
 
@@ -3679,14 +3529,14 @@ Run the two checks at the top of this page; both exit `0`. `.squire/php.ini` set
 
 No breaks: a patch on 0.10.0. The kit's fallback base (`.squire/base-fallback.Dockerfile`) moves Composer from 2.10.3 to 2.11.1. 2.10 is no longer maintained, and 2.11.0 fixed GHSA-c968-33g3-wh7p (package names in `installed.json` could escape the vendor directory) and GHSA-fm2w-xgf2-f9fh (inline repository HTTP headers could be written into `composer.lock`). 2.11 drops the `source-fallback` setting, which Squire never used, and its new `policy.cooldown` stays off by default. The other two changes are Squire's own: its `deploy/` copy is on the 0.10.0 kit, and `scripts/a11y.ps1` works on a Windows checkout with CRLF line endings.
 
-#### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-7)
+#### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-8)
 
 1. Update the `waynestate/squire` dev dependency: `composer update waynestate/squire` when the app already requires `^0.10`, otherwise `composer require --dev waynestate/squire:^0.10.1`.
 2. Run `vendor/bin/squire update`: it takes the new `.squire/base-fallback.Dockerfile` when the app never edited it, and shows a diff when it did.
 3. Commit the changed kit files (`.squire/base-fallback.Dockerfile` and `.squire.json`). The fallback image takes the new Composer the next time it builds.
 4. Stack repos: refresh `deploy/` the same way. Sourdough: refresh its generated copy with `php bin/export-templates.php --to=templates/squire`.
 
-#### How to verify [#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-7)
+#### How to verify [#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-8)
 
 Run the two checks at the top of this page; both exit `0`. `.squire/base-fallback.Dockerfile` names `composer:2.11.1`.
 
@@ -3694,12 +3544,12 @@ Run the two checks at the top of this page; both exit `0`. `.squire/base-fallbac
 
 No breaks, and no kit file changes: an app that takes 0.10.0 gets the same files as 0.9.0. The release adds the MySQL upgrade path guide ([MySQL upgrade path](https://squire.apps.wayne.edu/docs/guides/mysql-upgrade-path.html)) with a read-only pre-upgrade check script, and docs kit fixes for sites built with Squire's docs builder: the heading "#" stays on the line of its last word, and "On this page" marks the section in view. A site takes those by resyncing the kit and builder with `--sync-to` (see [Docs builder](https://squire.apps.wayne.edu/docs/guides/docs-builder.html)).
 
-#### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-8)
+#### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-9)
 
 1. Update the `waynestate/squire` dev dependency: `composer require --dev waynestate/squire:^0.10`.
 2. Run `vendor/bin/squire update`; it records the new release in `.squire.json`.
 
-#### How to verify [#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-8)
+#### How to verify [#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-9)
 
 Run the two checks at the top of this page; both exit `0`.
 
@@ -3707,14 +3557,14 @@ Run the two checks at the top of this page; both exit `0`.
 
 One behavior change for Laravel apps: the release script now checks the app's environment before anything installs. A release stops when `APP_KEY` is unset, or when `APP_DEBUG` is true in production, and an `APP_ENV` that is not `production` earns a warning (Sourdough practice 4.14). The release gate also passes `--php-runtime` to PROCTOR, so the deploy path grades the PHP that serves the app for PROCTOR's unpatched check; `SQUIRE_PHP_RUNTIME` (`auto` by default, `skip`, or an `X.Y.Z` version) changes what it grades.
 
-#### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-9)
+#### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-10)
 
 1. Before you deploy, make sure the Citadel environment sets `APP_KEY` (in `.env` or as a masked variable in the Citadel dashboard) and sets `APP_DEBUG` to false.
 2. Update the `waynestate/squire` dev dependency: `composer require --dev waynestate/squire:^0.9`.
 3. Run `vendor/bin/squire update`: it takes the new `scripts/release.sh` and `.env.squire.example` when the app never edited them, and shows a diff when it did.
 4. Stack repos: refresh `deploy/` the same way. Sourdough: refresh its generated copy with `php bin/export-templates.php --to=templates/squire`.
 
-#### How to verify [#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-9)
+#### How to verify [#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-10)
 
 Run the two checks at the top of this page; both exit `0`. `scripts/release.sh` checks `APP_KEY` and `APP_DEBUG` (search it for `Sourdough practice 4.14`).
 
@@ -3722,13 +3572,13 @@ Run the two checks at the top of this page; both exit `0`. `scripts/release.sh` 
 
 No breaks. The portable image (`.squire/portable.Dockerfile`, ADR-0010) bakes the code in and runs as `web`, `worker`, `scheduler` or `migrate`, picked by argument or `SQUIRE_ROLE`, as a non-root user in group 0 with Apache on 8080, for OpenShift, Coolify and raw Docker. `health.php` reads `SQUIRE_APP_DIR` for the app root, so a kit kept in a subfolder checks the app it serves. The release script keeps Composer's and npm's download caches in `.cache/squire` inside the app folder, so a Citadel Update no longer downloads every package again. The Citadel path is unchanged.
 
-#### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-10)
+#### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-11)
 
 1. Update the `waynestate/squire` dev dependency: `composer require --dev waynestate/squire:^0.8`.
 2. Run `vendor/bin/squire update`: it adds the portable files and shows a diff for any kit file the app edited.
 3. Stack repos: refresh `deploy/` the same way. Sourdough: refresh its generated copy with `php bin/export-templates.php --to=templates/squire`.
 
-#### How to verify [#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-10)
+#### How to verify [#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-11)
 
 Run the two checks at the top of this page; both exit `0`. The app now carries the five new portable files, led by `.squire/portable.Dockerfile`.
 
@@ -3736,19 +3586,19 @@ Run the two checks at the top of this page; both exit `0`. The app now carries t
 
 No breaks: a patch on 0.7.0. The kit's `php.ini` no longer sets `session.sid_length` or `session.sid_bits_per_character`. PHP 8.4 deprecated both and raises a notice for each, and leaving them out gives PHP's default session ID (32 hex characters, 128 bits), which is what HELMET and SESAME's S45 expect. Squire's own `deploy/.squire.json` also records the `release.sh` it ships, so `squire update` on Squire itself no longer refuses that file.
 
-#### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-11)
+#### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-12)
 
 1. Update the `waynestate/squire` dev dependency: `composer require --dev waynestate/squire:^0.7.1`.
 2. Run `vendor/bin/squire update`: it takes the new `.squire/php.ini` when the app never edited it, and shows a diff when it did. Keep your edits and drop the two `session.sid_` lines.
 3. Stack repos: refresh `deploy/` the same way. Sourdough: refresh its generated copy with `php bin/export-templates.php --to=templates/squire`.
 
-#### How to verify [#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-11)
+#### How to verify [#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-12)
 
 Run the two checks at the top of this page; both exit `0`. `.squire/php.ini` has no `session.sid_length` or `session.sid_bits_per_character` line.
 
 ### 0.7.0 (2026-11-08) [#](https://squire.apps.wayne.edu/docs/upgrading.html#0-7-0-2026-11-08)
 
-#### Breaking [#](https://squire.apps.wayne.edu/docs/upgrading.html#breaking)
+#### Breaking [#](https://squire.apps.wayne.edu/docs/upgrading.html#breaking-1)
 
 One behavior change for the web: the app image now sets `disable_functions` for mod_php to `exec`, `passthru`, `shell_exec`, `system`, `pcntl_exec`, `phpinfo`, `show_source` and `highlight_file`. Web code that calls one of them stops working. The CLI (Composer scripts, artisan, the health check, the release script) keeps every function, and `proc_open` and `popen` stay for Symfony Mailer, Laravel's Process and PHPMailer. An app that needs one back sets `SQUIRE_PHP_DISABLE_FUNCTIONS` to its own list, or to `none`. The kit's `php.ini` also stops setting `disable_classes`, which PHP 8.5 removed.
 
@@ -3762,7 +3612,7 @@ One behavior change for the web: the app image now sets `disable_functions` for 
 
 **CI and deploy layer.** CI pins the Preflight components to 0.3.1 and runs its a11y component on `site/`, blocking. Squire's own deploy layer requires HELMET `^1.0` and PROCTOR `^0.8`.
 
-#### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-12)
+#### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-13)
 
 1. Update the `waynestate/squire` dev dependency: `composer require --dev waynestate/squire:^0.7`.
 2. Run `vendor/bin/squire update`: it takes the new template versions for the files you never edited and shows a diff for the ones you did.
@@ -3770,13 +3620,13 @@ One behavior change for the web: the app image now sets `disable_functions` for 
 4. An app that bakes its code into the image (OpenShift, Coolify, raw Docker) sets `SQUIRE_OPCACHE_VALIDATE=0`. Citadel apps keep the default.
 5. Stack repos: regenerate the `deploy/` folder with `squire init` and check it with `squire init --check`. Sourdough: refresh its generated copy with `php bin/export-templates.php --to=templates/squire` and verify it with `--check`.
 
-#### How to verify [#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-12)
+#### How to verify [#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-13)
 
 Run `squire init --check` and `squire update --dry-run` (the two checks at the top of this page); both exit `0` once the kit is at the new release. After the next release on the server, the release log shows the "laravel restart long-lived processes" and "check opcache" steps.
 
 ### 0.6.0 (2026-11-07) [#](https://squire.apps.wayne.edu/docs/upgrading.html#0-6-0-2026-11-07)
 
-#### Breaking [#](https://squire.apps.wayne.edu/docs/upgrading.html#breaking-1)
+#### Breaking [#](https://squire.apps.wayne.edu/docs/upgrading.html#breaking-2)
 
 None: the CHANGELOG records no breaking change for 0.6.0.
 
@@ -3784,19 +3634,19 @@ None: the CHANGELOG records no breaking change for 0.6.0.
 
 **Fixed.** `squire update` writes the template files a newer release added to a group the kit records: a file the target release has that `.squire.json` does not list is written from the template, recorded, and printed as added, so one `update` converges the kit instead of leaving the new files to `squire init`. A file the app already has is still left alone, and an edited file is still refused and shown as a diff. `squire init` without `--only` defaults to the groups the `.squire.json` records instead of `release,parity`, so a bare `init` completes an existing kit without dropping its groups; with no manifest it still writes `release,parity`, and `--only` still wins.
 
-#### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-13)
+#### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-14)
 
 1. Update the `waynestate/squire` dev dependency to the next release.
 2. Run `vendor/bin/squire update`: it takes the new template versions for the files you never edited, writes the files the release added, and shows a diff for the ones you did.
 3. Stack repos: regenerate the `deploy/` folder with `squire init` and check it with `squire init --check`. Sourdough: refresh its generated copy with `php bin/export-templates.php --to=templates/squire` and verify it with `--check`.
 
-#### How to verify [#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-13)
+#### How to verify [#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-14)
 
 Run `squire init --check` and `squire update --dry-run` (the two checks at the top of this page); both exit `0` once the kit is at the new release.
 
 ### 0.5.0 (2026-11-03) [#](https://squire.apps.wayne.edu/docs/upgrading.html#0-5-0-2026-11-03)
 
-#### Breaking [#](https://squire.apps.wayne.edu/docs/upgrading.html#breaking-2)
+#### Breaking [#](https://squire.apps.wayne.edu/docs/upgrading.html#breaking-3)
 
 None: the CHANGELOG records no breaking change for 0.5.0.
 
@@ -3812,19 +3662,19 @@ None: the CHANGELOG records no breaking change for 0.5.0.
 
 **Docs.** WSL 2 file-location advice and an engines and licenses note for local parity. The contract suite gap on GitLab and the real image is recorded as an open question. The docs name the real image path instead of placeholders.
 
-#### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-14)
+#### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-15)
 
 1. Update the `waynestate/squire` dev dependency to 0.5.0 (it is on Packagist).
 2. Run `vendor/bin/squire update` to take the new template versions for the files you never edited; it shows a diff for the ones you did and never overwrites your edits.
 3. Stack repos: regenerate the `deploy/` folder with `squire init` and check it with `squire init --check`. Sourdough: refresh its generated copy with `php bin/export-templates.php --to=templates/squire` and verify it with `--check`.
 
-#### How to verify [#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-14)
+#### How to verify [#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-15)
 
 Run `squire init --check` and `squire update --dry-run` (the two checks at the top of this page); both exit `0` once the kit is at 0.5.0. New in this version: `squire doctor oracle` answers from your terminal, and a coding agent that runs ADVISOR sees the `squire_doctor` and `squire_drift` tools.
 
 ### 0.4.0 (2026-11-01) [#](https://squire.apps.wayne.edu/docs/upgrading.html#0-4-0-2026-11-01)
 
-#### Breaking [#](https://squire.apps.wayne.edu/docs/upgrading.html#breaking-3)
+#### Breaking [#](https://squire.apps.wayne.edu/docs/upgrading.html#breaking-4)
 
 None: the CHANGELOG records no breaking change for 0.4.0.
 
@@ -3836,19 +3686,19 @@ None: the CHANGELOG records no breaking change for 0.4.0.
 - The readme art check allows the word Citadel.
 - The deploy layer's Squire kit is refreshed to 0.3.4 (the local `.env.squire` file is now git-ignored).
 
-#### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-15)
+#### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-16)
 
 1. Update the `waynestate/squire` dev dependency to 0.4.0.
 2. Run `vendor/bin/squire update` to take the updated build and release scripts, then `vendor/bin/squire init` to write `oracle-check.php` (this release's `update` refreshed only the files the kit already recorded; `update` writes new files from the next release on).
 3. Apps that talk to Oracle: optionally build the Oracle-ready images with `scripts/oracle-image-build.sh` (flavors `sail` and `parity`).
 
-#### How to verify [#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-15)
+#### How to verify [#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-16)
 
 Run `squire init --check` and `squire update --dry-run`. Once the kit is at 0.4.0, the app has `oracle-check.php`, and a release log shows the Oracle check after PROCTOR and before the smoke test, printing nothing when the app has no `ORACLE_*` settings.
 
 ### 0.3.x (0.3.0 to 0.3.4) [#](https://squire.apps.wayne.edu/docs/upgrading.html#0-3-x-0-3-0-to-0-3-4)
 
-#### Breaking [#](https://squire.apps.wayne.edu/docs/upgrading.html#breaking-4)
+#### Breaking [#](https://squire.apps.wayne.edu/docs/upgrading.html#breaking-5)
 
 None: the CHANGELOG records no breaking change in the 0.3.x line.
 
@@ -3860,14 +3710,14 @@ None: the CHANGELOG records no breaking change in the 0.3.x line.
 - **0.3.1 (2026-10-29).** README, site and open questions match 0.3.0 (Sourdough requires Squire, the policy default, the Preflight pin, the static target). The agent-ready tool's messages write Squire as a word, and the static template's `SQUIRE_STATIC_ROOT` comment matches the code. `bin/agent-ready.php` is clean under Pint's laravel preset (CI checks it), and the README says how consumers keep the kit out of Composer downloads.
 - **0.3.0 (2026-10-29).** The raw target ships a front controller.
 
-#### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-16)
+#### Steps [#](https://squire.apps.wayne.edu/docs/upgrading.html#steps-17)
 
 1. Update the `waynestate/squire` dev dependency to 0.3.4, the latest of the line.
 2. Run `vendor/bin/squire update` to take the new template versions for the files you never edited.
 3. If your app predates the line, run `vendor/bin/squire init` so the new template files land (for example the raw target's front controller from 0.3.0); `init` never overwrites a file you edited.
 4. On Citadel, set the release options in the app's `./.env.squire` configuration file, which `release.sh` reads from 0.3.3 on.
 
-#### How to verify [#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-16)
+#### How to verify [#](https://squire.apps.wayne.edu/docs/upgrading.html#how-to-verify-17)
 
 Run `squire init --check` and `squire update --dry-run`. Check the version-specific results: 0.3.4 appends `.env` and `.env.squire` to the target `.gitignore` when they are missing; 0.3.3 reads release options from `./.env.squire`; 0.3.0 gives a raw PHP app the front controller `public/index.php`.
 

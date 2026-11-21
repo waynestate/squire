@@ -48,9 +48,10 @@ final class CatalogTest extends SquireTestCase
         self::assertContains('deployments/001-first-release.sh', $destinations);
         self::assertContains('health.php', $destinations);
         self::assertContains('oracle-check.php', $destinations);
-        self::assertContains('docker-compose.squire.yml', $destinations);
-        self::assertContains('scripts/parity.sh', $destinations);
-        self::assertContains('scripts/parity.ps1', $destinations);
+        self::assertContains('.squire/portable.Dockerfile', $destinations);
+        foreach (Catalog::LEFTOVER_KIT_FILES as $gone) {
+            self::assertNotContains($gone, $destinations, 'the parity kit left in 0.12.0');
+        }
     }
 
     public function testRawPhpGetsItsOwnHealthEndpointAndLaravelDoesNot(): void
@@ -133,7 +134,7 @@ final class CatalogTest extends SquireTestCase
         $release = array_map(static fn(Template $t): string => $t->destination, $catalog->select('raw', ['release']));
 
         self::assertContains('build.sh', $release);
-        self::assertNotContains('docker-compose.squire.yml', $release);
+        self::assertNotContains('.squire/Dockerfile', $release);
     }
 
     public function testAnUnknownTargetOrGroupIsAToolError(): void
@@ -196,17 +197,16 @@ final class CatalogTest extends SquireTestCase
         $catalog = new Catalog(Squire::templatesDir());
         $layer = array_map(static fn(Template $t): string => $t->destination, $catalog->selectLayer(Template::LAYER_VUE, Catalog::GROUPS));
 
-        self::assertSame(['.npmrc', 'docker-compose.squire.yml'], $layer);
+        self::assertSame(['.npmrc'], $layer);
     }
 
-    public function testTheVueLayerReplacesTheCommonReleaseAndComposeFiles(): void
+    public function testTheVueLayerAddsItsNpmrcBesideTheCommonFiles(): void
     {
         $catalog = new Catalog(Squire::templatesDir());
 
         foreach (Catalog::TARGETS as $target) {
             $without = array_map(static fn(Template $t): string => $t->destination, $catalog->select($target, Catalog::GROUPS));
             self::assertContains('scripts/release.sh', $without);
-            self::assertContains('docker-compose.squire.yml', $without);
             self::assertNotContains('.npmrc', $without);
 
             $selected = $catalog->select($target, Catalog::GROUPS, Template::LAYER_VUE);
@@ -214,7 +214,6 @@ final class CatalogTest extends SquireTestCase
             self::assertSame($destinations, array_values(array_unique($destinations)));
             self::assertContains('.npmrc', $destinations);
             self::assertContains('scripts/release.sh', $destinations);
-            self::assertContains('docker-compose.squire.yml', $destinations);
 
             $byDestination = [];
             foreach ($selected as $template) {
@@ -222,7 +221,6 @@ final class CatalogTest extends SquireTestCase
             }
             self::assertSame('vue/.npmrc', $byDestination['.npmrc']->source());
             self::assertSame('common/scripts/release.sh', $byDestination['scripts/release.sh']->source());
-            self::assertSame('vue/docker-compose.squire.yml', $byDestination['docker-compose.squire.yml']->source());
         }
     }
 
@@ -232,7 +230,7 @@ final class CatalogTest extends SquireTestCase
 
         foreach (Catalog::TARGETS as $target) {
             foreach ([null, ...Catalog::LAYERS] as $layer) {
-                foreach ([Catalog::GROUPS, [Template::GROUP_RELEASE], [Template::GROUP_PARITY]] as $groups) {
+                foreach ([Catalog::GROUPS, [Template::GROUP_RELEASE], [Template::GROUP_IMAGES]] as $groups) {
                     $destinations = array_map(static fn(Template $t): string => $t->destination, $catalog->select($target, $groups, $layer));
                     self::assertSame($destinations, array_values(array_unique($destinations)), sprintf('%s / %s', $target, $layer ?? 'no layer'));
                 }
@@ -251,5 +249,20 @@ final class CatalogTest extends SquireTestCase
 
         $this->expectException(ToolError::class);
         $catalog->select('raw', Catalog::GROUPS, 'svelte');
+    }
+
+    public function testARecordedParityGroupReadsAsImagesAndOnlyParityIsRefused(): void
+    {
+        self::assertSame(['release', 'images'], Catalog::resolveGroups(['release', 'parity'], true));
+        self::assertSame(['release', 'images'], Catalog::resolveGroups(['release', 'parity', 'images'], true));
+
+        try {
+            Catalog::resolveGroups(['release', 'parity'], false);
+            self::fail('--only=parity is refused');
+        } catch (\Waynestate\Squire\ToolError $e) {
+            self::assertStringContainsString('left Squire in 0.12.0', $e->getMessage());
+            self::assertStringContainsString('parity init --from-squire', $e->getMessage());
+            self::assertStringContainsString(Squire::PARITY_URL, $e->getMessage());
+        }
     }
 }

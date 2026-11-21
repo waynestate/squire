@@ -46,6 +46,15 @@ final readonly class FileResult
 
     public const EDITED = 'edited, not changed';
 
+    /**
+     * Init and update: a parity kit file the record named. The kit left Squire in 0.12.0; the file is never deleted
+     * for the app, only dropped from the record and reported, so the owner can carry it over to Parity and delete it.
+     */
+    public const KIT_LEFTOVER = 'kit-leftover';
+
+    /** The detail every leftover kit file carries. */
+    public const KIT_LEFTOVER_DETAIL = 'the parity kit left Squire in 0.12.0; not deleted: run `parity init --from-squire`, then delete it';
+
     public function __construct(
         public string $path,
         public string $state,
@@ -56,6 +65,6 @@ final readonly class FileResult
     /** True when the file matches the current template (or was just made to), or is the app's own to keep. */
     public function isCurrent(): bool
     {
-        return in_array($this->state, [self::CREATED, self::UPDATED, self::UNCHANGED, self::OVERWRITTEN, self::OK, self::CURRENT, self::RESTORED, self::ADDED, self::APP_OWNED], true);
+        return in_array($this->state, [self::CREATED, self::UPDATED, self::UNCHANGED, self::OVERWRITTEN, self::OK, self::CURRENT, self::RESTORED, self::ADDED, self::APP_OWNED, self::KIT_LEFTOVER], true);
     }
 }

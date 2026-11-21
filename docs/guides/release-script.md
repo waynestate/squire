@@ -62,11 +62,11 @@ The release also runs an Oracle connection check (`oracle-check.php`) after the 
 
 Before the first step the script reads two sources: `./.env.squire` (the release options) and the secrets folder, `SQUIRE_SECRETS_DIR` (default `/run/secrets`), where each file named like a variable becomes that variable unless the environment already sets it. Only names are printed. See [Image hardening](image-hardening.md#secrets-files-at-run-time-never-in-a-layer).
 
-Configuration is environment variables, all optional, or the same names in `./.env.squire` in the app root. On Citadel add that file as a configuration file (the configuration-files step after the wizard; the wizard has no environment field) and keep it out of git. A variable already in the environment wins over the file. See `.env.squire.example`.
+Configuration is environment variables, all optional, or the same names in `./.env.squire` in the app root. On Citadel add that file as a configuration file (the configuration-files step after the wizard; the wizard has no environment field) and keep it out of git. A variable already in the environment wins over the file. Every option is listed at the top of `scripts/release.sh` and in [Configuration](../reference/configuration.md).
 
 > [!WARNING]
 > PROCTOR is a dev dependency and the release installs with `--no-dev`, so `vendor/bin/proctor` is gone by the time the PROCTOR step runs. The release then installs the version your `composer.lock` pins into its cache and uses that (`SQUIRE_PROCTOR_FETCH`, on by default); keep `waynestate/proctor` in `require-dev` and the lock committed.
 
 ## Next
 
-Read [Citadel setup](citadel-setup.md) for the dashboard steps that make this script run, or [Local parity](local-parity.md) to watch the same pipeline on your machine.
+Read [Citadel setup](citadel-setup.md) for the dashboard steps that make this script run, or [Parity](https://git.wayne.edu/enterprise-apps/parity) to watch the same pipeline on your machine.

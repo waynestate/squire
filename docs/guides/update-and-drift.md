@@ -23,8 +23,8 @@ This page explains how Squire tracks the files it writes (the `.squire.json` SHA
 
 <!-- docs-test: skip needs a real project -->
 ```
-vendor/bin/squire init   [--path=.] [--target=auto|raw|laravel|static] [--only=release|parity] [--check] [--force]
-vendor/bin/squire update [--path=.] [--target=raw|laravel|static] [--only=release|parity] [--dry-run]
+vendor/bin/squire init   [--path=.] [--target=auto|raw|laravel|static] [--only=release|images] [--check] [--force]
+vendor/bin/squire update [--path=.] [--target=raw|laravel|static] [--only=release|images] [--dry-run]
 ```
 
 ## App-owned files and `--force`

@@ -1,6 +1,6 @@
 # Open questions
 
-Each entry says what is unknown, the default 0.1 chose, and what would change it.
+Each entry says what is unknown, the default 0.1 chose, and what would change it. The parity kit left Squire in 0.12.0; the entries about it (local parity, `parity.sh`, `parity.ps1`, the compose file) stay as the record of what was found, and [Parity](https://git.wayne.edu/enterprise-apps/parity) carries those questions now.
 
 ## Questions
 
@@ -124,13 +124,10 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
 
 ## Missing configuration
 
-- **Citadel app image digest.** `SQUIRE_BASE_IMAGE=citadel/php-apache:8.4r5` is unpinned (placeholder). Citadel builds the
-  image locally from `build-images/*.dockerfile`; there is no registry digest to copy. `doctor` warns (S67) until one is
-  set. After building: `scripts/parity.sh pin`.
+- **Citadel app image digest.** `citadel/php-apache:8.4r5` has no registry digest: Citadel builds the image locally from
+  `build-images/*.dockerfile`. `.squire/Dockerfile` takes it as `BASE_IMAGE`; `parity image get` loads it byte for byte.
 - **PROCTOR policy file.** `SQUIRE_PROCTOR_POLICY` defaults to the policy in `vendor/waynestate/creed`, when CREED is installed. Without CREED, PROCTOR runs on its own default policy with a notice.
 - **PROCTOR on Citadel.** The release installs the PROCTOR version `composer.lock` pins (dev) when `--no-dev` left it out (question 6). PROCTOR's phar ships with each of its GitLab Releases and works as `SQUIRE_PROCTOR_BIN` too.
-- **Database passwords.** `.env.squire.example` holds `change-me-local-only` placeholders. The compose file refuses to start
-  without real values.
 - **The platform's actual PHP settings.** `.squire/php.ini` holds safe defaults, not the platform's file. See question 9.
 
 ## Not built yet

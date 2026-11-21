@@ -32,20 +32,14 @@ This page explains what `squire doctor` checks (the S-rules), how it hands off t
 | S20 | fail / warn | PROCTOR runs as a report (the command is followed by an OR branch that records the status), never as a bare command. | After a Quick Update the new commit is already live; a failing post-script cannot undo it. |
 | S21 | warn | The release requests `/up` at the end. | A release that cannot answer a request did not ship. |
 | S22 | warn | The release prints a marker per step. | The dashboard log shows where it stopped. |
-| S35 | warn | The compose file uses a `citadel/php-apache` image. | Same PHP and extensions as production. |
-| S36 | warn | A proxy that adds `X-Forwarded-For` and `X-Forwarded-Proto` is in front of the app. | Trusted-proxy and HTTPS detection bugs only show behind one. |
-| S37 | warn | The local database is MySQL 5.6. | Its limits then show up locally. |
-| S41 | fail | The Docker socket is not mounted. | It is root on the host. |
+| S35 | info | No parity kit file is left in the app (`docker-compose.squire.yml`, `.squire/haproxy.cfg`, `scripts/parity.sh`, `scripts/parity.ps1`, `.env.squire.example`). | The kit left Squire in 0.12.0; Parity runs Citadel on your computer. |
 | S42 | warn | `.env` and `.env.squire` are git-ignored. | Secrets stay out of git. |
 | S50 | info | Hand-off: points at `proctor check` for the lock file, composer audit and MySQL 5.6 checks, and names `proctor gate`, which the release asks for a go or no-go. | Each check has one owner; PROCTOR owns those, and `doctor` may run where PROCTOR is not installed. |
 | S55 | fail / warn | A health check that does not run `artisan` or boot the framework exists. | Citadel runs it every 5 minutes as root. |
 | S57 | warn | JavaScript packages install with `--ignore-scripts`; `.npmrc` sets `min-release-age`; `package.json` declares npm 11.10 or later. | A compromised package cannot run at install time, a version published an hour ago is not installed, and npm reads min-release-age only from version 11.10. |
-| S67 | warn | Every image in the compose file is pinned by digest. | The same bytes tomorrow as today. |
-| S70 | warn | Local containers drop capabilities and set `no-new-privileges`. | Least privilege, also locally. |
-| S71 | warn | The local health check uses Citadel's timing (5 minutes, 15 seconds). | A slow `/up` shows up before it ships. |
 | S78 | warn | A Vue app does not track `node_modules/` in git. | Dependencies are rebuilt from the lock file; the tree is not source. |
 
-The local parity rules (S35 to S37, S41, S67, S70, S71) check Squire's parity kit, which is deprecated as of 0.10.5. When the kit is there, `doctor` adds one S35 info line that points at [Parity](https://git.wayne.edu/enterprise-apps/parity); when it is not, the S35 info line says how to start with Parity instead. Neither changes the exit code. Parity runs its own checks (`parity check`); see [Local parity](local-parity.md).
+The parity kit left Squire in 0.12.0, and its rules (S36, S37, S41, S67, S70, S71) went with it. S35 stays, as a note: when a kit file is still in the app, `doctor` lists them in one info line that says to run `parity init --from-squire` and then delete them; when none is, S35 passes. Neither changes the exit code. [Parity](https://git.wayne.edu/enterprise-apps/parity) runs its own checks (`parity check`); see [Moved to Parity](local-parity.md).
 
 ## Handoff to PROCTOR (S50)
 

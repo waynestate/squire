@@ -59,7 +59,7 @@ Usage: `squire init [--path PATH] [--target TARGET] [--only ONLY] [--php PHP] [-
 | --- | --- | --- |
 | `--path=VALUE` | Path to the application. | `.` |
 | `--target=VALUE` | raw, laravel or static (default: the target recorded in .squire.json, else laravel when an artisan file exists; static must be asked for). |  |
-| `--only=VALUE` | Comma-separated groups to write: release, parity (opt-in: Parity runs Citadel locally now). (default: the groups recorded in .squire.json, else release) |  |
+| `--only=VALUE` | Comma-separated groups to write: release, images (opt-in: the Citadel mirror, the fallback base and the portable image). (default: the groups recorded in .squire.json, else release) |  |
 | `--php=VALUE` | Citadel PHP image line, such as 8.5r3 (default: the line in .squire.json, else 8.5r3 for a new app) |  |
 | `--check` | Write nothing; report files that are missing, outdated or edited. Exit 1 on drift. |  |
 | `--force` | Overwrite files that were edited or that Squire did not write. |  |
@@ -95,7 +95,7 @@ Usage: `squire update [--path PATH] [--target TARGET] [--only ONLY] [--dry-run]`
 | --- | --- | --- |
 | `--path=VALUE` | Path to the application. | `.` |
 | `--target=VALUE` | raw, laravel or static (default: the target recorded in .squire.json). |  |
-| `--only=VALUE` | Comma-separated groups to update: release, parity (opt-in: Parity runs Citadel locally now). (default: the groups recorded in .squire.json) |  |
+| `--only=VALUE` | Comma-separated groups to update: release, images (opt-in: the Citadel mirror, the fallback base and the portable image). (default: the groups recorded in .squire.json) |  |
 | `--dry-run` | Print the plan; write nothing. |  |
 | `--silent` | Do not output any message |  |
 
@@ -115,9 +115,9 @@ Usage: `squire update [--path PATH] [--target TARGET] [--only ONLY] [--dry-run]`
 
 `0` pass, `1` findings (`init --check`: drift; `update`: an edited file still differs from the template; `doctor`: a failed rule), `2` the tool itself could not run.
 
-## The parity group is deprecated [#](https://squire.apps.wayne.edu/docs/reference/commands.html#the-parity-group-is-deprecated)
+## The parity group is gone [#](https://squire.apps.wayne.edu/docs/reference/commands.html#the-parity-group-is-gone)
 
-When the `parity` group is in play, `init` (not `init --check`) and `update` print one line before they finish, and `doctor` adds an S35 info finding that says the same: the group is deprecated, it is removed no sooner than Squire 0.12.0, and [Parity](https://git.wayne.edu/enterprise-apps/parity) runs Citadel on your computer now (`parity init --from-squire` carries the kit over). The exit codes do not change. See [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html).
+The `parity` group left Squire in 0.12.0. `--only=parity` exits `2` and names [Parity](https://git.wayne.edu/enterprise-apps/parity), which runs Citadel on your computer now; the image files the group held are `--only=images`. A `.squire.json` that still records `parity` reads as `release,images`. Each kit file it lists is printed as `kit-leftover`, dropped from the record and left on disk, and `init` (not `init --check`) and `update` end with one line that says to run `parity init --from-squire` and delete them. `doctor` notes the same files under S35. The exit codes do not change. See [Moved to Parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html).
 
 ## doctor oracle [#](https://squire.apps.wayne.edu/docs/reference/commands.html#doctor-oracle)
 

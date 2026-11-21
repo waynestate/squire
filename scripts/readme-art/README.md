@@ -29,7 +29,7 @@ same outputs.
 - `docs/readme/packing-list.svg`: the packing list. A leather strap hangs one
   luggage tag per item of the site's list (`build.sh`,
   `deployments/001-first-release.sh`, `scripts/release.sh`, `health.php` and
-  the parity kit), each stamped as it lands; then the satchel's own tag appears.
+  `oracle-check.php`), each stamped as it lands; then the satchel's own tag appears.
   Every word is read from `site/index.html` and the build fails if the list
   changes shape. Under `prefers-reduced-motion` the bag is simply full.
 - `docs/readme/gallery.jpg`: two cuts of the page (the riding order and the

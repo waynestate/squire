@@ -129,7 +129,7 @@ final class SquireModuleTest extends SquireTestCase
         self::assertSame(0, $fresh['need_attention']);
         self::assertGreaterThan(0, $fresh['total']);
         self::assertSame('raw', $fresh['target']);
-        self::assertSame(['release', 'parity'], $fresh['groups']);
+        self::assertSame(['release', 'images'], $fresh['groups']);
         self::assertSame('ok', $fresh['files'][0]['state']);
         self::assertStringContainsString('init --check', $fresh['ran']);
 

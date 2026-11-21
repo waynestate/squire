@@ -174,40 +174,19 @@
     ["deployments/001-first-release.sh", "hook", true],
     ["scripts/release.sh", "release", true],
     ["health.php", "health", false],
-    // Two small release-group riders; they ride in the health tag's pocket.
-    ["oracle-check.php", "health", false],
-    [".gitattributes", "health", false],
-    ["docker-compose.squire.yml", "parity", false],
-    [".squire/Dockerfile", "parity", false],
-    [".squire/Dockerfile.dockerignore", "parity", false],
-    [".squire/base-fallback.Dockerfile", "parity", false],
-    [".squire/apache-hardening.conf", "parity", false],
-    [".squire/fallback/citadel-apache-entrypoint", "parity", true],
-    [".squire/fallback/citadel-deploy", "parity", true],
-    [".squire/haproxy.cfg", "parity", false],
-    [".squire/php.ini", "parity", false],
-    [".squire/php-web.ini", "parity", false],
-    [".squire/vhost.conf", "parity", false],
-    [".squire/portable.Dockerfile", "parity", false],
-    [".squire/portable.Dockerfile.dockerignore", "parity", false],
-    [".squire/portable/squire-entrypoint.sh", "parity", true],
-    [".squire/portable/ports.conf", "parity", false],
-    [".squire/portable/vhost.conf", "parity", false],
-    ["scripts/parity.sh", "parity", true],
-    ["scripts/parity.ps1", "parity", false],
-    [".env.squire.example", "parity", false]
+    // .gitattributes is a small release-group rider in the Oracle tag's pocket.
+    ["oracle-check.php", "oracle", false],
+    [".gitattributes", "oracle", false]
   ];
-  var ITEMS = ["build", "hook", "release", "health", "parity"];
+  var ITEMS = ["build", "hook", "release", "health", "oracle"];
   var NEXT = "Next: git update-index --chmod=+x " + FILES.filter(function (f) {
     return f[2];
   }).map(function (f) {
     return f[0];
   }).join(" ");
-  // Squire::PARITY_POINTER, which init prints whenever the parity group is in play.
+  // The last line init prints, from InitCommand: where to run the app locally.
   var PARITY_LINE = {
-    html: '<span class="t-gold">Parity:</span> the parity group is deprecated (removed no sooner than 0.12.0). ' +
-      "Parity runs Citadel on your computer now; `parity init --from-squire` carries this kit over: " +
-      "https://git.wayne.edu/enterprise-apps/parity",
+    html: "Run it locally with Parity: parity init, then parity up (https://git.wayne.edu/enterprise-apps/parity).",
     cls: ""
   };
 
@@ -305,7 +284,7 @@
         return Promise.resolve();
       }
       var name = el.querySelector(".item__name");
-      var label = key === "parity" ? "parity kit" : name.firstChild.textContent.trim();
+      var label = name.firstChild.textContent.trim();
       var s = stage.getBoundingClientRect();
       var from = name.getBoundingClientRect();
       var to = satchel.getBoundingClientRect();
@@ -362,6 +341,7 @@
       });
       lines.push({ html: "Target: laravel. Wrote .squire.json.", cls: "" });
       lines.push({ html: esc(NEXT), cls: "" });
+      lines.push(PARITY_LINE);
       if (motionOn()) {
         satchel.classList.add("is-open");
       }

@@ -121,6 +121,13 @@ final class Initializer
             $results[] = new FileResult($template->destination, FileResult::OVERWRITTEN, $detail . '; overwritten by --force');
         }
 
+        // The parity kit left Squire in 0.12.0. A file the record names is dropped from the record and reported, and
+        // stays on disk: Parity reads it once (`parity init --from-squire`), then the owner deletes it.
+        foreach (self::leftovers($appPath, $recorded) as $leftover) {
+            unset($written[$leftover->path]);
+            $results[] = $leftover;
+        }
+
         // The .gitignore is not a template: Squire appends the missing lines and records no hash, because once the
         // team edits it, it is theirs. In a directory below the repository root it is part of the layer Squire wrote.
         $gitignoreResult = $this->gitignore->ensure($appPath, $this->writer, $check);
@@ -133,6 +140,29 @@ final class Initializer
             // recorded, nothing included, for a kit Squire wrote before the php key existed.
             $recordedPhp = $manifest === null ? $phpLine : ($php ?? $manifest->php);
             (new Manifest(Squire::version(), $target, $groups, $written, $layer, $recordedPhp))->save($appPath);
+        }
+
+        return $results;
+    }
+
+    /**
+     * The parity kit files a record names, as results: on disk they are reported, gone they are only dropped.
+     * Shared by init and update.
+     *
+     * @param array<string, string> $recorded
+     *
+     * @return list<FileResult>
+     */
+    public static function leftovers(string $appPath, array $recorded): array
+    {
+        $results = [];
+        foreach (Catalog::LEFTOVER_KIT_FILES as $destination) {
+            if (!isset($recorded[$destination])) {
+                continue;
+            }
+            $results[] = is_file($appPath . '/' . $destination)
+                ? new FileResult($destination, FileResult::KIT_LEFTOVER, FileResult::KIT_LEFTOVER_DETAIL)
+                : new FileResult($destination, FileResult::KIT_LEFTOVER, 'the parity kit left Squire in 0.12.0; already gone, dropped from the record');
         }
 
         return $results;

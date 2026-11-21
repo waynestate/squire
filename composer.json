@@ -1,6 +1,6 @@
 {
     "name": "waynestate/squire",
-    "description": "The Citadel kit: standard build.sh, release script and health check, and local parity on the Citadel images.",
+    "description": "The Citadel kit: the standard build.sh, release script and health check, from templates, checked by squire doctor.",
     "homepage": "https://squire.apps.wayne.edu/",
     "support": {
         "source": "https://github.com/waynestate/squire",

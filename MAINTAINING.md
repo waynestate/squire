@@ -1,7 +1,7 @@
 # MAINTAINING: polishing the armor
 
 How to build, test, release and keep Squire current. Squire is the Citadel kit: the standard `build.sh`, release
-script, deployment hooks, health check, `/up`, and local parity on the Citadel images. It carries the knight's kit,
+script, deployment hooks, health check and `/up`, plus opt-in image files; running Citadel on a laptop is Parity's job. It carries the knight's kit,
 so a knight never deploys without it. A squire who forgets a buckle hears about it in the build log.
 
 ## What Squire is and what it depends on
@@ -29,8 +29,7 @@ it: `main` and tags are copied automatically, Packagist reads from it, and nobod
 | Install | `composer install` | `composer install` |
 | All checks (what CI runs) | `composer ci` | `composer ci` |
 | Lint the shell templates (ShellCheck in Docker) | `scripts\lint-shell.ps1` | `scripts/lint-shell.sh` |
-| Lint the PowerShell templates (PSScriptAnalyzer) | `scripts\lint-powershell.ps1` | `pwsh -File scripts/lint-powershell.ps1` |
-| Local parity, in an app (deprecated: use Parity, `parity up`) | `scripts\parity.ps1 up` | `scripts/parity.sh up` |
+| Lint the PowerShell templates (PSScriptAnalyzer; none since 0.12.0, so it passes empty) | `scripts\lint-powershell.ps1` | `pwsh -File scripts/lint-powershell.ps1` |
 | Front page accessibility gate (Preflight's a11y checker, in Docker) | `scripts\a11y.ps1` | `scripts/a11y.sh` |
 | Docs kit JavaScript tests (needs Node, or Docker) | `npm ci && npm test` | `npm ci && npm test` |
 
@@ -44,8 +43,8 @@ docker run --rm -v "${PWD}:/app" -w /app composer:2.11.1 sh -c "composer install
 
 ## Contract suite (image)
 
-`scripts/contract-image.sh` proves that `release.sh` runs inside an image. By default it uses the fallback base Squire
-already builds for local parity (`.squire/base-fallback.Dockerfile`, tag `squire/php-parity-base:8.4`): php:8.4-apache
+`scripts/contract-image.sh` proves that `release.sh` runs inside an image. By default it uses the fallback base the
+`images` group ships (`.squire/base-fallback.Dockerfile`, tag `squire/php-parity-base:8.4`): php:8.4-apache
 plus Node 22, multi-arch and public, so CI can build it. `--base-image=REF` runs it on an image already on this
 machine instead, above all Citadel's own (`citadel/php-apache:8.5r3`, which `parity image get` loads byte for byte).
 
@@ -95,8 +94,7 @@ cannot reach it. Rerun after each new Citadel image and update this paragraph an
 
 **In CI.** The `contract-image` job on GitHub runs the script for both platforms, linux/amd64 and linux/arm64, with
 the arm64 leg under QEMU. It passed on 2026-11-08 and has blocked the run since. The `contract-parity-sh` and
-`contract-parity-pwsh` jobs bring the local parity stack up on the fallback image with `scripts/parity.sh` and
-`scripts/parity.ps1` and check that the proxy answers 200 on `/up.php`. The hardening checks run in the same
+`contract-parity-pwsh` jobs left with the parity kit in 0.12.0. The hardening checks run in the same
 `contract-image` job, so both platforms check them. GitLab has no job yet because its runner has no Docker daemon:
 the in-image checks are a PHP file piped to the container, so a buildah or podman driver can reuse them once the
 runner can run a container with a port.
@@ -132,8 +130,7 @@ GitLab runs lint and unit tests only; the contract suite runs on the GitHub mirr
 ## Bumping a pinned image
 
 Every image Squire's files pull is pinned by the digest of its multi-arch list, not a tag: the fallback
-base's `PHP_IMAGE`, `NODE_IMAGE` and `COMPOSER_IMAGE`, the Vue layer's Node service, HA-Proxy and MySQL in the
-compose files, the Oracle parity bases (one row per PHP line in `images/oracle/php-images.txt`) and the Composer
+base's `PHP_IMAGE`, `NODE_IMAGE` and `COMPOSER_IMAGE`, the Oracle parity bases (one row per PHP line in `images/oracle/php-images.txt`) and the Composer
 image the Oracle build scripts run. A list digest names the same bytes on an arm64 runner or laptop and on an amd64
 server; a tag can move between two builds of the same commit. `ImageHardeningTest` fails on any reference without
 a digest.
@@ -152,8 +149,8 @@ To bump one:
 4. Add a CHANGELOG line naming the old and new versions.
 
 Sail's own runtime Dockerfile (inside `laravel/sail`) picks its Ubuntu base; Squire pins the Composer image that
-fetches it, not that base. The real Citadel image (`citadel/php-apache:8.4r5`) is a local build name; pin it with
-`SQUIRE_BASE_IMAGE` once you have its digest (S67).
+fetches it, not that base. The real Citadel image (`citadel/php-apache:8.4r5`) is a local build name, passed to
+`.squire/Dockerfile` as `BASE_IMAGE`.
 
 ## Publishing the Oracle images
 
@@ -241,7 +238,6 @@ Each digest is the manifest list's, under `<registry>/enterprise-apps/`. The fix
   ```
   Commit the copy in Sourdough with this repo's commit in the message. Each stack repo's `deploy/` folder is
   regenerated with `squire init` and checked with `squire init --check`.
-- Local parity runs a newer HA-Proxy than Citadel's; keep proxy-dependent behavior simple.
 
 ## Releasing
 

@@ -17,7 +17,7 @@ final readonly class Manifest
      * @param array<string, string> $files destination => sha256 of the content Squire wrote
      * @param list<string>          $groups
      * @param string|null          $layer
-     * @param string|null          $php the PHP line the app runs on (8.4r5, 8.5r3); null when Squire predates it
+     * @param string|null          $php the PHP line the app runs on (8.4r5, 8.5r3, 8.6r1); null when Squire predates it
      */
     public function __construct(
         public string $version,

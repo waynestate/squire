@@ -12,18 +12,17 @@ Every `SQUIRE_*` setting Squire reads, grouped by the script that reads it, with
 
 Warning
 
-A real environment variable wins. `release.sh` reads the release options from the file, but a variable already in the environment wins. Locally, the same file holds the parity settings.
+A real environment variable wins. `release.sh` reads the release options from the file, but a variable already in the environment wins.
 
 ## Where the settings live [#](https://squire.apps.wayne.edu/docs/reference/configuration.html#where-the-settings-live)
 
-All optional. On Citadel, add `./.env.squire` as a configuration file (the configuration-files step after the wizard; the wizard has no environment field) and keep it out of git. `release.sh` reads the release options from it, and a variable already in the environment wins. Locally, the same file holds the parity settings.
+All optional. On Citadel, add `./.env.squire` as a configuration file (the configuration-files step after the wizard; the wizard has no environment field) and keep it out of git. `release.sh` reads the release options from it, and a variable already in the environment wins.
 
 | Group | Reader | File |
 | --- | --- | --- |
 | Release script | `scripts/release.sh` | `./.env.squire` (on Citadel, added as a configuration file and kept out of git) |
 | Front controller | raw `public/index.php`, static `public/index.php` | the app's environment |
 | Health check | `health.php` | the app's environment |
-| Local parity | the parity compose file | `.env.squire` (see `.env.squire.example`; it holds placeholders only) |
 | Portable image | `.squire/portable/squire-entrypoint.sh`, `docker build` | the container's environment, and build arguments |
 
 ## Release script (`scripts/release.sh`) [#](https://squire.apps.wayne.edu/docs/reference/configuration.html#release-script-scripts-release-sh)
@@ -94,7 +93,7 @@ The entrypoint reads these when a container starts; the build arguments are read
 
 ## PHP in the image (`.squire/php.ini`) [#](https://squire.apps.wayne.edu/docs/reference/configuration.html#php-in-the-image-squire-php-ini)
 
-PHP reads these from the container's environment when it starts (PHP 8.3 and later). The parity compose file passes `SQUIRE_OPCACHE_VALIDATE` and `SQUIRE_PHP_DISABLE_FUNCTIONS` from `.env.squire`; on Citadel the platform's own `php.ini` decides. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html).
+PHP reads these from the container's environment when it starts (PHP 8.3 and later), in the images built from `.squire/Dockerfile` and `.squire/portable.Dockerfile`; on Citadel the platform's own `php.ini` decides. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html).
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
@@ -103,33 +102,6 @@ PHP reads these from the container's environment when it starts (PHP 8.3 and lat
 | `SQUIRE_OPCACHE_MAX_FILES` | `20000` | How many scripts opcache keeps. |
 | `SQUIRE_PHP_DISABLE_FUNCTIONS` | `exec,passthru,shell_exec,system,pcntl_exec,phpinfo,show_source,highlight_file` | The web's `disable_functions` list (`.squire/php-web.ini`; the CLI disables nothing). It replaces the list; `none` disables nothing. Leave it unset for the default: an empty value disables nothing too. |
 
-## Local parity (`.env.squire`) [#](https://squire.apps.wayne.edu/docs/reference/configuration.html#local-parity-env-squire)
+## Local parity: moved to Parity [#](https://squire.apps.wayne.edu/docs/reference/configuration.html#local-parity-moved-to-parity)
 
-| Variable | Default | Meaning |
-| --- | --- | --- |
-| `SQUIRE_PROJECT` | not stated | Local parity: the project name. |
-| `SQUIRE_BASE_IMAGE` | not stated | Local parity: the app image. |
-| `SQUIRE_PROXY_IMAGE` | not stated | Local parity: the proxy image. |
-| `SQUIRE_MYSQL_IMAGE` | not stated | Local parity: the MySQL image. |
-| `SQUIRE_PUBLIC_DIR` | not stated | Local parity: the public directory. |
-| `SQUIRE_SERVER_NAME` | not stated | Local parity: the server name. |
-| `SQUIRE_TZ` | not stated | Local parity: the timezone. |
-| `SQUIRE_ENVIRONMENT` | not stated | Local parity: the environment. |
-| `SQUIRE_DEPLOYMENTS` | not stated | Local parity: the deployments path. |
-| `SQUIRE_HTTP_PORT` | not stated | Local parity: the HTTP port. |
-| `SQUIRE_APP_MEMORY` | not stated | Local parity: the app memory limit. |
-| `SQUIRE_SOURCE_UID` | not stated | Local parity: the uid that owns the mounted source. |
-| `SQUIRE_SOURCE_GID` | not stated | Local parity: the gid that owns the mounted source. |
-| `SQUIRE_DB_NAME` | not stated | Local parity: the database name. |
-| `SQUIRE_DB_USER` | not stated | Local parity: the database user. |
-| `SQUIRE_DB_PASSWORD` | not stated | Local parity: the database password. |
-| `SQUIRE_DB_ROOT_PASSWORD` | not stated | Local parity: the database root password. |
-| `SQUIRE_DB_PORT` | not stated | Local parity: the database port. |
-| `SQUIRE_DB_MEMORY` | not stated | Local parity: the database memory limit. |
-| `SQUIRE_PORTABLE_HTTP_PORT` | `8081` | The `portable` profile: where the web container is published on loopback. |
-| `SQUIRE_PORTABLE_USER` | `10001:0` | The `portable` profile: the UID and group the containers run as (try `1000123:0`). |
-| `SQUIRE_PORTABLE_ENV_FILE` | `.env` | The `portable` profile: the app's env file, read at run time and never baked in. |
-| `SQUIRE_PORTABLE_CONTEXT` | `.` | The `portable` profile: the build context, relative to the compose file (`..` for WELD). |
-| `SQUIRE_KIT_DIR` | `.` | The `portable` profile: the kit's folder inside that context (`deploy` for WELD). |
-
-The Vue layer's compose file also reads `SQUIRE_NODE_IMAGE` (default `node:22.23.4-bookworm-slim`, pinned by digest), `SQUIRE_NODE_ENV` (default `production`) and `SQUIRE_NODE_MEMORY` (default `512m`). The compose file refuses to start without the two passwords. See `.env.squire.example`; it holds placeholders only.
+The parity kit's settings (`SQUIRE_PROJECT`, `SQUIRE_DB_PASSWORD`, `SQUIRE_HTTP_PORT`, the `portable` profile's `SQUIRE_PORTABLE_*` and the Vue layer's `SQUIRE_NODE_*`) left with the kit in 0.12.0; nothing in Squire reads them. `parity init --from-squire` carries the ones that matter into `parity.json`. See [Moved to Parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html).

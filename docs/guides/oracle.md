@@ -5,7 +5,7 @@ description: "How Squire checks an app's Oracle connection, and the opt-in Oracl
 
 # Oracle
 
-This page covers the plain-language Oracle connection check that `release.sh` runs on Citadel and that `squire doctor oracle` runs from your terminal, and the two opt-in Oracle-ready Docker images Squire ships for local work. Next, read [Citadel setup](citadel-setup.md) to wire the release script into the dashboard, or [Local parity](local-parity.md) to run the app on the real images.
+This page covers the plain-language Oracle connection check that `release.sh` runs on Citadel and that `squire doctor oracle` runs from your terminal, and the two opt-in Oracle-ready Docker images Squire ships for local work. Next, read [Citadel setup](citadel-setup.md) to wire the release script into the dashboard, or [Parity](https://git.wayne.edu/enterprise-apps/parity) to run the app on the real images.
 
 ## The connection check
 

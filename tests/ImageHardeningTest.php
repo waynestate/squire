@@ -78,7 +78,7 @@ final class ImageHardeningTest extends SquireTestCase
         self::assertContains('ServerTokens Prod', $directives);
         self::assertContains('ServerSignature Off', $directives);
         self::assertContains('TraceEnable Off', $directives);
-        self::assertTrue($this->catalogHas('.squire/apache-hardening.conf'), 'init writes the hardening file with the parity kit');
+        self::assertTrue($this->catalogHas('.squire/apache-hardening.conf'), 'init writes the hardening file with the images group');
     }
 
     public function testTheFallbackBaseInstallsTheHardeningAfterDebiansSecurityConf(): void
@@ -211,15 +211,6 @@ final class ImageHardeningTest extends SquireTestCase
         self::assertStringContainsString("php -m | grep -qx 'Zend OPcache' || docker-php-ext-enable opcache", $this->read('common/.squire/base-fallback.Dockerfile'));
     }
 
-    public function testTheParityComposeFilesPassTheSwitchByNameOnly(): void
-    {
-        foreach (['common/docker-compose.squire.yml', 'vue/docker-compose.squire.yml'] as $source) {
-            $compose = $this->read($source);
-            self::assertStringContainsString("      SQUIRE_OPCACHE_VALIDATE:\n", $compose, $source . ': unset stays unset, so the image\'s 1 holds for the bind mount');
-            self::assertStringNotContainsString('SQUIRE_OPCACHE_VALIDATE: ${', $compose, $source . ': no interpolation, which would pass an empty value');
-        }
-    }
-
     // --- the web loses the shell, the CLI keeps it -------------------------------------------------------------------
 
     private const WEB_DISABLED = 'exec,passthru,shell_exec,system,pcntl_exec,phpinfo,show_source,highlight_file';
@@ -302,7 +293,7 @@ final class ImageHardeningTest extends SquireTestCase
         self::assertStringContainsString('{ cat /usr/local/etc/php/php.ini; echo; cat /usr/local/etc/php/php-web.ini; } > /usr/local/etc/php/php-apache2handler.ini', $dockerfile);
         // The web ini is built after php.ini lands, or it would freeze the base image's php.ini instead of the kit's.
         self::assertGreaterThan(strpos($dockerfile, 'COPY .squire/php.ini'), strpos($dockerfile, 'php-apache2handler.ini'));
-        self::assertTrue($this->catalogHas('.squire/php-web.ini'), 'init writes php-web.ini with the parity kit');
+        self::assertTrue($this->catalogHas('.squire/php-web.ini'), 'init writes php-web.ini with the images group');
     }
 
     public function testPhpIniSetsNoDisableClassesAndNoCliDisableList(): void
@@ -331,15 +322,9 @@ final class ImageHardeningTest extends SquireTestCase
         self::assertSame('Lax|1|1', $out, 'PHP itself reads the three settings from the web ini the image builds');
     }
 
-    public function testThePhpWebIniHoldsTheListAndTheComposeFilesPassTheSwitch(): void
+    public function testThePhpWebIniHoldsTheList(): void
     {
         self::assertContains('disable_functions = ${SQUIRE_PHP_DISABLE_FUNCTIONS:-' . self::WEB_DISABLED . '}', $this->directives('common/.squire/php-web.ini', ';'));
-        foreach (['common/docker-compose.squire.yml', 'vue/docker-compose.squire.yml'] as $source) {
-            // One list, in php-web.ini: compose passes the variable by name only, never an empty value or a second copy.
-            $compose = $this->read($source);
-            self::assertStringContainsString("      SQUIRE_PHP_DISABLE_FUNCTIONS:\n", $compose, $source);
-            self::assertStringNotContainsString('SQUIRE_PHP_DISABLE_FUNCTIONS: ${', $compose, $source);
-        }
     }
 
     // --- every base is pinned by its multi-arch list digest ---------------------------------------------------------
@@ -393,8 +378,6 @@ final class ImageHardeningTest extends SquireTestCase
             'templates/common/.squire/base-fallback.Dockerfile',
             'templates/common/.squire/Dockerfile',
             'templates/common/.squire/portable.Dockerfile',
-            'templates/common/docker-compose.squire.yml',
-            'templates/vue/docker-compose.squire.yml',
             'images/oracle/parity.Dockerfile',
             'images/oracle/sail.Dockerfile',
             'scripts/oracle-image-build.sh',
@@ -451,6 +434,19 @@ final class ImageHardeningTest extends SquireTestCase
         } catch (ToolError $e) {
             self::assertStringContainsString('8.4r5', $e->getMessage());
             self::assertStringContainsString('8.5r3', $e->getMessage());
+            self::assertStringContainsString('8.6r1', $e->getMessage());
+        }
+    }
+
+    public function testTheFallbackBaseLetsALaterRevisionRideTheKnownMinorPin(): void
+    {
+        // A revision Squire has not pinned rides the pin of the known line with its minor, as 8.5r4 rides 8.5r3.
+        $catalog = new Catalog(Squire::templatesDir());
+        $pin = Squire::FALLBACK_PHP_IMAGES['8.6r1'];
+        foreach (['8.6r1', '8.6r2'] as $line) {
+            $base = $catalog->content($this->fallbackTemplate(), $line);
+            self::assertStringContainsString('ARG PHP_IMAGE=', $base, $line . ' renders a PHP image build argument');
+            self::assertStringContainsString('ARG PHP_IMAGE=' . $pin, $base, $line . ' rides the 8.6r1 pin');
         }
     }
 

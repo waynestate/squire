@@ -48,14 +48,14 @@ final class DoctorTest extends SquireTestCase
         self::assertContains('S17:pass', $keys);
     }
 
-    public function testTheOnlyWarningOnAFreshAppIsTheUnpinnedCitadelImage(): void
+    public function testAFreshAppHasNoWarnings(): void
     {
+        // S67 (the compose file's unpinned Citadel image) left with the parity kit in 0.12.0.
         $findings = $this->examine($this->initializedApp());
         $warnings = array_values(array_filter($findings, static fn(Finding $f): bool => $f->status === Finding::WARN));
 
-        self::assertCount(1, $warnings);
-        self::assertSame('S67', $warnings[0]->rule);
-        self::assertStringContainsString('citadel/php-apache', $warnings[0]->message);
+        self::assertSame([], array_map(static fn(Finding $f): string => $f->rule . ' ' . $f->message, $warnings));
+        self::assertNotContains('S67', array_map(static fn(Finding $f): string => $f->rule, $findings));
     }
 
     public function testS8NamesEveryLineToAdd(): void

@@ -127,6 +127,32 @@ final class RawFrontControllerTest extends SquireTestCase
         self::assertStringNotContainsString('ENTRY', $response['body']);
     }
 
+    public function testScriptsAndStylesRevalidateOnEveryLoadAndImagesKeepAnHour(): void
+    {
+        // The HTML is never cached, so a script cached for an hour runs last release's code on this release's page.
+        $port = $this->serve($this->rawApp(['public/app.js' => "go();\n", 'public/mark.png' => "\x89PNG\r\n"]));
+
+        foreach (['/style.css', '/app.js'] as $path) {
+            $fresh = $this->request($port, $path);
+            self::assertSame(200, $fresh['status'], $path);
+            self::assertMatchesRegularExpression('#^Cache-Control: no-cache\r?$#mi', $fresh['headers'], $path);
+            self::assertStringNotContainsString('max-age=3600', $fresh['headers'], $path);
+            self::assertSame(1, preg_match('#^ETag: ("[^"]+")#mi', $fresh['headers'], $etag), $path);
+
+            $socket = @fsockopen('127.0.0.1', $port, $errno, $error, 5);
+            self::assertNotFalse($socket, (string) $error);
+            fwrite($socket, "GET {$path} HTTP/1.0\r\nHost: 127.0.0.1\r\nIf-None-Match: {$etag[1]}\r\nConnection: close\r\n\r\n");
+            $again = (string) stream_get_contents($socket);
+            fclose($socket);
+            self::assertMatchesRegularExpression('#^HTTP/\S+ 304#', $again, $path . ' answers 304 when nothing changed');
+            self::assertMatchesRegularExpression('#^Cache-Control: no-cache\r?$#mi', $again, $path);
+        }
+
+        $image = $this->request($port, '/mark.png');
+        self::assertSame(200, $image['status']);
+        self::assertStringContainsString('Cache-Control: public, max-age=3600', $image['headers']);
+    }
+
     public function testServedFilesCarryHelmetAndHtmlGetsTheNonce(): void
     {
         $port = $this->serve($this->rawApp([], true));

@@ -350,6 +350,8 @@ final class AgentReadyTest extends SquireTestCase
         self::assertSame(0, $this->generate('--root=' . $dir)['code']);
         $this->put($dir, 'site/README.md', "# private\n");
         $this->put($dir, 'site/docs/index.html', "<!doctype html><title>Docs</title><main><h1>Docs</h1></main>\n");
+        $this->put($dir, 'site/assets/app.js', "document.title = 'v2';\n");
+        $this->put($dir, 'site/assets/mark.png', "\x89PNG\r\n");
         $this->put($dir, 'deploy/public/index.php', (string) file_get_contents(Squire::templatesDir() . '/static/public/index.php'));
         $this->put($dir, 'deploy/vendor/autoload.php', "<?php\nnamespace Waynestate\\Helmet;\n\nfunction helmet_boot(array \$options): array\n{\n    return ['nonce' => 'n0nce'];\n}\n");
 
@@ -427,6 +429,32 @@ final class AgentReadyTest extends SquireTestCase
         $sitemap = $this->get($port, '/sitemap.xml');
         self::assertSame(200, $sitemap['status']);
         self::assertStringContainsString('Content-Type: application/xml', $sitemap['headers']);
+    }
+
+    public function testScriptsRevalidateOnEveryLoadAndImagesKeepAnHour(): void
+    {
+        // The HTML is never cached, so a script cached for an hour runs last release's code on this release's page.
+        $port = $this->serveStatic();
+
+        foreach (['/assets/app.js', '/robots.txt', '/sitemap.xml'] as $path) {
+            $fresh = $this->get($port, $path);
+            self::assertSame(200, $fresh['status'], $path);
+            self::assertMatchesRegularExpression('#^Cache-Control: no-cache\r?$#mi', $fresh['headers'], $path);
+            self::assertStringNotContainsString('max-age=3600', $fresh['headers'], $path);
+            self::assertSame(1, preg_match('#^ETag: ("[^"]+")#mi', $fresh['headers'], $etag), $path);
+
+            $socket = @fsockopen('127.0.0.1', $port, $errno, $error, 5);
+            self::assertNotFalse($socket, (string) $error);
+            fwrite($socket, "GET {$path} HTTP/1.0\r\nHost: 127.0.0.1\r\nIf-None-Match: {$etag[1]}\r\nConnection: close\r\n\r\n");
+            $again = (string) stream_get_contents($socket);
+            fclose($socket);
+            self::assertMatchesRegularExpression('#^HTTP/\S+ 304#', $again, $path . ' answers 304 when nothing changed');
+            self::assertMatchesRegularExpression('#^Cache-Control: no-cache\r?$#mi', $again, $path);
+        }
+
+        $image = $this->get($port, '/assets/mark.png');
+        self::assertSame(200, $image['status']);
+        self::assertStringContainsString('Cache-Control: public, max-age=3600', $image['headers']);
     }
 
     public function testADirectoryWithoutItsSlashRedirects(): void

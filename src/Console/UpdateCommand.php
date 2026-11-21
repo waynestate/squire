@@ -13,7 +13,6 @@ use Waynestate\Squire\Squire;
 use Waynestate\Squire\Template\Catalog;
 use Waynestate\Squire\Template\FileResult;
 use Waynestate\Squire\Template\Manifest;
-use Waynestate\Squire\Template\Template;
 use Waynestate\Squire\Template\Updater;
 use Waynestate\Squire\ToolError;
 
@@ -30,7 +29,7 @@ final class UpdateCommand extends Command
             ->setDescription('Take new template versions for files Squire wrote that were never edited, add the files a newer release wrote, and show a diff for the edited ones.')
             ->addOption('path', null, InputOption::VALUE_REQUIRED, 'Path to the application.', '.')
             ->addOption('target', null, InputOption::VALUE_REQUIRED, 'raw, laravel or static (default: the target recorded in .squire.json).')
-            ->addOption('only', null, InputOption::VALUE_REQUIRED, 'Comma-separated groups to update: release, parity (opt-in: Parity runs Citadel locally now). (default: the groups recorded in .squire.json)')
+            ->addOption('only', null, InputOption::VALUE_REQUIRED, 'Comma-separated groups to update: release, images (opt-in: the Citadel mirror, the fallback base and the portable image). (default: the groups recorded in .squire.json)')
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Print the plan; write nothing.');
     }
 
@@ -57,10 +56,11 @@ final class UpdateCommand extends Command
             if (is_string($onlyOption) && $onlyOption !== '') {
                 $groups = array_values(array_filter(array_map('trim', explode(',', $onlyOption)), static fn(string $g): bool => $g !== ''));
                 if ($groups === []) {
-                    throw new ToolError('--only needs at least one group: release, parity.');
+                    throw new ToolError('--only needs at least one group: release, images.');
                 }
+                $groups = Catalog::resolveGroups($groups, false);
             } else {
-                $groups = $manifest->groups !== [] ? $manifest->groups : Catalog::GROUPS;
+                $groups = $manifest->groups !== [] ? Catalog::resolveGroups($manifest->groups, true) : Catalog::GROUPS;
             }
 
             $layer = $manifest->layer ?? Catalog::detectLayer($path);
@@ -85,7 +85,7 @@ final class UpdateCommand extends Command
             }
         }
 
-        if (in_array(Template::GROUP_PARITY, $groups, true)) {
+        if (array_filter($results, static fn(FileResult $r): bool => $r->state === FileResult::KIT_LEFTOVER) !== []) {
             $output->writeln(Squire::PARITY_POINTER);
         }
 

@@ -18,7 +18,7 @@ final class Squire
      * a dev checkout of this repository, or a copy without one. An installed
      * copy reports its real release version instead.
      */
-    public const VERSION = '0.11.2';
+    public const VERSION = '0.12.0';
 
     /** The package name Squire publishes under. */
     private const PACKAGE = 'waynestate/squire';
@@ -36,16 +36,17 @@ final class Squire
     public const FALLBACK_PHP_IMAGES = [
         '8.4r5' => 'docker.io/library/php:8.4.27-apache@sha256:884f64b47174de2c0e813270fe7b24a18605729fcebe201302d98c38805530d0',
         '8.5r3' => 'docker.io/library/php:8.5.12-apache@sha256:08af36df144462d84c7f16190557eec06cb9f656882685610b712a15eec54d46',
+        '8.6r1' => 'docker.io/library/php:8.6.0-apache@sha256:0b06b358a7d59cca80e0528aad0e49b43208c3a74754ffcd8a12d7727058511e',
     ];
 
     /** Where Parity lives: the stack's own tool for running Citadel on your computer (ADR-0022). */
     public const PARITY_URL = 'https://git.wayne.edu/enterprise-apps/parity';
 
     /**
-     * The one line `init` and `update` print when the parity group is in play. The group is deprecated since
-     * 0.10.5 and leaves no sooner than two minors and 60 days later (ADR-0022): 0.12.0, not before 2027-01-08.
+     * The one line `init` and `update` print when the app still has parity kit files. The kit was deprecated in
+     * 0.10.5 and left in 0.12.0 (Adam, 2026-11-20, ahead of ADR-0022's 2027-01-08 date).
      */
-    public const PARITY_POINTER = 'Parity: the parity group is deprecated (removed no sooner than 0.12.0). Parity runs Citadel on your computer now; `parity init --from-squire` carries this kit over: ' . self::PARITY_URL;
+    public const PARITY_POINTER = 'Parity: the parity kit left Squire in 0.12.0, and Squire deleted none of its files. Run `parity init --from-squire` (it carries the kit\'s settings over), then delete the kit-leftover files above: ' . self::PARITY_URL;
 
     private function __construct() {}
 

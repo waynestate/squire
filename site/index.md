@@ -1,6 +1,6 @@
 ---
 title: "Squire: Suits you up for the Citadel."
-description: "Squire is the deploy kit for Citadel. It writes your app's build, release and health-check scripts from templates, checks them with squire doctor, and runs the app locally on Citadel's PHP image behind the same kind of proxy."
+description: "Squire is the deploy kit for Citadel. It writes your app's build, release and health-check scripts from templates, and checks them with squire doctor. Running the app on your computer is Parity's job."
 url: https://squire.apps.wayne.edu/
 llms: https://squire.apps.wayne.edu/llms.txt
 generator: Squire agent-ready
@@ -12,7 +12,7 @@ The Citadel kit
 
 Suits you up for the Citadel.
 
-A squire carries the knight's kit. This one carries your app's. `squire init` writes the scripts Citadel runs when you deploy and `squire doctor` checks them. To run your app on your laptop on the same PHP image and MySQL 5.6 as Citadel, behind the same kind of proxy, Squire rides with [Parity](https://parity.apps.wayne.edu/).
+A squire carries the knight's kit. This one carries your app's. `squire init` writes the scripts Citadel runs when you deploy and `squire doctor` checks them. To run your app on your laptop on the same PHP image and MySQL 5.6 as Citadel, behind the same kind of proxy, Squire rides with [Parity](https://parity.apps.wayne.edu/), which took that job over in Squire 0.12.0.
 
 `$ composer require waynestate/squire --dev`
 
@@ -22,7 +22,7 @@ Already packed into every [Sourdough](https://sourdough.apps.wayne.edu/) app, an
 
 ### Get started with Squire
 
-Pack your app for the Citadel and try it at home first.
+Pack your app for the Citadel; Parity lets you try it at home first.
 
 A prompt for your coding agent. Copy it as it stands:
 
@@ -42,11 +42,11 @@ vendor/bin/squire init
 2. `deployments/001-first-release.sh` Runs once per app and calls the release with the smoke test off; Apache is not up yet.
 3. `scripts/release.sh` The idempotent release: install from the lock file, audit, ask PROCTOR's gate for a go or no-go, build, migrate, smoke-test `/up`. Also your Quick Update post-script.
 4. `health.php` Citadel's health check: one request to `/up`, never boots the framework.
-5. `The parity kit 19 files` `docker-compose.squire.yml`, `.squire/`, `.env.squire.example`, `scripts/parity.sh` and `scripts/parity.ps1`: Citadel on your machine, and the portable image for everywhere else. The local half is deprecated: Parity takes it over.
+5. `oracle-check.php` The plain-language Oracle connection check the release runs: settings, host, port, driver, login. A report, never a gate. `.gitattributes` rides in the same pocket and keeps every script LF.
 
 ![Squire's satchel](https://squire.apps.wayne.edu/brand/squire-avatar-512.png)
 
-**To** the Citadel **From** my-app **Holds** 25 files
+**To** the Citadel **From** my-app **Holds** 6 files
 
 5 of 5 packed, buckled for deploy day
 
@@ -68,51 +68,13 @@ created oracle-check.php (written from the template)
 
 created .gitattributes (written from the template)
 
-created docker-compose.squire.yml (written from the template)
-
-created .squire/Dockerfile (written from the template)
-
-created .squire/Dockerfile.dockerignore (written from the template)
-
-created .squire/base-fallback.Dockerfile (written from the template)
-
-created .squire/apache-hardening.conf (written from the template)
-
-created .squire/fallback/citadel-apache-entrypoint (written from the template)
-
-created .squire/fallback/citadel-deploy (written from the template)
-
-created .squire/haproxy.cfg (written from the template)
-
-created .squire/php.ini (written from the template)
-
-created .squire/php-web.ini (written from the template)
-
-created .squire/vhost.conf (written from the template)
-
-created .squire/portable.Dockerfile (written from the template)
-
-created .squire/portable.Dockerfile.dockerignore (written from the template)
-
-created .squire/portable/squire-entrypoint.sh (written from the template)
-
-created .squire/portable/ports.conf (written from the template)
-
-created .squire/portable/vhost.conf (written from the template)
-
-created scripts/parity.sh (written from the template)
-
-created scripts/parity.ps1 (written from the template)
-
-created .env.squire.example (written from the template)
-
 Target: laravel. Wrote .squire.json.
 
-Next: git update-index --chmod=+x build.sh deployments/001-first-release.sh scripts/release.sh .squire/fallback/citadel-apache-entrypoint .squire/fallback/citadel-deploy .squire/portable/squire-entrypoint.sh scripts/parity.sh
+Next: git update-index --chmod=+x build.sh deployments/001-first-release.sh scripts/release.sh
 
-Parity: the parity group is deprecated (removed no sooner than 0.12.0). Parity runs Citadel on your computer now; \`parity init --from-squire\` carries this kit over: https://git.wayne.edu/enterprise-apps/parity
+Run it locally with Parity: parity init, then parity up (https://git.wayne.edu/enterprise-apps/parity).
 
-Every shell script runs with `set -euo pipefail`, prints a `[squire] ==> step N` marker, and gives the same result when you run it twice. Pack half the bag with `--only=release` or `--only=parity`.
+Every shell script runs with `set -euo pipefail`, prints a `[squire] ==> step N` marker, and gives the same result when you run it twice. Building images too? `--only=release,images` adds the opt-in image files: the Citadel mirror, the fallback base and the portable image for OpenShift, Coolify and raw Docker.
 
 vendor/bin/squire doctor
 
@@ -136,17 +98,11 @@ fail exits 1 warn reported info noted
 - S20PROCTOR is a report, never a bare command.
 - S21The release requests `/up` at the end.
 - S22One marker per step.
-- S35Locally, the Citadel PHP image.
-- S36A forwarding proxy in front.
-- S37Locally, MySQL 5.6.
-- S41The Docker socket is not mounted.
+- S35No parity kit left over: use Parity.
 - S42`.env` files stay out of git.
 - S50Lock file, audit and MySQL 5.6 are PROCTOR's: run `proctor check`.
 - S55The health check never boots the framework.
 - S57npm installs with `--ignore-scripts`.
-- S67Images pinned by digest.
-- S70Containers drop capabilities.
-- S71Citadel's health-check timing.
 - S78A Vue app keeps `node_modules/` out of git.
 
 Every rule, its level and why it matters: `BEST_PRACTICES.md`. Drift from the templates is a warning under S9, never a failure; your copies are yours to edit.
@@ -165,64 +121,63 @@ PASS S20 PROCTOR runs as a report and cannot stop the release.
 
 PASS S55 health.php is an artisan-free health check. \[health.php\]
 
+PASS S35 No parity kit files left over. Parity runs the app on your computer: https://git.wayne.edu/enterprise-apps/parity
+
 WARN S8 .gitattributes does not force LF for shell scripts. Add \`\*.sh text eol=lf\`, and \`\*.conf text eol=lf\`, \`Dockerfile text eol=lf\` and \`\*.Dockerfile text eol=lf\`, which PROCTOR checks too.
 
-WARN S67 Not pinned by digest: citadel/php-apache:8.4r5. Run \`scripts/parity.sh pin\` and put the digests in .env.squire.
+RESULT: pass (0 fail, 1 warn, 0 info, 6 pass)
 
-RESULT: pass (0 fail, 2 warn, 0 info, 5 pass)
-
-Local parity
+Run it locally
 
 ## Practice on the real field
 
-The parity kit runs your app on the Citadel PHP image, behind an HA-Proxy that adds the same forwarding headers, with MySQL 5.6.51 beside it. If something would only break on Citadel, you should see it on your laptop first.
+[Parity](https://parity.apps.wayne.edu/) runs your app on Citadel's own PHP image, behind the same HAProxy that adds the forwarding headers, with MySQL 5.6.51 beside it. If something would only break on Citadel, you should see it on your laptop first.
 
-Squire hands this job on
+Squire handed this job on
 
-### Parity runs Citadel on your computer now
+### Parity runs Citadel on your computer
 
-[Parity](https://parity.apps.wayne.edu/) 0.1.0 is the stack's own tool for this: one program for Windows, macOS and Linux that runs Citadel's PHP image, its proxy and MySQL 5.6 for any app, with or without Squire, on Docker or Podman (Podman recommended). `parity init --from-squire` carries this kit's settings over and deletes nothing.
+Parity is the stack's own tool for this: one program for Windows, macOS and Linux, for any app, with or without Squire, on Docker or Podman (Podman recommended). Squire dresses the knight for the castle; Parity builds a practice castle in your yard.
 
-The kit below still works, and is deprecated as of Squire 0.10.5. It leaves no sooner than Squire 0.12.0, and not before 2027-01-08. The portable image stays with Squire.
+Squire's own parity kit left in 0.12.0. An app that still has it runs `parity init --from-squire`, then deletes the kit's files. `squire update` lists them and never deletes them; [Moved to Parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html) has the four commands.
 
 1. Your browser on localhost
-2. HA-Proxy adds X-Forwarded-For and -Proto
+2. HAProxy adds X-Forwarded-For and -Proto
 3. Your app Citadel PHP image, run as `citadel`
 4. MySQL 5.6.51 `mysql` inside, `127.0.0.1:3307` outside
 
 **Linux and macOS**
 
-Docker with Compose v2.
+Docker or Podman. Install Parity once, then in your app's folder:
 
 ```
-cp .env.squire.example .env.squire     # then set the passwords
-scripts/parity.sh up                   # or: scripts/parity.sh up --fallback
+curl -fsSL https://parity.apps.wayne.edu/install.sh | sh
+parity init                            # or: parity init --from-squire
+parity up
 ```
 
 **Windows**
 
-Docker Desktop with the WSL 2 backend. PowerShell 5.1 or 7; no other shell needed.
+Podman Desktop or Docker Desktop, in PowerShell. Install Parity once, then in your app's folder:
 
 ```
-Copy-Item .env.squire.example .env.squire
-scripts\parity.ps1 up                  # or: scripts\parity.ps1 up -Fallback
+irm https://parity.apps.wayne.edu/install.ps1 | iex
+parity init                            # or: parity init --from-squire
+parity up
 ```
 
 ### Commands
 
+- `check`
+- `init`
+- `image get`
 - `up`
+- `test`
 - `down`
-- `reset`
-- `logs`
-- `shell`
-- `status`
-- `pin`
 
-`pin` prints the digests of the images you pulled, so you can pin them. `reset` also removes the volumes.
+`check` tells you what to fix on this computer, one finding per line. `image get` downloads Citadel's image and checks it is Citadel's, byte for byte. `down` stops the app and keeps your data.
 
-Containers drop capabilities, set `no-new-privileges` and carry memory and process limits; the database listens on loopback only. The compose file refuses to start without real passwords.
-
-No access to the real image? `--fallback` builds an approximation from the official PHP image plus Citadel's extensions. It's fine for a practice bout. It doesn't prove parity.
+Building the images too? Squire's opt-in `images` group still writes the Citadel mirror, the fallback base and the portable image. Parity runs Citadel's own image and nothing else.
 
 Citadel setup
 
@@ -284,9 +239,9 @@ Known limits
 
 ## Scuffs on the leather
 
-Squire 0.11.2 is tagged and on Packagist. Where we had to guess how Citadel behaves, `OPEN_QUESTIONS.md` lists each guess and the default it chose.
+Squire 0.12.0 is tagged and on Packagist. Where we had to guess how Citadel behaves, `OPEN_QUESTIONS.md` lists each guess and the default it chose.
 
-- The local `php.ini` holds the safe defaults HELMET also enforces at runtime, not the platform's file.
-- The Citadel image has no registry digest to pin yet; doctor warns under S67 until you run `pin`.
+- The images group's `php.ini` holds the safe defaults HELMET also enforces at runtime, not the platform's file.
+- Old parity kit files are listed, never deleted. Once Parity runs the app, delete them yourself; doctor notes them under S35 until you do.
 - A full Update may not refresh `vendor/`. Use `scripts/release.sh` as the Quick Update post-script too.
 - The release asks `proctor gate` for a go or no-go. A no-go is a report by default; set `SQUIRE_PROCTOR=enforce` and it stops the release before the build and the migrations.

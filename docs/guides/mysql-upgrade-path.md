@@ -108,7 +108,7 @@ The smallest hop for your code and the biggest for your safety: everything after
 
 ### Back up
 
-A `mysqldump` from the 5.6.51 client, [as above](#what-a-backup-means-here), restored once on a fresh 5.6.51 server. Squire's [local parity](local-parity.md) kit already runs MySQL 5.6.51, so it can be that fresh server.
+A `mysqldump` from the 5.6.51 client, [as above](#what-a-backup-means-here), restored once on a fresh 5.6.51 server. [Parity](https://git.wayne.edu/enterprise-apps/parity) already runs MySQL 5.6.51 on your computer, so it can be that fresh server.
 
 ### Driver and Laravel floor
 
