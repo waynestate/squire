@@ -478,12 +478,12 @@ final class UpdateNoticeTest extends TestCase
     }
 
     /**
-     * @return array{0: callable(string): void, 1: array{text: string}}
+     * @return array{0: callable(string): void, 1: \ArrayObject<string, string>}
      */
     private function stderr(): array
     {
-        $sink = ['text' => ''];
-        $write = static function (string $message) use (&$sink): void {
+        $sink = new \ArrayObject(['text' => '']);
+        $write = static function (string $message) use ($sink): void {
             $sink['text'] .= $message;
         };
 
