@@ -234,8 +234,13 @@ if ($extension === 'html') {
     exit;
 }
 
-// Everything else: a stable identity, a cache life of an hour, and a 304
-// when the client already holds this copy.
+// Everything else: a stable identity and a 304 when the client already holds
+// this copy. Scripts, styles and data are asked about on every load (no-cache
+// still caches; it only revalidates): the HTML is never cached, so an hour-long
+// script under a fresh page would run last release's code on this release's page.
+// Images and fonts keep an hour.
+$revalidate = ['css', 'js', 'mjs', 'json', 'md', 'txt', 'xml', 'webmanifest'];
+$cacheControl = in_array($extension, $revalidate, true) ? 'no-cache' : 'public, max-age=3600';
 $stat = stat($resolved);
 $etag = '"' . sha1($stat['mtime'] . '-' . $stat['size']) . '"';
 $lastModified = gmdate('D, d M Y H:i:s', $stat['mtime']) . ' GMT';
@@ -245,6 +250,7 @@ $matches = $ifNoneMatch !== ''
     && ($ifNoneMatch === '*' || in_array($etag, array_map('trim', explode(',', $ifNoneMatch)), true));
 if ($matches) {
     http_response_code(304);
+    header('Cache-Control: ' . $cacheControl);
     header('ETag: ' . $etag);
     header('Last-Modified: ' . $lastModified);
     exit;
@@ -253,7 +259,7 @@ if ($matches) {
 header('Content-Type: ' . $mime[$extension]);
 header('ETag: ' . $etag);
 header('Last-Modified: ' . $lastModified);
-header('Cache-Control: public, max-age=3600');
+header('Cache-Control: ' . $cacheControl);
 header('Content-Length: ' . $stat['size']);
 if ($method === 'GET') {
     readfile($resolved);
