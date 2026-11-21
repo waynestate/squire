@@ -10,7 +10,7 @@ generator: Squire agent-ready
 
 Citadel builds its own image, and `.squire/Dockerfile` mirrors that one and stays a mirror. Everywhere else (OpenShift, Coolify, a plain `docker run`, ADR-0010's portable path) an app needs an image it can take with it: the code inside, one image for every process type, and no assumption that it starts as root. That is `.squire/portable.Dockerfile`. A squire packs one saddlebag that fits every horse.
 
-Read [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html) first for the base image, and [Queue workers on Citadel](https://squire.apps.wayne.edu/docs/guides/queue-workers.html) for the Citadel side of the same worker.
+Read [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html) first for the base image, and [Queue workers on Citadel](https://squire.apps.wayne.edu/docs/guides/queue-workers.html) for the Citadel side of the same worker. The image files are Squire's opt-in images group: `squire init --only=release,images`.
 
 ## What differs from the Citadel mirror [#](https://squire.apps.wayne.edu/docs/guides/portable-image.html#what-differs-from-the-citadel-mirror)
 
@@ -80,22 +80,29 @@ A raw PHP app has no `artisan`, so it names its own worker and scheduler; the ro
 
 A bad setting stops the container before anything starts, with exit 64 and one line that says what to change: a port that is not a number, a port below 1024 for a user that is not root, an unknown role, an empty named command.
 
-## Compose: the `portable` profile [#](https://squire.apps.wayne.edu/docs/guides/portable-image.html#compose-the-portable-profile)
+## Run the four roles together [#](https://squire.apps.wayne.edu/docs/guides/portable-image.html#run-the-four-roles-together)
 
-`docker-compose.squire.yml` carries the same four roles as a profile beside the parity stack. A plain `up` still starts only the Citadel parity services; the profile starts nothing until you name it:
+One image, four containers that differ only in their role. Up to Squire 0.11, `docker-compose.squire.yml` carried them as a `portable` profile; that file left with the parity kit in 0.12.0, so here they are as plain `docker run` lines. A platform (OpenShift, Coolify) runs the same four from its own service definitions.
 
 ```sh
-docker compose -f docker-compose.squire.yml --env-file .env.squire --profile portable up -d --build web worker scheduler
+docker network create my-app
+# migrate once per release, and wait for it: the other three start after it exits 0
+docker run --rm --network my-app --user 1000123:0 --cap-drop ALL --security-opt no-new-privileges:true \
+  --env-file .env my-app migrate
+docker run -d --name my-app-web --network my-app --user 1000123:0 --cap-drop ALL --security-opt no-new-privileges:true \
+  --env-file .env -p 127.0.0.1:8081:8080 --restart unless-stopped my-app web
+docker run -d --name my-app-worker --network my-app --user 1000123:0 --cap-drop ALL --security-opt no-new-privileges:true \
+  --env-file .env --restart unless-stopped my-app worker
+docker run -d --name my-app-scheduler --network my-app --user 1000123:0 --cap-drop ALL --security-opt no-new-privileges:true \
+  --env-file .env -e QUEUE_WORKER_MODE=none --restart unless-stopped my-app scheduler
 ```
 
-- **One image.** Every service builds and runs `squire-local/portable:<project>`; they differ only in `SQUIRE_ROLE`.
-- **migrate** runs once, after MySQL is healthy, and the other three wait for it to finish successfully (`restart: "no"`).
-- **web** is published on `127.0.0.1:${SQUIRE_PORTABLE_HTTP_PORT:-8081}`, beside the parity proxy on 8080.
-- **worker** comes back after `--max-time` ends it, through `restart: unless-stopped`.
-- **scheduler** sets `QUEUE_WORKER_MODE=none`: Sourdough's Laravel shapes schedule a short queue worker by default, and here the worker service has the queue.
-- Every service runs as `${SQUIRE_PORTABLE_USER:-10001:0}` with `cap_drop: [ALL]`, `no-new-privileges`, and memory and process limits, reads the app's settings from `${SQUIRE_PORTABLE_ENV_FILE:-.env}` (never baked in), and logs to stderr.
+- **migrate** runs once and exits; start the rest only when it exits `0`.
+- **worker** comes back after `--max-time` ends it, through `--restart unless-stopped`.
+- **scheduler** sets `QUEUE_WORKER_MODE=none`: Sourdough's Laravel shapes schedule a short queue worker by default, and here the worker container has the queue.
+- The app's settings come from its `.env` at run time and are never baked in. Every role logs to stderr.
 
-The settings are in `.env.squire.example` under "the portable image". WELD sets `SQUIRE_PORTABLE_CONTEXT=..` and `SQUIRE_KIT_DIR=deploy`, because its app sits one folder up from the kit.
+To run the app on Citadel's own image on your computer instead, use [Parity](https://git.wayne.edu/enterprise-apps/parity).
 
 ## Deploys and signals [#](https://squire.apps.wayne.edu/docs/guides/portable-image.html#deploys-and-signals)
 
@@ -113,7 +120,7 @@ The image's `HEALTHCHECK` runs `squire-entrypoint health`. For `web` that is `he
 
 ## How it was checked [#](https://squire.apps.wayne.edu/docs/guides/portable-image.html#how-it-was-checked)
 
-`tests/PortableImageTest.php` reads every portable file and runs the entrypoint in bash with stand-ins for `php`, `apache2-foreground` and `id`: each role, the argument and setting precedence, the refusals, the health check, the secrets loader, and `SIGTERM` reaching Apache as its graceful stop. On 2026-11-08 the image was also built and run for real, for a raw PHP app and for WELD: `docker run --user 1000123:0` answered `/up` with 200 on 8080 from Apache running as `1000123:0`; the compose profile ran `migrate` (exit 0), then `web`, `worker` and `scheduler` healthy as `1000123:0`; the worker ran a queued job; and `docker stop` ended all three in about two seconds, each with exit 0. On 2026-11-09, for 0.10.2, Buildah 1.43 (short-name mode enforcing) refused the 0.10.1 fallback base at its `COPY --from=composer:...` and built the new one with no build arguments; WELD's portable image then built on it under Buildah and under Docker with no `node_modules/` left in it (1.38 GB with `SQUIRE_KEEP_NODE_MODULES=1`, 1.20 GB without), and served `/up` and its front page with the built assets, as `1000123:0`.
+`tests/PortableImageTest.php` reads every portable file and runs the entrypoint in bash with stand-ins for `php`, `apache2-foreground` and `id`: each role, the argument and setting precedence, the refusals, the health check, the secrets loader, and `SIGTERM` reaching Apache as its graceful stop. On 2026-11-08 the image was also built and run for real, for a raw PHP app and for WELD: `docker run --user 1000123:0` answered `/up` with 200 on 8080 from Apache running as `1000123:0`; the compose profile Squire carried then ran `migrate` (exit 0), then `web`, `worker` and `scheduler` healthy as `1000123:0`; the worker ran a queued job; and `docker stop` ended all three in about two seconds, each with exit 0. On 2026-11-09, for 0.10.2, Buildah 1.43 (short-name mode enforcing) refused the 0.10.1 fallback base at its `COPY --from=composer:...` and built the new one with no build arguments; WELD's portable image then built on it under Buildah and under Docker with no `node_modules/` left in it (1.38 GB with `SQUIRE_KEEP_NODE_MODULES=1`, 1.20 GB without), and served `/up` and its front page with the built assets, as `1000123:0`.
 
 ## Next [#](https://squire.apps.wayne.edu/docs/guides/portable-image.html#next)
 

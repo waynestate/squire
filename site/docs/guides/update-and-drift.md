@@ -25,8 +25,8 @@ This page explains how Squire tracks the files it writes (the `.squire.json` SHA
 `update` reads the record: a file you never edited takes the new template, a file you edited is left alone and shown as a diff, a file a newer release added to a recorded group is written and recorded, and a file Squire did not write is never touched. A file you edited that now matches the new template exactly (your change was taken upstream) is reported current and recorded, so it is never drift. A squire polishes the armor; the knight keeps the sword. `--dry-run` prints the plan and writes nothing.
 
 ```
-vendor/bin/squire init   [--path=.] [--target=auto|raw|laravel|static] [--only=release|parity] [--check] [--force]
-vendor/bin/squire update [--path=.] [--target=raw|laravel|static] [--only=release|parity] [--dry-run]
+vendor/bin/squire init   [--path=.] [--target=auto|raw|laravel|static] [--only=release|images] [--check] [--force]
+vendor/bin/squire update [--path=.] [--target=raw|laravel|static] [--only=release|images] [--dry-run]
 ```
 
 ## App-owned files and `--force` [#](https://squire.apps.wayne.edu/docs/guides/update-and-drift.html#app-owned-files-and-force)

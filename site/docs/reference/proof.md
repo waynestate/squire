@@ -8,7 +8,7 @@ generator: Squire agent-ready
 
 # Proof [#](https://squire.apps.wayne.edu/docs/reference/proof.html#proof)
 
-This page says how Squire was proven on real Wayne State applications: what ran, what held, what the run caught in Squire itself, and what it does not prove yet. Next, see [Doctor](https://squire.apps.wayne.edu/docs/guides/doctor.html) for the rules the run checked and [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html) for the setup the boots used.
+This page says how Squire was proven on real Wayne State applications: what ran, what held, what the run caught in Squire itself, and what it does not prove yet. Next, see [Doctor](https://squire.apps.wayne.edu/docs/guides/doctor.html) for the rules the run checked The boots used Squire's parity kit, which left Squire in 0.12.0; [Parity](https://git.wayne.edu/enterprise-apps/parity) runs them now.
 
 A squire is judged on the field, not in the tent. So on 2026-11-05 Squire went out to every PHP application in the stack's shared proof corpus, the same set PROCTOR and Preflight are measured on.
 
@@ -24,7 +24,7 @@ The table below records the most recent time the checks on this page were run ag
 | Image contract on Citadel's own image (`contract-image.sh --base-image=citadel/php-apache:8.5r3`, image id `950dcf67937a`) | 2026-11-10 | the same | pass: 23 checks passed, 3 gaps that only the image can close (below) | 1m 20s |
 | Local parity rig on Windows PowerShell 5.1.26100 (`parity.ps1 up -Fallback`, then `up` on `citadel/php-apache:8.5r3`, `status`, `pin`, `reset`) | 2026-11-10 | the same plus the 5.1 fix | pass: `/up.php` answered 200 with body `ok` through the proxy on both bases; before the fix, `up` with no base image died on a raw `NativeCommandError` instead of its own message | 49s fallback, 26s Citadel's image |
 
-To refresh this section, rerun `composer ci` and the local parity rig from [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html), then rewrite the table. The 82-app corpus run and the four real-app boots were not rerun: they need the shared proof corpus and the internal app repositories, which are not available on this machine, so the parity row uses the synthetic fixture that `squire init` writes, the same way CI does.
+To refresh this section, rerun `composer ci` and boot the fixture with [Parity](https://git.wayne.edu/enterprise-apps/parity) (the kit's own rig left in 0.12.0), then rewrite the table. The 82-app corpus run and the four real-app boots were not rerun: they need the shared proof corpus and the internal app repositories, which are not available on this machine, so the parity row uses the synthetic fixture that `squire init` writes, the same way CI does.
 
 ## What ran [#](https://squire.apps.wayne.edu/docs/reference/proof.html#what-ran)
 
@@ -63,7 +63,7 @@ An app **passes** when every step does what it should and `doctor` ends with exi
 
 ## Four apps on local parity [#](https://squire.apps.wayne.edu/docs/reference/proof.html#four-apps-on-local-parity)
 
-Doctor reads files; it never runs an app. To see whether the kit actually brings an app up, four apps of different shapes were booted on [local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html) with the fallback base image, HAProxy in front and MySQL 5.6.51 behind, with every Wayne State host mapped to `127.0.0.1` so no app could reach a real service.
+Doctor reads files; it never runs an app. To see whether the kit actually brings an app up, four apps of different shapes were booted on Squire's parity kit (removed in 0.12.0) with the fallback base image, HAProxy in front and MySQL 5.6.51 behind, with every Wayne State host mapped to `127.0.0.1` so no app could reach a real service.
 
 | App shape | What happened |
 | --- | --- |
@@ -110,23 +110,16 @@ vendor/bin/squire init --check
 vendor/bin/squire doctor
 ```
 
-Then bring it up on local parity:
-
-Linux / macOS
+Then bring it up on your computer with [Parity](https://git.wayne.edu/enterprise-apps/parity):
 
 ```sh
-scripts/parity.sh up --fallback
-```
-
-Windows
-
-```powershell
-scripts\parity.ps1 up -Fallback
+parity init
+parity up
 ```
 
 ## Related [#](https://squire.apps.wayne.edu/docs/reference/proof.html#related)
 
 - [Doctor](https://squire.apps.wayne.edu/docs/guides/doctor.html)
-- [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html)
+- [Moved to Parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html)
 - [The release script](https://squire.apps.wayne.edu/docs/guides/release-script.html)
 - [Troubleshooting](https://squire.apps.wayne.edu/docs/troubleshooting.html)

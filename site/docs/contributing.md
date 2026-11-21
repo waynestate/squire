@@ -30,7 +30,6 @@ The other gates, by platform:
 | --- | --- | --- |
 | Lint the shell templates (ShellCheck in Docker) | `scripts\lint-shell.ps1` | `scripts/lint-shell.sh` |
 | Lint the PowerShell templates (PSScriptAnalyzer) | `scripts\lint-powershell.ps1` | `pwsh -File scripts/lint-powershell.ps1` |
-| Local parity, in an app (deprecated: use Parity, `parity up`) | `scripts\parity.ps1 up` | `scripts/parity.sh up` |
 | Front page accessibility gate (Preflight's a11y checker, in Docker) | `scripts\a11y.ps1` | `scripts/a11y.sh` |
 | Docs kit JavaScript tests (needs Node, or Docker) | `npm ci && npm test` | `npm ci && npm test` |
 
@@ -52,7 +51,7 @@ They run the same way locally and in CI (the `js-tests` job on GitLab and GitHub
 
 ### The contract suite [#](https://squire.apps.wayne.edu/docs/contributing.html#the-contract-suite)
 
-`scripts/contract-image.sh` proves that `release.sh` runs inside an image. The real Citadel image is internal, so it uses the fallback base Squire already builds for local parity (`.squire/base-fallback.Dockerfile`, tag `squire/php-parity-base:8.4`): php:8.4-apache plus Node 22, multi-arch. It makes a throwaway fixture app, builds the fallback base and the app image for the platform, runs `release.sh` as the `citadel` user with the smoke test on, and prints one PASS or FAIL line per assertion. A green run is a contract, not a certificate: the fallback has no `oci8`, `imagick` or `ssmtp`, its HA-Proxy differs from Citadel's, and nothing here touches Citadel itself. See [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html) for the stack the fallback stands in for.
+`scripts/contract-image.sh` proves that `release.sh` runs inside an image. The real Citadel image is internal, so it uses the fallback base the `images` group ships (`.squire/base-fallback.Dockerfile`, tag `squire/php-parity-base:8.4`): php:8.4-apache plus Node 22, multi-arch. It makes a throwaway fixture app, builds the fallback base and the app image for the platform, runs `release.sh` as the `citadel` user with the smoke test on, and prints one PASS or FAIL line per assertion. A green run is a contract, not a certificate: the fallback has no `oci8`, `imagick` or `ssmtp`, and nothing here touches Citadel itself. For Citadel's own image on your computer, use [Parity](https://git.wayne.edu/enterprise-apps/parity).
 
 ## Keeping the docs honest [#](https://squire.apps.wayne.edu/docs/contributing.html#keeping-the-docs-honest)
 

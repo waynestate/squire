@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Doctor | Squire docs</title>
 <meta name="description" content="What squire doctor checks (the S-rules), its handoff to PROCTOR, its text and json output, and its exit codes.">
-<meta name="docs-version" content="0.11.2">
+<meta name="docs-version" content="0.12.0">
 <link rel="stylesheet" href="../../assets/wayne-ui/wayne-ui.css">
 <link rel="stylesheet" href="../../assets/docs.css">
 <link rel="stylesheet" href="../../docs/theme/squire.css">
@@ -24,18 +24,18 @@
     <nav class="site-nav" aria-label="Site">
       <a href="../../index.html#kit">Packing list</a>
       <a href="../../index.html#doctor">Inspection</a>
-      <a href="../../index.html#parity">Parity</a>
+      <a href="../../index.html#parity">Run it locally</a>
       <a href="../../index.html#party">The party</a>
       <a href="../../docs/index.html" aria-current="page">Documentation</a>
     </nav>
-    <span class="brand__version">v0.11.2</span>
+    <span class="brand__version">v0.12.0</span>
   </div>
 </header><div class="docs-layout docs-layout--toc">
   <details class="docs-menu">
     <summary>Menu</summary>
-    <nav class="docs-nav" aria-label="Documentation"><ul class="docs-nav__list"><li><a href="../../docs/index.html">Overview</a></li><li><a href="../../docs/install.html">Install</a></li><li class="docs-nav__group"><span class="docs-nav__label">Guides</span><ul><li><a href="../../docs/guides/update-and-drift.html">Update and drift</a></li><li><a href="../../docs/guides/theming.html">Theming</a></li><li><a href="../../docs/guides/quick-start.html">Quick start</a></li><li><a href="../../docs/guides/doctor.html" aria-current="page">Doctor</a></li><li><a href="../../docs/guides/citadel-setup.html">Citadel setup</a></li><li><a href="../../docs/guides/queue-workers.html">Queue workers</a></li><li><a href="../../docs/guides/mysql-upgrade-path.html">MySQL upgrade path</a></li><li><a href="../../docs/guides/local-parity.html">Local parity</a></li><li><a href="../../docs/guides/portable-image.html">The portable image</a></li><li><a href="../../docs/guides/image-hardening.html">Image hardening</a></li><li><a href="../../docs/guides/oracle.html">Oracle</a></li><li><a href="../../docs/guides/raw-php-app.html">Raw PHP app</a></li><li><a href="../../docs/guides/static-site.html">Static site</a></li><li><a href="../../docs/guides/release-script.html">The release script</a></li><li><a href="../../docs/guides/agent-ready-kit.html">The agent-ready kit</a></li><li><a href="../../docs/guides/advisor.html">Use Squire from your coding agent (ADVISOR)</a></li><li><a href="../../docs/guides/docs-builder.html">The docs builder</a></li></ul></li><li class="docs-nav__group"><span class="docs-nav__label">Reference</span><ul><li><a href="../../docs/reference/commands.html">Commands</a></li><li><a href="../../docs/reference/configuration.html">Configuration</a></li><li><a href="../../docs/reference/files.html">Files</a></li><li><a href="../../docs/reference/proof.html">Proof</a></li></ul></li><li><a href="../../docs/troubleshooting.html">Troubleshooting</a></li><li><a href="../../docs/upgrading.html">Upgrading</a></li><li><a href="../../docs/contributing.html">Contributing</a></li><li><a href="../../docs/0.1-plan.html">Squire 0.1 plan</a></li><li><a href="../../docs/changelog.html">Changelog</a></li></ul></nav>
+    <nav class="docs-nav" aria-label="Documentation"><ul class="docs-nav__list"><li><a href="../../docs/index.html">Overview</a></li><li><a href="../../docs/install.html">Install</a></li><li class="docs-nav__group"><span class="docs-nav__label">Guides</span><ul><li><a href="../../docs/guides/update-and-drift.html">Update and drift</a></li><li><a href="../../docs/guides/theming.html">Theming</a></li><li><a href="../../docs/guides/quick-start.html">Quick start</a></li><li><a href="../../docs/guides/doctor.html" aria-current="page">Doctor</a></li><li><a href="../../docs/guides/citadel-setup.html">Citadel setup</a></li><li><a href="../../docs/guides/queue-workers.html">Queue workers</a></li><li><a href="../../docs/guides/mysql-upgrade-path.html">MySQL upgrade path</a></li><li><a href="../../docs/guides/local-parity.html">Moved to Parity</a></li><li><a href="../../docs/guides/portable-image.html">The portable image</a></li><li><a href="../../docs/guides/image-hardening.html">Image hardening</a></li><li><a href="../../docs/guides/oracle.html">Oracle</a></li><li><a href="../../docs/guides/raw-php-app.html">Raw PHP app</a></li><li><a href="../../docs/guides/static-site.html">Static site</a></li><li><a href="../../docs/guides/release-script.html">The release script</a></li><li><a href="../../docs/guides/agent-ready-kit.html">The agent-ready kit</a></li><li><a href="../../docs/guides/advisor.html">Use Squire from your coding agent (ADVISOR)</a></li><li><a href="../../docs/guides/docs-builder.html">The docs builder</a></li></ul></li><li class="docs-nav__group"><span class="docs-nav__label">Reference</span><ul><li><a href="../../docs/reference/commands.html">Commands</a></li><li><a href="../../docs/reference/configuration.html">Configuration</a></li><li><a href="../../docs/reference/files.html">Files</a></li><li><a href="../../docs/reference/proof.html">Proof</a></li></ul></li><li><a href="../../docs/troubleshooting.html">Troubleshooting</a></li><li><a href="../../docs/upgrading.html">Upgrading</a></li><li><a href="../../docs/contributing.html">Contributing</a></li><li><a href="../../docs/0.1-plan.html">Squire 0.1 plan</a></li><li><a href="../../docs/changelog.html">Changelog</a></li></ul></nav>
   </details>
-  <nav class="docs-nav docs-nav--sidebar" aria-label="Documentation"><ul class="docs-nav__list"><li><a href="../../docs/index.html">Overview</a></li><li><a href="../../docs/install.html">Install</a></li><li class="docs-nav__group"><span class="docs-nav__label">Guides</span><ul><li><a href="../../docs/guides/update-and-drift.html">Update and drift</a></li><li><a href="../../docs/guides/theming.html">Theming</a></li><li><a href="../../docs/guides/quick-start.html">Quick start</a></li><li><a href="../../docs/guides/doctor.html" aria-current="page">Doctor</a></li><li><a href="../../docs/guides/citadel-setup.html">Citadel setup</a></li><li><a href="../../docs/guides/queue-workers.html">Queue workers</a></li><li><a href="../../docs/guides/mysql-upgrade-path.html">MySQL upgrade path</a></li><li><a href="../../docs/guides/local-parity.html">Local parity</a></li><li><a href="../../docs/guides/portable-image.html">The portable image</a></li><li><a href="../../docs/guides/image-hardening.html">Image hardening</a></li><li><a href="../../docs/guides/oracle.html">Oracle</a></li><li><a href="../../docs/guides/raw-php-app.html">Raw PHP app</a></li><li><a href="../../docs/guides/static-site.html">Static site</a></li><li><a href="../../docs/guides/release-script.html">The release script</a></li><li><a href="../../docs/guides/agent-ready-kit.html">The agent-ready kit</a></li><li><a href="../../docs/guides/advisor.html">Use Squire from your coding agent (ADVISOR)</a></li><li><a href="../../docs/guides/docs-builder.html">The docs builder</a></li></ul></li><li class="docs-nav__group"><span class="docs-nav__label">Reference</span><ul><li><a href="../../docs/reference/commands.html">Commands</a></li><li><a href="../../docs/reference/configuration.html">Configuration</a></li><li><a href="../../docs/reference/files.html">Files</a></li><li><a href="../../docs/reference/proof.html">Proof</a></li></ul></li><li><a href="../../docs/troubleshooting.html">Troubleshooting</a></li><li><a href="../../docs/upgrading.html">Upgrading</a></li><li><a href="../../docs/contributing.html">Contributing</a></li><li><a href="../../docs/0.1-plan.html">Squire 0.1 plan</a></li><li><a href="../../docs/changelog.html">Changelog</a></li></ul></nav>
+  <nav class="docs-nav docs-nav--sidebar" aria-label="Documentation"><ul class="docs-nav__list"><li><a href="../../docs/index.html">Overview</a></li><li><a href="../../docs/install.html">Install</a></li><li class="docs-nav__group"><span class="docs-nav__label">Guides</span><ul><li><a href="../../docs/guides/update-and-drift.html">Update and drift</a></li><li><a href="../../docs/guides/theming.html">Theming</a></li><li><a href="../../docs/guides/quick-start.html">Quick start</a></li><li><a href="../../docs/guides/doctor.html" aria-current="page">Doctor</a></li><li><a href="../../docs/guides/citadel-setup.html">Citadel setup</a></li><li><a href="../../docs/guides/queue-workers.html">Queue workers</a></li><li><a href="../../docs/guides/mysql-upgrade-path.html">MySQL upgrade path</a></li><li><a href="../../docs/guides/local-parity.html">Moved to Parity</a></li><li><a href="../../docs/guides/portable-image.html">The portable image</a></li><li><a href="../../docs/guides/image-hardening.html">Image hardening</a></li><li><a href="../../docs/guides/oracle.html">Oracle</a></li><li><a href="../../docs/guides/raw-php-app.html">Raw PHP app</a></li><li><a href="../../docs/guides/static-site.html">Static site</a></li><li><a href="../../docs/guides/release-script.html">The release script</a></li><li><a href="../../docs/guides/agent-ready-kit.html">The agent-ready kit</a></li><li><a href="../../docs/guides/advisor.html">Use Squire from your coding agent (ADVISOR)</a></li><li><a href="../../docs/guides/docs-builder.html">The docs builder</a></li></ul></li><li class="docs-nav__group"><span class="docs-nav__label">Reference</span><ul><li><a href="../../docs/reference/commands.html">Commands</a></li><li><a href="../../docs/reference/configuration.html">Configuration</a></li><li><a href="../../docs/reference/files.html">Files</a></li><li><a href="../../docs/reference/proof.html">Proof</a></li></ul></li><li><a href="../../docs/troubleshooting.html">Troubleshooting</a></li><li><a href="../../docs/upgrading.html">Upgrading</a></li><li><a href="../../docs/contributing.html">Contributing</a></li><li><a href="../../docs/0.1-plan.html">Squire 0.1 plan</a></li><li><a href="../../docs/changelog.html">Changelog</a></li></ul></nav>
   <div class="docs-content">
     <main id="main">
       <article class="docs-article"><h1 id="doctor"><span class="docs-heading-tail"><span>Doctor</span><a class="docs-heading-link" aria-label="Link to this section" href="#doctor">#</a></span></h1>
@@ -140,27 +140,9 @@
 </tr>
 <tr>
 <td data-label="Rule">S35</td>
-<td data-label="Level">warn</td>
-<td data-label="What it checks">The compose file uses a <code>citadel/<wbr>php-apache</code> image.</td>
-<td data-label="Why">Same PHP and extensions as production.</td>
-</tr>
-<tr>
-<td data-label="Rule">S36</td>
-<td data-label="Level">warn</td>
-<td data-label="What it checks">A proxy that adds <code>X-Forwarded-For</code> and <code>X-Forwarded-Proto</code> is in front of the app.</td>
-<td data-label="Why">Trusted-proxy and HTTPS detection bugs only show behind one.</td>
-</tr>
-<tr>
-<td data-label="Rule">S37</td>
-<td data-label="Level">warn</td>
-<td data-label="What it checks">The local database is MySQL 5.6.</td>
-<td data-label="Why">Its limits then show up locally.</td>
-</tr>
-<tr>
-<td data-label="Rule">S41</td>
-<td data-label="Level">fail</td>
-<td data-label="What it checks">The Docker socket is not mounted.</td>
-<td data-label="Why">It is root on the host.</td>
+<td data-label="Level">info</td>
+<td data-label="What it checks">No parity kit file is left in the app (<code>docker-compose.<wbr>squire.<wbr>yml</code>, <code>.squire/<wbr>haproxy.<wbr>cfg</code>, <code>scripts/<wbr>parity.<wbr>sh</code>, <code>scripts/<wbr>parity.<wbr>ps1</code>, <code>.env.<wbr>squire.<wbr>example</code>).</td>
+<td data-label="Why">The kit left Squire in 0.12.0; Parity runs Citadel on your computer.</td>
 </tr>
 <tr>
 <td data-label="Rule">S42</td>
@@ -187,24 +169,6 @@
 <td data-label="Why">A compromised package cannot run at install time, a version published an hour ago is not installed, and npm reads min-release-age only from version 11.10.</td>
 </tr>
 <tr>
-<td data-label="Rule">S67</td>
-<td data-label="Level">warn</td>
-<td data-label="What it checks">Every image in the compose file is pinned by digest.</td>
-<td data-label="Why">The same bytes tomorrow as today.</td>
-</tr>
-<tr>
-<td data-label="Rule">S70</td>
-<td data-label="Level">warn</td>
-<td data-label="What it checks">Local containers drop capabilities and set <code>no-new-privileges</code>.</td>
-<td data-label="Why">Least privilege, also locally.</td>
-</tr>
-<tr>
-<td data-label="Rule">S71</td>
-<td data-label="Level">warn</td>
-<td data-label="What it checks">The local health check uses Citadel's timing (5 minutes, 15 seconds).</td>
-<td data-label="Why">A slow <code>/up</code> shows up before it ships.</td>
-</tr>
-<tr>
 <td data-label="Rule">S78</td>
 <td data-label="Level">warn</td>
 <td data-label="What it checks">A Vue app does not track <code>node_modules/</code> in git.</td>
@@ -212,7 +176,7 @@
 </tr>
 </tbody>
 </table></div>
-<p>The local parity rules (S35 to S37, S41, S67, S70, S71) check Squire's parity kit, which is deprecated as of 0.10.5. When the kit is there, <code>doctor</code> adds one S35 info line that points at <a rel="noopener" href="https://git.wayne.edu/enterprise-apps/parity">Parity</a>; when it is not, the S35 info line says how to start with Parity instead. Neither changes the exit code. Parity runs its own checks (<code>parity check</code>); see <a href="local-parity.html">Local parity</a>.</p>
+<p>The parity kit left Squire in 0.12.0, and its rules (S36, S37, S41, S67, S70, S71) went with it. S35 stays, as a note: when a kit file is still in the app, <code>doctor</code> lists them in one info line that says to run <code>parity init --from-squire</code> and then delete them; when none is, S35 passes. Neither changes the exit code. <a rel="noopener" href="https://git.wayne.edu/enterprise-apps/parity">Parity</a> runs its own checks (<code>parity check</code>); see <a href="local-parity.html">Moved to Parity</a>.</p>
 <h2 id="handoff-to-proctor-s50">Handoff to PROCTOR <span class="docs-heading-tail"><span>(S50)</span><a class="docs-heading-link" aria-label="Link to this section" href="#handoff-to-proctor-s50">#</a></span></h2>
 <p>The lock file (S13), composer audit and MySQL 5.6 safety (S18) are owned by PROCTOR; <code>doctor</code> no longer repeats them and hands off instead (S50). Each check has one owner; PROCTOR owns those, and <code>doctor</code> may run where PROCTOR is not installed.</p>
 <p>Drift from the Squire templates is reported as a warning under S9, never as a failure: you may edit your copies.</p>
@@ -231,7 +195,7 @@
   <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item"><a href="#what-it-checks">What it checks</a></li><li class="docs-toc__item"><a href="#the-s-rules">The S-rules</a></li><li class="docs-toc__item"><a href="#handoff-to-proctor-s50">Handoff to PROCTOR (S50)</a></li><li class="docs-toc__item"><a href="#output">Output</a></li><li class="docs-toc__item"><a href="#exit-codes">Exit codes</a></li></ul></nav>
 </div>
 <footer class="docs-footer">
-  <span>Documents Squire <span data-docs-version>0.11.2</span></span>
+  <span>Documents Squire <span data-docs-version>0.12.0</span></span>
   <span><a rel="noopener" href="https://github.com/waynestate/squire">Source</a> <a href="doctor.md">Markdown</a></span>
 </footer>
 </body>

@@ -12,6 +12,35 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ## \[Unreleased\] [#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+## 0.12.0 (2026-11-20) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-12-0-2026-11-20)
+
+Squire is the Citadel kit now: `build.sh`, the release script and the health check, from templates, checked by `squire doctor`. Running Citadel on your computer is [Parity](https://git.wayne.edu/enterprise-apps/parity)'s job. The upgrade steps are in [Upgrading](https://squire.apps.wayne.edu/docs/upgrading.html#0-12-0-2026-11-20).
+
+### Breaking [#](https://squire.apps.wayne.edu/docs/changelog.html#breaking)
+
+- `squire init --only=parity` and `squire update --only=parity` stop with exit 2 and say where Parity is. The `parity` group is gone. The image files it held (the Citadel mirror `.squire/Dockerfile`, the fallback base, the hardened `php.ini` and `php-web.ini`, and the portable image) are a group of their own, `images`, still opt-in: `--only=release,images`.
+- An app whose `.squire.json` records the `parity` group keeps working: Squire reads that record as `release,images`. On its next `squire init` or `squire update`, each kit file the record lists is reported as `kit-leftover`, dropped from the record, and left on disk. Squire deletes none of them. Run `parity init --from-squire` (it reads them), then delete them yourself.
+- The kit's checks in `squire doctor` are retired with it: S36, S37, S41, S67, S70 and S71. S35 now notes any kit file still in the app (info, never a failure) and says to run `parity init --from-squire` and delete them.
+- The compose file's `portable` profile (the portable image as four services) left with the compose file. The portable image and its four roles stay; run each role with `docker run`, as [the portable image guide](https://squire.apps.wayne.edu/docs/guides/portable-image.html) shows, or on the platform that hosts the app.
+
+### Removed [#](https://squire.apps.wayne.edu/docs/changelog.html#removed)
+
+- The parity kit, announced as deprecated in 0.10.5 and planned for removal no sooner than 2027-01-08 (ADR-0022). The maintainer brought the date forward to 0.12.0, because Parity now covers everything the kit did. Removed: `docker-compose.squire.yml` (and the Vue layer's copy with its Node 22 service), `.squire/haproxy.cfg`, `scripts/parity.sh`, `scripts/parity.ps1` and `.env.squire.example` (raw and Laravel).
+- The GitHub CI legs `contract-parity-sh` and `contract-parity-pwsh`. The `contract-image` leg stays and now asks for `--only=release,images`.
+
+### Fixed [#](https://squire.apps.wayne.edu/docs/changelog.html#fixed)
+
+- The raw and static front controllers send scripts, styles and data (`.css`, `.js`, `.mjs`, `.json`, `.md`, `.txt`, `.xml`, `.webmanifest`) with `Cache-Control: no-cache` and their ETag, so the browser asks on every load and gets a 304 when nothing changed. They had an hour of cache, and the HTML is never cached, so for up to an hour after a release a browser ran the old script on the new page (CREED found it). Images and fonts keep their hour. `public/index.php` is the app's own file, so `squire update` never rewrites it: an app that already has one takes the change by hand (the diff is in [Upgrading](https://squire.apps.wayne.edu/docs/upgrading.html#0-12-0-2026-11-20)).
+
+### Added [#](https://squire.apps.wayne.edu/docs/changelog.html#added)
+
+- PHP line 8.6r1 is selectable (`squire init --php 8.6r1`): the fallback base for it is the official `php:8.6.0-apache`, pinned by its multi-arch list digest. The default line stays 8.5r3. Citadel's 8.6r1 is ZTS with Apache prefork, with PEAR/PECL, mbstring, oci8, and redis and imagick built with remirepo patches; it has no xdebug, pcov or apcu. The fallback stand-in has none of those extensions and is not proven with the container contract yet.
+
+### Changed [#](https://squire.apps.wayne.edu/docs/changelog.html#changed)
+
+- Squire describes itself as the Citadel kit everywhere: the Composer description, the README, the docs and the front page. The front page's packing list holds the five release tags (`oracle-check.php` took the parity kit's place), and its "Run it locally" section shows Parity's commands. The Local parity docs page is now [Moved to Parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html).
+- Squire's own `deploy/` takes the 0.12.0 templates (`squire update`), records `release,images`, and deletes its own five kit files by hand, as the upgrade steps say.
+
 ## 0.11.2 (2026-11-19) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-11-2-2026-11-19)
 
 - Changed: the kit templates take newer pins: the HAProxy digest in `docker-compose.squire.yml` (common and vue kits) and the Node 22.23.5 digest in `.squire/base-fallback.Dockerfile`. Run `squire update` to take them.
@@ -312,26 +341,26 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ## 0.2.1 (2026-10-29) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-2-1-2026-10-29)
 
-### Fixed [#](https://squire.apps.wayne.edu/docs/changelog.html#fixed)
+### Fixed [#](https://squire.apps.wayne.edu/docs/changelog.html#fixed-1)
 
 - Fixed: SQUIRE reported 0.1.0 after the 0.2.0 release.
 
 ## 0.2.0 (2026-10-29) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-2-0-2026-10-29)
 
-### Added [#](https://squire.apps.wayne.edu/docs/changelog.html#added)
+### Added [#](https://squire.apps.wayne.edu/docs/changelog.html#added-1)
 
 - `--target=static`: writes everything the `raw` target writes plus a front controller (`public/index.php`) and an `.htaccess` that serve a committed static site behind HELMET. The site folder is `../../site` by default; point `SQUIRE_STATIC_ROOT` at another. `squire init --check` and `squire update` cover the new files, and the template export carries them under `static/`.
 - `SQUIRE_PROCTOR=enforce`: a failed PROCTOR check now stops the release. The default stays report-only, so existing apps are unaffected.
 - `SQUIRE_PROCTOR_POLICY` defaults to `vendor/waynestate/creed/policy/policy.json` when unset and present, so a static site needs no environment variables in the deploy wizard. When CREED is not installed, PROCTOR runs on its own default policy with a notice instead of the release failing. An explicit value always wins.
 
-### Changed [#](https://squire.apps.wayne.edu/docs/changelog.html#changed)
+### Changed [#](https://squire.apps.wayne.edu/docs/changelog.html#changed-1)
 
 - PHPStan now includes Pinstripe's raw PHP preset (`waynestate/pinstripe` 0.1) instead of carrying a hand copy of the settings; `phpstan.neon` keeps only SQUIRE's own paths and PHP version range, and the preset's deprecation checks come along with it.
 - `symfony/console` floor raised to `^7.4`: `Application::add()` is deprecated since 7.4, and the CLI now calls `addCommand()`.
 
 ## 0.1.0 (2026-10-29) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-1-0-2026-10-29)
 
-### Added [#](https://squire.apps.wayne.edu/docs/changelog.html#added-1)
+### Added [#](https://squire.apps.wayne.edu/docs/changelog.html#added-2)
 
 - `squire init` with `--target`, `--only`, `--check` and `--force`; a `.squire.json` manifest of SHA-256 hashes.
 - `squire doctor` with text and JSON output, checking 26 rules (see `BEST_PRACTICES.md`).
@@ -341,4 +370,4 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 - CI for GitLab and GitHub: `composer ci`, shellcheck and PSScriptAnalyzer, run in Docker.
 - `bin/export-templates.php`: export a generated copy of SQUIRE's templates (for Sourdough and other projects that cannot `composer require` SQUIRE), with a `catalog.json` and a `manifest.json`; `--check` verifies the copy and exits 1 on drift.
 
-### Changed [#](https://squire.apps.wayne.edu/docs/changelog.html#changed-1)
+### Changed [#](https://squire.apps.wayne.edu/docs/changelog.html#changed-2)

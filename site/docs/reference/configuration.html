@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Configuration reference | Squire docs</title>
 <meta name="description" content="Every SQUIRE_* setting Squire reads, the file it lives in, and its default.">
-<meta name="docs-version" content="0.11.2">
+<meta name="docs-version" content="0.12.0">
 <link rel="stylesheet" href="../../assets/wayne-ui/wayne-ui.css">
 <link rel="stylesheet" href="../../assets/docs.css">
 <link rel="stylesheet" href="../../docs/theme/squire.css">
@@ -24,25 +24,25 @@
     <nav class="site-nav" aria-label="Site">
       <a href="../../index.html#kit">Packing list</a>
       <a href="../../index.html#doctor">Inspection</a>
-      <a href="../../index.html#parity">Parity</a>
+      <a href="../../index.html#parity">Run it locally</a>
       <a href="../../index.html#party">The party</a>
       <a href="../../docs/index.html" aria-current="page">Documentation</a>
     </nav>
-    <span class="brand__version">v0.11.2</span>
+    <span class="brand__version">v0.12.0</span>
   </div>
 </header><div class="docs-layout docs-layout--toc">
   <details class="docs-menu">
     <summary>Menu</summary>
-    <nav class="docs-nav" aria-label="Documentation"><ul class="docs-nav__list"><li><a href="../../docs/index.html">Overview</a></li><li><a href="../../docs/install.html">Install</a></li><li class="docs-nav__group"><span class="docs-nav__label">Guides</span><ul><li><a href="../../docs/guides/update-and-drift.html">Update and drift</a></li><li><a href="../../docs/guides/theming.html">Theming</a></li><li><a href="../../docs/guides/quick-start.html">Quick start</a></li><li><a href="../../docs/guides/doctor.html">Doctor</a></li><li><a href="../../docs/guides/citadel-setup.html">Citadel setup</a></li><li><a href="../../docs/guides/queue-workers.html">Queue workers</a></li><li><a href="../../docs/guides/mysql-upgrade-path.html">MySQL upgrade path</a></li><li><a href="../../docs/guides/local-parity.html">Local parity</a></li><li><a href="../../docs/guides/portable-image.html">The portable image</a></li><li><a href="../../docs/guides/image-hardening.html">Image hardening</a></li><li><a href="../../docs/guides/oracle.html">Oracle</a></li><li><a href="../../docs/guides/raw-php-app.html">Raw PHP app</a></li><li><a href="../../docs/guides/static-site.html">Static site</a></li><li><a href="../../docs/guides/release-script.html">The release script</a></li><li><a href="../../docs/guides/agent-ready-kit.html">The agent-ready kit</a></li><li><a href="../../docs/guides/advisor.html">Use Squire from your coding agent (ADVISOR)</a></li><li><a href="../../docs/guides/docs-builder.html">The docs builder</a></li></ul></li><li class="docs-nav__group"><span class="docs-nav__label">Reference</span><ul><li><a href="../../docs/reference/commands.html">Commands</a></li><li><a href="../../docs/reference/configuration.html" aria-current="page">Configuration</a></li><li><a href="../../docs/reference/files.html">Files</a></li><li><a href="../../docs/reference/proof.html">Proof</a></li></ul></li><li><a href="../../docs/troubleshooting.html">Troubleshooting</a></li><li><a href="../../docs/upgrading.html">Upgrading</a></li><li><a href="../../docs/contributing.html">Contributing</a></li><li><a href="../../docs/0.1-plan.html">Squire 0.1 plan</a></li><li><a href="../../docs/changelog.html">Changelog</a></li></ul></nav>
+    <nav class="docs-nav" aria-label="Documentation"><ul class="docs-nav__list"><li><a href="../../docs/index.html">Overview</a></li><li><a href="../../docs/install.html">Install</a></li><li class="docs-nav__group"><span class="docs-nav__label">Guides</span><ul><li><a href="../../docs/guides/update-and-drift.html">Update and drift</a></li><li><a href="../../docs/guides/theming.html">Theming</a></li><li><a href="../../docs/guides/quick-start.html">Quick start</a></li><li><a href="../../docs/guides/doctor.html">Doctor</a></li><li><a href="../../docs/guides/citadel-setup.html">Citadel setup</a></li><li><a href="../../docs/guides/queue-workers.html">Queue workers</a></li><li><a href="../../docs/guides/mysql-upgrade-path.html">MySQL upgrade path</a></li><li><a href="../../docs/guides/local-parity.html">Moved to Parity</a></li><li><a href="../../docs/guides/portable-image.html">The portable image</a></li><li><a href="../../docs/guides/image-hardening.html">Image hardening</a></li><li><a href="../../docs/guides/oracle.html">Oracle</a></li><li><a href="../../docs/guides/raw-php-app.html">Raw PHP app</a></li><li><a href="../../docs/guides/static-site.html">Static site</a></li><li><a href="../../docs/guides/release-script.html">The release script</a></li><li><a href="../../docs/guides/agent-ready-kit.html">The agent-ready kit</a></li><li><a href="../../docs/guides/advisor.html">Use Squire from your coding agent (ADVISOR)</a></li><li><a href="../../docs/guides/docs-builder.html">The docs builder</a></li></ul></li><li class="docs-nav__group"><span class="docs-nav__label">Reference</span><ul><li><a href="../../docs/reference/commands.html">Commands</a></li><li><a href="../../docs/reference/configuration.html" aria-current="page">Configuration</a></li><li><a href="../../docs/reference/files.html">Files</a></li><li><a href="../../docs/reference/proof.html">Proof</a></li></ul></li><li><a href="../../docs/troubleshooting.html">Troubleshooting</a></li><li><a href="../../docs/upgrading.html">Upgrading</a></li><li><a href="../../docs/contributing.html">Contributing</a></li><li><a href="../../docs/0.1-plan.html">Squire 0.1 plan</a></li><li><a href="../../docs/changelog.html">Changelog</a></li></ul></nav>
   </details>
-  <nav class="docs-nav docs-nav--sidebar" aria-label="Documentation"><ul class="docs-nav__list"><li><a href="../../docs/index.html">Overview</a></li><li><a href="../../docs/install.html">Install</a></li><li class="docs-nav__group"><span class="docs-nav__label">Guides</span><ul><li><a href="../../docs/guides/update-and-drift.html">Update and drift</a></li><li><a href="../../docs/guides/theming.html">Theming</a></li><li><a href="../../docs/guides/quick-start.html">Quick start</a></li><li><a href="../../docs/guides/doctor.html">Doctor</a></li><li><a href="../../docs/guides/citadel-setup.html">Citadel setup</a></li><li><a href="../../docs/guides/queue-workers.html">Queue workers</a></li><li><a href="../../docs/guides/mysql-upgrade-path.html">MySQL upgrade path</a></li><li><a href="../../docs/guides/local-parity.html">Local parity</a></li><li><a href="../../docs/guides/portable-image.html">The portable image</a></li><li><a href="../../docs/guides/image-hardening.html">Image hardening</a></li><li><a href="../../docs/guides/oracle.html">Oracle</a></li><li><a href="../../docs/guides/raw-php-app.html">Raw PHP app</a></li><li><a href="../../docs/guides/static-site.html">Static site</a></li><li><a href="../../docs/guides/release-script.html">The release script</a></li><li><a href="../../docs/guides/agent-ready-kit.html">The agent-ready kit</a></li><li><a href="../../docs/guides/advisor.html">Use Squire from your coding agent (ADVISOR)</a></li><li><a href="../../docs/guides/docs-builder.html">The docs builder</a></li></ul></li><li class="docs-nav__group"><span class="docs-nav__label">Reference</span><ul><li><a href="../../docs/reference/commands.html">Commands</a></li><li><a href="../../docs/reference/configuration.html" aria-current="page">Configuration</a></li><li><a href="../../docs/reference/files.html">Files</a></li><li><a href="../../docs/reference/proof.html">Proof</a></li></ul></li><li><a href="../../docs/troubleshooting.html">Troubleshooting</a></li><li><a href="../../docs/upgrading.html">Upgrading</a></li><li><a href="../../docs/contributing.html">Contributing</a></li><li><a href="../../docs/0.1-plan.html">Squire 0.1 plan</a></li><li><a href="../../docs/changelog.html">Changelog</a></li></ul></nav>
+  <nav class="docs-nav docs-nav--sidebar" aria-label="Documentation"><ul class="docs-nav__list"><li><a href="../../docs/index.html">Overview</a></li><li><a href="../../docs/install.html">Install</a></li><li class="docs-nav__group"><span class="docs-nav__label">Guides</span><ul><li><a href="../../docs/guides/update-and-drift.html">Update and drift</a></li><li><a href="../../docs/guides/theming.html">Theming</a></li><li><a href="../../docs/guides/quick-start.html">Quick start</a></li><li><a href="../../docs/guides/doctor.html">Doctor</a></li><li><a href="../../docs/guides/citadel-setup.html">Citadel setup</a></li><li><a href="../../docs/guides/queue-workers.html">Queue workers</a></li><li><a href="../../docs/guides/mysql-upgrade-path.html">MySQL upgrade path</a></li><li><a href="../../docs/guides/local-parity.html">Moved to Parity</a></li><li><a href="../../docs/guides/portable-image.html">The portable image</a></li><li><a href="../../docs/guides/image-hardening.html">Image hardening</a></li><li><a href="../../docs/guides/oracle.html">Oracle</a></li><li><a href="../../docs/guides/raw-php-app.html">Raw PHP app</a></li><li><a href="../../docs/guides/static-site.html">Static site</a></li><li><a href="../../docs/guides/release-script.html">The release script</a></li><li><a href="../../docs/guides/agent-ready-kit.html">The agent-ready kit</a></li><li><a href="../../docs/guides/advisor.html">Use Squire from your coding agent (ADVISOR)</a></li><li><a href="../../docs/guides/docs-builder.html">The docs builder</a></li></ul></li><li class="docs-nav__group"><span class="docs-nav__label">Reference</span><ul><li><a href="../../docs/reference/commands.html">Commands</a></li><li><a href="../../docs/reference/configuration.html" aria-current="page">Configuration</a></li><li><a href="../../docs/reference/files.html">Files</a></li><li><a href="../../docs/reference/proof.html">Proof</a></li></ul></li><li><a href="../../docs/troubleshooting.html">Troubleshooting</a></li><li><a href="../../docs/upgrading.html">Upgrading</a></li><li><a href="../../docs/contributing.html">Contributing</a></li><li><a href="../../docs/0.1-plan.html">Squire 0.1 plan</a></li><li><a href="../../docs/changelog.html">Changelog</a></li></ul></nav>
   <div class="docs-content">
     <main id="main">
       <article class="docs-article"><h1 id="configuration-reference">Configuration <span class="docs-heading-tail"><span>reference</span><a class="docs-heading-link" aria-label="Link to this section" href="#configuration-reference">#</a></span></h1>
 <p>Every <code>SQUIRE_*</code> setting Squire reads, grouped by the script that reads it, with the file each group lives in and its default. All settings are optional. Next, see <a href="commands.html">Commands</a> for the CLI flags and <a href="files.html">Files</a> for what Squire writes.</p>
-<aside class="docs-callout docs-callout--warning" role="note"><p class="docs-callout__label">Warning</p><p>A real environment variable wins. <code>release.sh</code> reads the release options from the file, but a variable already in the environment wins. Locally, the same file holds the parity settings.</p></aside>
+<aside class="docs-callout docs-callout--warning" role="note"><p class="docs-callout__label">Warning</p><p>A real environment variable wins. <code>release.sh</code> reads the release options from the file, but a variable already in the environment wins.</p></aside>
 <h2 id="where-the-settings-live">Where the settings <span class="docs-heading-tail"><span>live</span><a class="docs-heading-link" aria-label="Link to this section" href="#where-the-settings-live">#</a></span></h2>
-<p>All optional. On Citadel, add <code>./.env.squire</code> as a configuration file (the configuration-files step after the wizard; the wizard has no environment field) and keep it out of git. <code>release.sh</code> reads the release options from it, and a variable already in the environment wins. Locally, the same file holds the parity settings.</p>
+<p>All optional. On Citadel, add <code>./.env.squire</code> as a configuration file (the configuration-files step after the wizard; the wizard has no environment field) and keep it out of git. <code>release.sh</code> reads the release options from it, and a variable already in the environment wins.</p>
 <div class="docs-table" role="region" aria-label="Table" tabindex="0"><table>
 <thead>
 <tr>
@@ -66,11 +66,6 @@
 <td data-label="Group">Health check</td>
 <td data-label="Reader"><code>health.php</code></td>
 <td data-label="File">the app's environment</td>
-</tr>
-<tr>
-<td data-label="Group">Local parity</td>
-<td data-label="Reader">the parity compose file</td>
-<td data-label="File"><code>.env.squire</code> (see <code>.env.<wbr>squire.<wbr>example</code>; it holds placeholders only)</td>
 </tr>
 <tr>
 <td data-label="Group">Portable image</td>
@@ -349,7 +344,7 @@
 </tbody>
 </table></div>
 <h2 id="php-in-the-image-squire-php-ini">PHP in the image (<code>.squire/php.ini</code><span class="docs-heading-tail"><span>)</span><a class="docs-heading-link" aria-label="Link to this section" href="#php-in-the-image-squire-php-ini">#</a></span></h2>
-<p>PHP reads these from the container's environment when it starts (PHP 8.3 and later). The parity compose file passes <code>SQUIRE_OPCACHE_VALIDATE</code> and <code>SQUIRE_PHP_DISABLE_FUNCTIONS</code> from <code>.env.squire</code>; on Citadel the platform's own <code>php.ini</code> decides. See <a href="../guides/image-hardening.html">Image hardening</a>.</p>
+<p>PHP reads these from the container's environment when it starts (PHP 8.3 and later), in the images built from <code>.squire/Dockerfile</code> and <code>.squire/portable.Dockerfile</code>; on Citadel the platform's own <code>php.ini</code> decides. See <a href="../guides/image-hardening.html">Image hardening</a>.</p>
 <div class="docs-table" role="region" aria-label="Table" tabindex="0"><table>
 <thead>
 <tr>
@@ -381,147 +376,16 @@
 </tr>
 </tbody>
 </table></div>
-<h2 id="local-parity-env-squire">Local parity (<code>.env.squire</code><span class="docs-heading-tail"><span>)</span><a class="docs-heading-link" aria-label="Link to this section" href="#local-parity-env-squire">#</a></span></h2>
-<div class="docs-table" role="region" aria-label="Table" tabindex="0"><table>
-<thead>
-<tr>
-<th>Variable</th>
-<th>Default</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td data-label="Variable"><code>SQUIRE_PROJECT</code></td>
-<td data-label="Default">not stated</td>
-<td data-label="Meaning">Local parity: the project name.</td>
-</tr>
-<tr>
-<td data-label="Variable"><code>SQUIRE_BASE_IMAGE</code></td>
-<td data-label="Default">not stated</td>
-<td data-label="Meaning">Local parity: the app image.</td>
-</tr>
-<tr>
-<td data-label="Variable"><code>SQUIRE_PROXY_IMAGE</code></td>
-<td data-label="Default">not stated</td>
-<td data-label="Meaning">Local parity: the proxy image.</td>
-</tr>
-<tr>
-<td data-label="Variable"><code>SQUIRE_MYSQL_IMAGE</code></td>
-<td data-label="Default">not stated</td>
-<td data-label="Meaning">Local parity: the MySQL image.</td>
-</tr>
-<tr>
-<td data-label="Variable"><code>SQUIRE_PUBLIC_DIR</code></td>
-<td data-label="Default">not stated</td>
-<td data-label="Meaning">Local parity: the public directory.</td>
-</tr>
-<tr>
-<td data-label="Variable"><code>SQUIRE_SERVER_NAME</code></td>
-<td data-label="Default">not stated</td>
-<td data-label="Meaning">Local parity: the server name.</td>
-</tr>
-<tr>
-<td data-label="Variable"><code>SQUIRE_TZ</code></td>
-<td data-label="Default">not stated</td>
-<td data-label="Meaning">Local parity: the timezone.</td>
-</tr>
-<tr>
-<td data-label="Variable"><code>SQUIRE_ENVIRONMENT</code></td>
-<td data-label="Default">not stated</td>
-<td data-label="Meaning">Local parity: the environment.</td>
-</tr>
-<tr>
-<td data-label="Variable"><code>SQUIRE_DEPLOYMENTS</code></td>
-<td data-label="Default">not stated</td>
-<td data-label="Meaning">Local parity: the deployments path.</td>
-</tr>
-<tr>
-<td data-label="Variable"><code>SQUIRE_HTTP_PORT</code></td>
-<td data-label="Default">not stated</td>
-<td data-label="Meaning">Local parity: the HTTP port.</td>
-</tr>
-<tr>
-<td data-label="Variable"><code>SQUIRE_APP_MEMORY</code></td>
-<td data-label="Default">not stated</td>
-<td data-label="Meaning">Local parity: the app memory limit.</td>
-</tr>
-<tr>
-<td data-label="Variable"><code>SQUIRE_SOURCE_UID</code></td>
-<td data-label="Default">not stated</td>
-<td data-label="Meaning">Local parity: the uid that owns the mounted source.</td>
-</tr>
-<tr>
-<td data-label="Variable"><code>SQUIRE_SOURCE_GID</code></td>
-<td data-label="Default">not stated</td>
-<td data-label="Meaning">Local parity: the gid that owns the mounted source.</td>
-</tr>
-<tr>
-<td data-label="Variable"><code>SQUIRE_DB_NAME</code></td>
-<td data-label="Default">not stated</td>
-<td data-label="Meaning">Local parity: the database name.</td>
-</tr>
-<tr>
-<td data-label="Variable"><code>SQUIRE_DB_USER</code></td>
-<td data-label="Default">not stated</td>
-<td data-label="Meaning">Local parity: the database user.</td>
-</tr>
-<tr>
-<td data-label="Variable"><code>SQUIRE_DB_PASSWORD</code></td>
-<td data-label="Default">not stated</td>
-<td data-label="Meaning">Local parity: the database password.</td>
-</tr>
-<tr>
-<td data-label="Variable"><code>SQUIRE_DB_ROOT_PASSWORD</code></td>
-<td data-label="Default">not stated</td>
-<td data-label="Meaning">Local parity: the database root password.</td>
-</tr>
-<tr>
-<td data-label="Variable"><code>SQUIRE_DB_PORT</code></td>
-<td data-label="Default">not stated</td>
-<td data-label="Meaning">Local parity: the database port.</td>
-</tr>
-<tr>
-<td data-label="Variable"><code>SQUIRE_DB_MEMORY</code></td>
-<td data-label="Default">not stated</td>
-<td data-label="Meaning">Local parity: the database memory limit.</td>
-</tr>
-<tr>
-<td data-label="Variable"><code>SQUIRE_PORTABLE_HTTP_PORT</code></td>
-<td data-label="Default"><code>8081</code></td>
-<td data-label="Meaning">The <code>portable</code> profile: where the web container is published on loopback.</td>
-</tr>
-<tr>
-<td data-label="Variable"><code>SQUIRE_PORTABLE_USER</code></td>
-<td data-label="Default"><code>10001:0</code></td>
-<td data-label="Meaning">The <code>portable</code> profile: the UID and group the containers run as (try <code>1000123:0</code>).</td>
-</tr>
-<tr>
-<td data-label="Variable"><code>SQUIRE_PORTABLE_ENV_FILE</code></td>
-<td data-label="Default"><code>.env</code></td>
-<td data-label="Meaning">The <code>portable</code> profile: the app's env file, read at run time and never baked in.</td>
-</tr>
-<tr>
-<td data-label="Variable"><code>SQUIRE_PORTABLE_CONTEXT</code></td>
-<td data-label="Default"><code>.</code></td>
-<td data-label="Meaning">The <code>portable</code> profile: the build context, relative to the compose file (<code>..</code> for WELD).</td>
-</tr>
-<tr>
-<td data-label="Variable"><code>SQUIRE_KIT_DIR</code></td>
-<td data-label="Default"><code>.</code></td>
-<td data-label="Meaning">The <code>portable</code> profile: the kit's folder inside that context (<code>deploy</code> for WELD).</td>
-</tr>
-</tbody>
-</table></div>
-<p>The Vue layer's compose file also reads <code>SQUIRE_NODE_IMAGE</code> (default <code>node:22.23.4-bookworm-slim</code>, pinned by digest), <code>SQUIRE_NODE_ENV</code> (default <code>production</code>) and <code>SQUIRE_NODE_MEMORY</code> (default <code>512m</code>). The compose file refuses to start without the two passwords. See <code>.env.squire.example</code>; it holds placeholders only.</p>
+<h2 id="local-parity-moved-to-parity">Local parity: moved to <span class="docs-heading-tail"><span>Parity</span><a class="docs-heading-link" aria-label="Link to this section" href="#local-parity-moved-to-parity">#</a></span></h2>
+<p>The parity kit's settings (<code>SQUIRE_PROJECT</code>, <code>SQUIRE_DB_PASSWORD</code>, <code>SQUIRE_HTTP_PORT</code>, the <code>portable</code> profile's <code>SQUIRE_PORTABLE_*</code> and the Vue layer's <code>SQUIRE_NODE_*</code>) left with the kit in 0.12.0; nothing in Squire reads them. <code>parity init --from-squire</code> carries the ones that matter into <code>parity.json</code>. See <a href="../guides/local-parity.html">Moved to Parity</a>.</p>
 </article>
     </main>
     <nav class="docs-pager" aria-label="Pages"><a class="docs-pager__link" href="../../docs/reference/commands.html"><span class="docs-pager__dir">Previous</span><span class="docs-pager__title">Commands</span></a><a class="docs-pager__link docs-pager__link--next" href="../../docs/reference/files.html"><span class="docs-pager__dir">Next</span><span class="docs-pager__title">Files</span></a></nav>
   </div>
-  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item"><a href="#where-the-settings-live">Where the settings live</a></li><li class="docs-toc__item"><a href="#release-script-scripts-release-sh">Release script (scripts/release.sh)</a></li><li class="docs-toc__item"><a href="#front-controller">Front controller</a></li><li class="docs-toc__item"><a href="#health-check-health-php">Health check (health.php)</a></li><li class="docs-toc__item"><a href="#portable-image-squire-portable-dockerfile">Portable image (.squire/portable.Dockerfile)</a></li><li class="docs-toc__item"><a href="#php-in-the-image-squire-php-ini">PHP in the image (.squire/php.ini)</a></li><li class="docs-toc__item"><a href="#local-parity-env-squire">Local parity (.env.squire)</a></li></ul></nav>
+  <nav class="docs-toc" aria-label="On this page"><h2 class="docs-toc__title">On this page</h2><ul class="docs-toc__list"><li class="docs-toc__item"><a href="#where-the-settings-live">Where the settings live</a></li><li class="docs-toc__item"><a href="#release-script-scripts-release-sh">Release script (scripts/release.sh)</a></li><li class="docs-toc__item"><a href="#front-controller">Front controller</a></li><li class="docs-toc__item"><a href="#health-check-health-php">Health check (health.php)</a></li><li class="docs-toc__item"><a href="#portable-image-squire-portable-dockerfile">Portable image (.squire/portable.Dockerfile)</a></li><li class="docs-toc__item"><a href="#php-in-the-image-squire-php-ini">PHP in the image (.squire/php.ini)</a></li><li class="docs-toc__item"><a href="#local-parity-moved-to-parity">Local parity: moved to Parity</a></li></ul></nav>
 </div>
 <footer class="docs-footer">
-  <span>Documents Squire <span data-docs-version>0.11.2</span></span>
+  <span>Documents Squire <span data-docs-version>0.12.0</span></span>
   <span><a rel="noopener" href="https://github.com/waynestate/squire">Source</a> <a href="configuration.md">Markdown</a></span>
 </footer>
 </body>

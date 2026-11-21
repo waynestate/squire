@@ -1,6 +1,6 @@
 ---
 title: "Static site | Squire docs"
-description: "The static target: committed site files served by Squire's front controller, SQUIRE_STATIC_ROOT, and the Vue/Inertia layer's .npmrc and Node 22 parity service."
+description: "The static target: committed site files served by Squire's front controller, SQUIRE_STATIC_ROOT, and the Vue/Inertia layer's .npmrc."
 url: https://squire.apps.wayne.edu/docs/guides/static-site.html
 llms: https://squire.apps.wayne.edu/llms.txt
 generator: Squire agent-ready
@@ -20,9 +20,8 @@ The site folder is `../../site` by default (the app lives in `deploy/` beside it
 
 ## The Vue/Inertia layer [#](https://squire.apps.wayne.edu/docs/guides/static-site.html#the-vue-inertia-layer)
 
-A Vue/Inertia app is a layer on `raw`, `laravel` or `static`, not a fourth target: `init` detects `vue` in `package.json` (dependencies or devDependencies) and writes the layer's `.npmrc` and its `docker-compose.squire.yml` (with a Node 22 service) beside the target's files.
+A Vue/Inertia app is a layer on `raw`, `laravel` or `static`, not a fourth target: `init` detects `vue` in `package.json` (dependencies or devDependencies) and writes the layer's `.npmrc` beside the target's files.
 
 - `.npmrc` sets `min-release-age=1` for the frontend install.
-- The Vue `docker-compose.squire.yml` is the common parity compose plus a Node 22 service for frontend tooling, pinned to the same major as the Citadel image.
 
 Every app, Vue or not, gets the one common `scripts/release.sh`, which installs the frontend from the lock file and runs the `build` script whenever there is a `package.json`.

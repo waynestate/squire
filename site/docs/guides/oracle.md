@@ -8,7 +8,7 @@ generator: Squire agent-ready
 
 # Oracle [#](https://squire.apps.wayne.edu/docs/guides/oracle.html#oracle)
 
-This page covers the plain-language Oracle connection check that `release.sh` runs on Citadel and that `squire doctor oracle` runs from your terminal, and the two opt-in Oracle-ready Docker images Squire ships for local work. Next, read [Citadel setup](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html) to wire the release script into the dashboard, or [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html) to run the app on the real images.
+This page covers the plain-language Oracle connection check that `release.sh` runs on Citadel and that `squire doctor oracle` runs from your terminal, and the two opt-in Oracle-ready Docker images Squire ships for local work. Next, read [Citadel setup](https://squire.apps.wayne.edu/docs/guides/citadel-setup.html) to wire the release script into the dashboard, or [Parity](https://git.wayne.edu/enterprise-apps/parity) to run the app on the real images.
 
 ## The connection check [#](https://squire.apps.wayne.edu/docs/guides/oracle.html#the-connection-check)
 

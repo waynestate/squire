@@ -1,6 +1,6 @@
 # Squire
 
-> Squire is the deploy kit for Citadel. It writes your app's build, release and health-check scripts from templates, checks them with squire doctor, and runs the app locally on Citadel's PHP image behind the same kind of proxy.
+> Squire is the deploy kit for Citadel. It writes your app's build, release and health-check scripts from templates, and checks them with squire doctor. Running the app on your computer is Parity's job.
 
 **Suits you up for deploy day.** A squire carries the kit, readies the armor and gets the knight on the field.
 
@@ -8,7 +8,7 @@ Documentation: [squire.apps.wayne.edu/docs/](https://squire.apps.wayne.edu/docs/
 
 Checks: `composer ci` (the same command runs on GitLab and GitHub).
 
-Squire is the Citadel kit: build.sh, the release script, the health check, and local parity on the real images. Its docs builder turns `docs/` into the committed pages under `site/docs/`, with a changelog page generated from `CHANGELOG.md` when the nav lists one. It is part of WELD, the Wayne State application stack, beside WayneUI (project 0, the interface layer), CREED, PROCTOR, Preflight, SESAME, HELMET, Pinstripe, Sourdough and [Parity](https://git.wayne.edu/enterprise-apps/parity). Squire gets the app onto Citadel; Parity runs Citadel on your computer, and takes over from Squire's own parity kit, which is deprecated (see [Local parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html)).
+Squire is the Citadel kit: build.sh, the release script and the health check, from templates, checked by `squire doctor`. Its docs builder turns `docs/` into the committed pages under `site/docs/`, with a changelog page generated from `CHANGELOG.md` when the nav lists one. It is part of WELD, the Wayne State application stack, beside WayneUI (project 0, the interface layer), CREED, PROCTOR, Preflight, SESAME, HELMET, Pinstripe, Sourdough and [Parity](https://git.wayne.edu/enterprise-apps/parity). Squire gets the app onto Citadel; Parity runs Citadel on your computer, and took over from Squire's own parity kit, which left in 0.12.0 (see [Moved to Parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html)).
 
 **Not to be confused with:** `squire doctor` checks deploy setup only; standards checks are PROCTOR's.
 
@@ -17,13 +17,13 @@ Squire is the Citadel kit: build.sh, the release script, the health check, and l
 Front page: [`site/index.html`](https://github.com/waynestate/squire/blob/HEAD/site/index.html), a static page you can serve from anywhere.
 On Citadel it is served by the raw-PHP deploy layer in [`deploy/`](https://github.com/waynestate/squire/blob/HEAD/deploy/): a Squire kit whose front controller serves `site/` behind HELMET's security headers. For local development, keep serving `site/` directly.
 
-Status: 0.11.2, tagged and on Packagist.
+Status: 0.12.0, tagged and on Packagist.
 
 Every page below is Markdown. The HTML pages send the same Markdown to a client that asks for `text/markdown`. Written by Squire's agent-ready kit from the README and the pages; do not edit.
 
 ## Pages
 
-- [Squire: Suits you up for the Citadel.](https://squire.apps.wayne.edu/index.md): Squire is the deploy kit for Citadel. It writes your app's build, release and health-check scripts from templates, checks them with squire doctor, and runs the app locally on Citadel's PHP image behind the same kind of proxy.
+- [Squire: Suits you up for the Citadel.](https://squire.apps.wayne.edu/index.md): Squire is the deploy kit for Citadel. It writes your app's build, release and health-check scripts from templates, and checks them with squire doctor. Running the app on your computer is Parity's job.
 - [Squire 0.1 plan | Squire docs](https://squire.apps.wayne.edu/docs/0.1-plan.md)
 - [Changelog | Squire docs](https://squire.apps.wayne.edu/docs/changelog.md): All notable changes to this project.
 - [Contributing | Squire docs](https://squire.apps.wayne.edu/docs/contributing.md): Where Squire's code lives, the commands that build, lint and test it, and the steps a release goes through before it is tagged.
@@ -33,7 +33,7 @@ Every page below is Markdown. The HTML pages send the same Markdown to a client 
 - [The docs builder | Squire docs](https://squire.apps.wayne.edu/docs/guides/docs-builder.md): How bin/docs-site.php turns docs/ into committed HTML under site/docs/, with generated blocks, a changelog page, callouts, task lists, what the check proves, tested examples and JavaScript tests.
 - [Doctor | Squire docs](https://squire.apps.wayne.edu/docs/guides/doctor.md): What squire doctor checks (the S-rules), its handoff to PROCTOR, its text and json output, and its exit codes.
 - [Image hardening | Squire docs](https://squire.apps.wayne.edu/docs/guides/image-hardening.md): What Squire's images and kit harden, and how to turn each piece down when an app needs it: Apache's banner and TRACE, opcache set by how code arrives, a web-only disable_functions list, secrets as files at run time, npm without install scripts, and bases pinned by digest.
-- [Local parity | Squire docs](https://squire.apps.wayne.edu/docs/guides/local-parity.md): Run Citadel on your computer with Parity, the stack's own tool, and move off Squire's deprecated parity kit; plus the kit itself while it lasts: Docker requirements, WSL 2 advice, engines and licenses, the parity.sh and parity.ps1 commands, and the fallback build.
+- [Moved to Parity | Squire docs](https://squire.apps.wayne.edu/docs/guides/local-parity.md): Running Citadel on your computer moved from Squire's parity kit to Parity, the stack's own tool, in Squire 0.12.0: the four commands that move an app over, which kit files to delete afterward, and what Squire still does.
 - [MySQL upgrade path | Squire docs](https://squire.apps.wayne.edu/docs/guides/mysql-upgrade-path.md): How to move an app's database from MySQL 5.6.51 to 8.4 LTS one series at a time: the checks to run before each hop, a backup you can trust, the driver and Laravel floor, a read-only pre-upgrade script, and a rollback for every hop, since MySQL cannot downgrade in place across series.
 - [Oracle | Squire docs](https://squire.apps.wayne.edu/docs/guides/oracle.md): How Squire checks an app's Oracle connection, and the opt-in Oracle-ready Docker images for local work.
 - [The portable image | Squire docs](https://squire.apps.wayne.edu/docs/guides/portable-image.md): Run a Squire app off Citadel (OpenShift, Coolify, raw Docker): one image with the code baked in, run as web, worker, scheduler or migrate, as an arbitrary non-root UID in group 0 on port 8080, with the Citadel mirror left exactly as it was.
@@ -41,21 +41,21 @@ Every page below is Markdown. The HTML pages send the same Markdown to a client 
 - [Quick start | Squire docs](https://squire.apps.wayne.edu/docs/guides/quick-start.md): Install Squire, run squire init and squire doctor, and commit .squire.json: the shortest ride from composer require to a deploy-ready app.
 - [Raw PHP app | Squire docs](https://squire.apps.wayne.edu/docs/guides/raw-php-app.md): The raw target: the front controller's three answers, its 404 rules, SQUIRE_APP_ENTRY, app-owned files and public/up.php.
 - [The release script | Squire docs](https://squire.apps.wayne.edu/docs/guides/release-script.md): What scripts/release.sh does step by step on Citadel: preconditions, composer install from the lock file, audit, PROCTOR's deploy gate, frontend build, Laravel migrate, optimize and the restart of the long-lived processes, the Oracle check, and the /up smoke test.
-- [Static site | Squire docs](https://squire.apps.wayne.edu/docs/guides/static-site.md): The static target: committed site files served by Squire's front controller, SQUIRE_STATIC_ROOT, and the Vue/Inertia layer's .npmrc and Node 22 parity service.
+- [Static site | Squire docs](https://squire.apps.wayne.edu/docs/guides/static-site.md): The static target: committed site files served by Squire's front controller, SQUIRE_STATIC_ROOT, and the Vue/Inertia layer's .npmrc.
 - [Theming your docs | Squire docs](https://squire.apps.wayne.edu/docs/guides/theming.md): Point the docs builder at your own CSS and header so the pages read in your colors.
 - [Update and drift | Squire docs](https://squire.apps.wayne.edu/docs/guides/update-and-drift.md): The .squire.json SHA-256 record, init --check drift reporting, squire update, app-owned files, and Sourdough's copy of the templates.
-- [Squire | Squire docs](https://squire.apps.wayne.edu/docs/index.md): Squire is the Citadel kit: the standard build.sh, release script and health check, and local parity on the real Citadel images.
+- [Squire | Squire docs](https://squire.apps.wayne.edu/docs/index.md): Squire is the Citadel kit: the standard build.sh, release script and health check, from templates, checked by squire doctor. Parity runs Citadel on your computer.
 - [Install | Squire docs](https://squire.apps.wayne.edu/docs/install.md): Install Squire as a dev dependency, write your app's deploy scripts, and verify them with squire doctor.
 - [Commands | Squire docs](https://squire.apps.wayne.edu/docs/reference/commands.md): Every squire command with its usage, arguments and options, plus the exit codes to expect.
 - [Configuration reference | Squire docs](https://squire.apps.wayne.edu/docs/reference/configuration.md): Every SQUIRE_* setting Squire reads, the file it lives in, and its default.
 - [Files Squire writes | Squire docs](https://squire.apps.wayne.edu/docs/reference/files.md): The table of files Squire writes into an app, which target or layer each belongs to, and the .gitignore lines init keeps.
 - [Proof | Squire docs](https://squire.apps.wayne.edu/docs/reference/proof.md): Squire run against 82 Wayne State applications on 2026-11-05: what ran, what held, what it caught in Squire itself, what it does not prove, and how to run the same on your app.
 - [Troubleshooting | Squire docs](https://squire.apps.wayne.edu/docs/troubleshooting.md): Symptoms, causes and fixes for the Squire setup, from permission errors to doctor exit codes.
-- [Upgrading | Squire docs](https://squire.apps.wayne.edu/docs/upgrading.md): What changed in each released minor of Squire (0.11.0, 0.10.9, 0.10.8, 0.10.5, 0.10.4, 0.10.3, 0.10.2, 0.10.1, 0.10.0, 0.9.0, 0.8.0, 0.7.1, 0.7.0, 0.6.0, 0.5.0, 0.4.0 and the 0.3.x line), the steps to move an app to them, and how to verify the upgrade held.
+- [Upgrading | Squire docs](https://squire.apps.wayne.edu/docs/upgrading.md): What changed in each released minor of Squire (0.12.0, 0.11.0, 0.10.9, 0.10.8, 0.10.5, 0.10.4, 0.10.3, 0.10.2, 0.10.1, 0.10.0, 0.9.0, 0.8.0, 0.7.1, 0.7.0, 0.6.0, 0.5.0, 0.4.0 and the 0.3.x line), the steps to move an app to them, and how to verify the upgrade held.
 
 ## Prompts
 
-- [Get started with Squire](https://squire.apps.wayne.edu/#get-started): Pack your app for the Citadel and try it at home first. The prompt itself is in https://squire.apps.wayne.edu/index.md.
+- [Get started with Squire](https://squire.apps.wayne.edu/#get-started): Pack your app for the Citadel; Parity lets you try it at home first. The prompt itself is in https://squire.apps.wayne.edu/index.md.
 
 ## Source
 
