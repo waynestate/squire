@@ -5,6 +5,8 @@ Versioning once 1.0 is out.
 
 ## [Unreleased]
 
+- Docs: current pages no longer name the stack's internal GitLab host.
+
 ## 0.12.0 (2026-11-20)
 
 Squire is the Citadel kit now: `build.sh`, the release script and the health check, from templates, checked by `squire doctor`. Running Citadel on your computer is [Parity](https://git.wayne.edu/enterprise-apps/parity)'s job. The upgrade steps are in [Upgrading](https://squire.apps.wayne.edu/docs/upgrading.html#0-12-0-2026-11-20).
