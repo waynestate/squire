@@ -4,6 +4,11 @@
 declare(strict_types=1);
 
 use Waynestate\Squire\Console\Application;
+use Waynestate\Squire\Squire;
+use Waynestate\Squire\Update\InstallKind;
+use Waynestate\Squire\Update\PackagistFetcher;
+use Waynestate\Squire\Update\UpdateCache;
+use Waynestate\Squire\Update\UpdateNotice;
 
 // Squire is a Composer package: its autoloader is either its own vendor/ or the host app's.
 $autoloaders = [
@@ -14,7 +19,32 @@ $autoloaders = [
 foreach ($autoloaders as $autoload) {
     if (is_file($autoload)) {
         require $autoload;
-        exit((new Application())->run());
+
+        // After any command finishes, one line on stderr when a newer stable
+        // release exists. The notice never throws, never writes to stdout
+        // and never changes the exit code; the running version is the one
+        // Squire reports for this install.
+        $packageRoot = dirname(__DIR__);
+        $version = Squire::version();
+        $notice = new UpdateNotice(
+            Squire::TOOL,
+            $packageRoot,
+            InstallKind::detect($packageRoot, getenv() ?: []),
+            new UpdateCache(Squire::TOOL),
+            new PackagistFetcher(),
+            static fn (): int => time(),
+        );
+        /** @var list<string> $argv */
+        $argv = $GLOBALS['argv'] ?? [];
+        $application = new Application();
+        $application->setAutoExit(false);
+        $code = $application->run();
+        try {
+            $notice->run(getenv() ?: [], $argv, $version, STDERR);
+        } catch (\Throwable) {
+            // The notice never gets in the way.
+        }
+        exit($code);
     }
 }
 
