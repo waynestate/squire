@@ -28,9 +28,9 @@ final class UpdateNotice
     private const DAY = 86400;
 
     /**
-     * @param string          $tool        the tool's name, as printed in the line
-     * @param string          $packageRoot the folder holding bin/ and src/
-     * @param callable(): int $clock       current unix time, injected so tests need no real clock
+     * @param string         $tool        the tool's name, as printed in the line
+     * @param string         $packageRoot the folder holding bin/ and src/
+     * @param \Closure(): int $clock       current unix time, injected so tests need no real clock
      */
     public function __construct(
         private readonly string $tool,
@@ -45,10 +45,10 @@ final class UpdateNotice
      * Run the check and print the line when it is due. Never throws, never
      * writes to stdout, never changes an exit code.
      *
-     * @param array<string, string>           $env     the process environment
-     * @param list<string>                    $argv    the command line, for --quiet/-q
-     * @param string                          $version the running version
-     * @param callable(string): void|resource $stderr  where the line goes
+     * @param array<string, string>              $env     the process environment
+     * @param list<string>                       $argv    the command line, for --quiet/-q
+     * @param string                             $version the running version
+     * @param (callable(string): void)|resource  $stderr  where the line goes
      */
     public function run(array $env, array $argv, string $version, mixed $stderr): void
     {
@@ -60,9 +60,9 @@ final class UpdateNotice
     }
 
     /**
-     * @param array<string, string>           $env
-     * @param list<string>                    $argv
-     * @param callable(string): void|resource $stderr
+     * @param array<string, string>              $env
+     * @param list<string>                       $argv
+     * @param (callable(string): void)|resource  $stderr
      */
     private function check(array $env, array $argv, string $version, mixed $stderr): void
     {
@@ -205,7 +205,7 @@ final class UpdateNotice
     }
 
     /**
-     * @param callable(string): void|resource $stderr
+     * @param (callable(string): void)|resource $stderr
      */
     private function writeLine(mixed $stderr, string $message): void
     {
@@ -213,7 +213,7 @@ final class UpdateNotice
         try {
             if (is_resource($stderr)) {
                 fwrite($stderr, $message);
-            } else {
+            } elseif (is_callable($stderr)) {
                 $stderr($message);
             }
         } finally {

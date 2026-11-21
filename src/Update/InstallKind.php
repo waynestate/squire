@@ -171,6 +171,8 @@ enum InstallKind
     }
 
     /**
+     * @param array<string, string> $env
+     *
      * @return list<string>
      */
     private static function globalHomes(array $env): array
