@@ -15,10 +15,12 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 ### Changed [#](https://squire.apps.wayne.edu/docs/changelog.html#changed)
 
 - The dev dependency ADVISOR is `^0.4` (was `^0.3`, which does not allow 0.4.0); 0.4.0 adds the `advisor install --runner` option and changes nothing Squire uses.
+- Docs: SECURITY.md says how to report a vulnerability privately.
 
 ### Fixed [#](https://squire.apps.wayne.edu/docs/changelog.html#fixed)
 
 - The PSScriptAnalyzer CI job analyzes scripts/ (it pointed at templates/, which holds no .ps1 files, and passed without checking anything); a listed folder with no .ps1 files now fails the job.
+- Docs: current pages no longer name the stack's internal GitLab host.
 
 ## 0.12.0 (2026-11-20) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-12-0-2026-11-20)
 

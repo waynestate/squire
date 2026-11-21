@@ -46,10 +46,12 @@ Versioning once 1.0 is out.</p>
 <h3 id="changed"><span class="docs-heading-tail"><span>Changed</span><a class="docs-heading-link" aria-label="Link to this section" href="#changed">#</a></span></h3>
 <ul>
 <li>The dev dependency ADVISOR is <code>^0.4</code> (was <code>^0.3</code>, which does not allow 0.4.0); 0.4.0 adds the <code>advisor install --runner</code> option and changes nothing Squire uses.</li>
+<li>Docs: SECURITY.md says how to report a vulnerability privately.</li>
 </ul>
 <h3 id="fixed"><span class="docs-heading-tail"><span>Fixed</span><a class="docs-heading-link" aria-label="Link to this section" href="#fixed">#</a></span></h3>
 <ul>
 <li>The PSScriptAnalyzer CI job analyzes scripts/ (it pointed at templates/, which holds no .ps1 files, and passed without checking anything); a listed folder with no .ps1 files now fails the job.</li>
+<li>Docs: current pages no longer name the stack's internal GitLab host.</li>
 </ul>
 <h2 id="0-12-0-2026-11-20">0.12.0 <span class="docs-heading-tail"><span>(2026-11-20)</span><a class="docs-heading-link" aria-label="Link to this section" href="#0-12-0-2026-11-20">#</a></span></h2>
 <p>Squire is the Citadel kit now: <code>build.sh</code>, the release script and the health check, from templates, checked by <code>squire doctor</code>. Running Citadel on your computer is <a rel="noopener" href="https://git.wayne.edu/enterprise-apps/parity">Parity</a>'s job. The upgrade steps are in <a rel="noopener" href="https://squire.apps.wayne.edu/docs/upgrading.html#0-12-0-2026-11-20">Upgrading</a>.</p>

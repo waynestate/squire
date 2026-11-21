@@ -15,10 +15,12 @@ Versioning once 1.0 is out.
 ### Changed
 
 - The dev dependency ADVISOR is `^0.4` (was `^0.3`, which does not allow 0.4.0); 0.4.0 adds the `advisor install --runner` option and changes nothing Squire uses.
+- Docs: SECURITY.md says how to report a vulnerability privately.
 
 ### Fixed
 
 - The PSScriptAnalyzer CI job analyzes scripts/ (it pointed at templates/, which holds no .ps1 files, and passed without checking anything); a listed folder with no .ps1 files now fails the job.
+- Docs: current pages no longer name the stack's internal GitLab host.
 
 ## 0.12.0 (2026-11-20)
 
