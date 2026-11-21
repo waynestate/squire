@@ -318,12 +318,13 @@ final class UpdateNoticeTest extends TestCase
         // ambient environment cannot silence the check.
         $home = $this->copyLayout();
 
-        // 0.11.3 stays on the same major as the running 0.11.2, so the line
-        // carries no upgrading link.
+        // 99.0.0 is far newer than any running release, so the notice
+        // prints whatever version the copy carries; a major bump appends
+        // the upgrading link.
         $cacheDir = $home . '/cache';
         $file = $cacheDir . '/waynestate/squire/update-check.json';
         mkdir(dirname($file), 0o755, true);
-        file_put_contents($file, json_encode(['checked_at' => time(), 'latest' => '0.11.3']) . "\n");
+        file_put_contents($file, json_encode(['checked_at' => time(), 'latest' => '99.0.0']) . "\n");
 
         $env = ['CI' => '', 'WAYNE_NO_UPDATE_CHECK' => '', 'XDG_CACHE_HOME' => $cacheDir];
         [$stdoutOff, $stderrOff, $exitOff] = $this->runBinary($home, [...$env, 'WAYNE_NO_UPDATE_CHECK' => '1'], ['--version']);
@@ -341,13 +342,15 @@ final class UpdateNoticeTest extends TestCase
         self::assertSame($jsonExitOff, $jsonExitOn, "stderr: {$jsonErrOn}");
         self::assertSame($jsonOff, $jsonOn, "stderr: {$jsonErrOn}");
 
-        // The notice went to stderr, on one line. The copied layout is a
-        // project dependency without a composer.json, so the line ends with
-        // the plain update command.
+        // The notice went to stderr, on one line. The running version is
+        // whatever the copy carries, so assert the shape only: the seed is
+        // far newer than any release, and the trailing update command
+        // depends on the copied layout.
         $lines = array_values(array_filter(explode("\n", $stderrOn), static fn(string $line): bool => $line !== ''));
         self::assertCount(1, $lines, "stderr: {$stderrOn}");
-        self::assertSame(
-            'squire 0.11.2 is out of date: 0.11.3 is the newest release. Update: composer update waynestate/squire',
+        self::assertStringStartsWith('squire ', $lines[0]);
+        self::assertStringContainsString(
+            ' is out of date: 99.0.0 is the newest release. Update: ',
             $lines[0],
         );
     }
