@@ -12,6 +12,10 @@ Versioning once 1.0 is out.
 
 ## [Unreleased]
 
+### Fixed
+
+- The PSScriptAnalyzer CI job analyzes scripts/ (it pointed at templates/, which holds no .ps1 files, and passed without checking anything); a listed folder with no .ps1 files now fails the job.
+
 ## 0.12.0 (2026-11-20)
 
 Squire is the Citadel kit now: `build.sh`, the release script and the health check, from templates, checked by `squire doctor`. Running Citadel on your computer is [Parity](https://git.wayne.edu/enterprise-apps/parity)'s job. The upgrade steps are in [Upgrading](https://squire.apps.wayne.edu/docs/upgrading.html#0-12-0-2026-11-20).

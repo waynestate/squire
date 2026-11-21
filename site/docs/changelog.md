@@ -12,6 +12,10 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ## \[Unreleased\] [#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+### Fixed [#](https://squire.apps.wayne.edu/docs/changelog.html#fixed)
+
+- The PSScriptAnalyzer CI job analyzes scripts/ (it pointed at templates/, which holds no .ps1 files, and passed without checking anything); a listed folder with no .ps1 files now fails the job.
+
 ## 0.12.0 (2026-11-20) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-12-0-2026-11-20)
 
 Squire is the Citadel kit now: `build.sh`, the release script and the health check, from templates, checked by `squire doctor`. Running Citadel on your computer is [Parity](https://git.wayne.edu/enterprise-apps/parity)'s job. The upgrade steps are in [Upgrading](https://squire.apps.wayne.edu/docs/upgrading.html#0-12-0-2026-11-20).
@@ -28,7 +32,7 @@ Squire is the Citadel kit now: `build.sh`, the release script and the health che
 - The parity kit, announced as deprecated in 0.10.5 and planned for removal no sooner than 2027-01-08 (ADR-0022). The maintainer brought the date forward to 0.12.0, because Parity now covers everything the kit did. Removed: `docker-compose.squire.yml` (and the Vue layer's copy with its Node 22 service), `.squire/haproxy.cfg`, `scripts/parity.sh`, `scripts/parity.ps1` and `.env.squire.example` (raw and Laravel).
 - The GitHub CI legs `contract-parity-sh` and `contract-parity-pwsh`. The `contract-image` leg stays and now asks for `--only=release,images`.
 
-### Fixed [#](https://squire.apps.wayne.edu/docs/changelog.html#fixed)
+### Fixed [#](https://squire.apps.wayne.edu/docs/changelog.html#fixed-1)
 
 - The raw and static front controllers send scripts, styles and data (`.css`, `.js`, `.mjs`, `.json`, `.md`, `.txt`, `.xml`, `.webmanifest`) with `Cache-Control: no-cache` and their ETag, so the browser asks on every load and gets a 304 when nothing changed. They had an hour of cache, and the HTML is never cached, so for up to an hour after a release a browser ran the old script on the new page (CREED found it). Images and fonts keep their hour. `public/index.php` is the app's own file, so `squire update` never rewrites it: an app that already has one takes the change by hand (the diff is in [Upgrading](https://squire.apps.wayne.edu/docs/upgrading.html#0-12-0-2026-11-20)).
 
@@ -341,7 +345,7 @@ Squire is the Citadel kit now: `build.sh`, the release script and the health che
 
 ## 0.2.1 (2026-10-29) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-2-1-2026-10-29)
 
-### Fixed [#](https://squire.apps.wayne.edu/docs/changelog.html#fixed-1)
+### Fixed [#](https://squire.apps.wayne.edu/docs/changelog.html#fixed-2)
 
 - Fixed: SQUIRE reported 0.1.0 after the 0.2.0 release.
 
