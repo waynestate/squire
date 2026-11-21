@@ -148,6 +148,14 @@ docker buildx imagetools inspect php:8.4.28-apache
 
 Look for the `Digest:` line, and for `linux/amd64` and `linux/arm64/v8` under Manifests. Then run the tests and the image contract suite on both platforms. Maintainers have the full procedure in `MAINTAINING.md`. Two references are yours, not the kit's: the real Citadel image (`SQUIRE_BASE_IMAGE`, pin it once you have its digest) and any `SQUIRE_NODE_IMAGE`, `SQUIRE_PROXY_IMAGE` or `SQUIRE_MYSQL_IMAGE` override.
 
+## PHP 8.6r1
+
+Citadel now offers `citadel/php-apache:8.6r1`, built from the official `php:8.6.0-apache`. That image is ZTS, and Apache stays on `mpm_prefork`, so apps behave the same as on the other lines. PEAR and PECL are restored, `mbstring` is built in, `oci8` 3.4.1 is installed, and `redis` 6.3.0 and `imagick` 3.8.1 are built with Remi Collet's patches (Citadel drops them once upstream releases). `xdebug`, `pcov` and `apcu` are not in the image.
+
+The default line stays 8.5r3; choose 8.6r1 with `squire init --php 8.6r1`.
+
+The fallback base for 8.6r1 is a public stand-in on the official image, pinned by its multi-arch list digest. It has none of those extensions or PECL (no `mbstring`), and it has not been proven with the container contract yet, so use the real image.
+
 ## The image contract suite
 
 A file can promise anything; the running image is what counts. `scripts/contract-image.sh` (in Squire's repository) builds the fallback base and the app image for a platform, runs the container with a throwaway raw PHP app mounted at `/citadel/src`, a throwaway secret mounted at `/run/secrets` and the compose file's least privilege (every capability dropped but the seven the app service adds back, `no-new-privileges`, 256 processes, 512 MB), runs the release as `citadel`, and then pipes `scripts/contract-image-checks.php` to `php` inside the container. One PASS or FAIL line per check:

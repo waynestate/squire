@@ -36,6 +36,7 @@ final class Squire
     public const FALLBACK_PHP_IMAGES = [
         '8.4r5' => 'docker.io/library/php:8.4.27-apache@sha256:884f64b47174de2c0e813270fe7b24a18605729fcebe201302d98c38805530d0',
         '8.5r3' => 'docker.io/library/php:8.5.12-apache@sha256:08af36df144462d84c7f16190557eec06cb9f656882685610b712a15eec54d46',
+        '8.6r1' => 'docker.io/library/php:8.6.0-apache@sha256:0b06b358a7d59cca80e0528aad0e49b43208c3a74754ffcd8a12d7727058511e',
     ];
 
     /** Where Parity lives: the stack's own tool for running Citadel on your computer (ADR-0022). */
