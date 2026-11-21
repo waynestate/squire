@@ -89,7 +89,7 @@ final class UpdateCache
                 return false;
             }
 
-            $previous = set_error_handler(static fn (): bool => true);
+            $previous = set_error_handler(static fn(): bool => true);
             try {
                 $written = file_put_contents($path, $body . "\n");
             } finally {
@@ -134,7 +134,7 @@ final class UpdateCache
      */
     private function readBody(string $path): ?string
     {
-        $previous = set_error_handler(static fn (): bool => true);
+        $previous = set_error_handler(static fn(): bool => true);
         try {
             $body = file_get_contents($path);
         } finally {
@@ -150,7 +150,7 @@ final class UpdateCache
             return true;
         }
 
-        $previous = set_error_handler(static fn (): bool => true);
+        $previous = set_error_handler(static fn(): bool => true);
         try {
             $made = mkdir($dir, 0777, true);
         } finally {

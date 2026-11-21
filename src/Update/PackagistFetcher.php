@@ -87,10 +87,12 @@ final class PackagistFetcher implements LatestReleaseFetcher
      * Read the body without a warning reaching stderr: file_get_contents
      * raises a warning on failure, and the notice must stay silent, so a
      * temporary error handler swallows it and the result is checked.
+     *
+     * @param resource $context
      */
-    private function readBody(string $url, resource $context): ?string
+    private function readBody(string $url, mixed $context): ?string
     {
-        $previous = set_error_handler(static fn (): bool => true);
+        $previous = set_error_handler(static fn(): bool => true);
         try {
             $body = file_get_contents($url, false, $context);
         } finally {

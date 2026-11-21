@@ -209,7 +209,7 @@ final class UpdateNotice
      */
     private function writeLine(mixed $stderr, string $message): void
     {
-        $previous = set_error_handler(static fn (): bool => true);
+        $previous = set_error_handler(static fn(): bool => true);
         try {
             if (is_resource($stderr)) {
                 fwrite($stderr, $message);

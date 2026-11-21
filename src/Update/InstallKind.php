@@ -85,7 +85,7 @@ enum InstallKind
                 return null;
             }
 
-            $previous = set_error_handler(static fn (): bool => true);
+            $previous = set_error_handler(static fn(): bool => true);
             try {
                 $body = file_get_contents($file);
             } finally {
@@ -228,7 +228,7 @@ enum InstallKind
     private static function segments(string $version): array
     {
         $parts = explode('.', ltrim(trim($version), 'v'));
-        $get = static fn (int $i): int => isset($parts[$i]) && is_numeric($parts[$i]) ? (int) $parts[$i] : 0;
+        $get = static fn(int $i): int => isset($parts[$i]) && is_numeric($parts[$i]) ? (int) $parts[$i] : 0;
 
         return [$get(0), $get(1), $get(2)];
     }

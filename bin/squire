@@ -3,8 +3,6 @@
 
 declare(strict_types=1);
 
-use Symfony\Component\Console\Event\ConsoleEvents;
-use Symfony\Component\Console\Event\ConsoleTerminateEvent;
 use Waynestate\Squire\Console\Application;
 use Waynestate\Squire\Squire;
 use Waynestate\Squire\Update\InstallKind;
@@ -23,7 +21,7 @@ foreach ($autoloaders as $autoload) {
         require $autoload;
 
         // After any command finishes, one line on stderr when a newer stable
-        // release exists. The listener never throws, never writes to stdout
+        // release exists. The notice never throws, never writes to stdout
         // and never changes the exit code; the running version is the one
         // Squire reports for this install.
         $packageRoot = dirname(__DIR__);
@@ -39,15 +37,13 @@ foreach ($autoloaders as $autoload) {
         /** @var list<string> $argv */
         $argv = $GLOBALS['argv'] ?? [];
         $application = new Application();
-        $application->getDispatcher()->addListener(ConsoleEvents::TERMINATE, static function (ConsoleTerminateEvent $event) use ($notice, $version, $argv): void {
-            if ($event->getOutput()->isQuiet()) {
-                return;
-            }
-
+        $code = $application->run();
+        try {
             $notice->run(getenv() ?: [], $argv, $version, STDERR);
-        });
-
-        exit($application->run());
+        } catch (\Throwable) {
+            // The notice never gets in the way.
+        }
+        exit($code);
     }
 }
 

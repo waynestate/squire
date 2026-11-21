@@ -342,7 +342,7 @@ final class UpdateNoticeTest extends TestCase
         // The notice went to stderr, on one line. The copied layout is a
         // project dependency without a composer.json, so the line ends with
         // the plain update command.
-        $lines = array_values(array_filter(explode("\n", $stderrOn), static fn (string $line): bool => $line !== ''));
+        $lines = array_values(array_filter(explode("\n", $stderrOn), static fn(string $line): bool => $line !== ''));
         self::assertCount(1, $lines, "stderr: {$stderrOn}");
         self::assertSame(
             'squire 0.11.2 is out of date: 0.11.3 is the newest release. Update: composer update waynestate/squire',
@@ -494,7 +494,7 @@ final class UpdateNoticeTest extends TestCase
             $kind,
             new UpdateCache('squire'),
             $fetcher,
-            static fn (): int => $now,
+            static fn(): int => $now,
         );
 
         return [$notice, $fetcher];
