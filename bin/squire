@@ -3,7 +3,14 @@
 
 declare(strict_types=1);
 
+use Symfony\Component\Console\Event\ConsoleEvents;
+use Symfony\Component\Console\Event\ConsoleTerminateEvent;
 use Waynestate\Squire\Console\Application;
+use Waynestate\Squire\Squire;
+use Waynestate\Squire\Update\InstallKind;
+use Waynestate\Squire\Update\PackagistFetcher;
+use Waynestate\Squire\Update\UpdateCache;
+use Waynestate\Squire\Update\UpdateNotice;
 
 // Squire is a Composer package: its autoloader is either its own vendor/ or the host app's.
 $autoloaders = [
@@ -14,7 +21,33 @@ $autoloaders = [
 foreach ($autoloaders as $autoload) {
     if (is_file($autoload)) {
         require $autoload;
-        exit((new Application())->run());
+
+        // After any command finishes, one line on stderr when a newer stable
+        // release exists. The listener never throws, never writes to stdout
+        // and never changes the exit code; the running version is the one
+        // Squire reports for this install.
+        $packageRoot = dirname(__DIR__);
+        $version = Squire::version();
+        $notice = new UpdateNotice(
+            Squire::TOOL,
+            $packageRoot,
+            InstallKind::detect($packageRoot, getenv() ?: []),
+            new UpdateCache(Squire::TOOL),
+            new PackagistFetcher(),
+            static fn (): int => time(),
+        );
+        /** @var list<string> $argv */
+        $argv = $GLOBALS['argv'] ?? [];
+        $application = new Application();
+        $application->getDispatcher()->addListener(ConsoleEvents::TERMINATE, static function (ConsoleTerminateEvent $event) use ($notice, $version, $argv): void {
+            if ($event->getOutput()->isQuiet()) {
+                return;
+            }
+
+            $notice->run(getenv() ?: [], $argv, $version, STDERR);
+        });
+
+        exit($application->run());
     }
 }
 
