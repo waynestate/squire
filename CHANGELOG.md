@@ -5,6 +5,8 @@ Versioning once 1.0 is out.
 
 ## [Unreleased]
 
+- Docs: SECURITY.md says how to report a vulnerability privately.
+
 ### Fixed
 
 - The PSScriptAnalyzer CI job analyzes scripts/ (it pointed at templates/, which holds no .ps1 files, and passed without checking anything); a listed folder with no .ps1 files now fails the job.
