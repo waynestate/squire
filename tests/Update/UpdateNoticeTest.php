@@ -15,7 +15,9 @@ use Waynestate\Squire\Update\UpdateNotice;
  * The update notice: one stderr line when a newer stable release exists,
  * with the command that updates this install. Every test uses an injected
  * fetcher and clock and a temp cache dir, so nothing here touches the
- * network or the real cache.
+ * network or the real cache. The env each test passes pins the CI and
+ * opt-out variables, so the ambient environment of the runner or container
+ * cannot silence the check.
  */
 final class UpdateNoticeTest extends TestCase
 {
@@ -443,12 +445,19 @@ final class UpdateNoticeTest extends TestCase
     }
 
     /**
+     * The environment a test passes to the notice: the temp cache dir plus
+     * the CI and opt-out variables pinned to empty, so the ambient
+     * environment (the gate container sets both) cannot reach the check.
+     *
      * @param array<string, string> $extra
      * @return array<string, string>
      */
     private function env(array $extra = []): array
     {
-        return array_merge(['XDG_CACHE_HOME' => $this->cacheDir()], $extra);
+        return array_merge(
+            ['CI' => '', 'WAYNE_NO_UPDATE_CHECK' => '', 'XDG_CACHE_HOME' => $this->cacheDir()],
+            $extra,
+        );
     }
 
     private function cacheDir(): string
@@ -531,6 +540,11 @@ final class UpdateNoticeTest extends TestCase
         if ($env === false) {
             $env = [];
         }
+        // Clear the two variables that can silence the notice, so the child
+        // sees only what the test pins, not the runner's ambient CI or
+        // opt-out; the caller's values below still win.
+        $env['CI'] = '';
+        $env['WAYNE_NO_UPDATE_CHECK'] = '';
         foreach ($extraEnv as $key => $value) {
             $env[$key] = $value;
         }
