@@ -5,7 +5,7 @@ description: "What Squire's images and kit harden, and how to turn each piece do
 
 # Image hardening
 
-This page lists what the kit's images harden, where each setting lives, and the switch that turns it down when an app needs that. Every item has a test that reads the file, and the [image contract suite](#the-image-contract-suite) checks it again inside the built image. Read [Local parity](local-parity.md) first for the images themselves.
+This page lists what the kit's images harden, where each setting lives, and the switch that turns it down when an app needs that. Every item has a test that reads the file, and the [image contract suite](#the-image-contract-suite) checks it again inside the built image. The images are Squire's opt-in `images` group (`squire init --only=release,images`): the Citadel mirror `.squire/Dockerfile`, the fallback base and [the portable image](portable-image.md).
 
 Two kinds of file carry the hardening. The **base** (`.squire/base-fallback.Dockerfile`) stands in for the Citadel image; what it sets is what Squire asks the real image to set, and the real image keeps deciding on Citadel. The **app image** (`.squire/Dockerfile`) is the local copy of the Dockerfile Citadel generates, and runs on either base.
 
@@ -57,7 +57,7 @@ A web request should never shell out. `.squire/php-web.ini` holds the settings o
 
 `proc_open` and `popen` stay: Symfony Mailer's sendmail transport, Laravel's `Process` and PHPMailer use them on the web. A test runs PHP on the same two files and checks both sides: the web list is gone, and the CLI and the mail functions are still there.
 
-**The switch.** `SQUIRE_PHP_DISABLE_FUNCTIONS` replaces the list, and `none` (a name no function has) disables nothing: the way out for an older app that calls `exec` from a page while you move that work to a queued job. Leave it unset for the default list: PHP falls back only when the variable is unset, so an empty value disables nothing as well, and the parity compose files pass it by name only for that reason. Locally, put `SQUIRE_PHP_DISABLE_FUNCTIONS=none` in `.env.squire`.
+**The switch.** `SQUIRE_PHP_DISABLE_FUNCTIONS` replaces the list, and `none` (a name no function has) disables nothing: the way out for an older app that calls `exec` from a page while you move that work to a queued job. Leave it unset for the default list: PHP falls back only when the variable is unset, so an empty value disables nothing as well, so pass it by name only (`-e SQUIRE_PHP_DISABLE_FUNCTIONS`), never as an empty value.
 
 `disable_classes` is not set. It never stopped a caller who could reach another class, and PHP 8.5 removed it.
 
@@ -116,7 +116,7 @@ npm install --min-release-age=0 some-package@1.2.3
 
 ## Base images: pinned by digest
 
-A tag such as `php:8.4-apache` moves: two builds of the same commit a week apart can get different bytes. Every image the kit's files pull is pinned by the digest of its multi-arch list instead, `php:8.4.27-apache@sha256:...`, which names the same bytes on an arm64 laptop or CI runner and on an amd64 server: the fallback base's PHP, Node and Composer, the Vue layer's Node service, HA-Proxy and MySQL in the compose files, and the Oracle parity bases. A test fails on any reference without a digest.
+A tag such as `php:8.4-apache` moves: two builds of the same commit a week apart can get different bytes. Every image the kit's files pull is pinned by the digest of its multi-arch list instead, `php:8.4.27-apache@sha256:...`, which names the same bytes on an arm64 laptop or CI runner and on an amd64 server: the fallback base's PHP, Node and Composer, and the Oracle parity bases. A test fails on any reference without a digest.
 
 The kit's Composer (the fallback base and the Oracle parity image) is 2.11.1, `composer:2.11.1@sha256:8de2184c...`; 2.10 is no longer maintained. Composer 2.11's `policy.cooldown` is off by default, and the kit does not turn it on.
 

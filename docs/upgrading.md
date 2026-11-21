@@ -1,6 +1,6 @@
 ---
 title: "Upgrading"
-description: "What changed in each released minor of Squire (0.11.0, 0.10.9, 0.10.8, 0.10.5, 0.10.4, 0.10.3, 0.10.2, 0.10.1, 0.10.0, 0.9.0, 0.8.0, 0.7.1, 0.7.0, 0.6.0, 0.5.0, 0.4.0 and the 0.3.x line), the steps to move an app to them, and how to verify the upgrade held."
+description: "What changed in each released minor of Squire (0.12.0, 0.11.0, 0.10.9, 0.10.8, 0.10.5, 0.10.4, 0.10.3, 0.10.2, 0.10.1, 0.10.0, 0.9.0, 0.8.0, 0.7.1, 0.7.0, 0.6.0, 0.5.0, 0.4.0 and the 0.3.x line), the steps to move an app to them, and how to verify the upgrade held."
 ---
 
 # Upgrading
@@ -16,6 +16,43 @@ vendor/bin/squire init --check
 vendor/bin/squire update --dry-run
 
 `squire init --check` reports when your copies have drifted from the templates; it exits `0` when they match and `1` when they have. `squire update --dry-run` prints the plan and writes nothing; it exits `1` when an edited file still differs from the template. Exit `2` means the tool itself could not run. For the full command reference, see [Commands](reference/commands.md).
+
+## 0.12.0 (2026-11-20)
+
+### Breaking
+
+Squire's parity kit is gone: Squire is the Citadel kit (`build.sh`, the release script, the health check), and [Parity](https://git.wayne.edu/enterprise-apps/parity) runs Citadel on your computer. The 0.10.5 notice said not before 2027-01-08; the maintainer brought it forward to this release, because Parity covers everything the kit did.
+
+- `--only=parity` stops with exit 2 and a pointer at Parity. The image files the group held (`.squire/Dockerfile`, the fallback base, `php.ini`, `php-web.ini`, the portable image) are now the `images` group, still opt-in: `--only=release,images`.
+- An app whose `.squire.json` records `parity` needs no edit: Squire reads it as `release,images`. Its next `squire update` lists `docker-compose.squire.yml`, `.squire/haproxy.cfg`, `scripts/parity.sh`, `scripts/parity.ps1` and `.env.squire.example` as `kit-leftover`, drops them from `.squire.json`, and deletes none of them.
+- `squire doctor` retires the kit's rules (S36, S37, S41, S67, S70, S71). S35 notes leftover kit files as info.
+- The compose file's `portable` profile went with it. The portable image still runs its four roles; [the portable image guide](guides/portable-image.md#run-the-four-roles-together) has them as `docker run` lines.
+
+### Fixed
+
+The raw and static front controllers (`public/index.php`) send `.css`, `.js`, `.mjs`, `.json`, `.md`, `.txt`, `.xml` and `.webmanifest` with `Cache-Control: no-cache` and their ETag (a 304 when nothing changed), where they had an hour of cache. Images and fonts keep their hour. Before, for up to an hour after a release, a browser ran the old script under the new page.
+
+### Steps
+
+1. `composer update waynestate/squire` after widening the constraint to `^0.12` (`^0.11` does not take 0.12).
+2. Using the kit locally? Move to Parity first, in the app's folder: `parity init --from-squire`, `parity image get`, `parity up` ([Moved to Parity](guides/local-parity.md)).
+3. `vendor/bin/squire update`. It takes the reworded `scripts/release.sh`, `.squire/php.ini` and `.squire/base-fallback.Dockerfile` where you never edited them, and lists the kit files as `kit-leftover`.
+4. Delete the leftover files you have (`git rm docker-compose.squire.yml .squire/haproxy.cfg scripts/parity.sh scripts/parity.ps1 .env.squire.example`) and commit them with `.squire.json`. Keep `.env.squire` if it holds release options.
+5. `public/index.php` is the app's own file, so `squire update` never rewrites it. Take the cache fix by hand: below the HTML branch, add the two lines and use `$cacheControl` in both places that set `Cache-Control` for a served file (the 304 and the 200). In the raw template the extension variable is `$served`; in the static one it is `$extension`.
+
+   ```php
+   $revalidate = ['css', 'js', 'mjs', 'json', 'md', 'txt', 'xml', 'webmanifest'];
+   $cacheControl = in_array($extension, $revalidate, true) ? 'no-cache' : 'public, max-age=3600';
+   // ...
+   header('Cache-Control: ' . $cacheControl);
+   ```
+
+6. Stack repos: refresh `deploy/` the same way. Sourdough: refresh its generated copy with `php bin/export-templates.php --to=templates/squire`.
+7. A CI job that ran `--only=release,parity` asks for `--only=release,images`.
+
+### How to verify
+
+Run the two checks above: `squire init --check` exits `0`, and `squire update --dry-run` lists nothing left to take. `squire doctor` shows `PASS S35  No parity kit files left over.` once the files are gone. `curl -sI https://<app>/<a script>.js` shows `Cache-Control: no-cache` and an `ETag`.
 
 ## 0.11.0 (2026-11-13)
 

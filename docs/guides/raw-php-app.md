@@ -13,7 +13,7 @@ A raw PHP app (`--target=raw`, the default without an `artisan` file) gets a fro
 
 ## The front controller's three answers
 
-- a real file in `public/` (CSS, images, fonts, an HTML page) is served with its type, an ETag and an hour of cache, with HELMET's headers when HELMET is installed, and HELMET's CSP nonce on every `<script>` of an HTML page;
+- a real file in `public/` (CSS, images, fonts, an HTML page) is served with its type and an ETag; images and fonts keep an hour of cache, while scripts, styles and data revalidate on every load (`no-cache`, a 304 when unchanged), so a fresh page never runs last release's script, with HELMET's headers when HELMET is installed, and HELMET's CSP nonce on every `<script>` of an HTML page;
 - a 404 for a dot file (`.htaccess`, `.git`), a NUL byte, a path that climbs out of `public/`, any `.php` or `.phar` other than the front controller, and any file that is not a site asset (a `.sql` dump, a `.bak`, a `.md` with no `.html` beside it);
 - everything else goes to the app's entry: `app.php` beside `public/`, or the file `SQUIRE_APP_ENTRY` names (relative to the app directory, for example `src/bootstrap.php`). A `POST`, `PUT` or `DELETE` always goes to the entry.
 

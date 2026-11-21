@@ -114,9 +114,9 @@ Usage: `squire update [--path PATH] [--target TARGET] [--only ONLY] [--dry-run]`
 
 `0` pass, `1` findings (`init --check`: drift; `update`: an edited file still differs from the template; `doctor`: a failed rule), `2` the tool itself could not run.
 
-## The parity group is deprecated
+## The parity group is gone
 
-When the `parity` group is in play, `init` (not `init --check`) and `update` print one line before they finish, and `doctor` adds an S35 info finding that says the same: the group is deprecated, it is removed no sooner than Squire 0.12.0, and [Parity](https://git.wayne.edu/enterprise-apps/parity) runs Citadel on your computer now (`parity init --from-squire` carries the kit over). The exit codes do not change. See [Local parity](../guides/local-parity.md).
+The `parity` group left Squire in 0.12.0. `--only=parity` exits `2` and names [Parity](https://git.wayne.edu/enterprise-apps/parity), which runs Citadel on your computer now; the image files the group held are `--only=images`. A `.squire.json` that still records `parity` reads as `release,images`. Each kit file it lists is printed as `kit-leftover`, dropped from the record and left on disk, and `init` (not `init --check`) and `update` end with one line that says to run `parity init --from-squire` and delete them. `doctor` notes the same files under S35. The exit codes do not change. See [Moved to Parity](../guides/local-parity.md).
 
 ## doctor oracle
 

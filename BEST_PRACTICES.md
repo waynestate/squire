@@ -21,22 +21,18 @@ here.
 | S20 | fail / warn | PROCTOR runs as a report (the command is followed by an OR branch that records the status), never as a bare command. | After a Quick Update the new commit is already live; a failing post-script cannot undo it. |
 | S21 | warn | The release requests `/up` at the end. | A release that cannot answer a request did not ship. |
 | S22 | warn | The release prints a marker per step. | The dashboard log shows where it stopped. |
-| S35 | warn | The compose file uses a `citadel/php-apache` image. | Same PHP and extensions as production. |
-| S36 | warn | A proxy that adds `X-Forwarded-For` and `X-Forwarded-Proto` is in front of the app. | Trusted-proxy and HTTPS detection bugs only show behind one. |
-| S37 | warn | The local database is MySQL 5.6. | Its limits then show up locally. |
-| S41 | fail | The Docker socket is not mounted. | It is root on the host. |
+| S35 | info | No parity kit file is left in the app. | The kit left Squire in 0.12.0; Parity runs Citadel on your computer. |
 | S42 | warn | `.env` and `.env.squire` are git-ignored. | Secrets stay out of git. |
 | S50 | info | Hand-off: points at `proctor check` for the lock file, composer audit and MySQL 5.6 checks. | Each check has one owner; PROCTOR owns those, and `doctor` may run where PROCTOR is not installed. |
 | S55 | fail / warn | A health check that does not run `artisan` or boot the framework exists. | Citadel runs it every 5 minutes as root. |
 | S57 | warn | JavaScript packages install with `--ignore-scripts`; `.npmrc` sets `min-release-age`. | A compromised package cannot run at install time, and a version published an hour ago is not installed. |
-| S67 | warn | Every image in the compose file is pinned by digest. | The same bytes tomorrow as today. |
-| S70 | warn | Local containers drop capabilities and set `no-new-privileges`. | Least privilege, also locally. |
-| S71 | warn | The local health check uses Citadel's timing (5 minutes, 15 seconds). | A slow `/up` shows up before it ships. |
 | S78 | warn | A Vue app does not track `node_modules/` in git. | Dependencies are rebuilt from the lock file; the tree is not source. |
 
 The lock file (S13), composer audit and MySQL 5.6 safety (S18) are owned by PROCTOR; `doctor` no longer repeats them
 and hands off instead (S50).
 
 Drift from the Squire templates is reported as a warning under S9, never as a failure: you may edit your copies.
+
+The parity kit's rules (S36, S37, S41, S67, S70, S71) were retired with the kit in 0.12.0. Parity checks its own setup (`parity check`).
 
 `doctor` is a lint, not a gate. Wire it into CI if you want it to block; Squire does not decide that for you.
