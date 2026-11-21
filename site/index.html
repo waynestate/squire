@@ -8,7 +8,7 @@
 <meta name="stack-env" content="auto">
 <script src="assets/stack-env.js" defer></script>
 <title>Squire: Suits you up for the Citadel.</title>
-<meta name="description" content="Squire is the deploy kit for Citadel. It writes your app's build, release and health-check scripts from templates, checks them with squire doctor, and runs the app locally on Citadel's PHP image behind the same kind of proxy.">
+<meta name="description" content="Squire is the deploy kit for Citadel. It writes your app's build, release and health-check scripts from templates, and checks them with squire doctor. Running the app on your computer is Parity's job.">
 <meta name="theme-color" content="#efe6d4">
 <link rel="icon" href="brand/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="brand/favicon-32.png">
@@ -47,11 +47,11 @@
     <nav class="site-nav" aria-label="On this page">
       <a href="#kit">Packing list</a>
       <a href="#doctor">Inspection</a>
-      <a href="#parity">Parity</a>
+      <a href="#parity">Run it locally</a>
       <a href="#party">The party</a>
       <a href="docs/">Documentation</a>
     </nav>
-    <span class="brand__version">v<span data-docs-version>0.11.2</span></span>
+    <span class="brand__version">v<span data-docs-version>0.12.0</span></span>
   </div>
 </header>
 
@@ -69,7 +69,7 @@
           <li style="--i:0; --x:14%; --len:34px; --r:-4deg"><span class="tag">build.sh</span></li>
           <li style="--i:1; --x:38%; --len:12px; --r:3deg"><span class="tag">release.sh</span></li>
           <li style="--i:2; --x:63%; --len:40px; --r:-2deg"><span class="tag">health.php</span></li>
-          <li style="--i:3; --x:87%; --len:18px; --r:5deg"><span class="tag">parity kit</span></li>
+          <li style="--i:3; --x:84%; --len:18px; --r:5deg"><span class="tag">oracle-check.php</span></li>
         </ul>
         <button class="hero__satchel" type="button" aria-label="Pack the kit: the squire gathers every tag into the satchel">
           <img class="hero__mark" src="brand/squire-avatar-512.png" width="512" height="512" alt="">
@@ -85,7 +85,7 @@
           <span class="hero__letters" aria-hidden="true"><span style="--i:0">S</span><span style="--i:1">Q</span><span style="--i:2">U</span><span style="--i:3">I</span><span style="--i:4">R</span><span style="--i:5">E</span></span>
         </h1>
         <p class="hero__tagline">Suits you up for <span class="strap">the Citadel.<span class="strap__band" aria-hidden="true"></span><span class="strap__buckle" aria-hidden="true"></span></span></p>
-        <p class="hero__blurb">A squire carries the knight's kit. This one carries your app's. <code>squire init</code> writes the scripts Citadel runs when you deploy and <code>squire doctor</code> checks them. To run your app on your laptop on the same PHP image and MySQL 5.6 as Citadel, behind the same kind of proxy, Squire rides with <a href="https://parity.apps.wayne.edu/">Parity</a>.</p>
+        <p class="hero__blurb">A squire carries the knight's kit. This one carries your app's. <code>squire init</code> writes the scripts Citadel runs when you deploy and <code>squire doctor</code> checks them. To run your app on your laptop on the same PHP image and MySQL 5.6 as Citadel, behind the same kind of proxy, Squire rides with <a href="https://parity.apps.wayne.edu/">Parity</a>, which took that job over in Squire 0.12.0.</p>
         <div class="quickstart">
           <code class="quickstart__code" id="quickstart-cmd" tabindex="0"><span class="t-dim">$</span> composer require waynestate/squire <span class="quickstart__flag">--dev</span></code>
           <button class="copy-btn" type="button" data-copy="composer require waynestate/squire --dev">
@@ -111,7 +111,7 @@
           <div>
             <p class="ar-prompt__kicker">Before you ride · Any PHP app</p>
             <h3 class="ar-prompt__title" id="get-started-title">Get started with Squire</h3>
-            <p class="ar-prompt__desc">Pack your app for the Citadel and try it at home first.</p>
+            <p class="ar-prompt__desc">Pack your app for the Citadel; Parity lets you try it at home first.</p>
           </div>
         </header>
         <pre class="ar-prompt__text"><code>You are a coding agent. Read https://squire.apps.wayne.edu/llms.txt and ask ADVISOR.
@@ -173,12 +173,12 @@ Ask me before you guess.</code></pre>
               <span class="stamp" aria-hidden="true">Packed</span>
             </span>
           </li>
-          <li class="item is-packed" data-item="parity" style="--i:4">
+          <li class="item is-packed" data-item="oracle" style="--i:4">
             <span class="item__tag">
               <span class="item__check" aria-hidden="true"></span>
               <span class="item__body">
-                <code class="item__name">The parity kit <span class="item__count">19 files</span></code>
-                <span class="item__what"><code>docker-compose.squire.yml</code>, <code>.squire/</code>, <code>.env.squire.example</code>, <code>scripts/parity.sh</code> and <code>scripts/parity.ps1</code>: Citadel on your machine, and the portable image for everywhere else. The local half is deprecated: Parity takes it over.</span>
+                <code class="item__name">oracle-check.php</code>
+                <span class="item__what">The plain-language Oracle connection check the release runs: settings, host, port, driver, login. A report, never a gate. <code>.gitattributes</code> rides in the same pocket and keeps every script LF.</span>
               </span>
               <span class="stamp" aria-hidden="true">Packed</span>
             </span>
@@ -195,7 +195,7 @@ Ask me before you guess.</code></pre>
             <div class="bag__label" data-bag-label>
               <span class="bag__label-row"><b>To</b> the Citadel</span>
               <span class="bag__label-row"><b>From</b> my-app</span>
-              <span class="bag__label-row"><b>Holds</b> <span data-bag-files>25</span> files</span>
+              <span class="bag__label-row"><b>Holds</b> <span data-bag-files>6</span> files</span>
             </div>
           </div>
           <p class="bag__count" aria-live="polite"><span data-count>5</span> of 5 packed<span class="bag__ready" data-ready>, buckled for deploy day</span></p>
@@ -221,34 +221,15 @@ Ask me before you guess.</code></pre>
 <p>created           health.php  <span class="t-dim">(written from the template)</span></p>
 <p>created           oracle-check.php  <span class="t-dim">(written from the template)</span></p>
 <p>created           .gitattributes  <span class="t-dim">(written from the template)</span></p>
-<p>created           docker-compose.squire.yml  <span class="t-dim">(written from the template)</span></p>
-<p>created           .squire/Dockerfile  <span class="t-dim">(written from the template)</span></p>
-<p>created           .squire/Dockerfile.dockerignore  <span class="t-dim">(written from the template)</span></p>
-<p>created           .squire/base-fallback.Dockerfile  <span class="t-dim">(written from the template)</span></p>
-<p>created           .squire/apache-hardening.conf  <span class="t-dim">(written from the template)</span></p>
-<p>created           .squire/fallback/citadel-apache-entrypoint  <span class="t-dim">(written from the template)</span></p>
-<p>created           .squire/fallback/citadel-deploy  <span class="t-dim">(written from the template)</span></p>
-<p>created           .squire/haproxy.cfg  <span class="t-dim">(written from the template)</span></p>
-<p>created           .squire/php.ini  <span class="t-dim">(written from the template)</span></p>
-<p>created           .squire/php-web.ini  <span class="t-dim">(written from the template)</span></p>
-<p>created           .squire/vhost.conf  <span class="t-dim">(written from the template)</span></p>
-<p>created           .squire/portable.Dockerfile  <span class="t-dim">(written from the template)</span></p>
-<p>created           .squire/portable.Dockerfile.dockerignore  <span class="t-dim">(written from the template)</span></p>
-<p>created           .squire/portable/squire-entrypoint.sh  <span class="t-dim">(written from the template)</span></p>
-<p>created           .squire/portable/ports.conf  <span class="t-dim">(written from the template)</span></p>
-<p>created           .squire/portable/vhost.conf  <span class="t-dim">(written from the template)</span></p>
-<p>created           scripts/parity.sh  <span class="t-dim">(written from the template)</span></p>
-<p>created           scripts/parity.ps1  <span class="t-dim">(written from the template)</span></p>
-<p>created           .env.squire.example  <span class="t-dim">(written from the template)</span></p>
 <p>Target: laravel. Wrote .squire.json.</p>
-<p>Next: git update-index --chmod=+x build.sh deployments/001-first-release.sh scripts/release.sh .squire/fallback/citadel-apache-entrypoint .squire/fallback/citadel-deploy .squire/portable/squire-entrypoint.sh scripts/parity.sh</p>
-<p><span class="t-gold">Parity:</span> the parity group is deprecated (removed no sooner than 0.12.0). Parity runs Citadel on your computer now; `parity init --from-squire` carries this kit over: https://git.wayne.edu/enterprise-apps/parity</p>
+<p>Next: git update-index --chmod=+x build.sh deployments/001-first-release.sh scripts/release.sh</p>
+<p>Run it locally with Parity: parity init, then parity up (https://git.wayne.edu/enterprise-apps/parity).</p>
             </div>
           </div>
         </div>
       </div>
 
-      <p class="kit-note">Every shell script runs with <code>set -euo pipefail</code>, prints a <code>[squire] ==&gt; step N</code> marker, and gives the same result when you run it twice. Pack half the bag with <code class="flag">--only=release</code> or <code class="flag">--only=parity</code>.</p>
+      <p class="kit-note">Every shell script runs with <code>set -euo pipefail</code>, prints a <code>[squire] ==&gt; step N</code> marker, and gives the same result when you run it twice. Building images too? <code class="flag">--only=release,images</code> adds the opt-in image files: the Citadel mirror, the fallback base and the portable image for OpenShift, Coolify and raw Docker.</p>
     </div>
   </section>
 
@@ -280,17 +261,11 @@ Ask me before you guess.</code></pre>
             <li class="patch patch--fail" style="--i:13"><span class="patch__no">S20</span><span class="patch__txt">PROCTOR is a report, never a bare command.</span></li>
             <li class="patch patch--warn" style="--i:14"><span class="patch__no">S21</span><span class="patch__txt">The release requests <code>/up</code> at the end.</span></li>
             <li class="patch patch--warn" style="--i:15"><span class="patch__no">S22</span><span class="patch__txt">One marker per step.</span></li>
-            <li class="patch patch--warn" style="--i:16"><span class="patch__no">S35</span><span class="patch__txt">Locally, the Citadel PHP image.</span></li>
-            <li class="patch patch--warn" style="--i:17"><span class="patch__no">S36</span><span class="patch__txt">A forwarding proxy in front.</span></li>
-            <li class="patch patch--warn" style="--i:18"><span class="patch__no">S37</span><span class="patch__txt">Locally, MySQL 5.6.</span></li>
-            <li class="patch patch--fail" style="--i:19"><span class="patch__no">S41</span><span class="patch__txt">The Docker socket is not mounted.</span></li>
+            <li class="patch patch--info" style="--i:16"><span class="patch__no">S35</span><span class="patch__txt">No parity kit left over: use Parity.</span></li>
             <li class="patch patch--warn" style="--i:20"><span class="patch__no">S42</span><span class="patch__txt"><code>.env</code> files stay out of git.</span></li>
             <li class="patch patch--info" style="--i:21"><span class="patch__no">S50</span><span class="patch__txt">Lock file, audit and MySQL 5.6 are PROCTOR's: run <code>proctor check</code>.</span></li>
             <li class="patch patch--fail" style="--i:21"><span class="patch__no">S55</span><span class="patch__txt">The health check never boots the framework.</span></li>
             <li class="patch patch--warn" style="--i:22"><span class="patch__no">S57</span><span class="patch__txt">npm installs with <code class="flag">--ignore-scripts</code>.</span></li>
-            <li class="patch patch--warn" style="--i:23"><span class="patch__no">S67</span><span class="patch__txt">Images pinned by digest.</span></li>
-            <li class="patch patch--warn" style="--i:24"><span class="patch__no">S70</span><span class="patch__txt">Containers drop capabilities.</span></li>
-            <li class="patch patch--warn" style="--i:25"><span class="patch__no">S71</span><span class="patch__txt">Citadel's health-check timing.</span></li>
             <li class="patch patch--warn" style="--i:26"><span class="patch__no">S78</span><span class="patch__txt">A Vue app keeps <code>node_modules/</code> out of git.</span></li>
           </ul>
           <p class="rules__more">Every rule, its level and why it matters: <code>BEST_PRACTICES.md</code>. Drift from the templates is a warning under S9, never a failure; your copies are yours to edit.</p>
@@ -318,9 +293,9 @@ Ask me before you guess.</code></pre>
   <section class="section section--canvas" id="parity" aria-labelledby="parity-title">
     <div class="wsu-container">
       <div class="section__head">
-        <p class="label">Local parity</p>
+        <p class="label">Run it locally</p>
         <h2 id="parity-title">Practice on the real field</h2>
-        <p>The parity kit runs your app on the Citadel PHP image, behind an HA-Proxy that adds the same forwarding headers, with MySQL 5.6.51 beside it. If something would only break on Citadel, you should see it on your laptop first.</p>
+        <p><a href="https://parity.apps.wayne.edu/">Parity</a> runs your app on Citadel's own PHP image, behind the same HAProxy that adds the forwarding headers, with MySQL 5.6.51 beside it. If something would only break on Citadel, you should see it on your laptop first.</p>
       </div>
 
       <!-- The handoff. Parity's mark tilts in and levels out; the mark itself
@@ -328,24 +303,24 @@ Ask me before you guess.</code></pre>
       <aside class="handoff" aria-labelledby="handoff-title">
         <span class="handoff__mark"><img src="assets/marks/parity.png" width="72" height="72" alt=""></span>
         <div class="handoff__body">
-          <p class="handoff__kicker">Squire hands this job on</p>
-          <h3 class="handoff__title" id="handoff-title">Parity runs Citadel on your computer now</h3>
-          <p><a href="https://parity.apps.wayne.edu/">Parity</a> 0.1.0 is the stack's own tool for this: one program for Windows, macOS and Linux that runs Citadel's PHP image, its proxy and MySQL 5.6 for any app, with or without Squire, on Docker or Podman (Podman recommended). <code>parity init --from-squire</code> carries this kit's settings over and deletes nothing.</p>
-          <p class="handoff__fine">The kit below still works, and is deprecated as of Squire 0.10.5. It leaves no sooner than Squire 0.12.0, and not before 2027-01-08. The portable image stays with Squire.</p>
+          <p class="handoff__kicker">Squire handed this job on</p>
+          <h3 class="handoff__title" id="handoff-title">Parity runs Citadel on your computer</h3>
+          <p>Parity is the stack's own tool for this: one program for Windows, macOS and Linux, for any app, with or without Squire, on Docker or Podman (Podman recommended). Squire dresses the knight for the castle; Parity builds a practice castle in your yard.</p>
+          <p class="handoff__fine">Squire's own parity kit left in 0.12.0. An app that still has it runs <code>parity init --from-squire</code>, then deletes the kit's files. <code>squire update</code> lists them and never deletes them; <a href="docs/guides/local-parity.html">Moved to Parity</a> has the four commands.</p>
         </div>
       </aside>
 
       <!-- Stitched lanes sit in the gaps between the stations, never under them. -->
       <ol class="field" data-field>
         <li class="field__stop" style="--i:0">
-          <span class="field__tile"><span class="field__glyph" aria-hidden="true">:80</span></span>
+          <span class="field__tile"><span class="field__glyph" aria-hidden="true">:8080</span></span>
           <span class="field__name">Your browser</span>
           <span class="field__role">on localhost</span>
         </li>
         <li class="field__lane" aria-hidden="true"><span class="field__rider"></span></li>
         <li class="field__stop" style="--i:1">
           <span class="field__tile"><span class="field__glyph" aria-hidden="true">XFF</span></span>
-          <span class="field__name">HA-Proxy</span>
+          <span class="field__name">HAProxy</span>
           <span class="field__role">adds X-Forwarded-For and -Proto</span>
         </li>
         <li class="field__lane" aria-hidden="true"><span class="field__rider"></span></li>
@@ -369,25 +344,26 @@ Ask me before you guess.</code></pre>
             <button type="button" role="tab" id="tab-win" aria-controls="panel-win" aria-selected="false">Windows</button>
           </div>
           <div class="os__panel" role="tabpanel" id="panel-nix" aria-labelledby="tab-nix">
-            <p class="os__lead">Docker with Compose v2.</p>
-<pre class="code"><code>cp .env.squire.example .env.squire     <span class="t-dim"># then set the passwords</span>
-scripts/parity.sh up                   <span class="t-dim"># or: scripts/parity.sh up --fallback</span></code></pre>
+            <p class="os__lead">Docker or Podman. Install Parity once, then in your app's folder:</p>
+<pre class="code"><code>curl -fsSL https://parity.apps.wayne.edu/install.sh | sh
+parity init                            <span class="t-dim"># or: parity init --from-squire</span>
+parity up</code></pre>
           </div>
           <div class="os__panel" role="tabpanel" id="panel-win" aria-labelledby="tab-win">
-            <p class="os__lead">Docker Desktop with the WSL 2 backend. PowerShell 5.1 or 7; no other shell needed.</p>
-<pre class="code"><code>Copy-Item .env.squire.example .env.squire
-scripts\parity.ps1 up                  <span class="t-dim"># or: scripts\parity.ps1 up -Fallback</span></code></pre>
+            <p class="os__lead">Podman Desktop or Docker Desktop, in PowerShell. Install Parity once, then in your app's folder:</p>
+<pre class="code"><code>irm https://parity.apps.wayne.edu/install.ps1 | iex
+parity init                            <span class="t-dim"># or: parity init --from-squire</span>
+parity up</code></pre>
           </div>
         </div>
 
         <div class="parity__side">
           <h3 class="minor">Commands</h3>
           <ul class="verbs">
-            <li><code>up</code></li><li><code>down</code></li><li><code>reset</code></li><li><code>logs</code></li><li><code>shell</code></li><li><code>status</code></li><li><code>pin</code></li>
+            <li><code>check</code></li><li><code>init</code></li><li><code>image get</code></li><li><code>up</code></li><li><code>test</code></li><li><code>down</code></li>
           </ul>
-          <p><code>pin</code> prints the digests of the images you pulled, so you can pin them. <code>reset</code> also removes the volumes.</p>
-          <p>Containers drop capabilities, set <code>no-new-privileges</code> and carry memory and process limits; the database listens on loopback only. The compose file refuses to start without real passwords.</p>
-          <p class="parity__fallback">No access to the real image? <code class="flag">--fallback</code> builds an approximation from the official PHP image plus Citadel's extensions. It's fine for a practice bout. It doesn't prove parity.</p>
+          <p><code>check</code> tells you what to fix on this computer, one finding per line. <code>image get</code> downloads Citadel's image and checks it is Citadel's, byte for byte. <code>down</code> stops the app and keeps your data.</p>
+          <p class="parity__fallback">Building the images too? Squire's opt-in <code class="flag">images</code> group still writes the Citadel mirror, the fallback base and the portable image. Parity runs Citadel's own image and nothing else.</p>
         </div>
       </div>
     </div>
@@ -494,11 +470,11 @@ scripts\parity.ps1 up                  <span class="t-dim"># or: scripts\parity.
       <div class="section__head">
         <p class="label label--on-leather">Known limits</p>
         <h2 id="limits-title">Scuffs on the leather</h2>
-        <p>Squire 0.11.2 is tagged and on Packagist. Where we had to guess how Citadel behaves, <code>OPEN_QUESTIONS.md</code> lists each guess and the default it chose.</p>
+        <p>Squire 0.12.0 is tagged and on Packagist. Where we had to guess how Citadel behaves, <code>OPEN_QUESTIONS.md</code> lists each guess and the default it chose.</p>
       </div>
       <ul class="dents">
-        <li>The local <code>php.ini</code> holds the safe defaults HELMET also enforces at runtime, not the platform's file.</li>
-        <li>The Citadel image has no registry digest to pin yet; doctor warns under S67 until you run <code>pin</code>.</li>
+        <li>The images group's <code>php.ini</code> holds the safe defaults HELMET also enforces at runtime, not the platform's file.</li>
+        <li>Old parity kit files are listed, never deleted. Once Parity runs the app, delete them yourself; doctor notes them under S35 until you do.</li>
         <li>A full Update may not refresh <code>vendor/</code>. Use <code>scripts/release.sh</code> as the Quick Update post-script too.</li>
         <li>The release asks <code>proctor gate</code> for a go or no-go. A no-go is a report by default; set <code>SQUIRE_PROCTOR=enforce</code> and it stops the release before the build and the migrations.</li>
       </ul>

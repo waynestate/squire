@@ -228,7 +228,7 @@ async function buildHero(page) {
 
 // What the packing list needs from the page: the heading, the command, every
 // tag's file name (and count), the stamp, the bag label rows that are not the
-// destination, the "5 of 5 packed" line and the last line of the real run.
+// destination, the "5 of 5 packed" line and the real run's "Target:" line.
 async function readPackList(page) {
   return page.evaluate(() => {
     const txt = (el) => (el ? el.textContent.replace(/\s+/g, " ").trim() : "");
@@ -253,7 +253,8 @@ async function readPackList(page) {
       items,
       rows,
       counter: txt(document.querySelector("#kit .bag__count")),
-      lastLine: runLines[runLines.length - 1],
+      // The "Target:" line, short enough for the strap; the next steps after it run long.
+      lastLine: runLines.find((l) => l.startsWith("Target:")) || runLines[runLines.length - 1],
     };
   });
 }
