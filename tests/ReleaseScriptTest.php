@@ -883,8 +883,47 @@ final class ReleaseScriptTest extends SquireTestCase
         $result = $this->exec($app, 'scripts/release.sh');
 
         self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
-        self::assertStringContainsString("APP_ENV is 'staging', not production; the release goes on", $result['stderr']);
+        self::assertStringContainsString("APP_ENV is 'staging', not production. Set APP_ENV=production in the Citadel dashboard (pre-production too). From Squire 0.13.0 this stops the release.", $result['stderr']);
         self::assertStringNotContainsString('APP_DEBUG must be false', $result['stderr']);
+        self::assertStringContainsString('[squire] release ok', $result['stdout']);
+    }
+
+    public function testStagingAppEnvWarnsAndStillReleases(): void
+    {
+        $app = $this->initializedApp(true);
+        $this->put($app, '.env', "APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\nAPP_ENV=staging\n");
+        $this->artisanStub($app);
+
+        $result = $this->exec($app, 'scripts/release.sh');
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertStringContainsString("WARNING: APP_ENV is 'staging', not production. Set APP_ENV=production in the Citadel dashboard (pre-production too). From Squire 0.13.0 this stops the release.", $result['stderr']);
+        self::assertStringContainsString('[squire] release ok', $result['stdout']);
+    }
+
+    public function testLocalAppEnvWarnsAndStillReleases(): void
+    {
+        $app = $this->initializedApp(true);
+        $this->put($app, '.env', "APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\nAPP_ENV=local\n");
+        $this->artisanStub($app);
+
+        $result = $this->exec($app, 'scripts/release.sh');
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertStringContainsString("WARNING: APP_ENV is 'local', not production. Set APP_ENV=production in the Citadel dashboard (pre-production too). From Squire 0.13.0 this stops the release.", $result['stderr']);
+        self::assertStringContainsString('[squire] release ok', $result['stdout']);
+    }
+
+    public function testEmptyAppEnvGivesNoWarning(): void
+    {
+        $app = $this->initializedApp(true);
+        $this->put($app, '.env', "APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\n");
+        $this->artisanStub($app);
+
+        $result = $this->exec($app, 'scripts/release.sh');
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertStringNotContainsString('WARNING: APP_ENV', $result['stderr']);
         self::assertStringContainsString('[squire] release ok', $result['stdout']);
     }
 

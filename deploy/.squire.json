@@ -27,6 +27,6 @@
         "health.php": "8d3b203f53bd436ccbe7177471547866b8800471043c979ea2f0251aaae0b3b4",
         "oracle-check.php": "7a0553430bb0c5868e7c754da5fab4c0f907a3f55a0766e9fb8a9fe1a45153e4",
         "public/up.php": "84d1b3d8823fcd5519fbe92988f822ce68cdc05eff2c889814deb3f33982600a",
-        "scripts/release.sh": "8e7f01c3d325025c2bade05051dc23816104ef5855d94c5064dcb66424578cc7"
+        "scripts/release.sh": "ae4a6d44883e3aa417deb22f6c45017f628992de175e2ccab5c62b6855725ad9"
     }
 }
