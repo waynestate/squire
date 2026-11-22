@@ -12,9 +12,13 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ## \[Unreleased\] [#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+### Changed [#](https://squire.apps.wayne.edu/docs/changelog.html#changed)
+
+- Changed: the release script now prints a loud warning when APP_ENV is set to anything but production; from 0.13.0 it stops the release (D-133).
+
 ## 0.12.1 (2026-11-21) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-12-1-2026-11-21)
 
-### Changed [#](https://squire.apps.wayne.edu/docs/changelog.html#changed)
+### Changed [#](https://squire.apps.wayne.edu/docs/changelog.html#changed-1)
 
 - Changed: CI pins Preflight 0.12.0 (components and the a11y checker copy). The php-test component now also runs an advisory PHP 8.6 job that may fail and never gates the pipeline.
 - The dev dependency ADVISOR is `^0.4` (was `^0.3`, which does not allow 0.4.0); 0.4.0 adds the `advisor install --runner` option and changes nothing Squire uses.
@@ -49,7 +53,7 @@ Squire is the Citadel kit now: `build.sh`, the release script and the health che
 
 - PHP line 8.6r1 is selectable (`squire init --php 8.6r1`): the fallback base for it is the official `php:8.6.0-apache`, pinned by its multi-arch list digest. The default line stays 8.5r3. Citadel's 8.6r1 is ZTS with Apache prefork, with PEAR/PECL, mbstring, oci8, and redis and imagick built with remirepo patches; it has no xdebug, pcov or apcu. The fallback stand-in has none of those extensions and is not proven with the container contract yet.
 
-### Changed [#](https://squire.apps.wayne.edu/docs/changelog.html#changed-1)
+### Changed [#](https://squire.apps.wayne.edu/docs/changelog.html#changed-2)
 
 - Squire describes itself as the Citadel kit everywhere: the Composer description, the README, the docs and the front page. The front page's packing list holds the five release tags (`oracle-check.php` took the parity kit's place), and its "Run it locally" section shows Parity's commands. The Local parity docs page is now [Moved to Parity](https://squire.apps.wayne.edu/docs/guides/local-parity.html).
 - Squire's own `deploy/` takes the 0.12.0 templates (`squire update`), records `release,images`, and deletes its own five kit files by hand, as the upgrade steps say.
@@ -367,7 +371,7 @@ Squire is the Citadel kit now: `build.sh`, the release script and the health che
 - `SQUIRE_PROCTOR=enforce`: a failed PROCTOR check now stops the release. The default stays report-only, so existing apps are unaffected.
 - `SQUIRE_PROCTOR_POLICY` defaults to `vendor/waynestate/creed/policy/policy.json` when unset and present, so a static site needs no environment variables in the deploy wizard. When CREED is not installed, PROCTOR runs on its own default policy with a notice instead of the release failing. An explicit value always wins.
 
-### Changed [#](https://squire.apps.wayne.edu/docs/changelog.html#changed-2)
+### Changed [#](https://squire.apps.wayne.edu/docs/changelog.html#changed-3)
 
 - PHPStan now includes Pinstripe's raw PHP preset (`waynestate/pinstripe` 0.1) instead of carrying a hand copy of the settings; `phpstan.neon` keeps only SQUIRE's own paths and PHP version range, and the preset's deprecation checks come along with it.
 - `symfony/console` floor raised to `^7.4`: `Application::add()` is deprecated since 7.4, and the CLI now calls `addCommand()`.
@@ -384,4 +388,4 @@ Squire is the Citadel kit now: `build.sh`, the release script and the health che
 - CI for GitLab and GitHub: `composer ci`, shellcheck and PSScriptAnalyzer, run in Docker.
 - `bin/export-templates.php`: export a generated copy of SQUIRE's templates (for Sourdough and other projects that cannot `composer require` SQUIRE), with a `catalog.json` and a `manifest.json`; `--check` verifies the copy and exits 1 on drift.
 
-### Changed [#](https://squire.apps.wayne.edu/docs/changelog.html#changed-3)
+### Changed [#](https://squire.apps.wayne.edu/docs/changelog.html#changed-4)
