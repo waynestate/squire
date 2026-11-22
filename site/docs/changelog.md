@@ -12,6 +12,8 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ## \[Unreleased\] [#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+## 0.12.2 (2026-11-22) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-12-2-2026-11-22)
+
 ### Changed [#](https://squire.apps.wayne.edu/docs/changelog.html#changed)
 
 - Changed: the release script now prints a loud warning when APP_ENV is set to anything but production; from 0.13.0 it stops the release (D-133).
