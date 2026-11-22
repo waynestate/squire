@@ -5,11 +5,14 @@ Versioning once 1.0 is out.
 
 ## [Unreleased]
 
+## 0.12.1 (2026-11-21)
+
 ### Changed
 
 - Changed: CI pins Preflight 0.12.0 (components and the a11y checker copy). The php-test component now also runs an advisory PHP 8.6 job that may fail and never gates the pipeline.
 - The dev dependency ADVISOR is `^0.4` (was `^0.3`, which does not allow 0.4.0); 0.4.0 adds the `advisor install --runner` option and changes nothing Squire uses.
 - Docs: SECURITY.md says how to report a vulnerability privately.
+- CI runs the a11y jobs on Preflight 0.12.0 (was 0.9.0); the pin test follows.
 
 ### Fixed
 
