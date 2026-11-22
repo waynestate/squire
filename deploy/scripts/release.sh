@@ -9,7 +9,7 @@
 # Steps: preconditions, composer install from the lock file without dev packages, composer audit (report),
 # PROCTOR's deploy gate, frontend install and build, Laravel migrate, optimize and the restart of the long-lived
 # processes, an Oracle connection check (report only), an opcache report, and a smoke test of /up.
-# A Laravel release also checks its environment before anything installs: APP_KEY must be set, APP_DEBUG must be false in production, and an APP_ENV that is not production earns a warning (Sourdough practice 4.14).
+# A Laravel release also checks its environment before anything installs: APP_KEY must be set, APP_DEBUG must be false in production, and an APP_ENV that is not production earns a loud warning, and from Squire 0.13.0 it stops the release (Sourdough practice 4.14).
 # PROCTOR runs `proctor gate` (or `proctor check` on a PROCTOR without the gate): a go or no-go for this commit,
 # ratcheted against the verdict of the last release that went on, so only a new failure blocks. The verdict is kept in
 # SQUIRE_PROCTOR_RECORD_DIR. By default a no-go is a report here, never a stop: a failing post-script cannot undo a
@@ -278,7 +278,7 @@ if [ "$require_env" = "1" ]; then
     fi
     app_env="$(squire_env_value APP_ENV)"
     if [ -n "$app_env" ] && [ "$app_env" != "production" ]; then
-        warn "APP_ENV is '$app_env', not production; the release goes on"
+        warn "APP_ENV is '$app_env', not production. Set APP_ENV=production in the Citadel dashboard (pre-production too). From Squire 0.13.0 this stops the release."
     fi
     app_debug="$(squire_env_value APP_DEBUG)"
     case "$app_debug" in

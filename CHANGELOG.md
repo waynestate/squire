@@ -5,6 +5,10 @@ Versioning once 1.0 is out.
 
 ## [Unreleased]
 
+### Changed
+
+- Changed: the release script now prints a loud warning when APP_ENV is set to anything but production; from 0.13.0 it stops the release (D-133).
+
 ## 0.12.1 (2026-11-21)
 
 ### Changed
