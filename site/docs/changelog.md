@@ -12,6 +12,8 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ## \[Unreleased\] [#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+## 0.12.1 (2026-11-21) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-12-1-2026-11-21)
+
 ### Changed [#](https://squire.apps.wayne.edu/docs/changelog.html#changed)
 
 - Changed: CI pins Preflight 0.12.0 (components and the a11y checker copy). The php-test component now also runs an advisory PHP 8.6 job that may fail and never gates the pipeline.

@@ -27,7 +27,7 @@ Squire is the Citadel kit: build.sh, the release script and the health check, fr
 Front page: [`site/index.html`](https://github.com/waynestate/squire/blob/HEAD/site/index.html), a static page you can serve from anywhere.
 On Citadel it is served by the raw-PHP deploy layer in [`deploy/`](https://github.com/waynestate/squire/blob/HEAD/deploy/): a Squire kit whose front controller serves `site/` behind HELMET's security headers. For local development, keep serving `site/` directly.
 
-Status: 0.12.0, tagged and on Packagist.
+Status: 0.12.1, tagged and on Packagist.
 
 ### Where the code lives
 
@@ -1039,6 +1039,8 @@ Source: https://squire.apps.wayne.edu/docs/changelog.html
 All notable changes to Squire are recorded here. The format follows Keep a Changelog; the project follows Semantic Versioning once 1.0 is out.
 
 ### \[Unreleased\] [#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
+
+### 0.12.1 (2026-11-21) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-12-1-2026-11-21)
 
 #### Changed [#](https://squire.apps.wayne.edu/docs/changelog.html#changed)
 

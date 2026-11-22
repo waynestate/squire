@@ -12,6 +12,8 @@ Versioning once 1.0 is out.
 
 ## [Unreleased]
 
+## 0.12.1 (2026-11-21)
+
 ### Changed
 
 - Changed: CI pins Preflight 0.12.0 (components and the a11y checker copy). The php-test component now also runs an advisory PHP 8.6 job that may fail and never gates the pipeline.
