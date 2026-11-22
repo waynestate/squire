@@ -17,7 +17,7 @@ vendor/bin/squire update --dry-run
 
 `squire init --check` reports when your copies have drifted from the templates; it exits `0` when they match and `1` when they have. `squire update --dry-run` prints the plan and writes nothing; it exits `1` when an edited file still differs from the template. Exit `2` means the tool itself could not run. For the full command reference, see [Commands](reference/commands.md).
 
-## 0.12.2
+## 0.12.2 (2026-11-22)
 
 No breaks: a Laravel release whose `APP_ENV` is set to anything but `production` still goes on, but the warning it earns is loud now, and from Squire 0.13.0 the same check stops the release (D-133). Set `APP_ENV=production` in the Citadel dashboard for every Laravel app, pre-production included, before the stop arrives.
 
