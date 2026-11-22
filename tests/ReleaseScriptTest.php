@@ -923,7 +923,7 @@ final class ReleaseScriptTest extends SquireTestCase
         $result = $this->exec($app, 'scripts/release.sh');
 
         self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
-        self::assertStringNotContainsString('WARNING: APP_ENV', $result['stderr']);
+        self::assertStringNotContainsString('APP_ENV is', $result['stderr']);
         self::assertStringContainsString('[squire] release ok', $result['stdout']);
     }
 
