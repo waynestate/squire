@@ -92,7 +92,7 @@ is the scripts it wrote.
 ## Update notice
 
 After any command finishes, Squire prints one line on stderr when a newer stable release exists, with the command that
-updates this install: `squire 0.11.2 is out of date: 0.11.3 is the newest release. Update: composer update
+updates this install: `squire 0.11.1 is out of date: 0.11.2 is the newest release. Update: composer update
 waynestate/squire`. It asks Packagist at most once a day per machine and keeps the answer in the user cache dir
 (`waynestate/squire/update-check.json`), so an offline machine stays quiet and tries again the next day. Nothing is
 printed when `CI` is set to anything other than empty, `0` or `false`, when `WAYNE_NO_UPDATE_CHECK=1`, when the command
