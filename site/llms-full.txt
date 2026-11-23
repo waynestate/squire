@@ -979,7 +979,7 @@ Known limits
 
 ### Scuffs on the leather
 
-Squire 0.12.0 is tagged and on Packagist. Where we had to guess how Citadel behaves, `OPEN_QUESTIONS.md` lists each guess and the default it chose.
+Squire 0.12.2 is tagged and on Packagist. Where we had to guess how Citadel behaves, `OPEN_QUESTIONS.md` lists each guess and the default it chose.
 
 - The images group's `php.ini` holds the safe defaults HELMET also enforces at runtime, not the platform's file.
 - Old parity kit files are listed, never deleted. Once Parity runs the app, delete them yourself; doctor notes them under S35 until you do.
