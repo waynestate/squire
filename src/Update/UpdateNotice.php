@@ -10,7 +10,7 @@ use Throwable;
  * The update notice: after any command finishes, one line on stderr when a
  * newer stable release exists, with the command that updates this install.
  *
- *     squire 0.11.2 is out of date: 0.11.3 is the newest release. Update: composer update waynestate/squire
+ *     squire 0.11.1 is out of date: 0.11.2 is the newest release. Update: composer update waynestate/squire
  *
  * The two seams keep tests off the network and the clock: the fetcher
  * (LatestReleaseFetcher) and the clock (a closure returning unix seconds).
