@@ -11,7 +11,7 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
    `composer.lock` on a full Update has no install step. Default: tell teams to also use `scripts/release.sh` as the Quick
     Update post-script. Needs a Citadel maintainer's answer.
 3. **Is the public directory `src/public`?** Default for local parity: `SQUIRE_PUBLIC_DIR=src/public`. The dashboard passes
-   the real value; check it matches. Citadel's own source confirms the mechanism (2026-11-19): the dashboard's public
+   the real value; check it matches. **Answered 2026-11-24.** Citadel's own source confirms the mechanism (2026-11-19): the dashboard's public
    path becomes CITADEL_PUBLIC_DIR, it is required for the PHP and Apache base images, and a deploy stops with "Invalid
    CitadelFile: CITADEL_PUBLIC_DIR does not exist" when the folder is missing (bootstrap/lib/abstracts/RunsDeploymentTasks.php).
 4. **Can a secret be mounted?** Still unanswered for Citadel: whether its containers can mount a secret file has not
@@ -78,8 +78,10 @@ Each entry says what is unknown, the default 0.1 chose, and what would change it
     strings (its help text gives `["php", "artisan", "health:check"]` as the example), and validates a value that starts
     with `[` as JSON (`dashboard/src/app/Generator.php`, `validDeployment`; `dashboard/src/resources/lang/en/help/deployment.php`).
     `["php","health.php"]` is therefore a valid value, and the build writes it as the image's `HEALTHCHECK` command
-    (`bootstrap/lib/views/Dockerfile.php`: every 5 minutes, 15 second timeout). What stays unconfirmed is only that the
-    deployed dashboard runs the same code as this clone.
+    (`bootstrap/lib/views/Dockerfile.php`: every 5 minutes, 15 second timeout). **Confirmed 2026-11-24:** the deployed dashboard runs the same code as the clone for
+    the two files that decide it. `app/Generator.php` and `resources/lang/en/help/deployment.php` in the production host's
+    mounted dashboard source are identical to the clone's once line endings are ignored (a read-only comparison), and
+    neither file changed in Citadel's `master` after the clone's commit. Answered.
 17. **Runner amd64 emulation.** The CI runner is linux/arm64; building the Oracle images for linux/amd64 needs qemu
     binfmt emulation and buildah running inside a container. Default: amd64 stays off (`SQUIRE_BUILD_AMD64` unset)
     until a run of the `oracle-images-dry-run` job with `SQUIRE_BUILD_AMD64=1` passes on a branch. See 18.
