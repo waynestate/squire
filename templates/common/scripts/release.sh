@@ -184,7 +184,8 @@ squire_load_composer_auth() {
     fi
     file="$dir/composer-auth.json"
     if [ -f "$file" ] && [ -r "$file" ]; then
-        export COMPOSER_AUTH="$(cat "$file"; printf x)"
+        COMPOSER_AUTH="$(cat "$file"; printf x)"
+        export COMPOSER_AUTH
         COMPOSER_AUTH="${COMPOSER_AUTH%x}"
         COMPOSER_AUTH="${COMPOSER_AUTH%$'\n'}"
         note "composer credentials from $file"
