@@ -696,13 +696,202 @@ final class ReleaseScriptTest extends SquireTestCase
         self::assertDirectoryExists($app . '/bootstrap/cache');
     }
 
+    public function testBackupRunsBeforeMigrateAndIsOptIn(): void
+    {
+        $app = $this->initializedApp(true);
+        $this->put($app, '.env', "APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\nAPP_ENV=testing\n");
+        $this->artisanStub($app);
+        $this->stub('mysqldump', <<<'SH'
+            #!/bin/sh
+            echo "mysqldump $*" >> "$STUB_LOG"
+            echo "MYSQL_PWD=${MYSQL_PWD:-}" >> "$STUB_LOG"
+            echo "-- dump"
+            SH);
+
+        $result = $this->exec($app, 'scripts/release.sh', [
+            'SQUIRE_BACKUP' => '1',
+            'DB_HOST' => 'db.internal',
+            'DB_PORT' => '3307',
+            'DB_DATABASE' => 'app_prod',
+            'DB_USERNAME' => 'releaser',
+            'DB_PASSWORD' => 'hunter2-secret',
+        ]);
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        $calls = $this->calls();
+        $dump = array_search('mysqldump --host=db.internal --port=3307 --user=releaser app_prod', $calls, true);
+        self::assertIsInt($dump, 'mysqldump runs with the DB variables from the environment');
+        $migrate = array_search('artisan migrate --force', $calls, true);
+        self::assertIsInt($migrate);
+        self::assertLessThan($migrate, $dump, 'the dump lands before migrate touches the database');
+        self::assertContains('MYSQL_PWD=hunter2-secret', $calls, 'the password reaches mysqldump through MYSQL_PWD');
+        foreach ($calls as $call) {
+            if (str_starts_with($call, 'mysqldump ')) {
+                self::assertStringNotContainsString('hunter2-secret', $call, 'the password never sits on the command line');
+            }
+        }
+        $dumps = glob($app . '/storage/squire/backups/pre-migrate-*.sql');
+        self::assertCount(1, $dumps, 'the dump file lands under storage/squire/backups');
+        self::assertSame(0o600, fileperms($dumps[0]) & 0777, 'the dump file is mode 600');
+        self::assertStringContainsString('-- dump', (string) file_get_contents($dumps[0]));
+
+        // Opt-in: with SQUIRE_BACKUP unset, no mysqldump happens.
+        file_put_contents($this->log, '');
+        $fresh = $this->initializedApp(true);
+        $this->put($fresh, '.env', "APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\nAPP_ENV=testing\n");
+        $this->artisanStub($fresh);
+        $second = $this->exec($fresh, 'scripts/release.sh', [
+            'DB_HOST' => 'db.internal',
+            'DB_PORT' => '3307',
+            'DB_DATABASE' => 'app_prod',
+            'DB_USERNAME' => 'releaser',
+            'DB_PASSWORD' => 'hunter2-secret',
+        ]);
+
+        self::assertSame(0, $second['exit'], $second['stdout'] . $second['stderr']);
+        self::assertStringNotContainsString('mysqldump', implode("\n", $this->calls()), 'SQUIRE_BACKUP unset: no dump');
+    }
+
+    public function testBackupFailureStopsTheReleaseBeforeMigrate(): void
+    {
+        $app = $this->initializedApp(true);
+        $this->put($app, '.env', "APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\nAPP_ENV=testing\n");
+        $this->artisanStub($app);
+        $this->stub('mysqldump', <<<'SH'
+            #!/bin/sh
+            echo "mysqldump $*" >> "$STUB_LOG"
+            echo "partial bytes"
+            exit 2
+            SH);
+
+        $result = $this->exec($app, 'scripts/release.sh', [
+            'SQUIRE_BACKUP' => '1',
+            'DB_HOST' => 'db.internal',
+            'DB_DATABASE' => 'app_prod',
+            'DB_USERNAME' => 'releaser',
+        ]);
+
+        self::assertSame(1, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertStringNotContainsString('artisan migrate --force', implode("\n", $this->calls()), 'a failed backup stops the release before migrate');
+        self::assertEmpty(glob($app . '/storage/squire/backups/*.sql'), 'no half backup is left behind');
+        self::assertStringContainsString('mysqldump exited 2', $result['stderr'], 'the failure says why the release stopped');
+    }
+
+    public function testMaintenanceModeBringsTheSiteBackUpWhenMigrateFails(): void
+    {
+        $app = $this->initializedApp(true);
+        $this->put($app, '.env', "APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\nAPP_ENV=testing\n");
+        $this->artisanStub($app);
+
+        $failed = $this->exec($app, 'scripts/release.sh', ['SQUIRE_MAINTENANCE' => '1', 'STUB_MIGRATE_EXIT' => '3']);
+
+        self::assertNotSame(0, $failed['exit'], $failed['stdout'] . $failed['stderr']);
+        $calls = $this->calls();
+        $down = array_search('artisan down --retry=60', $calls, true);
+        $migrate = array_search('artisan migrate --force', $calls, true);
+        $up = array_search('artisan up', $calls, true);
+        self::assertIsInt($down, 'maintenance takes the site down before the backup and migrate');
+        self::assertIsInt($migrate);
+        self::assertIsInt($up, 'the EXIT trap brings the site back up when migrate fails');
+        self::assertLessThan($migrate, $down);
+        self::assertGreaterThan($migrate, $up);
+
+        file_put_contents($this->log, '');
+        $ok = $this->exec($app, 'scripts/release.sh', ['SQUIRE_MAINTENANCE' => '1']);
+
+        self::assertSame(0, $ok['exit'], $ok['stdout'] . $ok['stderr']);
+        $calls = $this->calls();
+        $down = array_search('artisan down --retry=60', $calls, true);
+        $migrate = array_search('artisan migrate --force', $calls, true);
+        $up = array_search('artisan up', $calls, true);
+        self::assertIsInt($down);
+        self::assertIsInt($migrate);
+        self::assertIsInt($up, 'the site comes back up right after migrate');
+        self::assertLessThan($migrate, $down, 'down, then migrate, then up');
+        self::assertLessThan($up, $migrate);
+    }
+
+    public function testComposerAuthComesFromTheSecretsDir(): void
+    {
+        // Logs only whether COMPOSER_AUTH reached composer and which marker it holds, never the value itself.
+        $composerStub = <<<'SH'
+            #!/bin/sh
+            echo "composer $*" >> "$STUB_LOG"
+            if [ -n "${COMPOSER_AUTH:-}" ]; then
+            echo "composer-auth=set" >> "$STUB_LOG"
+            case "$COMPOSER_AUTH" in
+            *github-oauth*) echo "composer-auth=github-oauth" >> "$STUB_LOG" ;;
+            *from-file*) echo "composer-auth=from-file" >> "$STUB_LOG" ;;
+            *from-env*) echo "composer-auth=from-env" >> "$STUB_LOG" ;;
+            esac
+            else
+            echo "composer-auth=unset" >> "$STUB_LOG"
+            fi
+            exit 0
+            SH;
+
+        // A composer-auth.json in the secrets dir becomes COMPOSER_AUTH for composer.
+        $secrets = $this->tempDir();
+        file_put_contents($secrets . '/composer-auth.json', "{\"http-basic\":{\"repo.example.com\":{\"username\":\"u\",\"password\":\"p\"}}}\n");
+        $app = $this->initializedApp();
+        $this->stub('composer', $composerStub);
+        $result = $this->exec($app, 'scripts/release.sh', ['SQUIRE_SECRETS_DIR' => $secrets]);
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertContains('composer-auth=set', $this->calls());
+        $output = $result['stdout'] . $result['stderr'];
+        self::assertStringContainsString("composer credentials from $secrets/composer-auth.json", $output, 'one note line names the file used');
+        self::assertStringNotContainsString('"password":"p"', $output, 'the value never appears in stdout or stderr');
+
+        // A github-oauth-token is wrapped as github-oauth JSON, trailing CR/LF trimmed.
+        file_put_contents($this->log, '');
+        $secrets = $this->tempDir();
+        file_put_contents($secrets . '/github-oauth-token', "ghp_abc123.DEF-456._x\r\n");
+        $app = $this->initializedApp();
+        $this->stub('composer', $composerStub);
+        $result = $this->exec($app, 'scripts/release.sh', ['SQUIRE_SECRETS_DIR' => $secrets]);
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertContains('composer-auth=set', $this->calls());
+        self::assertContains('composer-auth=github-oauth', $this->calls(), 'the token is wrapped as github-oauth JSON');
+        $output = $result['stdout'] . $result['stderr'];
+        self::assertStringContainsString("composer credentials from $secrets/github-oauth-token", $output);
+        self::assertStringNotContainsString('ghp_abc123.DEF-456._x', $output, 'the token never appears in stdout or stderr');
+
+        // A COMPOSER_AUTH already in the environment always wins over the file.
+        file_put_contents($this->log, '');
+        $secrets = $this->tempDir();
+        file_put_contents($secrets . '/composer-auth.json', '{"from-file":true}' . "\n");
+        $app = $this->initializedApp();
+        $this->stub('composer', $composerStub);
+        $result = $this->exec($app, 'scripts/release.sh', ['SQUIRE_SECRETS_DIR' => $secrets, 'COMPOSER_AUTH' => '{"from-env":true}']);
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertContains('composer-auth=from-env', $this->calls(), 'the environment value wins over the file');
+        self::assertStringNotContainsString('composer-auth=from-file', implode("\n", $this->calls()));
+
+        // A token with a space is skipped with a warning that names only the file.
+        file_put_contents($this->log, '');
+        $secrets = $this->tempDir();
+        file_put_contents($secrets . '/github-oauth-token', "bad token here\n");
+        $app = $this->initializedApp();
+        $this->stub('composer', $composerStub);
+        $result = $this->exec($app, 'scripts/release.sh', ['SQUIRE_SECRETS_DIR' => $secrets]);
+
+        self::assertSame(0, $result['exit'], $result['stdout'] . $result['stderr']);
+        self::assertContains('composer-auth=unset', $this->calls(), 'the bad token is not exported');
+        self::assertStringContainsString('WARNING', $result['stderr']);
+        self::assertStringContainsString("$secrets/github-oauth-token", $result['stderr'], 'the warning names the file');
+        self::assertStringNotContainsString('bad token here', $result['stderr'] . $result['stdout'], 'the token never appears');
+    }
+
     /**
      * A logging artisan that answers every command, except the ones a test makes fail through STUB_RELOAD_HELP_EXIT,
-     * STUB_QUEUE_RESTART_EXIT and STUB_SCHEDULE_INTERRUPT_EXIT.
+     * STUB_QUEUE_RESTART_EXIT, STUB_SCHEDULE_INTERRUPT_EXIT and STUB_MIGRATE_EXIT.
      */
     private function artisanStub(string $app): void
     {
-        $this->put($app, 'artisan', "<?php\n\$args = array_slice(\$argv, 1);\nfile_put_contents(getenv('STUB_LOG'), 'artisan ' . implode(' ', \$args) . \"\\n\", FILE_APPEND);\n\$command = \$args[0] ?? '';\n\$help = in_array('--help', \$args, true);\nif (\$command === 'reload' && \$help) { exit((int) (getenv('STUB_RELOAD_HELP_EXIT') ?: 0)); }\nif (\$command === 'queue:restart' && !\$help) { exit((int) (getenv('STUB_QUEUE_RESTART_EXIT') ?: 0)); }\nif (\$command === 'schedule:interrupt' && !\$help) { exit((int) (getenv('STUB_SCHEDULE_INTERRUPT_EXIT') ?: 0)); }\nexit(0);\n");
+        $this->put($app, 'artisan', "<?php\n\$args = array_slice(\$argv, 1);\nfile_put_contents(getenv('STUB_LOG'), 'artisan ' . implode(' ', \$args) . \"\\n\", FILE_APPEND);\n\$command = \$args[0] ?? '';\n\$help = in_array('--help', \$args, true);\nif (\$command === 'reload' && \$help) { exit((int) (getenv('STUB_RELOAD_HELP_EXIT') ?: 0)); }\nif (\$command === 'queue:restart' && !\$help) { exit((int) (getenv('STUB_QUEUE_RESTART_EXIT') ?: 0)); }\nif (\$command === 'schedule:interrupt' && !\$help) { exit((int) (getenv('STUB_SCHEDULE_INTERRUPT_EXIT') ?: 0)); }\nif (\$command === 'migrate' && !\$help) { exit((int) (getenv('STUB_MIGRATE_EXIT') ?: 0)); }\nexit(0);\n");
     }
 
     public function testWithoutReloadTheReleaseFallsBackToQueueRestartAndScheduleInterrupt(): void
