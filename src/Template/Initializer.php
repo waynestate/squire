@@ -135,6 +135,23 @@ final class Initializer
             $results[] = $gitignoreResult;
         }
 
+        // D-171: the deploy layer's composer.json must carry a name of its own. A missing name, and a waynestate/*
+        // name that PROCTOR's CiPipelinesCheck reads as a stack package, would turn the deploy proctor job red.
+        // Check mode reports the fix; Squire never writes or edits the file.
+        if ($check) {
+            $deployComposer = $appPath . '/deploy/composer.json';
+            if (is_file($deployComposer)) {
+                $raw = file_get_contents($deployComposer);
+                $decoded = $raw === false ? null : json_decode($raw, true);
+                if (is_array($decoded)) {
+                    $name = $decoded['name'] ?? null;
+                    if (!is_string($name) || $name === '' || str_starts_with($name, 'waynestate/')) {
+                        $results[] = new FileResult('deploy/composer.json', FileResult::DEPLOY_NAME, 'set "name" to "app/deploy" (D-171)');
+                    }
+                }
+            }
+        }
+
         if (!$check) {
             // Record the line for a new app, or when the caller named one. An existing app keeps whatever it
             // recorded, nothing included, for a kit Squire wrote before the php key existed.

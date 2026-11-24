@@ -33,6 +33,13 @@ final readonly class FileResult
 
     public const UNTRACKED = 'untracked';
 
+    /**
+     * Check mode only: the deploy layer's composer.json has no name, or a name that reads as a stack package
+     * (`waynestate/*`); PROCTOR's CiPipelinesCheck would treat it as a stack package and turn the deploy proctor
+     * job red (D-171). Never counted by isCurrent().
+     */
+    public const DEPLOY_NAME = 'deploy-name';
+
     // Write and check mode: a file the app may own (a raw app's own front controller) that Squire did not write.
     public const APP_OWNED = 'app-owned';
 
