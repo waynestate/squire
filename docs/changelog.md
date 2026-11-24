@@ -12,6 +12,10 @@ Versioning once 1.0 is out.
 
 ## [Unreleased]
 
+### Added
+
+- Added: `squire init --check` flags a `deploy/composer.json` with no name or a `waynestate/*` name; the fix is `"name": "app/deploy"` (D-171).
+
 ## 0.12.2 (2026-11-22)
 
 ### Changed
