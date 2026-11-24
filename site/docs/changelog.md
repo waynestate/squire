@@ -12,6 +12,12 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ## \[Unreleased\] [#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+### Added [#](https://squire.apps.wayne.edu/docs/changelog.html#added)
+
+- Added: `SQUIRE_BACKUP=1` (new release option, default off) dumps the database with `mysqldump` into `SQUIRE_BACKUP_DIR` (default `storage/squire/backups`, folder mode 700, file mode 600) before `migrate --force`, using `DB_HOST`, `DB_PORT` (default 3306), `DB_DATABASE`, `DB_USERNAME` and `DB_PASSWORD` from the environment; the password reaches `mysqldump` only through `MYSQL_PWD`, never on the command line. A missing `mysqldump`, a missing variable or a non-zero exit stops the release before migrate, with any partial file removed.
+- Added: `SQUIRE_MAINTENANCE=1` (new release option, default off) runs `php artisan down --retry=60` before the backup and migrate and `php artisan up` after them; an EXIT trap runs `up` whenever `down` ran and `up` has not yet run, so a failed backup or migrate still brings the site up.
+- Added: when `COMPOSER_AUTH` is not in the environment, the release script now takes Composer credentials from `SQUIRE_SECRETS_DIR` (default `/run/secrets`): `composer-auth.json` as-is, or `github-oauth-token` wrapped as github-oauth JSON (a token holding characters outside `[A-Za-z0-9_.-]` is skipped with a warning that names only the file). Only file names are printed, never values; a `COMPOSER_AUTH` already in the environment always wins.
+
 ## 0.12.2 (2026-11-22) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-12-2-2026-11-22)
 
 ### Changed [#](https://squire.apps.wayne.edu/docs/changelog.html#changed)
@@ -51,7 +57,7 @@ Squire is the Citadel kit now: `build.sh`, the release script and the health che
 
 - The raw and static front controllers send scripts, styles and data (`.css`, `.js`, `.mjs`, `.json`, `.md`, `.txt`, `.xml`, `.webmanifest`) with `Cache-Control: no-cache` and their ETag, so the browser asks on every load and gets a 304 when nothing changed. They had an hour of cache, and the HTML is never cached, so for up to an hour after a release a browser ran the old script on the new page (CREED found it). Images and fonts keep their hour. `public/index.php` is the app's own file, so `squire update` never rewrites it: an app that already has one takes the change by hand (the diff is in [Upgrading](https://squire.apps.wayne.edu/docs/upgrading.html#0-12-0-2026-11-20)).
 
-### Added [#](https://squire.apps.wayne.edu/docs/changelog.html#added)
+### Added [#](https://squire.apps.wayne.edu/docs/changelog.html#added-1)
 
 - PHP line 8.6r1 is selectable (`squire init --php 8.6r1`): the fallback base for it is the official `php:8.6.0-apache`, pinned by its multi-arch list digest. The default line stays 8.5r3. Citadel's 8.6r1 is ZTS with Apache prefork, with PEAR/PECL, mbstring, oci8, and redis and imagick built with remirepo patches; it has no xdebug, pcov or apcu. The fallback stand-in has none of those extensions and is not proven with the container contract yet.
 
@@ -367,7 +373,7 @@ Squire is the Citadel kit now: `build.sh`, the release script and the health che
 
 ## 0.2.0 (2026-10-29) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-2-0-2026-10-29)
 
-### Added [#](https://squire.apps.wayne.edu/docs/changelog.html#added-1)
+### Added [#](https://squire.apps.wayne.edu/docs/changelog.html#added-2)
 
 - `--target=static`: writes everything the `raw` target writes plus a front controller (`public/index.php`) and an `.htaccess` that serve a committed static site behind HELMET. The site folder is `../../site` by default; point `SQUIRE_STATIC_ROOT` at another. `squire init --check` and `squire update` cover the new files, and the template export carries them under `static/`.
 - `SQUIRE_PROCTOR=enforce`: a failed PROCTOR check now stops the release. The default stays report-only, so existing apps are unaffected.
@@ -380,7 +386,7 @@ Squire is the Citadel kit now: `build.sh`, the release script and the health che
 
 ## 0.1.0 (2026-10-29) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-1-0-2026-10-29)
 
-### Added [#](https://squire.apps.wayne.edu/docs/changelog.html#added-2)
+### Added [#](https://squire.apps.wayne.edu/docs/changelog.html#added-3)
 
 - `squire init` with `--target`, `--only`, `--check` and `--force`; a `.squire.json` manifest of SHA-256 hashes.
 - `squire doctor` with text and JSON output, checking 26 rules (see `BEST_PRACTICES.md`).

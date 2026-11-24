@@ -1040,6 +1040,12 @@ All notable changes to Squire are recorded here. The format follows Keep a Chang
 
 ### \[Unreleased\] [#](https://squire.apps.wayne.edu/docs/changelog.html#unreleased)
 
+#### Added [#](https://squire.apps.wayne.edu/docs/changelog.html#added)
+
+- Added: `SQUIRE_BACKUP=1` (new release option, default off) dumps the database with `mysqldump` into `SQUIRE_BACKUP_DIR` (default `storage/squire/backups`, folder mode 700, file mode 600) before `migrate --force`, using `DB_HOST`, `DB_PORT` (default 3306), `DB_DATABASE`, `DB_USERNAME` and `DB_PASSWORD` from the environment; the password reaches `mysqldump` only through `MYSQL_PWD`, never on the command line. A missing `mysqldump`, a missing variable or a non-zero exit stops the release before migrate, with any partial file removed.
+- Added: `SQUIRE_MAINTENANCE=1` (new release option, default off) runs `php artisan down --retry=60` before the backup and migrate and `php artisan up` after them; an EXIT trap runs `up` whenever `down` ran and `up` has not yet run, so a failed backup or migrate still brings the site up.
+- Added: when `COMPOSER_AUTH` is not in the environment, the release script now takes Composer credentials from `SQUIRE_SECRETS_DIR` (default `/run/secrets`): `composer-auth.json` as-is, or `github-oauth-token` wrapped as github-oauth JSON (a token holding characters outside `[A-Za-z0-9_.-]` is skipped with a warning that names only the file). Only file names are printed, never values; a `COMPOSER_AUTH` already in the environment always wins.
+
 ### 0.12.2 (2026-11-22) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-12-2-2026-11-22)
 
 #### Changed [#](https://squire.apps.wayne.edu/docs/changelog.html#changed)
@@ -1079,7 +1085,7 @@ Squire is the Citadel kit now: `build.sh`, the release script and the health che
 
 - The raw and static front controllers send scripts, styles and data (`.css`, `.js`, `.mjs`, `.json`, `.md`, `.txt`, `.xml`, `.webmanifest`) with `Cache-Control: no-cache` and their ETag, so the browser asks on every load and gets a 304 when nothing changed. They had an hour of cache, and the HTML is never cached, so for up to an hour after a release a browser ran the old script on the new page (CREED found it). Images and fonts keep their hour. `public/index.php` is the app's own file, so `squire update` never rewrites it: an app that already has one takes the change by hand (the diff is in [Upgrading](https://squire.apps.wayne.edu/docs/upgrading.html#0-12-0-2026-11-20)).
 
-#### Added [#](https://squire.apps.wayne.edu/docs/changelog.html#added)
+#### Added [#](https://squire.apps.wayne.edu/docs/changelog.html#added-1)
 
 - PHP line 8.6r1 is selectable (`squire init --php 8.6r1`): the fallback base for it is the official `php:8.6.0-apache`, pinned by its multi-arch list digest. The default line stays 8.5r3. Citadel's 8.6r1 is ZTS with Apache prefork, with PEAR/PECL, mbstring, oci8, and redis and imagick built with remirepo patches; it has no xdebug, pcov or apcu. The fallback stand-in has none of those extensions and is not proven with the container contract yet.
 
@@ -1395,7 +1401,7 @@ Squire is the Citadel kit now: `build.sh`, the release script and the health che
 
 ### 0.2.0 (2026-10-29) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-2-0-2026-10-29)
 
-#### Added [#](https://squire.apps.wayne.edu/docs/changelog.html#added-1)
+#### Added [#](https://squire.apps.wayne.edu/docs/changelog.html#added-2)
 
 - `--target=static`: writes everything the `raw` target writes plus a front controller (`public/index.php`) and an `.htaccess` that serve a committed static site behind HELMET. The site folder is `../../site` by default; point `SQUIRE_STATIC_ROOT` at another. `squire init --check` and `squire update` cover the new files, and the template export carries them under `static/`.
 - `SQUIRE_PROCTOR=enforce`: a failed PROCTOR check now stops the release. The default stays report-only, so existing apps are unaffected.
@@ -1408,7 +1414,7 @@ Squire is the Citadel kit now: `build.sh`, the release script and the health che
 
 ### 0.1.0 (2026-10-29) [#](https://squire.apps.wayne.edu/docs/changelog.html#0-1-0-2026-10-29)
 
-#### Added [#](https://squire.apps.wayne.edu/docs/changelog.html#added-2)
+#### Added [#](https://squire.apps.wayne.edu/docs/changelog.html#added-3)
 
 - `squire init` with `--target`, `--only`, `--check` and `--force`; a `.squire.json` manifest of SHA-256 hashes.
 - `squire doctor` with text and JSON output, checking 26 rules (see `BEST_PRACTICES.md`).
@@ -2690,7 +2696,7 @@ Safe to run twice: every step repeats with the same result (S10). Each step prin
 5. **composer audit**: `composer audit --locked --no-interaction`. By default (`SQUIRE_COMPOSER_AUDIT=report`) a non-zero exit prints a warning and the release goes on; `fail` stops it, `skip` skips it.
 6. **PROCTOR gate**: see below. It runs before the frontend build and the migrations, so an enforced no-go stops the release before it touches the database.
 7. **frontend install and build**: skipped without a `package.json` or with `SQUIRE_NPM=skip`. With `package-lock.json` it runs `npm ci --prefer-offline` (with `--ignore-scripts` when `SQUIRE_NPM_IGNORE_SCRIPTS=1`); with `pnpm-lock.yaml` it runs `corepack pnpm install --frozen-lockfile`; with `yarn.lock` it runs Yarn through corepack, Yarn 1 as `corepack yarn install --frozen-lockfile --non-interactive` (with `--ignore-scripts`), and Yarn 2 or later (a lock with a `__metadata:` block) as `corepack yarn install --immutable` (with `--mode=skip-build`), which needs `"packageManager": "yarn@..."` in `package.json` and stops without it, because corepack would hand the lock to Yarn 1; with none of the three it fails, telling you to commit one or set `SQUIRE_NPM=skip` if the built assets are committed. The packages named in `SQUIRE_NPM_REBUILD` then run their own install scripts, and nothing else does (`npm rebuild`, `pnpm rebuild` or `yarn rebuild`; Yarn 1 has no rebuild of named packages, so npm rebuilds them in its `node_modules`). With npm older than 11.10 and a `min-release-age` line in `.npmrc`, it notes that this npm ignores the line (the lock file still decides what installs). It then runs the `build` script (or `SQUIRE_NPM_BUILD_SCRIPT`) when `package.json` defines it.
-8. **laravel migrate** (Laravel only): `php artisan migrate --force` when `SQUIRE_MIGRATE=1`.
+8. **laravel migrate** (Laravel only): when `SQUIRE_MIGRATE=1`. With `SQUIRE_MAINTENANCE=1` it first runs `php artisan down --retry=60`, so no request reaches the database while it changes; with `SQUIRE_BACKUP=1` it then dumps the database with `mysqldump` into `SQUIRE_BACKUP_DIR` (default `storage/squire/backups`) before anything touches it. Then `php artisan migrate --force`, and when maintenance mode is on, `php artisan up` afterwards (an EXIT trap runs `up` whenever `down` ran and `up` has not yet run, so a failed backup or migrate still brings the site up). A missing `mysqldump`, a missing `DB_*` variable or a non-zero exit from the dump stops the release before migrate, with the partial file removed. Only the dump's path and size are printed, never credentials.
 9. **laravel optimize** (Laravel only): `php artisan optimize` when `SQUIRE_ARTISAN_OPTIMIZE=1`. After this the config is cached and `.env` is no longer read, so `env()` works only inside `config/` (S16).
 10. **laravel restart long-lived processes** (Laravel only): skipped when `SQUIRE_ARTISAN_RESTART=0`. When `php artisan reload --help` succeeds it runs `php artisan reload`; otherwise it runs `php artisan queue:restart` and `php artisan schedule:interrupt`, each only when its own `--help` succeeds, and notes the skip when neither exists. A failing command is a warning naming the command and its exit code, and the release goes on. A worker that keeps running holds the old code in memory until it restarts, so the step sits after the caches are built and before the smoke test.
 11. **check Oracle (never fails the release)**: runs `php oracle-check.php` when the file exists, and notes a skip when it does not (the app does not use Oracle).
@@ -2712,9 +2718,13 @@ The release asks PROCTOR's deploy gate, `proctor gate`, for a go or no-go on thi
 
 The release also runs an Oracle connection check (`oracle-check.php`) after the migrations and before the smoke test. It is a report, never a gate: a finding prints in the deployment log and the release goes on. When the app does not use Oracle (no `ORACLE_*` settings) it prints nothing. It checks, in order, that the settings are present, that the host resolves, that the port answers within 3 seconds, that the `oci8` driver is loaded, and that the login works, stopping at the first failure so a bad port never costs a login attempt. Settings: `ORACLE_USERNAME`, `ORACLE_PASSWORD`, and either `ORACLE_TNS` (Easy Connect `host:port/service`, or a full `(DESCRIPTION=...)` descriptor) or `ORACLE_HOST`, `ORACLE_PORT` and `ORACLE_SERVICE_NAME`. Only setting names are ever printed, never values.
 
+### Rolling back a bad migration [#](https://squire.apps.wayne.edu/docs/guides/release-script.html#rolling-back-a-bad-migration)
+
+With `SQUIRE_BACKUP=1`, every Laravel release dumps the database before `migrate --force` into `SQUIRE_BACKUP_DIR` (default `storage/squire/backups`) as `pre-migrate-<UTC yyyymmddThhmmssZ>-<pid>.sql` (folder mode `700`, file mode `600`). To roll back a bad migration, restore the dump the release that introduced it took: `mysql --host="$DB_HOST" --port="${DB_PORT:-3306}" --user="$DB_USERNAME" "$DB_DATABASE" < storage/squire/backups/pre-migrate-....sql`, with the password in the environment (`MYSQL_PWD`), never on the command line. A dump restores data, not migration history, so a destructive migration (dropping or renaming a column) needs expand/contract instead: ship the new shape alongside the old one, move the code over, and drop the old shape in a later release, so a bad commit always has a dump and a compatible schema to come back to.
+
 ### Configuration [#](https://squire.apps.wayne.edu/docs/guides/release-script.html#configuration)
 
-Before the first step the script reads two sources: `./.env.squire` (the release options) and the secrets folder, `SQUIRE_SECRETS_DIR` (default `/run/secrets`), where each file named like a variable becomes that variable unless the environment already sets it. Only names are printed. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#secrets-files-at-run-time-never-in-a-layer).
+Before the first step the script reads two sources: `./.env.squire` (the release options) and the secrets folder, `SQUIRE_SECRETS_DIR` (default `/run/secrets`), where each file named like a variable becomes that variable unless the environment already sets it. Before `composer install` it also takes Composer credentials from that folder when `COMPOSER_AUTH` is not already in the environment: `composer-auth.json` as-is, or `github-oauth-token` wrapped as github-oauth JSON (a token holding characters outside `[A-Za-z0-9_.-]` is skipped with a warning). Only file names are printed, never values. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html#secrets-files-at-run-time-never-in-a-layer).
 
 Configuration is environment variables, all optional, or the same names in `./.env.squire` in the app root. On Citadel add that file as a configuration file (the configuration-files step after the wizard; the wizard has no environment field) and keep it out of git. A variable already in the environment wins over the file. Every option is listed at the top of `scripts/release.sh` and in [Configuration](https://squire.apps.wayne.edu/docs/reference/configuration.html).
 
@@ -3056,6 +3066,9 @@ All optional. On Citadel, add `./.env.squire` as a configuration file (the confi
 | `SQUIRE_NPM_BUILD_SCRIPT` | `build` | The `package.json` script to run. |
 | `SQUIRE_CACHE_DIR` | `.cache/squire` | Where Composer and npm keep their download caches between releases, inside the app folder so a Citadel Update keeps them; `off` leaves their defaults. |
 | `SQUIRE_MIGRATE` | `1` | Laravel: `migrate --force`. |
+| `SQUIRE_BACKUP` | `0` | Laravel: before `migrate --force`, dump the database with `mysqldump`, using `DB_HOST`, `DB_PORT` (default `3306`), `DB_DATABASE`, `DB_USERNAME` and `DB_PASSWORD` from the environment. The password reaches `mysqldump` only through `MYSQL_PWD`, never on the command line. A missing `mysqldump`, a missing variable or a non-zero exit stops the release before migrate, with any partial file removed. |
+| `SQUIRE_BACKUP_DIR` | `storage/squire/backups` | Where the pre-migrate dumps are written: `pre-migrate-<UTC yyyymmddThhmmssZ>-<pid>.sql`, folder mode `700`, file mode `600`. Only the path and size are printed. |
+| `SQUIRE_MAINTENANCE` | `0` | Laravel: while the backup and migrate run, take the site down (`down --retry=60`) and bring it back up after (`up`). An EXIT trap runs `up` whenever `down` ran and `up` has not yet run, so a failed backup or migrate still brings the site up. |
 | `SQUIRE_ARTISAN_OPTIMIZE` | `1` | Laravel: `optimize`. |
 | `SQUIRE_ARTISAN_RESTART` | `1` | Laravel: tell queue workers and `schedule:work` to restart on the new code (`reload`, or `queue:restart` and `schedule:interrupt`). Report only. |
 | `SQUIRE_PROCTOR` | `auto` | `auto`, `skip` or `enforce`. The release asks `proctor gate` for a go or no-go (`proctor check` on a PROCTOR without the gate). By default a no-go is a report and never stops the release; `enforce` makes a no-go stop it, before the frontend build and the migrations. |
@@ -3068,7 +3081,7 @@ All optional. On Citadel, add `./.env.squire` as a configuration file (the confi
 | `SQUIRE_SMOKE_URL` | `http://127.0.0.1:80/up` (Laravel), `/up.php` (raw and static) | Full URL. |
 | `SQUIRE_SMOKE_RETRIES` | `5` | Attempts. |
 | `SQUIRE_SMOKE_DELAY` | `2` | Seconds between attempts. |
-| `SQUIRE_SECRETS_DIR` | `/run/secrets` | A folder of secret files, read before the first step: each regular file named like a variable (`DB_PASSWORD`) becomes that variable, unless the environment already sets it. Only names are printed. The fallback entrypoint reads the same folder for Apache. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html). |
+| `SQUIRE_SECRETS_DIR` | `/run/secrets` | A folder of secret files, read before the first step: each regular file named like a variable (`DB_PASSWORD`) becomes that variable, unless the environment already sets it. Before `composer install`, `composer-auth.json` (used as-is) or `github-oauth-token` (wrapped as github-oauth JSON) become `COMPOSER_AUTH` when the environment does not already set it, so private packages install without credentials on the command line. Only names are printed. The fallback entrypoint reads the same folder for Apache. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html). |
 
 ### Front controller [#](https://squire.apps.wayne.edu/docs/reference/configuration.html#front-controller)
 
