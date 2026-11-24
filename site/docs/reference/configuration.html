@@ -145,6 +145,21 @@
 <td data-label="Meaning">Laravel: <code>migrate --force</code>.</td>
 </tr>
 <tr>
+<td data-label="Variable"><code>SQUIRE_BACKUP</code></td>
+<td data-label="Default"><code>0</code></td>
+<td data-label="Meaning">Laravel: before <code>migrate --force</code>, dump the database with <code>mysqldump</code>, using <code>DB_HOST</code>, <code>DB_PORT</code> (default <code>3306</code>), <code>DB_DATABASE</code>, <code>DB_USERNAME</code> and <code>DB_PASSWORD</code> from the environment. The password reaches <code>mysqldump</code> only through <code>MYSQL_PWD</code>, never on the command line. A missing <code>mysqldump</code>, a missing variable or a non-zero exit stops the release before migrate, with any partial file removed.</td>
+</tr>
+<tr>
+<td data-label="Variable"><code>SQUIRE_BACKUP_DIR</code></td>
+<td data-label="Default"><code>storage/<wbr>squire/<wbr>backups</code></td>
+<td data-label="Meaning">Where the pre-migrate dumps are written: <code>pre-migrate-&lt;UTC yyyymmddThhmmssZ&gt;-&lt;pid&gt;.sql</code>, folder mode <code>700</code>, file mode <code>600</code>. Only the path and size are printed.</td>
+</tr>
+<tr>
+<td data-label="Variable"><code>SQUIRE_MAINTENANCE</code></td>
+<td data-label="Default"><code>0</code></td>
+<td data-label="Meaning">Laravel: while the backup and migrate run, take the site down (<code>down --retry=60</code>) and bring it back up after (<code>up</code>). An EXIT trap runs <code>up</code> whenever <code>down</code> ran and <code>up</code> has not yet run, so a failed backup or migrate still brings the site up.</td>
+</tr>
+<tr>
 <td data-label="Variable"><code>SQUIRE_ARTISAN_OPTIMIZE</code></td>
 <td data-label="Default"><code>1</code></td>
 <td data-label="Meaning">Laravel: <code>optimize</code>.</td>
@@ -207,7 +222,7 @@
 <tr>
 <td data-label="Variable"><code>SQUIRE_SECRETS_DIR</code></td>
 <td data-label="Default"><code>/run/secrets</code></td>
-<td data-label="Meaning">A folder of secret files, read before the first step: each regular file named like a variable (<code>DB_PASSWORD</code>) becomes that variable, unless the environment already sets it. Only names are printed. The fallback entrypoint reads the same folder for Apache. See <a href="../guides/image-hardening.html">Image hardening</a>.</td>
+<td data-label="Meaning">A folder of secret files, read before the first step: each regular file named like a variable (<code>DB_PASSWORD</code>) becomes that variable, unless the environment already sets it. Before <code>composer install</code>, <code>composer-auth.<wbr>json</code> (used as-is) or <code>github-oauth-token</code> (wrapped as github-oauth JSON) become <code>COMPOSER_AUTH</code> when the environment does not already set it, so private packages install without credentials on the command line. Only names are printed. The fallback entrypoint reads the same folder for Apache. See <a href="../guides/image-hardening.html">Image hardening</a>.</td>
 </tr>
 </tbody>
 </table></div>

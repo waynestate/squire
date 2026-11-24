@@ -41,6 +41,9 @@ All optional. On Citadel, add `./.env.squire` as a configuration file (the confi
 | `SQUIRE_NPM_BUILD_SCRIPT` | `build` | The `package.json` script to run. |
 | `SQUIRE_CACHE_DIR` | `.cache/squire` | Where Composer and npm keep their download caches between releases, inside the app folder so a Citadel Update keeps them; `off` leaves their defaults. |
 | `SQUIRE_MIGRATE` | `1` | Laravel: `migrate --force`. |
+| `SQUIRE_BACKUP` | `0` | Laravel: before `migrate --force`, dump the database with `mysqldump`, using `DB_HOST`, `DB_PORT` (default `3306`), `DB_DATABASE`, `DB_USERNAME` and `DB_PASSWORD` from the environment. The password reaches `mysqldump` only through `MYSQL_PWD`, never on the command line. A missing `mysqldump`, a missing variable or a non-zero exit stops the release before migrate, with any partial file removed. |
+| `SQUIRE_BACKUP_DIR` | `storage/squire/backups` | Where the pre-migrate dumps are written: `pre-migrate-<UTC yyyymmddThhmmssZ>-<pid>.sql`, folder mode `700`, file mode `600`. Only the path and size are printed. |
+| `SQUIRE_MAINTENANCE` | `0` | Laravel: while the backup and migrate run, take the site down (`down --retry=60`) and bring it back up after (`up`). An EXIT trap runs `up` whenever `down` ran and `up` has not yet run, so a failed backup or migrate still brings the site up. |
 | `SQUIRE_ARTISAN_OPTIMIZE` | `1` | Laravel: `optimize`. |
 | `SQUIRE_ARTISAN_RESTART` | `1` | Laravel: tell queue workers and `schedule:work` to restart on the new code (`reload`, or `queue:restart` and `schedule:interrupt`). Report only. |
 | `SQUIRE_PROCTOR` | `auto` | `auto`, `skip` or `enforce`. The release asks `proctor gate` for a go or no-go (`proctor check` on a PROCTOR without the gate). By default a no-go is a report and never stops the release; `enforce` makes a no-go stop it, before the frontend build and the migrations. |
@@ -53,7 +56,7 @@ All optional. On Citadel, add `./.env.squire` as a configuration file (the confi
 | `SQUIRE_SMOKE_URL` | `http://127.0.0.1:80/up` (Laravel), `/up.php` (raw and static) | Full URL. |
 | `SQUIRE_SMOKE_RETRIES` | `5` | Attempts. |
 | `SQUIRE_SMOKE_DELAY` | `2` | Seconds between attempts. |
-| `SQUIRE_SECRETS_DIR` | `/run/secrets` | A folder of secret files, read before the first step: each regular file named like a variable (`DB_PASSWORD`) becomes that variable, unless the environment already sets it. Only names are printed. The fallback entrypoint reads the same folder for Apache. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html). |
+| `SQUIRE_SECRETS_DIR` | `/run/secrets` | A folder of secret files, read before the first step: each regular file named like a variable (`DB_PASSWORD`) becomes that variable, unless the environment already sets it. Before `composer install`, `composer-auth.json` (used as-is) or `github-oauth-token` (wrapped as github-oauth JSON) become `COMPOSER_AUTH` when the environment does not already set it, so private packages install without credentials on the command line. Only names are printed. The fallback entrypoint reads the same folder for Apache. See [Image hardening](https://squire.apps.wayne.edu/docs/guides/image-hardening.html). |
 
 ## Front controller [#](https://squire.apps.wayne.edu/docs/reference/configuration.html#front-controller)
 
