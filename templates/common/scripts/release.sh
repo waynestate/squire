@@ -32,6 +32,9 @@
 #   SQUIRE_NPM_BUILD_SCRIPT=build    the package.json script to run after install
 #   SQUIRE_CACHE_DIR=.cache/squire   where Composer and npm keep their download caches between releases (off: their defaults)
 #   SQUIRE_MIGRATE=1                 Laravel: run `migrate --force`
+#   SQUIRE_BACKUP=0                Laravel: before migrate, dump the database with mysqldump (DB_HOST, DB_PORT, DB_DATABASE and DB_USERNAME from the environment)
+#   SQUIRE_BACKUP_DIR=              folder for the pre-migrate dumps (default: storage/squire/backups)
+#   SQUIRE_MAINTENANCE=0           Laravel: while backup and migrate run, take the site down (--retry=60) and bring it back up after
 #   SQUIRE_ARTISAN_OPTIMIZE=1        Laravel: run `optimize` after the environment is in place (S16)
 #   SQUIRE_ARTISAN_RESTART=1         Laravel: tell queue workers and schedule:work to restart on the new code (reload, or queue:restart and schedule:interrupt)
 #   SQUIRE_PROCTOR=auto              auto | skip | enforce (report only by default; enforce stops the release on a no-go)
@@ -53,6 +56,9 @@ set -o errtrace
 SQUIRE_STEP_NO=0
 SQUIRE_STEP_NAME="start"
 SQUIRE_STARTED_AT="$(date +%s)"
+# Internal state for the maintenance-mode EXIT trap: down ran, up has not yet run.
+SQUIRE_MAINTENANCE_DOWN=0
+SQUIRE_MAINTENANCE_UP=0
 
 step() {
     SQUIRE_STEP_NO=$((SQUIRE_STEP_NO + 1))
@@ -78,6 +84,17 @@ on_error() {
         "$SQUIRE_STEP_NO" "$SQUIRE_STEP_NAME" "$1" "$2" >&2
 }
 trap 'on_error $? $LINENO' ERR
+
+# Maintenance mode composes with the ERR trap instead of replacing it: when migrate or the backup fails, the ERR trap
+# reports the failure and this trap brings the site back up, so a failed release never leaves it down. The original
+# exit status stands; nothing in here may exit.
+on_exit() {
+    if [ "$SQUIRE_MAINTENANCE_DOWN" = "1" ] && [ "$SQUIRE_MAINTENANCE_UP" = "0" ]; then
+        note "bringing the site back up (php artisan up)"
+        php artisan up || warn "php artisan up failed; the site may still be down"
+    fi
+}
+trap on_exit EXIT
 
 # squire-secrets: begin
 # Secrets arrive as files at run time, never in an image layer. Each regular file in SQUIRE_SECRETS_DIR
@@ -116,6 +133,79 @@ squire_load_secrets() {
 }
 # squire-secrets: end
 
+# --- pre-migrate backup ----------------------------------------------------------------------------------------------
+
+# SQUIRE_BACKUP=1: a mysqldump of the database before migrate runs, so a bad migration can be rolled back. The
+# password reaches mysqldump only through MYSQL_PWD, never on the command line and never printed. A missing
+# mysqldump, a missing DB variable or a non-zero exit stops the release before migrate, with the partial file
+# removed. Only the path and size of the dump are printed.
+squire_backup_database() {
+    local dir="${SQUIRE_BACKUP_DIR:-storage/squire/backups}" host port database user password file status old_umask
+    host="${DB_HOST:-}"
+    port="${DB_PORT:-3306}"
+    database="${DB_DATABASE:-}"
+    user="${DB_USERNAME:-}"
+    password="${DB_PASSWORD:-}"
+    if [ -z "$host" ] || [ -z "$database" ] || [ -z "$user" ]; then
+        fail "SQUIRE_BACKUP=1 needs DB_HOST, DB_DATABASE and DB_USERNAME in the environment"
+    fi
+    if ! command -v mysqldump >/dev/null 2>&1; then
+        fail "mysqldump not found on PATH; cannot take the pre-migrate backup"
+    fi
+    file="$dir/pre-migrate-$(date -u +%Y%m%dT%H%M%SZ)-$$.sql"
+    old_umask="$(umask)"
+    umask 077
+    mkdir -p "$dir"
+    chmod 700 "$dir"
+    status=0
+    if [ -n "$password" ]; then
+        MYSQL_PWD="$password" mysqldump --host="$host" --port="$port" --user="$user" "$database" >"$file" || status=$?
+    else
+        mysqldump --host="$host" --port="$port" --user="$user" "$database" >"$file" || status=$?
+    fi
+    umask "$old_umask"
+    if [ "$status" -ne 0 ]; then
+        rm -f "$file"
+        fail "mysqldump exited $status; the pre-migrate backup was not taken and the release stops before migrate"
+    fi
+    chmod 600 "$file"
+    note "pre-migrate backup: $file ($(wc -c <"$file") bytes)"
+}
+
+# --- composer credentials --------------------------------------------------------------------------------------------
+
+# Private packages need credentials at composer install time. A COMPOSER_AUTH already in the environment always wins.
+# Otherwise: $SQUIRE_SECRETS_DIR/composer-auth.json as-is, or github-oauth-token wrapped as github-oauth JSON. Only
+# the file name is ever printed, never the value.
+squire_load_composer_auth() {
+    local dir="${SQUIRE_SECRETS_DIR:-/run/secrets}" file token
+    if [ -n "${COMPOSER_AUTH+x}" ]; then
+        return 0
+    fi
+    file="$dir/composer-auth.json"
+    if [ -f "$file" ] && [ -r "$file" ]; then
+        export COMPOSER_AUTH="$(cat "$file"; printf x)"
+        COMPOSER_AUTH="${COMPOSER_AUTH%x}"
+        COMPOSER_AUTH="${COMPOSER_AUTH%$'\n'}"
+        note "composer credentials from $file"
+        return 0
+    fi
+    file="$dir/github-oauth-token"
+    if [ -f "$file" ] && [ -r "$file" ]; then
+        token="$(cat "$file"; printf x)"
+        token="${token%x}"
+        token="${token%$'\n'}"
+        token="${token%$'\r'}"
+        if [[ "$token" =~ ^[A-Za-z0-9_.-]+$ ]]; then
+            export COMPOSER_AUTH="{\"github-oauth\":{\"github.com\":\"$token\"}}"
+            note "composer credentials from $file"
+        else
+            warn "skipping $file: the token holds characters outside [A-Za-z0-9_.-]"
+        fi
+    fi
+    return 0
+}
+
 # --- settings file --------------------------------------------------------------------------------------------------
 
 # Citadel has no environment field, so release options reach this script as a configuration file it writes into the
@@ -134,7 +224,7 @@ squire_load_settings() {
         case "$key" in
             SQUIRE_FRAMEWORK | SQUIRE_ALLOW_ROOT | SQUIRE_REQUIRE_ENV | SQUIRE_WRITABLE_DIRS | \
                 SQUIRE_COMPOSER_AUDIT | SQUIRE_NPM | SQUIRE_NPM_IGNORE_SCRIPTS | SQUIRE_NPM_REBUILD | SQUIRE_NPM_BUILD_SCRIPT | SQUIRE_CACHE_DIR | \
-                SQUIRE_MIGRATE | SQUIRE_ARTISAN_OPTIMIZE | SQUIRE_ARTISAN_RESTART | SQUIRE_PROCTOR | SQUIRE_PROCTOR_BIN | SQUIRE_PROCTOR_FETCH | \
+                SQUIRE_MIGRATE | SQUIRE_BACKUP | SQUIRE_BACKUP_DIR | SQUIRE_MAINTENANCE | SQUIRE_ARTISAN_OPTIMIZE | SQUIRE_ARTISAN_RESTART | SQUIRE_PROCTOR | SQUIRE_PROCTOR_BIN | SQUIRE_PROCTOR_FETCH | \
                 SQUIRE_PROCTOR_POLICY | SQUIRE_PROCTOR_RECORD_DIR | SQUIRE_PHP_RUNTIME | SQUIRE_SMOKE | SQUIRE_SMOKE_URL | SQUIRE_SMOKE_RETRIES | SQUIRE_SMOKE_DELAY | \
                 SQUIRE_SECRETS_DIR) ;;
             *) continue ;;
@@ -171,6 +261,8 @@ squire_load_secrets
 : "${SQUIRE_NPM_BUILD_SCRIPT:=build}"
 : "${SQUIRE_CACHE_DIR:=.cache/squire}"
 : "${SQUIRE_MIGRATE:=1}"
+: "${SQUIRE_BACKUP:=0}"
+: "${SQUIRE_MAINTENANCE:=0}"
 : "${SQUIRE_ARTISAN_OPTIMIZE:=1}"
 : "${SQUIRE_ARTISAN_RESTART:=1}"
 : "${SQUIRE_PROCTOR:=auto}"
@@ -261,6 +353,14 @@ case "$SQUIRE_ARTISAN_RESTART" in
     0 | 1) ;;
     *) fail "SQUIRE_ARTISAN_RESTART must be 0 or 1; got '$SQUIRE_ARTISAN_RESTART'" ;;
 esac
+case "$SQUIRE_BACKUP" in
+    0 | 1) ;;
+    *) fail "SQUIRE_BACKUP must be 0 or 1; got '$SQUIRE_BACKUP'" ;;
+esac
+case "$SQUIRE_MAINTENANCE" in
+    0 | 1) ;;
+    *) fail "SQUIRE_MAINTENANCE must be 0 or 1; got '$SQUIRE_MAINTENANCE'" ;;
+esac
 note "framework: $framework"
 
 require_env="$SQUIRE_REQUIRE_ENV"
@@ -329,6 +429,9 @@ else
     note "composer cache: $COMPOSER_CACHE_DIR"
     note "npm cache: $npm_config_cache"
 fi
+
+# After the secrets are loaded and before composer runs: credentials for private packages, when the app provides them.
+squire_load_composer_auth
 
 step "composer install from the lock file, without dev packages"
 export COMPOSER_NO_INTERACTION=1
@@ -615,7 +718,20 @@ fi
 if [ "$framework" = "laravel" ]; then
     step "laravel migrate"
     if [ "$SQUIRE_MIGRATE" = "1" ]; then
+        if [ "$SQUIRE_MAINTENANCE" = "1" ]; then
+            note "taking the site down (php artisan down --retry=60)"
+            php artisan down --retry=60
+            SQUIRE_MAINTENANCE_DOWN=1
+        fi
+        if [ "$SQUIRE_BACKUP" = "1" ]; then
+            squire_backup_database
+        fi
         php artisan migrate --force
+        if [ "$SQUIRE_MAINTENANCE" = "1" ]; then
+            note "bringing the site back up (php artisan up)"
+            php artisan up
+            SQUIRE_MAINTENANCE_UP=1
+        fi
     else
         note "skipped (SQUIRE_MIGRATE=0)"
     fi
