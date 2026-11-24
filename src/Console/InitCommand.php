@@ -30,7 +30,7 @@ final class InitCommand extends Command
             ->addOption('target', null, InputOption::VALUE_REQUIRED, 'raw, laravel or static (default: the target recorded in .squire.json, else laravel when an artisan file exists; static must be asked for).')
             ->addOption('only', null, InputOption::VALUE_REQUIRED, 'Comma-separated groups to write: release, images (opt-in: the Citadel mirror, the fallback base and the portable image). (default: the groups recorded in .squire.json, else release)')
             ->addOption('php', null, InputOption::VALUE_REQUIRED, 'Citadel PHP image line, such as 8.5r3 (default: the line in .squire.json, else 8.5r3 for a new app)')
-            ->addOption('check', null, InputOption::VALUE_NONE, 'Write nothing; report files that are missing, outdated or edited. Exit 1 on drift.')
+            ->addOption('check', null, InputOption::VALUE_NONE, 'Write nothing; report files that are missing, outdated or edited, and a deploy layer whose composer.json has no name or a waynestate/ name (D-171: it must be named app/deploy). Exit 1 on drift.')
             ->addOption('force', null, InputOption::VALUE_NONE, 'Overwrite files that were edited or that Squire did not write.');
     }
 
