@@ -12,6 +12,10 @@ Versioning once 1.0 is out.
 - Added: `SQUIRE_MAINTENANCE=1` (new release option, default off) runs `php artisan down --retry=60` before the backup and migrate and `php artisan up` after them; an EXIT trap runs `up` whenever `down` ran and `up` has not yet run, so a failed backup or migrate still brings the site up.
 - Added: when `COMPOSER_AUTH` is not in the environment, the release script now takes Composer credentials from `SQUIRE_SECRETS_DIR` (default `/run/secrets`): `composer-auth.json` as-is, or `github-oauth-token` wrapped as github-oauth JSON (a token holding characters outside `[A-Za-z0-9_.-]` is skipped with a warning that names only the file). Only file names are printed, never values; a `COMPOSER_AUTH` already in the environment always wins.
 
+### Changed
+
+- Changed: CI follows D-176 and pins Preflight 0.13.0 (axe-core 4.14.1 in the a11y checker copy; the GitHub workflow moves from 0.9.0). A push runs the fast tier (composer ci, the audits, PROCTOR, secret detection, the WayneUI copies check, ShellCheck, PSScriptAnalyzer, the JS tests); the full tier (PHP matrix and advisory PHP, browser a11y) runs nightly, on tags and on manual runs, and the Oracle image and release jobs are never cancelled. Branch pipelines only, so an open MR no longer doubles a push, and a new commit cancels the pipeline it replaces.
+
 ## 0.12.2 (2026-11-22)
 
 ### Changed
