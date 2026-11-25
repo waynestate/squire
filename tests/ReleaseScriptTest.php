@@ -846,7 +846,7 @@ final class ReleaseScriptTest extends SquireTestCase
         // A github-oauth-token is wrapped as github-oauth JSON, trailing CR/LF trimmed.
         file_put_contents($this->log, '');
         $secrets = $this->tempDir();
-        file_put_contents($secrets . '/github-oauth-token', "ghp_abc123.DEF-456._x\r\n");
+        file_put_contents($secrets . '/github-oauth-token', "ghp_abc123.DEF-456._x\r\n"); // gitleaks:allow (fake token fixture for the github-oauth wrapping test)
         $app = $this->initializedApp();
         $this->stub('composer', $composerStub);
         $result = $this->exec($app, 'scripts/release.sh', ['SQUIRE_SECRETS_DIR' => $secrets]);
