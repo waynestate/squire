@@ -11,7 +11,7 @@ permissions:
 jobs:
   ci:
     # Pinned to a Preflight release tag, never a branch or ~latest. Bump with each Preflight release.
-    uses: waynestate/preflight/.github/workflows/php-package.yml@fb73b538f3980292119b5b306ff64383d760a214 # 0.9.0
+    uses: waynestate/preflight/.github/workflows/php-package.yml@80ff4e366d6d7af1b95c29c7d4303b4cb90a863c # 0.13.0
     with:
       php-versions: '["8.3","8.4","8.5"]'
       ci-command: composer ci
